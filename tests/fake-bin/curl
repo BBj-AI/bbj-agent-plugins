@@ -1,0 +1,9 @@
+#!/bin/sh
+# Fake curl for the plugin tests (plan 19-04). Appends the arguments of each call, one per
+# line, followed by a CALL separator, to $FAKE_CURL_LOG, and exits 7 (connection refused).
+# It never touches the network and never reads stdin.
+{
+  for a in "$@"; do printf '%s\n' "$a"; done
+  echo CALL
+} >> "${FAKE_CURL_LOG:-/dev/null}"
+exit 7
