@@ -40,6 +40,9 @@
 # Codex payload shape is documentation-derived (MEDIUM) and stays unverified until it is
 # captured on a machine with Codex.
 #
+# A path that is itself a symlink is skipped silently (a link to another file must not make
+# the hook read or send that file); the same applies to every path a patch names.
+#
 # stdout stays empty and the exit code is only ever 0 or 2. There is deliberately no
 # "set -e": every failure path ends in an explicit "exit 0".
 #
@@ -293,6 +296,9 @@ check_file() {
     *) return 0 ;;
   esac
   [ -f "$file" ] && [ -r "$file" ] || return 0
+  # a file that is itself a symlink is not checked: a *.bbj link to another file would hand
+  # that file's lines back as compiler feedback (or post them to bbj-ls in tier 2)
+  [ -L "$file" ] && return 0
 
   # Owner decision 2026-10-08 (plan 19-04 Task 2, auto-selected "skip-config"; one line to
   # reverse): a basename matching config*.bbx, any case, is BBj configuration, not a program;
