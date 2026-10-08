@@ -208,6 +208,7 @@ if [ "$foreign" = 1 ]; then
   printf '%s\n' '[mcp_servers.bbj-docs]' "url = \"$docs_url\"" "$KEY_LINE"
   pending=1
 elif ! has_table; then
+  # shellcheck disable=SC2094  # the group reads $config (its last byte) before the append writes it
   {
     if [ -s "$config" ]; then
       [ -z "$(tail -c 1 "$config")" ] || printf '\n'
@@ -222,6 +223,7 @@ elif [ "$need_change" = 0 ]; then
 fi
 if has_table && [ "$(key_state)" = missing ]; then
   tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
+  # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
   if awk -v key="$KEY_LINE" '
       { print }
       /^\[mcp_servers\.("bbj-docs"|bbj-docs)\][ \t\r]*(#.*)?$/ && !done { print key; done = 1 }

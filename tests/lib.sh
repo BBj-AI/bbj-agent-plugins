@@ -88,5 +88,6 @@ codex_payload() {
 run_check() {
   printf '%s' "$1" > "$WORK/payload"
   $SHELL_UNDER_TEST "$SCRIPT" < "$WORK/payload" > "$WORK/stdout" 2> "$WORK/stderr"
+  # shellcheck disable=SC2034  # RC is read by the test that sourced this file
   RC=$?
 }

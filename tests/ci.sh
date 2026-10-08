@@ -9,10 +9,10 @@
 #                        discovery, exit contract, tier-2 fake, Codex parsing, installer,
 #                        layout, skills hash, install pages, CI guards)
 #   2. claude plugin validate --strict on the marketplace root, plugins/bbj, plugins/bbj-local
-#   3. shellcheck -s sh over the shipped and test shell scripts (skip when shellcheck is absent)
+#   3. shellcheck -s sh over the shipped and test shell scripts
 #
-# CI=true makes a missing claude CLI a failure: public CI must not go green without the
-# strict validation. Outside CI the same case is a skip.
+# CI=true makes a missing claude CLI or a missing shellcheck a failure: public CI must not go
+# green without the strict validation or the lint gate. Outside CI the same cases are skips.
 # Exit 1 when run.sh failed or any gate here failed. Ends with a "CI SUMMARY:" line.
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd) || exit 1
@@ -83,6 +83,8 @@ if command -v shellcheck > /dev/null 2>&1; then
   else
     gate ci_shellcheck FAIL "shellcheck reported findings"
   fi
+elif [ "${CI:-}" = true ]; then
+  gate ci_shellcheck FAIL "shellcheck missing; the lint gate is mandatory in CI"
 else
   gate ci_shellcheck skip "shellcheck is not installed on this host"
 fi

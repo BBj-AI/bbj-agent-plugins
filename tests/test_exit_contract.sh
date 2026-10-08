@@ -15,6 +15,7 @@ BBJ_HOME=$WORK/home
 FAKE_LOG=$WORK/calls.log
 export BBJ_HOME FAKE_LOG
 unset FAKE_OUT FAKE_STDOUT FAKE_EXIT
+# shellcheck disable=SC2034  # kept for the cases that restore PATH
 ORIGPATH=$PATH
 
 NL='
@@ -79,6 +80,7 @@ run_shell() {
   SHELL_UNDER_TEST="$_abs${2:+ $2}"
   printf '%s' "$_payload" > "$WORK/payload"
   _save=$PATH
+  # shellcheck disable=SC2123  # an empty PATH is the case under test
   (cd "$WORK/emptycwd" && PATH= && export PATH && $SHELL_UNDER_TEST "$SCRIPT" < "$WORK/payload" > "$WORK/stdout" 2> "$WORK/stderr")
   RC=$?
   PATH=$_save
@@ -111,6 +113,7 @@ run_shell() {
   else
     gate "glob_newline_not_passed_$_sn" FAIL "calls $calls_before -> $calls_after"
   fi
+  # shellcheck disable=SC2143  # the find output is filtered, not just tested for a match
   if [ -z "$(find "$WORK" -name 'PWNED*' -print 2> /dev/null | grep -v '/proj/x')" ] && [ ! -e "$WORK/PWNED" ] && [ ! -e "$WORK/PWNED2" ] && [ ! -e PWNED ] && [ ! -e PWNED2 ]; then
     gate "no_marker_$_sn" ok "no PWNED marker file"
   else
@@ -119,6 +122,7 @@ run_shell() {
 }
 
 for sh_cmd in dash bash "busybox sh"; do
+  # shellcheck disable=SC2086  # "busybox sh" is split into words on purpose
   set -- $sh_cmd
   if command -v "$1" > /dev/null 2>&1 && { [ "$1" != busybox ] || busybox sh -c : > /dev/null 2>&1; }; then
     run_shell "$1" "$@"
@@ -132,6 +136,7 @@ REAL=${BBJ_TEST_HOME:-/opt/bbx}
 if [ -x "$REAL/bin/bbjcpl" ]; then
   BBJ_HOME=$REAL
   export BBJ_HOME
+  # shellcheck disable=SC2209  # the value is the shell name, not a command to run here
   SHELL_UNDER_TEST=sh
   for n in 'x$(touch PWNED).bbj' 'x`touch PWNED2`.bbj'; do
     printf 'print "a"   rem same line\n' > "$WORK/proj/$n"

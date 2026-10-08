@@ -473,4 +473,5 @@ main() {
 }
 
 main
+# shellcheck disable=SC2317  # main always exits; this line is the fail-safe if it ever returns
 exit 0

@@ -236,6 +236,7 @@ accepted() {
   fi
 }
 accepted http://localhost:5009/mcp localhost
+# shellcheck disable=SC2102  # [::1] is a literal IPv6 host, not a character range
 accepted http://[::1]:5009/mcp ipv6
 accepted http://LOCALHOST:5009/mcp localhost_upper
 accepted http://127.0.0.1:5009/mcp ipv4

@@ -126,6 +126,7 @@ fi
 # ---- Codex page ----
 if [ -f "$CODEX_PAGE" ]; then
   n=codex
+  # shellcheck disable=SC2088  # the tilde is literal text searched for in the page
   for p in \
     'UNRUN' \
     'install-codex.sh' \
