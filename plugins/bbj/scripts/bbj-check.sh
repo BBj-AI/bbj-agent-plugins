@@ -126,7 +126,39 @@ no_tier1_route() {
 # text after it, all = the whole input. Prints nothing when the key is absent, the string
 # is not terminated, or the value holds a \u escape and uni is not set (the caller skips the
 # file); with -v uni=1 (tier 2, run under LC_ALL=C) \uXXXX is decoded to UTF-8 bytes.
-JGET_AWK='
+UNESC_AWK='
+function unesc(body,    n, out, i, c, d, hex, cp, k) {
+  n = length(body); out = ""; i = 1; closed = 0; bad = 0
+  while (i <= n) {
+    c = substr(body, i, 1)
+    if (c == "\"") { closed = 1; break }
+    if (c != "\\") { out = out c; i++; continue }
+    i++
+    d = substr(body, i, 1)
+    if (d == "n") out = out "\n"
+    else if (d == "t") out = out "\t"
+    else if (d == "r") out = out "\r"
+    else if (d == "b") out = out "\b"
+    else if (d == "f") out = out "\f"
+    else if (d == "u") {
+      if (!uni) { bad = 1; return "" }
+      hex = substr(body, i + 1, 4)
+      if (hex !~ /^[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]$/) { bad = 1; return "" }
+      cp = 0
+      for (k = 1; k <= 4; k++) cp = cp * 16 + index("0123456789abcdef", tolower(substr(hex, k, 1))) - 1
+      i += 4
+      if (cp < 32) out = out " "
+      else if (cp < 128) out = out sprintf("%c", cp)
+      else if (cp < 2048) out = out sprintf("%c%c", 192 + int(cp / 64), 128 + cp % 64)
+      else if (cp >= 55296 && cp < 57344) out = out "?"
+      else out = out sprintf("%c%c%c", 224 + int(cp / 4096), 128 + int(cp / 64) % 64, 128 + cp % 64)
+    }
+    else out = out d
+    i++
+  }
+  return out
+}'
+JGET_AWK="$UNESC_AWK"'
 { s = s $0 "\n" }
 END {
   p = index(s, "\"tool_input\"")
@@ -137,40 +169,17 @@ END {
   while ((p = index(s, tag)) > 0) {
     s = substr(s, p + length(tag))
     if (match(s, /^[ \t\r\n]*:[ \t\r\n]*"/)) {
-      body = substr(s, RLENGTH + 1)
-      n = length(body); out = ""; i = 1; closed = 0
-      while (i <= n) {
-        c = substr(body, i, 1)
-        if (c == "\"") { closed = 1; break }
-        if (c != "\\") { out = out c; i++; continue }
-        i++
-        d = substr(body, i, 1)
-        if (d == "n") out = out "\n"
-        else if (d == "t") out = out "\t"
-        else if (d == "r") out = out "\r"
-        else if (d == "b") out = out "\b"
-        else if (d == "f") out = out "\f"
-        else if (d == "u") {
-          if (!uni) exit
-          hex = substr(body, i + 1, 4)
-          if (hex !~ /^[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]$/) exit
-          cp = 0
-          for (k = 1; k <= 4; k++) cp = cp * 16 + index("0123456789abcdef", tolower(substr(hex, k, 1))) - 1
-          i += 4
-          if (cp < 32) out = out " "
-          else if (cp < 128) out = out sprintf("%c", cp)
-          else if (cp < 2048) out = out sprintf("%c%c", 192 + int(cp / 64), 128 + cp % 64)
-          else if (cp >= 55296 && cp < 57344) out = out "?"
-          else out = out sprintf("%c%c%c", 224 + int(cp / 4096), 128 + int(cp / 64) % 64, 128 + cp % 64)
-        }
-        else out = out d
-        i++
-      }
-      if (closed) printf "%s", out
+      v = unesc(substr(s, RLENGTH + 1))
+      if (closed && !bad) printf "%s", v
       exit
     }
   }
 }'
+# PATHS_AWK: each input line is the raw JSON text of one patch header path (it ends at the
+# line end or at the closing quote of the string); prints the decoded paths, one per line.
+# A line holding a \u escape that cannot be decoded is dropped.
+PATHS_AWK="$UNESC_AWK"'
+{ v = unesc($0); if (!bad) print v }'
 
 jget() {
   awk -v region="$1" -v key="$2" "$JGET_AWK"
@@ -376,11 +385,20 @@ codex_patch() {
   esac
   base=${cwd%/}
 
-  # the patch text: the whole payload is read (tier-2 style reader, \uXXXX decoded)
-  patch=$(printf '%s' "$input" | LC_ALL=C awk -v region=post -v key=command -v uni=1 "$JGET_AWK")
-  [ -n "$patch" ] || exit 0
-  paths=$(printf '%s\n' "$patch" | LC_ALL=C tr -d '\r' \
-    | LC_ALL=C sed -n -e 's/^\*\*\* Add File: //p' -e 's/^\*\*\* Update File: //p' -e 's/^\*\*\* Move to: //p')
+  # the header paths of the patch, extracted in linear time (WR-05): the raw JSON is split at
+  # its \n escapes with sed (an escaped backslash is protected first, so a "+" content line
+  # that holds a backslash-n text never forges a header), only the "*** Add File: " style
+  # lines are kept and only those few paths are unescaped; the patch text itself is never
+  # decoded, so a patch of any size is read in one pass
+  _ph=$(printf '\001')
+  paths=$(printf '%s' "$input" | LC_ALL=C sed -e "s/\\\\\\\\/$_ph/g" \
+      -e 's/"command"[[:space:]]*:[[:space:]]*"/&\
+/' -e 's/\\n/\
+/g' \
+    | LC_ALL=C sed -n -e 's/^\*\*\* Add File: //p' -e 's/^\*\*\* Update File: //p' -e 's/^\*\*\* Move to: //p' \
+    | LC_ALL=C sed -e "s/$_ph/\\\\\\\\/g" \
+    | LC_ALL=C awk -v uni=1 "$PATHS_AWK" | LC_ALL=C tr -d '\r')
+  [ -n "$paths" ] || exit 0
 
   nl='
 '
