@@ -144,13 +144,15 @@ config=$codex_home/config.toml
 
 # pre-flight (WR-02): create or check every destination before the first write, so a refusal
 # here changes nothing in config.toml, hooks.json or the skills
+script_dst=$codex_home/bbj/bbj-check.sh
+script_dir=$(dirname "$script_dst")
 mkdir -p "$skills_dir" || refuse "cannot create $skills_dir"
-mkdir -p "$codex_home/bbj" || refuse "cannot create $codex_home/bbj"
-for d in "$codex_home" "$codex_home/bbj" "$skills_dir"; do
+mkdir -p "$script_dir" || refuse "cannot create $script_dir"
+for d in "$codex_home" "$script_dir" "$skills_dir"; do
   [ -d "$d" ] && [ -w "$d" ] || refuse "$d is not a writable directory"
 done
 [ ! -e "$config" ] || [ -w "$config" ] || refuse "$config is not writable"
-[ ! -e "$codex_home/bbj/bbj-check.sh" ] || [ -w "$codex_home/bbj/bbj-check.sh" ] || refuse "$codex_home/bbj/bbj-check.sh is not writable"
+[ ! -e "$script_dst" ] || [ -w "$script_dst" ] || refuse "$script_dst is not writable"
 
 # ---- 1. the docs server: registration and the approval mode ----
 # has_table: the bbj-docs table is in config.toml (plain or quoted key)
@@ -257,8 +259,6 @@ for s in bbj-programming bbj-web-programming; do
 done
 
 # ---- 3. the check script, at a stable path outside any plugin cache ----
-script_dst=$codex_home/bbj/bbj-check.sh
-script_dir=$(dirname "$script_dst")
 mkdir -p "$script_dir" || refuse "cannot create $script_dir"
 if cmp -s "$src_script" "$script_dst"; then
   say "check script: $script_dst is current; nothing changed"
