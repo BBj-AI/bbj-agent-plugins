@@ -11,6 +11,8 @@
 #                                bbjcpl reported N error(s) in <file>:
 #                                <compiler lines, verbatim, at most 40>
 #                                (M more line(s) not shown)         only when N > 40
+#                                Not counted: K unresolved use target line(s) ("Cannot find
+#                                program").                          only when K > 0 (D-11)
 #                                bbj_lookup gives exact syntax for a named symbol.
 #
 # Tier 2 (plan 19-04, D-14): when no usable compiler exists, the script asks the running
@@ -23,6 +25,10 @@
 # header names the route:
 #                                bbj-local reported N error(s) in <file>:
 # With neither a compiler nor a reachable loopback server the hook exits 0, silently.
+#
+# N counts the compiler lines except unresolved uses without a path ("Cannot find program"),
+# which are demoted to the trailing note and never cause exit 2 on their own (D-11). A file
+# whose basename matches config*.bbx is configuration and is not checked (owner decision).
 #
 # stdout stays empty and the exit code is only ever 0 or 2. There is deliberately no
 # "set -e": every failure path ends in an explicit "exit 0".
@@ -46,14 +52,16 @@
 # Windows paths and the -P list is joined with ";".
 # Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname.
 
-# report ROUTE ERRS: writes the D-12 feedback for the error lines ERRS to stderr (header
-# naming ROUTE, at most 40 lines, an overflow line, the bbj_lookup line) and exits 2.
+# report ROUTE ERRS [K]: writes the D-12 feedback for the error lines ERRS to stderr (header
+# naming ROUTE, at most 40 lines, an overflow line, a "Not counted" line when K > 0 unresolved
+# use lines were demoted, the bbj_lookup line) and exits 2.
 report() {
   _n=$(printf '%s\n' "$2" | awk 'END { print NR }')
   {
     printf '%s reported %s error(s) in %s:\n' "$1" "$_n" "$file"
     printf '%s\n' "$2" | head -n 40
     if [ "$_n" -gt 40 ]; then printf '(%s more line(s) not shown)\n' "$((_n - 40))"; fi
+    if [ "${3:-0}" -gt 0 ]; then printf 'Not counted: %s unresolved use target line(s) ("Cannot find program").\n' "$3"; fi
     printf 'bbj_lookup gives exact syntax for a named symbol.\n'
   } >&2
   exit 2
@@ -285,6 +293,13 @@ main() {
   esac
   [ -f "$file" ] && [ -r "$file" ] || exit 0
 
+  # Owner decision 2026-10-08 (plan 19-04 Task 2, auto-selected "skip-config"; one line to
+  # reverse): a basename matching config*.bbx, any case, is BBj configuration, not a program;
+  # the compiler reports an error on every line of it. Skipped before any route is tried.
+  case "${file##*/}" in
+    [cC][oO][nN][fF][iI][gG]*.[bB][bB][xX]) exit 0 ;;
+  esac
+
   discover || no_tier1_route
 
   # -P list: the file's directory, the workspace root, the payload cwd; deduplicated,
@@ -327,7 +342,12 @@ main() {
     if [ -n "$out" ] || [ "$rc" -ge 126 ]; then no_tier1_route; fi
     exit 0
   fi
-  report bbjcpl "$errs"
+  # D-11: an unresolved use without a path ("Cannot find program") is demoted to a trailing
+  # note and never causes exit 2 on its own; N counts only the other error lines.
+  counted=$(printf '%s\n' "$errs" | grep -v -F 'Cannot find program')
+  [ -n "$counted" ] || exit 0
+  demoted=$(printf '%s\n' "$errs" | grep -c -F 'Cannot find program')
+  report bbjcpl "$counted" "$demoted"
 }
 
 main
