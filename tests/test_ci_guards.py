@@ -2,8 +2,9 @@
 
 Locks: every workflow action is pinned by a full commit SHA with a version comment, the CI
 token stays read-only with no secret and no privileged trigger, every checkout drops the
-persisted credentials, the claude CLI is installed at an exact X.Y.Z version, the workflow
-calls tests/ci.sh, and Dependabot watches github-actions.
+persisted credentials, the claude CLI is installed from a committed lockfile at an exact
+X.Y.Z version with lifecycle scripts off, the workflow calls tests/ci.sh, and Dependabot
+watches github-actions.
 
 stdlib only, run by tests/run.sh with python3 -I. YAML is read by line scanning, not with a
 YAML library. Prints one line per rule,
@@ -11,6 +12,7 @@ YAML library. Prints one line per rule,
 and exits 1 when any gate failed. An optional argv[1] is the repository root to check
 (default: the parent of the tests directory); the mutation check points it at a copy.
 """
+import json
 import os
 import re
 import sys
@@ -29,8 +31,7 @@ SECRET_REFERENCE = "secrets" + "."
 USES = re.compile(r"^\s*-?\s*uses:\s*(?P<ref>\S+)(?P<rest>.*)$")
 PINNED = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_./-]+)?@[0-9a-f]{40}$")
 VERSION_COMMENT = re.compile(r"^\s+#\s*v\d+\.\d+\.\d+\s*$")
-VALIDATOR_INSTALL = re.compile(r"npm\s+install\b.*@anthropic-ai/claude-code(?P<at>@\S*)?")
-EXACT_VERSION = re.compile(r"^@\d+\.\d+\.\d+$")
+VALIDATOR_PACKAGE = "@anthropic-ai/claude-code"
 
 failed = False
 
@@ -121,12 +122,34 @@ checkouts = [s for s in steps if "actions/checkout@" in s]
 gate("checkout_no_persist", len(checkouts) >= 1 and all("persist-credentials: false" in s for s in checkouts),
      "%d checkout step(s)" % len(checkouts))
 
-# 7. the validator install pins an exact X.Y.Z version
-installs = [VALIDATOR_INSTALL.search(line) for line in code]
-installs = [m for m in installs if m]
+# 7. the validator is installed from a committed lockfile at one exact version, with lifecycle
+#    scripts off, and its single postinstall is run explicitly; nothing else installs it
+CI_TOOLS = os.path.join(ROOT, ".github", "ci-tools")
+pkg_version = None
+lock_version = None
+lock_integrity = False
+try:
+    with open(os.path.join(CI_TOOLS, "package.json"), encoding="utf-8") as f:
+        pkg_version = json.load(f).get("dependencies", {}).get(VALIDATOR_PACKAGE)
+    with open(os.path.join(CI_TOOLS, "package-lock.json"), encoding="utf-8") as f:
+        entry = json.load(f).get("packages", {}).get("node_modules/" + VALIDATOR_PACKAGE, {})
+    lock_version = entry.get("version")
+    lock_integrity = str(entry.get("integrity", "")).startswith("sha512-")
+except (OSError, ValueError):
+    pass
 gate("validator_exact_version",
-     len(installs) >= 1 and all(EXACT_VERSION.match(m.group("at") or "") for m in installs),
-     "install lines=%s" % [m.group(0) for m in installs])
+     bool(pkg_version) and re.match(r"^\d+\.\d+\.\d+$", pkg_version) is not None
+     and lock_version == pkg_version and lock_integrity,
+     "package.json=%r lockfile=%r integrity=%s" % (pkg_version, lock_version, lock_integrity))
+loose = [line.strip() for line in code if re.search(r"npm\s+(install|i)\b", line)
+         and VALIDATOR_PACKAGE in line]
+gate("validator_install_locked",
+     re.search(r"^\s*npm ci --ignore-scripts\s*$", text, re.M) is not None
+     and re.search(r"^\s*node node_modules/@anthropic-ai/claude-code/install\.cjs\s*$", text, re.M) is not None
+     and re.search(r"^\s*npm audit signatures\s*$", text, re.M) is not None
+     and re.search(r"working-directory:\s*\.github/ci-tools\s*$", text, re.M) is not None
+     and not loose,
+     "npm ci --ignore-scripts, explicit install.cjs, npm audit signatures; loose installs=%s" % loose)
 
 # 8. the workflow calls the one entry point under CI=true
 gate("calls_ci_sh", re.search(r"run:\s*sh tests/ci\.sh\s*$", text, re.M) is not None

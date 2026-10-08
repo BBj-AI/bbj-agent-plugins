@@ -1,0 +1,9 @@
+{
+  "name": "bbj-agent-plugins-ci-tools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The one tool CI installs: the claude CLI that runs claude plugin validate --strict. The version is pinned exactly and its tree is locked with integrity hashes in package-lock.json; bump both as a conscious edit.",
+  "dependencies": {
+    "@anthropic-ai/claude-code": "2.1.293"
+  }
+}

@@ -1,6 +1,6 @@
 # Dependabot watches one thing: the SHA-pinned GitHub Actions in .github/workflows.
 #
-# The claude CLI version in the workflow is deliberately not watched: it went through a human
+# The claude CLI version (.github/ci-tools/package.json and its lockfile) is deliberately not watched: it went through a human
 # legitimacy check, so a bump is a conscious edit, never an automatic proposal.
 # tests/test_ci_guards.py fails when this file stops naming github-actions.
 version: 2
