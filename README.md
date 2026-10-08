@@ -25,6 +25,15 @@ The docs server URL is the plugin option `docs_url` (default: the pre-production
 names the BBj installation for the check hook; left empty, the hook looks at `BBJ_HOME`,
 `BBJHOME`, `PATH` and the usual install locations.
 
+Install pages, one per client:
+
+- [Claude Code](docs/install-claude-code.md): setup, options, check routes, what is not covered,
+  Windows.
+- [Codex](docs/install-codex.md): the installer script and the hook. Marked UNRUN: not yet
+  verified on a machine with Codex.
+
+Release notes and what each version was tested against: [CHANGELOG.md](CHANGELOG.md).
+
 ## The check hook
 
 After every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file the hook compiles the file

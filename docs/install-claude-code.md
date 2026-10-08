@@ -2,7 +2,8 @@
 
 This page installs the `bbj` plugin from the `basis-bbj` marketplace: the BBj docs MCP server,
 the two BBj skills and a hook that compiles every BBj file Claude Code writes. Installing takes
-a few minutes; nothing asks you a question, the defaults apply.
+a few minutes; nothing asks you a question, the defaults apply. For Codex, see
+[install-codex.md](install-codex.md).
 
 ## Requirements
 
