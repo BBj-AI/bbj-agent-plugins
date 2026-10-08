@@ -257,6 +257,14 @@ else
   gate unusable_dest_refused_before_writes FAIL "exit $RC: $(cat "$WORK/err" | head -c 200)"
 fi
 
+# ---- WR-03: a codex home that a shell would expand inside the hook command is refused ----
+for ch in 'c$(id)h' 'c`id`h' 'c"h' 'c\h' "c'h"; do
+  newenv shellchars
+  run_inst "$WITH_CODEX" --codex-home "$E_ROOT/$ch"
+  if [ "$RC" = 2 ] && [ ! -e "$E_ROOT/$ch" ] && [ ! -e "$E_HOME/.agents" ]; then :; else gate codex_home_shell_chars_refused FAIL "accepted: $ch (exit $RC)"; SHBAD=1; fi
+done
+[ "${SHBAD:-0}" = 1 ] || gate codex_home_shell_chars_refused ok "dollar, backtick, double quote, backslash, apostrophe in --codex-home: exit 2, nothing created"
+
 # ---- a foreign hooks.json is never modified ----
 newenv foreign
 mkdir -p "$E_CODEX"

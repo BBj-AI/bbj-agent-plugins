@@ -118,6 +118,11 @@ nl='
 case "$skills_dir$codex_home" in
   *"$nl"*) refuse "a directory name holds a newline" ;;
 esac
+# the codex home ends up inside the hook command that Codex runs through a shell on every
+# apply_patch (hooks.json): no character that a double-quoted shell word would expand or end
+case "$codex_home" in
+  *'$'*|*'`'*|*'"'*|*'\'*|*"'"*) refuse "--codex-home holds a character that is not allowed in a hook command (one of \$ \` \" \\ ')" ;;
+esac
 
 # the checkout this script belongs to
 here=$(cd "$(dirname "$0")" && pwd) || refuse "cannot locate this script"
@@ -132,6 +137,9 @@ done
 pending=0
 mkdir -p "$codex_home" || refuse "cannot create $codex_home"
 codex_home=$(cd "$codex_home" && pwd) || refuse "cannot enter $codex_home"
+case "$codex_home" in
+  *'$'*|*'`'*|*'"'*|*'\'*|*"'"*) refuse "$codex_home holds a character that is not allowed in a hook command (one of \$ \` \" \\ ')" ;;
+esac
 config=$codex_home/config.toml
 
 # pre-flight (WR-02): create or check every destination before the first write, so a refusal
