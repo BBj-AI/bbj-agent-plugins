@@ -10,6 +10,9 @@
 #   mkwork              creates WORK (a temp dir) and removes it on exit
 #   claude_payload TOOL FILE CWD    prints a Claude Code PostToolUse payload in the verified
 #                                   key order, with JSON-escaped values
+#   codex_payload CWD PATCH_TEXT    prints a Codex PostToolUse payload for apply_patch (shape from
+#                                   the Codex hooks documentation, not yet captured on a Codex
+#                                   machine: tool_input.command holds the patch text)
 #   run_check PAYLOAD   runs the hook script with PAYLOAD on stdin; sets RC, and the files
 #                       $WORK/stdout and $WORK/stderr (SHELL_UNDER_TEST, default sh)
 #
@@ -73,6 +76,13 @@ claude_payload() {
       ;;
   esac
   printf '%s' '{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"'"$_cwd"'","prompt_id":"p1","permission_mode":"acceptEdits","effort":"low","hook_event_name":"PostToolUse","tool_name":"'"$_tool"'","tool_input":'"$_input"',"tool_response":'"$_resp"'}'
+}
+
+codex_payload() {
+  # codex_payload CWD PATCH_TEXT
+  _cwd=$(json_escape "$1")
+  _patch=$(json_escape "$2")
+  printf '%s' '{"session_id":"s1","transcript_path":"/tmp/t.jsonl","cwd":"'"$_cwd"'","hook_event_name":"PostToolUse","tool_name":"apply_patch","tool_input":{"command":"'"$_patch"'"},"tool_response":"Success"}'
 }
 
 run_check() {
