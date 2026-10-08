@@ -196,7 +196,10 @@ if has_table && [ "$(key_state)" = missing ]; then
   if awk -v key="$KEY_LINE" '
       { print }
       /^\[mcp_servers\.("bbj-docs"|bbj-docs)\][ \t\r]*(#.*)?$/ && !done { print key; done = 1 }
-    ' "$config" > "$tmp" && mv "$tmp" "$config"; then
+    ' "$config" > "$tmp" && cat "$tmp" > "$config"; then
+    # written in place (not mv'd over it): a symlinked config.toml (dotfile managers) keeps
+    # its link and every file keeps its mode (WR-01)
+    rm -f "$tmp"
     say "bbj-docs: added $KEY_LINE to the existing table in $config; its url is left as is"
   else
     rm -f "$tmp"

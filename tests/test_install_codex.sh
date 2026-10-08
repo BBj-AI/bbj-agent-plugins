@@ -229,6 +229,20 @@ for form in "[mcp_servers.'bbj-docs']" '  [mcp_servers.bbj-docs]' '[ mcp_servers
 done
 [ "${FOREIGN_BAD:-0}" = 1 ] || gate foreign_toml_form ok "five spellings of bbj-docs: exit 3, config.toml byte-identical and parseable, no backup, codex not called, block printed"
 
+# ---- WR-01: the approval key is written in place; a symlinked config.toml keeps its link and mode ----
+newenv symlinkcfg
+mkdir -p "$E_CODEX" "$E_ROOT/dots"
+printf 'model = "x"\n\n[mcp_servers.bbj-docs]\nurl = "https://example.invalid/mcp"\n' > "$E_ROOT/dots/config.toml"
+chmod 644 "$E_ROOT/dots/config.toml"
+ln -s "$E_ROOT/dots/config.toml" "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+if [ "$RC" = 0 ] && [ -L "$E_CODEX/config.toml" ] && grep -Fx 'default_tools_approval_mode = "approve"' "$E_ROOT/dots/config.toml" > /dev/null \
+  && [ "$(ls -l "$E_ROOT/dots/config.toml" | cut -c1-10)" = "-rw-r--r--" ]; then
+  gate approval_key_keeps_symlink_and_mode ok "the link survives, its target gained the key, mode 644 kept"
+else
+  gate approval_key_keeps_symlink_and_mode FAIL "exit $RC, link: $([ -L "$E_CODEX/config.toml" ] && echo kept || echo replaced)"
+fi
+
 # ---- a foreign hooks.json is never modified ----
 newenv foreign
 mkdir -p "$E_CODEX"
