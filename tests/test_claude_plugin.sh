@@ -29,7 +29,7 @@ cc() {
 }
 
 # ---- 1. validate --strict ----------------------------------------------------------
-for p in . plugins/bbj plugins/bbj-local; do
+for p in . plugins/bbj; do
   tag=$(printf "%s" "$p" | tr -c "A-Za-z0-9" "_"); [ "$p" = . ] && tag=root
   if [ ! -e "$REPO/$p" ]; then
     gate "validate_$tag" FAIL "$p does not exist"
@@ -69,18 +69,6 @@ plugin_state() {
 state=$(plugin_state bbj)
 [ "$state" = enabled ] && gate list_bbj_enabled ok "bbj is enabled" \
   || gate list_bbj_enabled FAIL "bbj state: '${state:-not listed}'"
-
-# ---- bbj-local installs disabled, bbj stays enabled ---------------------------------
-out=$(cc plugin install bbj-local@basis-bbj 2>&1)
-rc=$?
-[ "$rc" = 0 ] && gate install_bbj_local ok "bbj-local@basis-bbj installed" \
-  || gate install_bbj_local FAIL "exit $rc: $(printf '%s' "$out" | head -n 2 | tr '\n' ' ')"
-state=$(plugin_state bbj-local)
-[ "$state" = disabled ] && gate list_bbj_local_disabled ok "bbj-local is disabled" \
-  || gate list_bbj_local_disabled FAIL "bbj-local state: '${state:-not listed}'"
-state=$(plugin_state bbj)
-[ "$state" = enabled ] && gate list_bbj_still_enabled ok "bbj still enabled" \
-  || gate list_bbj_still_enabled FAIL "bbj state: '${state:-not listed}'"
 
 # ---- 3. the plugin's docs server --------------------------------------------------
 if curl -s -o /dev/null --connect-timeout 3 "https://$DOCS_HOST/mcp" 2> /dev/null; then

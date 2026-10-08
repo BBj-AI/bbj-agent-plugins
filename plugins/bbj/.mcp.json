@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "bbj-docs": {
+      "type": "http",
+      "url": "${user_config.docs_url}"
+    }
+  }
+}

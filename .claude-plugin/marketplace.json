@@ -1,0 +1,16 @@
+{
+  "name": "basis-bbj",
+  "description": "BBj for coding agents: the BBj docs server, the BBjSkills and a compile-only check of BBj files, from BASIS International Ltd.",
+  "owner": {
+    "name": "BASIS International Ltd.",
+    "url": "https://github.com/BBj-AI"
+  },
+  "plugins": [
+    {
+      "name": "bbj",
+      "source": "./plugins/bbj",
+      "description": "BBj docs server, the BBjSkills and a compile-only check of every BBj file the agent writes.",
+      "version": "0.1.0"
+    }
+  ]
+}

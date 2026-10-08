@@ -1,0 +1,24 @@
+{
+  "name": "bbj",
+  "version": "0.1.0",
+  "description": "The hosted BBj docs MCP server, the BBjSkills, and a compile-only check of every BBj file the agent writes (bbjcpl -N; BBj code is never run).",
+  "author": {
+    "name": "BASIS International Ltd."
+  },
+  "homepage": "https://github.com/BBj-AI/bbj-agent-plugins",
+  "license": "Apache-2.0",
+  "keywords": ["bbj", "basis", "mcp", "skills", "compile-check"],
+  "userConfig": {
+    "docs_url": {
+      "type": "string",
+      "title": "BBj docs server URL",
+      "description": "URL of the BBj docs MCP server; the default is the pre-production instance until the go-live release.",
+      "default": "https://bbj-mcp.basis-europe.eu/mcp"
+    },
+    "bbj_home": {
+      "type": "directory",
+      "title": "BBj installation directory",
+      "description": "BBj installation directory for the compile-only check; empty means BBJ_HOME, BBJHOME, PATH, then the usual install locations."
+    }
+  }
+}
