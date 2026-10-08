@@ -1,10 +1,9 @@
 # Install for Codex
 
-> **UNRUN.** Nothing on this page has been verified on a machine with Codex yet. The installer
-> and the hook are tested here with a fake `codex` in a temporary home directory and with
-> synthetic hook payloads, and every Codex fact they rely on (the hook payload, the skills
-> location, the `codex mcp add` flags, the `commandWindows` key) comes from OpenAI's
-> documentation. Expect to adjust something on the first run, and please report what you find.
+> **Tested on Linux only.** This page was verified on Linux with Codex CLI 0.156.1 on
+> 2026-10-08: the installer, `codex mcp add`, the skills in `~/.agents/skills`, the `/hooks`
+> approval and the hook's compiler feedback after `apply_patch`. It has not yet been run on
+> Windows or macOS; please report what you find there.
 
 This page installs the BBj docs MCP server, the two BBj skills and a hook that compiles every BBj
 file Codex writes through `apply_patch`. For Claude Code, see
@@ -58,15 +57,15 @@ time changes nothing.
    nothing else is approved. If a `bbj-docs` table already exists, the installer only adds that
    one line to it and keeps a one-time backup, `config.toml.bbj-backup`.
 2. **Installs the two skills**, `bbj-programming` and `bbj-web-programming`, into
-   `~/.agents/skills`. Sources disagree about where Codex looks for skills; if Codex does not
+   `~/.agents/skills`, where Codex CLI 0.156.1 finds them; if your Codex version does not
    list the BBj skills, rerun the installer with `--skills-dir ~/.codex/skills`. A skill
    directory that already exists and differs is left alone unless you pass `--force`.
 3. **Copies the check script** to `~/.codex/bbj/bbj-check.sh`, a stable path outside any cache.
 4. **Writes `~/.codex/hooks.json`** when it does not exist: a `PostToolUse` hook with the matcher
    `apply_patch|Edit|Write`, a timeout of 30 seconds and a `commandWindows` entry. An existing
    `hooks.json` is never modified: the installer prints the block and you merge it yourself.
-   If your Codex version does not accept `commandWindows` in `hooks.json`, put `command_windows`
-   in `config.toml` instead.
+   Codex CLI 0.156.1 accepts the `commandWindows` key on Linux; if Codex rejects it on Windows,
+   put `command_windows` in `config.toml` instead.
 5. **Prints the `AGENTS.md` snippet**, the trust step and the known gaps.
 
 ## 2. Trust the hook in /hooks
@@ -117,5 +116,5 @@ not checked. The hosted docs server logs what its data-handling statement says:
 
 Git for Windows is the supported route: the hook command runs `sh`. On Windows the installer
 writes a `commandWindows` entry with the Windows paths of `sh` and the script (it needs
-`cygpath`, which Git for Windows provides). `commandWindows` has not been tried on Windows or
-with Codex.
+`cygpath`, which Git for Windows provides). `commandWindows` has not yet been tried on
+Windows.

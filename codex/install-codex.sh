@@ -2,11 +2,10 @@
 # install-codex.sh -- Codex install script for the BBj docs server, the two BBj skills and the
 # BBj check hook (plan 19-05, PLUG-04; decision D-15 of phase 19).
 #
-# UNRUN: this script has not been verified on a machine with Codex yet. Codex was not
-# available where it was written; it is tested with a fake codex in a temp HOME only, and
-# the Codex facts it relies on come from OpenAI's documentation. PLUG-04 stays unrun until a
-# Codex machine passes the human check (register, approve the hook in /hooks, let Codex write
-# a .bbj through apply_patch, see the compiler's feedback).
+# Verified on Linux with Codex CLI 0.156.1 on 2026-10-08 (PLUG-04 human check: registered,
+# hook approved in /hooks, a .bbj written through apply_patch got the compiler's feedback,
+# skills found in ~/.agents/skills). Not yet run on Windows or macOS. The test suite runs it
+# with a fake codex in a temp HOME.
 #
 # What it does, one factual line per step:
 #   1. registers the read-only docs server as bbj-docs: "codex mcp add" when codex is on PATH,
@@ -42,7 +41,7 @@ DEFAULT_DOCS_URL=https://bbj-mcp.basis-europe.eu/mcp
 MARK_BEGIN='# >>> bbj-agent-plugins (managed) >>>'
 MARK_END='# <<< bbj-agent-plugins (managed) <<<'
 KEY_LINE='default_tools_approval_mode = "approve"'
-UNRUN_LINE='UNRUN: install-codex.sh has not been verified on a machine with Codex yet (PLUG-04).'
+STATUS_LINE='Verified on Linux with Codex CLI 0.156.1; not yet run on Windows or macOS.'
 
 say() {
   printf '%s\n' "$*"
@@ -71,7 +70,7 @@ Exit: 0 done, 2 refused (nothing written unless the message names the steps that
 EOF
 }
 
-say "$UNRUN_LINE"
+say "$STATUS_LINE"
 
 docs_url=$DEFAULT_DOCS_URL
 skills_dir=
@@ -316,10 +315,10 @@ say "- OpenAI calls hooks \"a useful guardrail, not a complete enforcement bound
 say "- Patches applied through a shell heredoc are not seen by the hook; only apply_patch calls are checked."
 say "- Codex has no plugin options here: the check finds BBj through BBJ_HOME, then PATH, then the default homes; set BBJ_HOME when BBj is not in a default location."
 say "- With no compiler found, the hook asks a running bbj-ls on 127.0.0.1:5009 (syntax only); with neither it does nothing and says nothing."
-say "- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (the skills location is documentation-derived)."
-say "- If Codex does not accept commandWindows in hooks.json, use command_windows in config.toml instead."
+say "- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (~/.agents/skills worked with Codex CLI 0.156.1)."
+say "- commandWindows in hooks.json is not yet tried on Windows; if Codex rejects it there, use command_windows in config.toml instead."
 say ""
-say "$UNRUN_LINE Confirm it on a machine with Codex before relying on it."
+say "$STATUS_LINE"
 
 [ "$pending" = 0 ] || exit 3
 exit 0

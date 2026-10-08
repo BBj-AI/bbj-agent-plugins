@@ -12,7 +12,7 @@ First version of the `basis-bbj` marketplace.
     option `bbj_home`).
   - `bbj-local`: registers the `bbj-ls` language server of a running BBjServices on
     `127.0.0.1:5009`; installs disabled.
-- Codex installer `codex/install-codex.sh` and `codex/AGENTS-snippet.md` (UNRUN, see below).
+- Codex installer `codex/install-codex.sh` and `codex/AGENTS-snippet.md` (verified on Linux, see below).
 - Install pages: [Claude Code](docs/install-claude-code.md), [Codex](docs/install-codex.md).
 
 ### Tested against
@@ -23,18 +23,20 @@ First version of the `basis-bbj` marketplace.
   plugins; install from a local directory marketplace into a throwaway configuration).
 - BBj 26.03: `bbjcpl` for the local compiler route, and `bbj-ls` on `127.0.0.1:5009` for the
   `bbj-local` route.
+- Public marketplace: `claude plugin marketplace add BBj-AI/bbj-agent-plugins` and
+  `claude plugin install bbj@basis-bbj` into a throwaway configuration, then the hook on Linux
+  (Write and Edit of a bad `.bbj` give the compiler's feedback, a clean file is silent),
+  2026-10-08.
+- Codex CLI 0.156.1 on Linux: the installer, `codex mcp add`, the skills in `~/.agents/skills`,
+  the `/hooks` approval and the hook's feedback after `apply_patch`, 2026-10-08.
 - BBjSkills: commit `79f19822ab82`, vendored byte for byte (see `skills.lock.json`).
 - The plugin test suite, `sh tests/run.sh`: all gates green (ok=318, fail=0; the two skipped
   gates need `shellcheck` and `busybox`, which were not installed).
 
 ### Not run
 
-- Codex: neither the installer nor the hook was run with Codex; every Codex fact comes from
-  documentation.
 - Windows: the Windows branch of the hook and the `commandWindows` entry were not run on Windows.
 - macOS: not run on macOS.
-- The public command `claude plugin marketplace add BBj-AI/bbj-agent-plugins`: the public
-  repository does not exist yet.
 
 ### Next
 

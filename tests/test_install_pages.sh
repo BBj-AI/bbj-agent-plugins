@@ -128,7 +128,7 @@ if [ -f "$CODEX_PAGE" ]; then
   n=codex
   # shellcheck disable=SC2088  # the tilde is literal text searched for in the page
   for p in \
-    'UNRUN' \
+    'Tested on Linux only' \
     'install-codex.sh' \
     '--docs-url' \
     '--skills-dir' \

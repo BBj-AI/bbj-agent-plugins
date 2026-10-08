@@ -14,14 +14,11 @@ a few minutes; nothing asks you a question, the defaults apply. For Codex, see
 
 ## 1. Add the marketplace
 
-This command is available once BASIS has created the public repository
-`BBj-AI/bbj-agent-plugins`; it does not work before that:
-
 ```bash
 claude plugin marketplace add BBj-AI/bbj-agent-plugins
 ```
 
-From a local checkout of the repository, which works today:
+Or from a local checkout of the repository:
 
 ```bash
 claude plugin marketplace add /path/to/bbj-agent-plugins

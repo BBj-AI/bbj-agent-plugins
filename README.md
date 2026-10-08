@@ -10,14 +10,7 @@ The `basis-bbj` marketplace for Claude Code, version 0.1.0, with two plugins:
 
 ## Install
 
-Once BASIS has created the public repository:
-
     claude plugin marketplace add BBj-AI/bbj-agent-plugins
-    claude plugin install bbj@basis-bbj
-
-Until then, from a local checkout:
-
-    claude plugin marketplace add /path/to/bbj-agent-plugins
     claude plugin install bbj@basis-bbj
 
 The docs server URL is the plugin option `docs_url` (default: the pre-production instance
@@ -29,8 +22,8 @@ Install pages, one per client:
 
 - [Claude Code](docs/install-claude-code.md): setup, options, check routes, what is not covered,
   Windows.
-- [Codex](docs/install-codex.md): the installer script and the hook. Marked UNRUN: not yet
-  verified on a machine with Codex.
+- [Codex](docs/install-codex.md): the installer script and the hook. Verified on Linux; not
+  yet run on Windows or macOS.
 
 Release notes and what each version was tested against: [CHANGELOG.md](CHANGELOG.md).
 

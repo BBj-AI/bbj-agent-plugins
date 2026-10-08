@@ -2,7 +2,7 @@
 # tests/test_install_codex.sh -- plan 19-05 Task 2 (PLUG-04, D-15): codex/install-codex.sh in
 # a temp HOME and CODEX_HOME with a fake codex. Every case has its own temp directories; the
 # real ~/.codex and ~/.agents are never touched (gate real_home_untouched). Nothing here runs
-# BBj or Codex: PLUG-04 stays UNRUN until a machine with Codex passes the human check.
+# BBj or Codex (the real-Codex check is a human test; it passed on Linux on 2026-10-08).
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -62,8 +62,8 @@ count() {
 newenv first
 run_inst "$WITH_CODEX"
 [ "$RC" = 0 ] && gate first_exit ok "exit 0" || gate first_exit FAIL "exit $RC: $(head -c 300 "$WORK/err")"
-head -n 1 "$WORK/out" | grep UNRUN > /dev/null \
-  && gate first_unrun_banner ok "first stdout line says UNRUN" || gate first_unrun_banner FAIL "first line: $(head -n 1 "$WORK/out")"
+head -n 1 "$WORK/out" | grep 'not yet run on Windows or macOS' > /dev/null \
+  && gate first_status_banner ok "first stdout line states the tested platforms" || gate first_status_banner FAIL "first line: $(head -n 1 "$WORK/out")"
 grep -Fx 'mcp add bbj-docs --url https://bbj-mcp.basis-europe.eu/mcp' "$E_LOG" > /dev/null \
   && gate first_codex_mcp_add ok "codex mcp add bbj-docs --url <default>" || gate first_codex_mcp_add FAIL "log: $(cat "$E_LOG")"
 CFG=$E_CODEX/config.toml
