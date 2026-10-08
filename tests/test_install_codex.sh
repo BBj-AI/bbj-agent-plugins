@@ -162,7 +162,7 @@ if [ "$RC" = 0 ] \
   && [ "$(count 'default_tools_approval_mode = "approve"' "$CFG")" = 1 ]; then
   gate managed_block ok "markers, table, url and approval key once each"
 else
-  gate managed_block FAIL "exit $RC: $(cat "$CFG" 2> /dev/null | head -c 400)"
+  gate managed_block FAIL "exit $RC: $(head -c 400 "$CFG" 2> /dev/null)"
 fi
 cp "$CFG" "$WORK/cfg.m1"
 run_inst "$NO_CODEX"
@@ -254,7 +254,7 @@ if [ "$RC" = 2 ] && cmp -s "$WORK/cfg.unusable" "$E_CODEX/config.toml" && [ ! -e
   && [ ! -e "$E_CODEX/hooks.json" ] && [ ! -e "$E_CODEX/bbj/bbj-check.sh" ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ]; then
   gate unusable_dest_refused_before_writes ok "exit 2, config.toml byte-identical, no backup, no hooks.json, no script, codex not called"
 else
-  gate unusable_dest_refused_before_writes FAIL "exit $RC: $(cat "$WORK/err" | head -c 200)"
+  gate unusable_dest_refused_before_writes FAIL "exit $RC: $(head -c 200 "$WORK/err")"
 fi
 
 # ---- WR-03: a codex home that a shell would expand inside the hook command is refused ----
