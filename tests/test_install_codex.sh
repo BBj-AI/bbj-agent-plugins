@@ -201,6 +201,34 @@ fi
 run_inst "$WITH_CODEX"
 cmp -s "$WORK/cfg.orig" "$CFG.bbj-backup" && gate existing_backup_once ok "backup not rewritten by the second run" || gate existing_backup_once FAIL "backup changed"
 
+# ---- CR-01: bbj-docs written in a form the installer does not edit: config.toml untouched ----
+i=0
+for form in "[mcp_servers.'bbj-docs']" '  [mcp_servers.bbj-docs]' '[ mcp_servers . bbj-docs ]' 'mcp_servers.bbj-docs.url = "https://example.invalid/mcp"' '[mcp_servers.bbj-docs.env]'; do
+  i=$((i + 1))
+  newenv foreigntoml$i
+  mkdir -p "$E_CODEX"
+  case "$form" in
+    '[mcp_servers.bbj-docs.env]') printf 'model = "x"\n\n%s\nK = "v"\n' "$form" > "$E_CODEX/config.toml" ;;
+    mcp_servers.*) printf '[mcp_servers]\n%s\n' "$form" > "$E_CODEX/config.toml" ;;
+    *) printf 'model = "x"\n\n%s\nurl = "https://example.invalid/mcp"\n' "$form" > "$E_CODEX/config.toml" ;;
+  esac
+  cp "$E_CODEX/config.toml" "$WORK/cfg.foreign"
+  run_inst "$WITH_CODEX"
+  if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && [ ! -e "$E_CODEX/config.toml.bbj-backup" ] \
+    && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] && grep -F 'was not modified' "$WORK/out" > /dev/null \
+    && grep -Fx 'default_tools_approval_mode = "approve"' "$WORK/out" > /dev/null; then
+    :
+  else
+    gate foreign_toml_form FAIL "form '$form': exit $RC, config changed or codex called"
+    FOREIGN_BAD=1
+  fi
+  if command -v python3 > /dev/null 2>&1 && python3 -I -c 'import tomllib' 2> /dev/null; then
+    python3 -I -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$E_CODEX/config.toml" 2> /dev/null \
+      || { gate foreign_toml_parses FAIL "form '$form': config.toml no longer parses"; FOREIGN_BAD=1; }
+  fi
+done
+[ "${FOREIGN_BAD:-0}" = 1 ] || gate foreign_toml_form ok "five spellings of bbj-docs: exit 3, config.toml byte-identical and parseable, no backup, codex not called, block printed"
+
 # ---- a foreign hooks.json is never modified ----
 newenv foreign
 mkdir -p "$E_CODEX"

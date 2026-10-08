@@ -13,7 +13,10 @@
 #      else a managed block in config.toml; then makes sure the bbj-docs table holds
 #      default_tools_approval_mode = "approve" (the docs server only reads; nothing else is
 #      approved). An existing table only gains that one line; config.toml.bbj-backup is
-#      written once before the first change to an existing file.
+#      written once before the first change to an existing file. When bbj-docs is already
+#      named in config.toml in a form this script does not edit (single-quoted key, spaced or
+#      indented header, dotted key, sub-table), config.toml is left alone, the block is
+#      printed and the exit code is 3.
 #   2. copies the two skills to the skills directory (default ~/.agents/skills); a directory
 #      that differs is left alone unless --force.
 #   3. copies the shared check script to <codex home>/bbj/bbj-check.sh, a stable path outside
@@ -129,6 +132,13 @@ config=$codex_home/config.toml
 has_table() {
   [ -f "$config" ] && grep -E '^\[mcp_servers\.("bbj-docs"|bbj-docs)\][[:space:]]*(#.*)?$' "$config" > /dev/null
 }
+# mentions_docs: a line that is not a comment names bbj-docs in some form has_table does not
+# edit (single-quoted key, indented or spaced header, dotted key, inline table, a sub-table).
+# Appending our own table next to it would declare the table twice and Codex could no longer
+# parse config.toml, so the installer then changes nothing in config.toml (CR-01).
+mentions_docs() {
+  [ -f "$config" ] && grep -v -E '^[[:space:]]*#' "$config" | grep -F 'bbj-docs' > /dev/null
+}
 # key_state: "has" when the bbj-docs table holds an approval key, else "missing"
 key_state() {
   awk '
@@ -138,8 +148,12 @@ key_state() {
     END { print (has ? "has" : "missing") }' "$config"
 }
 
+foreign=0
+if ! has_table && mentions_docs; then foreign=1; fi
 need_change=0
-if ! has_table; then
+if [ "$foreign" = 1 ]; then
+  need_change=0
+elif ! has_table; then
   need_change=1
 elif [ "$(key_state)" = missing ]; then
   need_change=1
@@ -149,7 +163,7 @@ if [ "$need_change" = 1 ] && [ -f "$config" ] && [ ! -f "$config.bbj-backup" ]; 
   say "config.toml: backup written to $config.bbj-backup"
 fi
 
-if ! has_table; then
+if [ "$foreign" = 0 ] && ! has_table; then
   if command -v codex > /dev/null 2>&1; then
     if CODEX_HOME=$codex_home codex mcp add bbj-docs --url "$docs_url" > /dev/null 2>&1; then
       say "bbj-docs: registered with codex mcp add bbj-docs --url $docs_url"
@@ -158,7 +172,14 @@ if ! has_table; then
     fi
   fi
 fi
-if ! has_table; then
+# re-check: a registration by codex in a form has_table does not know must not get a second table
+if ! has_table && mentions_docs; then foreign=1; fi
+if [ "$foreign" = 1 ]; then
+  say "bbj-docs: $config already names bbj-docs in a form this script does not edit; config.toml was not modified."
+  say "Check that it holds this block (url and approval mode), or add it by hand:"
+  printf '%s\n' '[mcp_servers.bbj-docs]' "url = \"$docs_url\"" "$KEY_LINE"
+  pending=1
+elif ! has_table; then
   {
     if [ -s "$config" ]; then
       [ -z "$(tail -c 1 "$config")" ] || printf '\n'
