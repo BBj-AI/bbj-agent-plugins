@@ -35,7 +35,7 @@ def gson_style(obj):
 def body_for(mode):
     """Returns (status, content_type, body text) for MODE."""
     if mode == "one-error":
-        text = "1 error found. " + HEADER_LINE + "\nline 1, column 1: [SyntaxError] syntax error"
+        text = "1 error found. " + HEADER_LINE + "\nline 1, column 1: [SyntaxError] syntax error near '=' in caf\u00e9"
         return 200, "application/json", gson_style(result_for(text))
     if mode == "many":
         lines = "\n".join("line %d, column 1: [SyntaxError] syntax error %d" % (i, i) for i in range(1, 61))

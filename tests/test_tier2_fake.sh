@@ -104,10 +104,10 @@ stop_fake
 start_fake one-error
 run_t2 "$PAYLOAD"
 if [ "$RC" = 2 ] && [ "$(head -n 1 "$WORK/stderr")" = "bbj-local reported 1 error(s) in $FILE:" ] \
-  && sed -n 2p "$WORK/stderr" | grep -E '^line 1, column 1: \[SyntaxError\] syntax error$' > /dev/null \
+  && [ "$(sed -n 2p "$WORK/stderr")" = "$(printf "line 1, column 1: [SyntaxError] syntax error near '=' in caf\303\251")" ] \
   && [ "$(tail -n 1 "$WORK/stderr")" = "bbj_lookup gives exact syntax for a named symbol." ] \
   && [ ! -s "$WORK/stdout" ]; then
-  gate mode_one_error ok "exit 2, header, line, trailer"
+  gate mode_one_error ok "exit 2, header, line (with decoded \\u0027 \\u003d and a UTF-8 e-acute), trailer"
 else
   gate mode_one_error FAIL "exit $RC: $(head -c 300 "$WORK/stderr")"
 fi
@@ -188,9 +188,9 @@ refused() {
   export BBJ_LOCAL_MCP_URL
   run_t2 "$PAYLOAD" "$CURLPATH"
   if [ "$RC" = 0 ] && [ ! -s "$FAKE_CURL_LOG" ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
-    gate "url_refused_$2" ok "$1"
+    gate "url_refused_$2" ok "refused, curl not invoked"
   else
-    gate "url_refused_$2" FAIL "$1 reached curl or produced output (exit $RC)"
+    gate "url_refused_$2" FAIL "reached curl or produced output (exit $RC)"
   fi
 }
 refused http://example.com/mcp remote_http
@@ -219,7 +219,7 @@ accepted() {
     && awk '/^--proto$/ { getline; if ($0 == "=http") f = 1 } END { exit !f }' "$FAKE_CURL_LOG" \
     && ! grep -Ex -e '-L|--location|--location-trusted|-[A-Za-z]*L[A-Za-z]*' "$FAKE_CURL_LOG" > /dev/null \
     && grep -Fx "$1" "$FAKE_CURL_LOG" > /dev/null; then
-    gate "url_accepted_$2" ok "$1 with --noproxy '*' --proto =http, no -L"
+    gate "url_accepted_$2" ok "$1 reached curl with --noproxy '*' --proto =http, no -L"
   else
     gate "url_accepted_$2" FAIL "$1: exit $RC, $_calls curl call(s): $(tr '\n' ' ' < "$FAKE_CURL_LOG" | head -c 300)"
   fi
