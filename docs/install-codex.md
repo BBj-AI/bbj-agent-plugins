@@ -37,7 +37,7 @@ Options:
 | `--force` | Replace a skill directory that differs from the shipped one. |
 | `--help` | Print the usage text. |
 
-Exit codes: `0` done; `2` the installer refused (a bad option or URL; nothing was written);
+Exit codes: `0` done; `2` the installer refused (a bad option or URL, or a destination it cannot write; it checks every destination before it writes anything, and if a later step still fails it names the steps that had already run);
 `3` it finished, but something is left for you to merge by hand (an existing `hooks.json`, or a
 skill directory that differs). The installer prints what to do in that case. Running it a second
 time changes nothing.

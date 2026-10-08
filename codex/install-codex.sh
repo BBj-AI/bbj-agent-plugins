@@ -28,8 +28,12 @@
 # Options: --docs-url URL (default DEFAULT_DOCS_URL, the same value as the bbj plugin's
 # docs_url default; plain http only to 127.0.0.1, localhost or [::1]), --skills-dir DIR,
 # --codex-home DIR (default $CODEX_HOME or ~/.codex), --force, --help.
-# Exit codes: 0 done, 2 usage error or refusal (nothing written), 3 finished with something
+# Exit codes: 0 done, 2 usage error or refusal, 3 finished with something
 # left to merge or decide by hand.
+#
+# Exit 2 before the first write means nothing was changed: the options are validated and every
+# destination (skills directory, <codex home>/bbj, config.toml) is created or checked up front.
+# A failure after a step has run still exits 2 and names the steps that already ran.
 #
 # It never runs BBj and never calls a compiler; the hook it installs follows the same
 # never-execute rule. POSIX sh plus awk, sed, grep, cp, mv, cmp, diff, mktemp.
@@ -44,8 +48,10 @@ say() {
   printf '%s\n' "$*"
 }
 
+wrote=
 refuse() {
   echo "install-codex: $*" >&2
+  [ -z "$wrote" ] || echo "install-codex: steps that had already run: $wrote" >&2
   exit 2
 }
 
@@ -60,7 +66,8 @@ Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-ho
   --force            replace a skill directory that differs from the shipped one
   --help             this text
 
-Exit: 0 done, 2 refused (nothing written), 3 done except something to merge by hand.
+Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran),
+      3 done except something to merge by hand.
 EOF
 }
 
@@ -127,6 +134,16 @@ mkdir -p "$codex_home" || refuse "cannot create $codex_home"
 codex_home=$(cd "$codex_home" && pwd) || refuse "cannot enter $codex_home"
 config=$codex_home/config.toml
 
+# pre-flight (WR-02): create or check every destination before the first write, so a refusal
+# here changes nothing in config.toml, hooks.json or the skills
+mkdir -p "$skills_dir" || refuse "cannot create $skills_dir"
+mkdir -p "$codex_home/bbj" || refuse "cannot create $codex_home/bbj"
+for d in "$codex_home" "$codex_home/bbj" "$skills_dir"; do
+  [ -d "$d" ] && [ -w "$d" ] || refuse "$d is not a writable directory"
+done
+[ ! -e "$config" ] || [ -w "$config" ] || refuse "$config is not writable"
+[ ! -e "$codex_home/bbj/bbj-check.sh" ] || [ -w "$codex_home/bbj/bbj-check.sh" ] || refuse "$codex_home/bbj/bbj-check.sh is not writable"
+
 # ---- 1. the docs server: registration and the approval mode ----
 # has_table: the bbj-docs table is in config.toml (plain or quoted key)
 has_table() {
@@ -160,6 +177,7 @@ elif [ "$(key_state)" = missing ]; then
 fi
 if [ "$need_change" = 1 ] && [ -f "$config" ] && [ ! -f "$config.bbj-backup" ]; then
   cp "$config" "$config.bbj-backup" || refuse "cannot write $config.bbj-backup"
+  wrote="$wrote config.toml(backup)"
   say "config.toml: backup written to $config.bbj-backup"
 fi
 
@@ -187,6 +205,7 @@ elif ! has_table; then
     fi
     printf '%s\n' "$MARK_BEGIN" '[mcp_servers.bbj-docs]' "url = \"$docs_url\"" "$KEY_LINE" "$MARK_END"
   } >> "$config" || refuse "cannot write $config"
+  wrote="$wrote config.toml"
   say "bbj-docs: appended a managed block to $config (url $docs_url, tools approved)"
 elif [ "$need_change" = 0 ]; then
   say "bbj-docs: already registered in $config with the approval mode set; nothing changed"
@@ -200,6 +219,7 @@ if has_table && [ "$(key_state)" = missing ]; then
     # written in place (not mv'd over it): a symlinked config.toml (dotfile managers) keeps
     # its link and every file keeps its mode (WR-01)
     rm -f "$tmp"
+    wrote="$wrote config.toml"
     say "bbj-docs: added $KEY_LINE to the existing table in $config; its url is left as is"
   else
     rm -f "$tmp"
@@ -214,11 +234,13 @@ for s in bbj-programming bbj-web-programming; do
   if [ ! -e "$dst" ]; then
     mkdir -p "$skills_dir" || refuse "cannot create $skills_dir"
     cp -R "$src" "$dst" || refuse "cannot copy $src to $dst"
+    wrote="$wrote skill:$s"
     say "skill $s: installed to $dst"
   elif diff -r "$src" "$dst" > /dev/null 2>&1; then
     say "skill $s: $dst is identical; nothing changed"
   elif [ "$force" = 1 ]; then
     rm -rf "$dst" && cp -R "$src" "$dst" || refuse "cannot replace $dst"
+    wrote="$wrote skill:$s"
     say "skill $s: $dst differed and was replaced (--force)"
   else
     say "skill $s: $dst differs from the shipped copy and was left untouched; rerun with --force to replace it"
@@ -234,6 +256,7 @@ if cmp -s "$src_script" "$script_dst"; then
   say "check script: $script_dst is current; nothing changed"
 else
   cp "$src_script" "$script_dst" || refuse "cannot copy the check script"
+  wrote="$wrote check-script"
   say "check script: copied to $script_dst (every update of it makes Codex ask for the /hooks review again)"
 fi
 chmod 755 "$script_dst"

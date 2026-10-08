@@ -243,6 +243,20 @@ else
   gate approval_key_keeps_symlink_and_mode FAIL "exit $RC, link: $([ -L "$E_CODEX/config.toml" ] && echo kept || echo replaced)"
 fi
 
+# ---- WR-02: exit 2 on an unusable destination happens before any write ----
+newenv unusabledest
+mkdir -p "$E_CODEX"
+printf 'model = "x"\n' > "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.unusable"
+printf 'a file, not a directory\n' > "$E_ROOT/notadir"
+run_inst "$WITH_CODEX" --skills-dir "$E_ROOT/notadir/skills"
+if [ "$RC" = 2 ] && cmp -s "$WORK/cfg.unusable" "$E_CODEX/config.toml" && [ ! -e "$E_CODEX/config.toml.bbj-backup" ] \
+  && [ ! -e "$E_CODEX/hooks.json" ] && [ ! -e "$E_CODEX/bbj/bbj-check.sh" ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ]; then
+  gate unusable_dest_refused_before_writes ok "exit 2, config.toml byte-identical, no backup, no hooks.json, no script, codex not called"
+else
+  gate unusable_dest_refused_before_writes FAIL "exit $RC: $(cat "$WORK/err" | head -c 200)"
+fi
+
 # ---- a foreign hooks.json is never modified ----
 newenv foreign
 mkdir -p "$E_CODEX"
