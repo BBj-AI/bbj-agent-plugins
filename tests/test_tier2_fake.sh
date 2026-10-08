@@ -231,7 +231,7 @@ accepted http://127.0.0.1:5009/mcp ipv4
 
 # ---- no curl on PATH: exit 0 silent ----
 mkdir "$WORK/nocurl"
-for _t in sh cat head tail tr sed awk grep dirname basename ls readlink; do
+for _t in "$SHELL_UNDER_TEST" cat head tail tr sed awk grep dirname basename ls readlink; do
   _c=$(PATH=$SYSPATH command -v "$_t")
   [ -n "$_c" ] && ln -s "$_c" "$WORK/nocurl/$_t"
 done
