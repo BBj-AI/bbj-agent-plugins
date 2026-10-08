@@ -1,0 +1,5 @@
+#!/bin/sh
+# Stands for the BBj interpreter. It must never run: if it does, it leaves the sentinel
+# file $FAKE_SENTINEL behind (default $TMPDIR/bbj-was-run) and exits 99.
+: > "${FAKE_SENTINEL:-${TMPDIR:-/tmp}/bbj-was-run}"
+exit 99

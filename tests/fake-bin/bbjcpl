@@ -1,0 +1,13 @@
+#!/bin/sh
+# Fake BBj compiler for the plugin tests. Logs one block per call to $FAKE_LOG:
+#   CALL, then each argument on its own line, then "ARG0 <$0>" (which binary ran).
+# Prints the file named by $FAKE_OUT on stderr and the file named by $FAKE_STDOUT on stdout
+# (when set) and exits ${FAKE_EXIT:-0}. It compiles nothing and runs nothing.
+{
+  echo CALL
+  for a in "$@"; do printf '%s\n' "$a"; done
+  echo "ARG0 $0"
+} >> "${FAKE_LOG:-/dev/null}"
+if [ -n "$FAKE_OUT" ]; then cat "$FAKE_OUT" >&2; fi
+if [ -n "$FAKE_STDOUT" ]; then cat "$FAKE_STDOUT"; fi
+exit "${FAKE_EXIT:-0}"
