@@ -1,0 +1,11 @@
+#!/bin/sh
+# Fake codex for the plugin tests (plan 19-05). Logs the arguments of each call, space
+# joined, one call per line, to $FAKE_CODEX_LOG. For "mcp add NAME --url URL" it appends
+# [mcp_servers.NAME] and url = "URL" to $CODEX_HOME/config.toml, as the real command does
+# (the approval mode cannot be set that way). It touches nothing else and never reads stdin.
+echo "$*" >> "${FAKE_CODEX_LOG:-/dev/null}"
+if [ "$1" = mcp ] && [ "$2" = add ] && [ "$4" = --url ] && [ -n "$CODEX_HOME" ]; then
+  mkdir -p "$CODEX_HOME"
+  printf '[mcp_servers.%s]\nurl = "%s"\n' "$3" "$5" >> "$CODEX_HOME/config.toml"
+fi
+exit 0

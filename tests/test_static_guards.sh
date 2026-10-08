@@ -99,4 +99,38 @@ for f in $SCRIPTS_GLOB; do
 done
 [ "$found" = 1 ] || gate static_files FAIL "no script matched $SCRIPTS_GLOB"
 
+# ---- plan 19-05: the Codex installer (codex/*.sh) follows the same never-execute rules ----
+# No interpreter call, no terminal-I/O flag, no eval, no JSON command-line processor, no
+# python or node, and no compiler name at all (the installer installs; it never compiles).
+# Its URL literals are not scanned: the default docs URL is the hosted https instance.
+CODEX_GLOB=${CODEX_GLOB:-$REPO/codex/*.sh}
+foundc=0
+for f in $CODEX_GLOB; do
+  [ -f "$f" ] || continue
+  foundc=1
+  body=$(grep -Ev '^[[:space:]]*#' "$f")
+  scan interpreter_word "$f" "$body" '(^|[;&|(`[:space:]])bbj([[:space:]]|$)'
+  scan interpreter_path "$f" "$body" '/bbj([[:space:]"'"'"']|$)'
+  scan interpreter_bin "$f" "$body" 'bin/bbj([^c]|$)'
+  scan terminal_io_flag "$f" "$body" '-tIO'
+  scan eval "$f" "$body" '(^|[^A-Za-z_])eval([^A-Za-z_]|$)'
+  scan json_cli "$f" "$body" '(^|[^A-Za-z_])jq([^A-Za-z_]|$)'
+  scan python_node "$f" "$body" '(^|[^A-Za-z_])(python[0-9.]*|node|nodejs)([^A-Za-z_]|$)'
+  scan compiler_name "$f" "$body" 'bbjcpl'
+  scan sed_in_place "$f" "$body" 'sed[[:space:]]+(-[A-Za-z]*i|--in-place)'
+  if sh -n "$f" 2> "$WORK/syntax"; then
+    gate "static_syntax_$(basename "$f")" ok "sh -n passes"
+  else
+    gate "static_syntax_$(basename "$f")" FAIL "$(head -n 1 "$WORK/syntax")"
+  fi
+  if command -v shellcheck > /dev/null 2>&1; then
+    if shellcheck -s sh "$f" > "$WORK/shellcheck" 2>&1; then
+      gate "static_shellcheck_$(basename "$f")" ok "shellcheck -s sh passes"
+    else
+      gate "static_shellcheck_$(basename "$f")" FAIL "$(head -n 3 "$WORK/shellcheck" | tr '\n' ' ')"
+    fi
+  fi
+done
+[ "$foundc" = 1 ] || gate static_codex_files FAIL "no installer matched $CODEX_GLOB"
+
 finish
