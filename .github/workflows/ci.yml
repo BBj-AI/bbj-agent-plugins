@@ -1,0 +1,40 @@
+# CI for bbj-agent-plugins (PLUG-03, D-07).
+#
+# No credentials and no account: read-only token, no secrets, no push. Every third-party
+# action is pinned by full commit SHA with its version in the trailing comment; Dependabot
+# keeps the pins current (.github/dependabot.yml). tests/test_ci_guards.py fails when any
+# of these rules is broken. The BBj model round runs elsewhere, never here; this job needs
+# no BBj and no private repository, because tests/ci.sh runs only the self-contained checks
+# (real-compiler and live tests skip without BBj).
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: "ci-${{ github.workflow }}-${{ github.ref }}"
+  # A newer push cancels a superseded run on a branch or pull request, never on main, so every
+  # main commit keeps a recorded result.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  plugins:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The validator: claude plugin validate --strict needs the claude CLI. The exact version
+      # was confirmed by the owner as the official Anthropic package (2026-10-08); bump it
+      # as a conscious edit.
+      - name: Install the claude CLI at an exact version
+        run: npm install -g @anthropic-ai/claude-code@2.1.293
+      - name: Plugin repository checks
+        run: sh tests/ci.sh
+        env:
+          CI: "true"
