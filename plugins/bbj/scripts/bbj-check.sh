@@ -24,9 +24,15 @@
 # erroring and missing file alike); the verdict is read from the output, not the exit code.
 # -W is not used (D-11).
 #
-# Environment: BBJ_HOME (BBj install directory), CLAUDE_PROJECT_DIR (workspace root, added
-# to -P), BBJ_CHECK_DEFAULT_HOMES (test seam: unset = the built-in default homes, set =
-# a colon-separated replacement list, empty = none).
+# Environment, in the order BBj is looked for (PLUG-01): CLAUDE_PLUGIN_OPTION_BBJ_HOME (the
+# plugin's bbj_home option), BBJ_HOME, BBJHOME, the compiler on PATH, then the default homes
+# (/c/bbx /Applications/bbx /usr/local/bbx /opt/bbx). CLAUDE_PROJECT_DIR (workspace root)
+# is added to -P. BBJ_CHECK_DEFAULT_HOMES is a test seam: unset = the built-in default
+# homes, set = a colon-separated replacement list, empty = none. With no usable compiler
+# the script exits 0 silently. The launcher bbjcpl finds its BBj home from its own path, so
+# a symlink to it breaks: symlinks are resolved and the real path is called.
+# With Git for Windows (cygpath on PATH) paths are converted: the compiler and -P get
+# Windows paths and the -P list is joined with ";".
 # Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname.
 
 # Where to go when no BBj compiler can be used for the file. Plan 19-04 changes this one
@@ -76,13 +82,46 @@ jget() {
   awk -v region="$1" -v key="$2" "$JGET_AWK"
 }
 
+# to_unix PATH: with cygpath, the Unix form of PATH; otherwise PATH unchanged.
+to_unix() {
+  if [ "$WIN" = 1 ]; then cygpath -u "$1"; else printf '%s' "$1"; fi
+}
+
+# resolve_link PATH: sets CPL to the real path behind PATH (at most 16 symlink hops; no
+# readlink -f, which older macOS lacks). A relative link target is taken relative to the
+# link's directory. Without a symlink, PATH is kept as given.
+resolve_link() {
+  _p=$1
+  _i=0
+  while [ -L "$_p" ] && [ "$_i" -lt 16 ]; do
+    if command -v readlink > /dev/null 2>&1; then
+      _t=$(readlink "$_p")
+    else
+      _t=$(ls -ld "$_p" | sed -E 's/.* -> //')
+    fi
+    [ -n "$_t" ] || break
+    case "$_t" in
+      /*) _p=$_t ;;
+      *) _p=$(dirname "$_p")/$_t ;;
+    esac
+    _i=$((_i + 1))
+  done
+  if [ "$_i" -gt 0 ]; then
+    _dir=$(cd "$(dirname "$_p")" 2> /dev/null && pwd -P)
+    [ -n "$_dir" ] && _p=$_dir/$(basename "$_p")
+  fi
+  CPL=$_p
+}
+
 # find_cpl_in_home DIR: sets CPL to the first executable compiler inside DIR (or DIR
 # itself when it is the bin directory). Names in order: bbjcpl, bbjcpl.exe, bbjcplw.exe, bbjcplw.
 find_cpl_in_home() {
-  for _d in "$1/bin" "$1"; do
+  _hd=$(to_unix "$1")
+  [ -n "$_hd" ] || return 1
+  for _d in "$_hd/bin" "$_hd"; do
     for _n in bbjcpl bbjcpl.exe bbjcplw.exe bbjcplw; do
       if [ -f "$_d/$_n" ] && [ -x "$_d/$_n" ]; then
-        CPL=$_d/$_n
+        resolve_link "$_d/$_n"
         return 0
       fi
     done
@@ -90,10 +129,30 @@ find_cpl_in_home() {
   return 1
 }
 
-# discover: sets CPL (empty when no compiler is found). Order: BBJ_HOME, the default homes.
+# find_cpl_on_path: the first bbjcpl, else bbjcplw, found on PATH.
+find_cpl_on_path() {
+  for _n in bbjcpl bbjcplw; do
+    _c=$(command -v "$_n" 2> /dev/null)
+    case "$_c" in
+      /*)
+        if [ -f "$_c" ] && [ -x "$_c" ]; then
+          resolve_link "$_c"
+          return 0
+        fi
+        ;;
+    esac
+  done
+  return 1
+}
+
+# discover: sets CPL (empty when no compiler is found). Order: the plugin option, BBJ_HOME,
+# BBJHOME, PATH, the default homes. A home without a compiler falls through to the next step.
 discover() {
   CPL=
-  if [ -n "$BBJ_HOME" ] && find_cpl_in_home "$BBJ_HOME"; then return 0; fi
+  for _h in "$CLAUDE_PLUGIN_OPTION_BBJ_HOME" "$BBJ_HOME" "$BBJHOME"; do
+    if [ -n "$_h" ] && find_cpl_in_home "$_h"; then return 0; fi
+  done
+  if find_cpl_on_path; then return 0; fi
   if [ "${BBJ_CHECK_DEFAULT_HOMES+set}" = set ]; then
     _list=$BBJ_CHECK_DEFAULT_HOMES
     _sep=:
@@ -136,6 +195,17 @@ main() {
   case "$file" in
     *"$nl"*|*'*'*|*'?'*|*'['*) exit 0 ;;
   esac
+  WIN=0
+  if command -v cygpath > /dev/null 2>&1; then WIN=1; fi
+  case "$file" in
+    /*) ;;
+    [A-Za-z]:*)
+      # a drive-letter path is only meaningful under Git for Windows (cygpath)
+      [ "$WIN" = 1 ] || exit 0
+      file=$(cygpath -u "$file")
+      ;;
+    *) exit 0 ;;
+  esac
   case "$file" in
     /*) ;;
     *) exit 0 ;;
@@ -145,26 +215,45 @@ main() {
   discover || no_tier1_route
 
   # -P list: the file's directory, the workspace root, the payload cwd; deduplicated,
-  # absolute entries only, none containing the list separator.
+  # absolute entries only, none containing the list separator. Under Git for Windows the
+  # entries are converted with cygpath -w and joined with ";".
   plist=
+  wlist=
   for _e in "$(dirname "$file")" "$CLAUDE_PROJECT_DIR" "$cwd"; do
     [ -n "$_e" ] || continue
+    case "$_e" in
+      [A-Za-z]:*) if [ "$WIN" = 1 ]; then _e=$(cygpath -u "$_e"); fi ;;
+    esac
     case "$_e" in
       /*) ;;
       *) continue ;;
     esac
     case "$_e" in
-      *:*) continue ;;
+      *:*|*';'*) continue ;;
     esac
     case ":$plist:" in
       *":$_e:"*) continue ;;
     esac
     if [ -z "$plist" ]; then plist=$_e; else plist=$plist:$_e; fi
+    if [ "$WIN" = 1 ]; then
+      _w=$(cygpath -w "$_e")
+      [ -n "$_w" ] || continue
+      if [ -z "$wlist" ]; then wlist=$_w; else wlist=$wlist';'$_w; fi
+    fi
   done
+  if [ "$WIN" = 1 ]; then plist=$wlist; fi
+  cfile=$file
+  if [ "$WIN" = 1 ]; then cfile=$(cygpath -w "$file"); fi
 
-  out=$("$CPL" -t -N -X ${plist:+"-P$plist"} "$file" </dev/null 2>&1)
+  out=$("$CPL" -t -N -X ${plist:+"-P$plist"} "$cfile" </dev/null 2>&1)
+  rc=$?
   errs=$(printf '%s\n' "$out" | grep -E ': (type check )?error')
-  [ -n "$errs" ] || exit 0
+  if [ -z "$errs" ]; then
+    # Output without a compiler-format line (a launcher or Java failure) or a crashed
+    # compiler is no verdict, never "clean": same route as no compiler at all.
+    if [ -n "$out" ] || [ "$rc" -ge 126 ]; then no_tier1_route; fi
+    exit 0
+  fi
   n=$(printf '%s\n' "$errs" | awk 'END { print NR }')
   {
     printf 'bbjcpl reported %s error(s) in %s:\n' "$n" "$file"

@@ -1,0 +1,8 @@
+#!/bin/sh
+# Fake cygpath for the Windows-branch test: "-u ARG" prints ARG unchanged, "-w ARG" prints
+# "W:" followed by ARG, so a test can see which paths went through the conversion.
+case "$1" in
+  -u) printf '%s\n' "$2" ;;
+  -w) printf 'W:%s\n' "$2" ;;
+  *) exit 1 ;;
+esac
