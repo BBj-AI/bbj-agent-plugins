@@ -1,0 +1,7 @@
+bbj-agent-plugins
+Copyright 2026 BASIS International Ltd.
+
+The directory plugins/bbj/skills contains the skills bbj-programming and
+bbj-web-programming from BBjSkills by BASIS International Ltd., vendored verbatim
+at the commit recorded in skills.lock.json and published under the Apache License 2.0
+with the owner's approval of 2026-10-07.
