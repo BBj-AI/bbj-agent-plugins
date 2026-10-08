@@ -30,6 +30,16 @@
 # which are demoted to the trailing note and never cause exit 2 on their own (D-11). A file
 # whose basename matches config*.bbx is configuration and is not checked (owner decision).
 #
+# Codex (plan 19-05, D-15, PLUG-04): a PostToolUse payload with tool_name apply_patch carries
+# the patch text in tool_input.command. Every BBj file named by a line that starts exactly
+# with "*** Add File: ", "*** Update File: " or "*** Move to: " is checked, resolved against
+# the payload cwd (a "+"-prefixed content line never matches; Delete headers are ignored;
+# a path with a ".." segment or an absolute path outside cwd is skipped silently; the same
+# path is checked once). One block per failing file, one bbj_lookup line after the last
+# block, exit 2. The whole payload is read, so headers past the first 8192 bytes count. The
+# Codex payload shape is documentation-derived (MEDIUM) and stays unverified until it is
+# captured on a machine with Codex.
+#
 # stdout stays empty and the exit code is only ever 0 or 2. There is deliberately no
 # "set -e": every failure path ends in an explicit "exit 0".
 #
@@ -52,9 +62,10 @@
 # Windows paths and the -P list is joined with ";".
 # Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname.
 
-# report ROUTE ERRS [K]: writes the D-12 feedback for the error lines ERRS to stderr (header
-# naming ROUTE, at most 40 lines, an overflow line, a "Not counted" line when K > 0 unresolved
-# use lines were demoted, the bbj_lookup line) and exits 2.
+# report ROUTE ERRS [K]: writes the D-12 feedback block for the error lines ERRS to stderr
+# (header naming ROUTE, at most 40 lines, an overflow line, a "Not counted" line when K > 0
+# unresolved use lines were demoted) and sets FAILED=1. main prints the single bbj_lookup
+# line after the last block and exits 2.
 report() {
   _n=$(printf '%s\n' "$2" | awk 'END { print NR }')
   {
@@ -62,24 +73,23 @@ report() {
     printf '%s\n' "$2" | head -n 40
     if [ "$_n" -gt 40 ]; then printf '(%s more line(s) not shown)\n' "$((_n - 40))"; fi
     if [ "${3:-0}" -gt 0 ]; then printf 'Not counted: %s unresolved use target line(s) ("Cannot find program").\n' "$3"; fi
-    printf 'bbj_lookup gives exact syntax for a named symbol.\n'
   } >&2
-  exit 2
+  FAILED=1
 }
 
 # Where to go when no BBj compiler can be used for the file: tier 2, the loopback bbj-local
-# check (D-14). Every failure path ends in "exit 0" (no route, no verdict).
+# check (D-14). Every failure path ends in "return 0" (no route, no verdict).
 no_tier1_route() {
   _url=${BBJ_LOCAL_MCP_URL:-http://127.0.0.1:5009/mcp}
   # loopback only: plain http to 127.0.0.1, localhost or [::1], an optional port and path;
   # no whitespace, backslash, userinfo (@), query (?) or fragment (#). A refused URL is
   # never handed to curl.
   case "$_url" in
-    *[[:space:]]*|*@*|*'?'*|*'#'*|*'\'*) exit 0 ;;
+    *[[:space:]]*|*@*|*'?'*|*'#'*|*'\'*) return 0 ;;
   esac
   _ok=$(printf '%s' "$_url" | sed -nE 's#^http://(\[::1\]|127\.0\.0\.1|[Ll][Oo][Cc][Aa][Ll][Hh][Oo][Ss][Tt])(:[0-9]+)?(/[^ ]*)?$#ok#p')
-  [ "$_ok" = ok ] || exit 0
-  command -v curl > /dev/null 2>&1 || exit 0
+  [ "$_ok" = ok ] || return 0
+  command -v curl > /dev/null 2>&1 || return 0
 
   # the file text as a JSON string: control characters other than tab, LF and CR dropped;
   # backslash, double quote, tab and CR escaped; every line followed by \n
@@ -91,20 +101,20 @@ no_tier1_route() {
   _body='{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"bbj_check_syntax","arguments":{"code":"'"$_code"'"},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}'
 
   _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout 1 -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
-  [ "$?" = 0 ] && [ -n "$_reply" ] || exit 0
+  [ "$?" = 0 ] && [ -n "$_reply" ] || return 0
 
   # a text/event-stream reply: the payload of the last data: line
   if printf '%s\n' "$_reply" | grep '^data:' > /dev/null; then
     _reply=$(printf '%s\n' "$_reply" | tr -d '\r' | sed -n 's/^data:[[:space:]]*//p' | tail -n 1)
   fi
   # a JSON-RPC error or an isError result is no verdict
-  if printf '%s' "$_reply" | grep -E '"error"[[:space:]]*:|"isError"[[:space:]]*:[[:space:]]*true' > /dev/null; then exit 0; fi
+  if printf '%s' "$_reply" | grep -E '"error"[[:space:]]*:|"isError"[[:space:]]*:[[:space:]]*true' > /dev/null; then return 0; fi
   _text=$(printf '%s' "$_reply" | LC_ALL=C awk -v region=all -v key=text -v uni=1 "$JGET_AWK")
   case "$_text" in
-    "No errors found."*) exit 0 ;;
+    "No errors found."*) return 0 ;;
   esac
   _errs=$(printf '%s\n' "$_text" | grep -E '^line [0-9]+, column [0-9]+:')
-  [ -n "$_errs" ] || exit 0
+  [ -n "$_errs" ] || return 0
   report bbj-local "$_errs"
 }
 
@@ -255,52 +265,46 @@ discover() {
   return 1
 }
 
-main() {
-  input=$(cat)
-  hd=$(printf '%s' "$input" | head -c 8192)
-  tool=$(printf '%s' "$hd" | jget pre tool_name)
-  case "$tool" in
-    Write|Edit) ;;
-    *) exit 0 ;;
-  esac
-  file=$(printf '%s' "$hd" | jget post file_path)
-  cwd=$(printf '%s' "$hd" | jget pre cwd)
-  [ -n "$file" ] || exit 0
-
+# check_file FILE: the per-file check both tools share. FILE is the path as the tool named
+# it (an absolute path; under Git for Windows a drive-letter path). Returns 0 in every case;
+# a failing file leaves its feedback block on stderr and FAILED=1. Uses the globals WIN, cwd.
+check_file() {
+  file=$1
   case "$file" in
     *.[bB][bB][jJ]|*.[sS][rR][cC]|*.[bB][bB][xX]) ;;
-    *) exit 0 ;;
+    *) return 0 ;;
   esac
   nl='
 '
   case "$file" in
-    *"$nl"*|*'*'*|*'?'*|*'['*) exit 0 ;;
+    *"$nl"*|*'*'*|*'?'*|*'['*) return 0 ;;
   esac
-  WIN=0
-  if command -v cygpath > /dev/null 2>&1; then WIN=1; fi
   case "$file" in
     /*) ;;
     [A-Za-z]:*)
       # a drive-letter path is only meaningful under Git for Windows (cygpath)
-      [ "$WIN" = 1 ] || exit 0
+      [ "$WIN" = 1 ] || return 0
       file=$(cygpath -u "$file")
       ;;
-    *) exit 0 ;;
+    *) return 0 ;;
   esac
   case "$file" in
     /*) ;;
-    *) exit 0 ;;
+    *) return 0 ;;
   esac
-  [ -f "$file" ] && [ -r "$file" ] || exit 0
+  [ -f "$file" ] && [ -r "$file" ] || return 0
 
   # Owner decision 2026-10-08 (plan 19-04 Task 2, auto-selected "skip-config"; one line to
   # reverse): a basename matching config*.bbx, any case, is BBj configuration, not a program;
   # the compiler reports an error on every line of it. Skipped before any route is tried.
   case "${file##*/}" in
-    [cC][oO][nN][fF][iI][gG]*.[bB][bB][xX]) exit 0 ;;
+    [cC][oO][nN][fF][iI][gG]*.[bB][bB][xX]) return 0 ;;
   esac
 
-  discover || no_tier1_route
+  if ! discover; then
+    no_tier1_route
+    return 0
+  fi
 
   # -P list: the file's directory, the workspace root, the payload cwd; deduplicated,
   # absolute entries only, none containing the list separator. Under Git for Windows the
@@ -340,14 +344,108 @@ main() {
     # Output without a compiler-format line (a launcher or Java failure) or a crashed
     # compiler is no verdict, never "clean": same route as no compiler at all.
     if [ -n "$out" ] || [ "$rc" -ge 126 ]; then no_tier1_route; fi
-    exit 0
+    return 0
   fi
   # D-11: an unresolved use without a path ("Cannot find program") is demoted to a trailing
   # note and never causes exit 2 on its own; N counts only the other error lines.
   counted=$(printf '%s\n' "$errs" | grep -v -F 'Cannot find program')
-  [ -n "$counted" ] || exit 0
+  [ -n "$counted" ] || return 0
   demoted=$(printf '%s\n' "$errs" | grep -c -F 'Cannot find program')
   report bbjcpl "$counted" "$demoted"
+  return 0
+}
+
+# codex_patch: the apply_patch branch (see the header). Reads the globals input, hd, WIN;
+# sets cwd. Checks every BBj file the patch headers name, once each.
+codex_patch() {
+  cwd=$(printf '%s' "$hd" | jget pre cwd)
+  [ -n "$cwd" ] || cwd=$(printf '%s' "$input" | jget all cwd)
+  [ -n "$cwd" ] || exit 0
+  case "$cwd" in
+    [A-Za-z]:*) if [ "$WIN" = 1 ]; then cwd=$(cygpath -u "$cwd"); fi ;;
+  esac
+  case "$cwd" in
+    /*) ;;
+    *) exit 0 ;;
+  esac
+  base=${cwd%/}
+
+  # the patch text: the whole payload is read (tier-2 style reader, \uXXXX decoded)
+  patch=$(printf '%s' "$input" | LC_ALL=C awk -v region=post -v key=command -v uni=1 "$JGET_AWK")
+  [ -n "$patch" ] || exit 0
+  paths=$(printf '%s\n' "$patch" | LC_ALL=C tr -d '\r' \
+    | LC_ALL=C sed -n -e 's/^\*\*\* Add File: //p' -e 's/^\*\*\* Update File: //p' -e 's/^\*\*\* Move to: //p')
+
+  nl='
+'
+  seen=$nl
+  rest=$paths
+  while [ -n "$rest" ]; do
+    _p=${rest%%"$nl"*}
+    case "$rest" in
+      *"$nl"*) rest=${rest#*"$nl"} ;;
+      *) rest= ;;
+    esac
+    [ -n "$_p" ] || continue
+    case "$_p" in
+      [A-Za-z]:*) if [ "$WIN" = 1 ]; then _p=$(cygpath -u "$_p"); fi ;;
+    esac
+    case "$_p" in
+      /*)
+        # absolute: only inside cwd
+        case "$_p" in
+          "$base"/*) ;;
+          *) continue ;;
+        esac
+        ;;
+      *) _p=$base/$_p ;;
+    esac
+    # "/./" segments collapse (so ./a and a count as one path); a ".." segment would leave
+    # the workspace: skipped silently
+    while :; do
+      case "$_p" in
+        *"/./"*) _p=${_p%%/./*}/${_p#*/./} ;;
+        *) break ;;
+      esac
+    done
+    case "$_p" in
+      */..|*/../*) continue ;;
+    esac
+    case "$seen" in
+      *"$nl$_p$nl"*) continue ;;
+    esac
+    seen=$seen$_p$nl
+    check_file "$_p"
+  done
+}
+
+main() {
+  input=$(cat)
+  hd=$(printf '%s' "$input" | head -c 8192)
+  FAILED=0
+  WIN=0
+  if command -v cygpath > /dev/null 2>&1; then WIN=1; fi
+  tool=$(printf '%s' "$hd" | jget pre tool_name)
+  if [ -z "$tool" ]; then
+    # Codex: tool_name may come after a long tool_input; only apply_patch is taken from there
+    tool=$(printf '%s' "$input" | jget all tool_name)
+    [ "$tool" = apply_patch ] || tool=
+  fi
+  case "$tool" in
+    Write|Edit)
+      file=$(printf '%s' "$hd" | jget post file_path)
+      cwd=$(printf '%s' "$hd" | jget pre cwd)
+      [ -n "$file" ] || exit 0
+      check_file "$file"
+      ;;
+    apply_patch) codex_patch ;;
+    *) exit 0 ;;
+  esac
+  if [ "$FAILED" = 1 ]; then
+    printf 'bbj_lookup gives exact syntax for a named symbol.\n' >&2
+    exit 2
+  fi
+  exit 0
 }
 
 main

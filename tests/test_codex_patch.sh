@@ -153,9 +153,8 @@ BBJ_HOME=$WORK/home2 run_check "$(codex_payload "$PROJ" "$(patch '*** Add File: 
 # ---- the same file named twice is checked once ----
 : > "$FAKE_LOG"
 run_check "$(codex_payload "$PROJ" "$(patch '*** Update File: early.bbj' '*** Update File: ./early.bbj' '*** Update File: early.bbj')")"
-n=$(calls_list | awk 'END { print NR }')
-[ "$(calls_list | sort | uniq | awk 'END { print NR }')" = "$n" ] && [ "$n" -ge 1 ] \
-  && gate duplicates_once ok "$n call(s), no repeats of one path" || gate duplicates_once FAIL "calls: $(calls_list)"
+[ "$(calls_list)" = "$PROJ/early.bbj" ] \
+  && gate duplicates_once ok "early.bbj, ./early.bbj and early.bbj give one call" || gate duplicates_once FAIL "calls: $(calls_list)"
 
 # ---- the real compiler, when there is one ----
 if [ -x "$BBJ_TEST_HOME/bin/bbjcpl" ]; then
