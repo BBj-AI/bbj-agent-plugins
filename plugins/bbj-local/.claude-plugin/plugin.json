@@ -1,0 +1,12 @@
+{
+  "name": "bbj-local",
+  "version": "0.1.0",
+  "description": "Registers the bbj-ls MCP server of a running BBjServices on 127.0.0.1:5009, which offers bbj_check_syntax, bbj_denum and bbj_format; needs BBj 26.03 or later; off by default.",
+  "author": {
+    "name": "BASIS International Ltd."
+  },
+  "homepage": "https://github.com/BBj-AI/bbj-agent-plugins",
+  "license": "Apache-2.0",
+  "keywords": ["bbj", "basis", "mcp", "bbj-ls", "syntax-check"],
+  "defaultEnabled": false
+}

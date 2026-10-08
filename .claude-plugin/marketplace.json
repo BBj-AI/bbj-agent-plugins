@@ -11,6 +11,13 @@
       "source": "./plugins/bbj",
       "description": "BBj docs server, the BBjSkills and a compile-only check of every BBj file the agent writes.",
       "version": "0.1.0"
+    },
+    {
+      "name": "bbj-local",
+      "source": "./plugins/bbj-local",
+      "description": "Registers the bbj-ls MCP server of a local BBjServices (127.0.0.1:5009) with the bbj_check_syntax, bbj_denum and bbj_format tools; off by default.",
+      "version": "0.1.0",
+      "defaultEnabled": false
     }
   ]
 }
