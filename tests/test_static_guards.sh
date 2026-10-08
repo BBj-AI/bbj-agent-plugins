@@ -52,6 +52,36 @@ for f in $SCRIPTS_GLOB; do
     fi
   fi
 
+  # plan 19-04: every URL literal has a loopback host; the curl call carries --noproxy and
+  # --proto and no redirect flag (URLs preceded by ^ are the sed pattern that validates them)
+  urls=$(printf '%s\n' "$body" | grep -oE '(^|[^^])https?://[^/"'"'"'[:space:]]*' | sed -E 's#^[^h]##')
+  badurl=
+  OLDIFS=$IFS
+  IFS='
+'
+  for u in $urls; do
+    printf '%s\n' "$u" | grep -E '^http://(127\.0\.0\.1|localhost|\[::1\])(:[0-9]+)?$' > /dev/null || badurl="$badurl $u"
+  done
+  IFS=$OLDIFS
+  if [ -n "$badurl" ]; then
+    gate "static_url_hosts_$(basename "$f")" FAIL "non-loopback URL literal:$badurl"
+  else
+    gate "static_url_hosts_$(basename "$f")" ok "every URL literal is loopback http"
+  fi
+  curls=$(printf '%s\n' "$body" | grep -E '(^|[;&|(`[:space:]])curl([[:space:]]|$)' | grep -v 'command -v')
+  if [ -z "$curls" ]; then
+    gate "static_curl_call_$(basename "$f")" ok "no curl call in this file"
+  else
+    nosafe=$(printf '%s\n' "$curls" | grep -v -e '--noproxy' | head -n 1)
+    noproto=$(printf '%s\n' "$curls" | grep -v -e '--proto =http' | head -n 1)
+    redirect=$(printf '%s\n' "$curls" | grep -E -e '[[:space:]](-L|--location[a-z-]*|-[A-Za-z]*L[A-Za-z]*)([[:space:]]|$)' | head -n 1)
+    if [ -n "$nosafe" ]; then gate "static_curl_call_$(basename "$f")" FAIL "curl call without --noproxy: $nosafe"
+    elif [ -n "$noproto" ]; then gate "static_curl_call_$(basename "$f")" FAIL "curl call without --proto =http: $noproto"
+    elif [ -n "$redirect" ]; then gate "static_curl_call_$(basename "$f")" FAIL "curl call follows redirects: $redirect"
+    else gate "static_curl_call_$(basename "$f")" ok "every curl call has --noproxy and --proto =http, no -L"
+    fi
+  fi
+
   if sh -n "$f" 2> "$WORK/syntax"; then
     gate "static_syntax_$(basename "$f")" ok "sh -n passes"
   else

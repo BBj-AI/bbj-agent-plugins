@@ -144,6 +144,17 @@ else
 fi
 stop_fake
 
+# ---- a skipped config*.bbx file never reaches the loopback either (plan 19-04 Task 2: skip-config) ----
+start_fake one-error
+printf 'ALIAS X0 SYSGUI\n' > "$WORK/proj/config.bbx"
+run_t2 "$(claude_payload Write "$WORK/proj/config.bbx" "$WORK/proj")"
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ]; then
+  gate config_skipped_no_request ok "config.bbx sends nothing to the loopback"
+else
+  gate config_skipped_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
+fi
+stop_fake
+
 # ---- a working compiler wins: no request ----
 mkdir -p "$WORK/home/bin"
 cp "$REPO/tests/fake-bin/bbjcpl" "$WORK/home/bin/bbjcpl"
