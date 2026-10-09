@@ -668,9 +668,12 @@ fi
 # ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
 inst_tools=$(sed -n 's/^DOCS_TOOLS=//p' "$INSTALLER" | head -n 1 | tr -d "'\"" | tr ' ' '\n' | sort)
 snip_tools=$(sed -n 's/^- `\(bbj_[a-z_]*\)`:.*/\1/p' "$SNIPPET" | sort)
-[ -n "$inst_tools" ] && [ "$inst_tools" = "$snip_tools" ] \
-  && gate tools_list_single_source ok "DOCS_TOOLS equals the tool bullets of AGENTS-snippet.md ($(printf '%s' "$inst_tools" | awk 'END { print NR }') tools)" \
-  || gate tools_list_single_source FAIL "installer '$(printf '%s' "$inst_tools" | tr '\n' ' ')', snippet '$(printf '%s' "$snip_tools" | tr '\n' ' ')'"
+page_tools=$(sed -n 's/^ *\[mcp_servers\.bbj-docs\.tools\.\([a-z_]*\)\]$/\1/p' "$REPO/docs/install-codex.md" | sort)
+if [ -n "$inst_tools" ] && [ "$inst_tools" = "$snip_tools" ] && [ "$inst_tools" = "$page_tools" ]; then
+  gate tools_list_single_source ok "DOCS_TOOLS equals the tool bullets of AGENTS-snippet.md and the tool tables of docs/install-codex.md ($(printf '%s\n' "$inst_tools" | awk 'END { print NR }') tools)"
+else
+  gate tools_list_single_source FAIL "installer '$(printf '%s' "$inst_tools" | tr '\n' ' ')', snippet '$(printf '%s' "$snip_tools" | tr '\n' ' ')', page '$(printf '%s' "$page_tools" | tr '\n' ' ')'"
+fi
 
 # ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
 if [ -n "$REAL_CODEX" ]; then

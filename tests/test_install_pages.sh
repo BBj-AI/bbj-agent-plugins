@@ -134,6 +134,13 @@ if [ -f "$CODEX_PAGE" ]; then
     '--skills-dir' \
     '--codex-home' \
     'default_tools_approval_mode' \
+    '[mcp_servers.bbj-docs.tools.bbj_search]' \
+    '[mcp_servers.bbj-docs.tools.bbj_fetch_page]' \
+    '[mcp_servers.bbj-docs.tools.bbj_lookup]' \
+    '[mcp_servers.bbj-docs.tools.bbj_reserved_word]' \
+    '[mcp_servers.bbj-docs.tools.bbj_examples]' \
+    'approval_mode = "approve"' \
+    'bbj_check_syntax' \
     '~/.agents/skills' \
     '~/.codex/skills' \
     '/hooks' \

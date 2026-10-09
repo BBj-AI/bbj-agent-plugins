@@ -37,25 +37,54 @@ Options:
 | `--help` | Print the usage text. |
 
 Exit codes: `0` done; `2` the installer refused (a bad option or URL, or a destination it cannot write; it checks every destination before it writes anything, and if a later step still fails it names the steps that had already run);
-`3` it finished, but something is left for you to merge by hand (an existing `hooks.json`, or a
-skill directory that differs). The installer prints what to do in that case. Running it a second
-time changes nothing.
+`3` it finished, but something is left for you to merge or decide by hand: an existing `hooks.json`,
+a skill directory that differs, `bbj-docs` or its tool tables written in `config.toml` in a form the
+installer does not edit (it then leaves `config.toml` byte for byte as it was and prints the
+tables), or a `default_tools_approval_mode` of yours that approves every tool. The installer prints
+what to do in that case. Running it a second time changes nothing.
 
 ## What it does
 
 1. **Registers the docs server** as `bbj-docs`: with `codex mcp add bbj-docs --url <url>` when
-   `codex` is on `PATH`, otherwise as a managed block in `config.toml`. The table it leaves is:
+   `codex` is on `PATH`, otherwise as a managed block in `config.toml`. It then approves the five
+   docs tools by name. What it leaves is:
 
    ```toml
    [mcp_servers.bbj-docs]
    url = "https://bbj-mcp.basis-europe.eu/mcp"
-   default_tools_approval_mode = "approve"
+
+   [mcp_servers.bbj-docs.tools.bbj_search]
+   approval_mode = "approve"
+
+   [mcp_servers.bbj-docs.tools.bbj_fetch_page]
+   approval_mode = "approve"
+
+   [mcp_servers.bbj-docs.tools.bbj_lookup]
+   approval_mode = "approve"
+
+   [mcp_servers.bbj-docs.tools.bbj_reserved_word]
+   approval_mode = "approve"
+
+   [mcp_servers.bbj-docs.tools.bbj_examples]
+   approval_mode = "approve"
    ```
 
-   `default_tools_approval_mode = "approve"` means Codex runs the `bbj-docs` tools without
-   asking each time. That is set for this server only, because it only reads documentation;
-   nothing else is approved. If a `bbj-docs` table already exists, the installer only adds that
-   one line to it and keeps a one-time backup, `config.toml.bbj-backup`.
+   Codex runs these five docs tools without asking each time; they only read documentation.
+   Every other tool of `bbj-docs` keeps Codex's normal prompt. That matters for
+   `bbj_check_syntax`, `bbj_format` and `bbj_denum`, which the pre-production server also lists
+   (the hosted check; its answers say "hosted check, stock BBj <version>"): they send your code
+   to the server, so Codex asks you before each call. What the hosted server logs is in its
+   data-handling statement, linked under "Check routes". If a `bbj-docs` table already exists,
+   the installer only adds the missing tool tables to it, and keeps a one-time backup,
+   `config.toml.bbj-backup`. A docs tool you set to another `approval_mode` keeps your value and
+   is named in the output.
+
+   **Upgrading from an earlier install.** Installers before 2026-10-09 wrote
+   `default_tools_approval_mode = "approve"` into the `bbj-docs` table, which approved every tool
+   of the server, the hosted check tools included. Rerunning the installer removes exactly that
+   line and says so. Any other `default_tools_approval_mode` is left alone and reported; when it
+   still approves every tool (the same value in another spelling), the installer ends with exit
+   code `3` and tells you to remove the line by hand to keep the prompt for the check tools.
 2. **Installs the two skills**, `bbj-programming` and `bbj-web-programming`, into
    `~/.agents/skills`, where Codex CLI 0.156.1 finds them; if your Codex version does not
    list the BBj skills, rerun the installer with `--skills-dir ~/.codex/skills`. A skill
