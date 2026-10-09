@@ -600,8 +600,14 @@ if [ "$with_local" = 1 ] || [ "$(an managed)" = 1 ]; then
   sync_server
 elif [ "$(an main)" = 0 ] && [ "$(an mention)" = 0 ]; then
   probe_local
+  # when the seam moved the probe, the none line also names the url the registration always uses (D-17)
+  _seam=
+  [ "$probe_url" = "$LOCAL_URL" ] || _seam=" The registration always uses $LOCAL_URL."
   case "$probe" in
     found) say "bbj-local: a bbj-ls answers at $probe_url; it is not registered with Codex. Rerun with --with-local to register it as bbj-local ($LOCAL_URL); nothing was written for it." ;;
+    none) say "bbj-local: no bbj-ls answered at $probe_url; not registered (rerun with --with-local once BBjServices 26.03+ runs).$_seam" ;;
+    nocurl) say "bbj-local: not probed: curl not found." ;;
+    refused) say "bbj-local: not probed: $probe_url (BBJ_LOCAL_MCP_URL) is not a loopback http URL." ;;
   esac
 fi
 

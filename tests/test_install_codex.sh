@@ -1061,6 +1061,89 @@ else
   gate probe_request_shape skip "no python3"
 fi
 
+# ---- plan 01-06 Task 2: every other no-flag outcome is one line and writes nothing ----
+# fake curl first on PATH (it logs its arguments and exits 7); the farm keeps the case free of codex
+mkdir -p "$WORK/fbcurl"
+cp "$REPO/tests/fake-bin/curl" "$WORK/fbcurl/curl"
+FAKE_CURL_PATH=$WORK/fbcurl:$NO_CODEX
+
+# the seam is at the closed port 127.0.0.1:9 (lib.sh, restored by stop_fake): nothing answers, curl exits 7
+newenv probenone
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+_line=$(grep -e '^bbj-local: no bbj-ls answered at http://127.0.0.1:9/mcp' "$WORK/out")
+if [ "$RC" = 0 ] && [ "$(nlines 'bbj-local: no bbj-ls answered at')" = 1 ] && printf '%s\n' "$_line" | grep -F -e "$LOCAL_URL_T" > /dev/null \
+  && printf '%s\n' "$_line" | grep -F -e '--with-local' > /dev/null && ! grep -F bbj-local "$CFG" > /dev/null; then
+  gate probe_no_answer_no_flag ok "a closed port: exit 0, one 'no bbj-ls answered' line naming the probe url, $LOCAL_URL_T and --with-local, nothing about bbj-local in config.toml"
+else
+  gate probe_no_answer_no_flag FAIL "exit $RC, out: $(grep bbj-local "$WORK/out" | head -c 300)"
+fi
+
+newenv probenocurl
+run_inst "$NO_CODEX"
+CFG=$E_CODEX/config.toml
+if [ "$RC" = 0 ] && [ "$(count 'bbj-local: not probed: curl not found.' "$WORK/out")" = 1 ] && ! grep -F bbj-local "$CFG" > /dev/null; then
+  gate probe_no_curl ok "no curl on PATH: exit 0, the line 'bbj-local: not probed: curl not found.', nothing about bbj-local in config.toml"
+else
+  gate probe_no_curl FAIL "exit $RC, out: $(grep bbj-local "$WORK/out" | head -c 300)"
+fi
+
+if command -v python3 > /dev/null 2>&1; then
+  newenv probeother
+  start_fake tools-list-other
+  run_inst "$WITH_CODEX"
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  _reqs=$(awk 'END { print NR }' "$LOGF")
+  if [ "$RC" = 0 ] && [ "$_reqs" = 1 ] && [ "$(nlines 'bbj-local: a bbj-ls answers')" = 0 ] && [ "$(nlines 'bbj-local: no bbj-ls answered at')" = 1 ] \
+    && ! grep -F bbj-local "$CFG" > /dev/null; then
+    gate probe_other_server_no_suggestion ok "another server on the port (a tool list without bbj_check_syntax): one request, no suggestion, the 'no bbj-ls answered' line, nothing written"
+  else
+    gate probe_other_server_no_suggestion FAIL "exit $RC, requests: $_reqs, out: $(grep bbj-local "$WORK/out" | head -c 300)"
+  fi
+else
+  gate probe_other_server_no_suggestion skip "no python3"
+fi
+
+# a seam that is not loopback http never reaches curl (T-01-18)
+newenv proberefused
+: > "$WORK/curl.refused"
+BBJ_LOCAL_MCP_URL=http://example.invalid:5009/mcp
+export BBJ_LOCAL_MCP_URL
+FAKE_CURL_LOG=$WORK/curl.refused
+export FAKE_CURL_LOG
+run_inst "$FAKE_CURL_PATH"
+unset FAKE_CURL_LOG
+BBJ_LOCAL_MCP_URL=$CLOSED_URL
+export BBJ_LOCAL_MCP_URL
+CFG=$E_CODEX/config.toml
+if [ "$RC" = 0 ] && [ ! -s "$WORK/curl.refused" ] && [ "$(nlines 'bbj-local: not probed:')" = 1 ] \
+  && grep -e '^bbj-local: not probed:' "$WORK/out" | grep -F -e 'http://example.invalid:5009/mcp' > /dev/null && ! grep -F bbj-local "$CFG" > /dev/null; then
+  gate probe_refuses_non_loopback_seam ok "BBJ_LOCAL_MCP_URL=http://example.invalid:5009/mcp: curl never called, one 'not probed:' line naming the value, exit 0, nothing written"
+else
+  gate probe_refuses_non_loopback_seam FAIL "exit $RC, curl log: $(head -c 200 "$WORK/curl.refused"), out: $(grep bbj-local "$WORK/out" | head -c 300)"
+fi
+
+# the one curl call: no .curlrc, no proxy, http only, short timeouts, no redirect, a static body (T-01-19, T-01-20, T-01-21)
+newenv probeflags
+: > "$WORK/curl.flags"
+FAKE_CURL_LOG=$WORK/curl.flags
+export FAKE_CURL_LOG
+run_inst "$FAKE_CURL_PATH"
+unset FAKE_CURL_LOG
+_calls=$(grep -c -x CALL "$WORK/curl.flags")
+_flags_ok=1
+for _a in -q --noproxy '*' --proto =http --connect-timeout 2 -m 3 'Mcp-Method: tools/list' 'MCP-Protocol-Version: 2026-07-28' --url "$CLOSED_URL"; do
+  grep -c -x -F -e "$_a" "$WORK/curl.flags" > /dev/null || { _flags_ok=0; _miss=$_a; }
+done
+_data=$(grep -A 1 -x -e '--data' "$WORK/curl.flags" | tail -n 1)
+if [ "$RC" = 0 ] && [ "$_calls" = 1 ] && [ "$_flags_ok" = 1 ] && ! grep -E -x -e '-L|--location|-[A-Za-z]*L[A-Za-z]*' "$WORK/curl.flags" > /dev/null \
+  && printf '%s\n' "$_data" | grep -F -e '"method":"tools/list"' > /dev/null && ! printf '%s\n' "$_data" | grep -F -e 'arguments' > /dev/null; then
+  gate probe_curl_flags ok "one curl call with -q, --noproxy '*', --proto =http, --connect-timeout 2, -m 3, Mcp-Method and MCP-Protocol-Version headers, --url the seam, no -L or --location, a static tools/list body"
+else
+  gate probe_curl_flags FAIL "exit $RC, calls: $_calls, missing: ${_miss:-none}, data: $_data"
+fi
+
 # ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
 inst_tools=$(sed -n 's/^DOCS_TOOLS=//p' "$INSTALLER" | head -n 1 | tr -d "'\"" | tr ' ' '\n' | sort)
 snip_tools=$(sed -n 's/^- `\(bbj_[a-z_]*\)`:.*/\1/p' "$SNIPPET" | sort)
