@@ -18,7 +18,7 @@
 - [x] **LOCAL-03**: Without `--with-local`, the installer probes `bbj-ls` with one `tools/list` POST (no user code); if it answers, the installer suggests `--with-local` and writes nothing for it
 - [x] **LOCAL-04**: With `--with-local` and a probe that gets no answer, the installer registers the server anyway and prints a warning
 - [x] **LOCAL-05**: One canonical check-order block (`bbjcpl`, then local `bbj-ls`, then the hosted check only when neither exists, noting it sends code to the server and checks against a stock BBj) appears byte-identical in `codex/AGENTS-snippet.md` and both SKILL.md files, pinned by a test; it uses no client-qualified tool names
-- [ ] **LOCAL-06**: `docs/install-claude-code.md`, `docs/install-codex.md` and README present `bbj-local` as the preferred check route with the two reasons (code stays on the machine; checked against the installation's own PREFIX, classpath and config)
+- [x] **LOCAL-06**: `docs/install-claude-code.md`, `docs/install-codex.md` and README present `bbj-local` as the preferred check route with the two reasons (code stays on the machine; checked against the installation's own PREFIX, classpath and config)
 - [x] **LOCAL-07**: `tests/test_install_codex.sh` covers the flag, the probe (suggest only), probe failure with the flag, reruns and a lone marker; `tests/fake_mcp.py` gains a `tools/list` mode
 
 ### Hook
@@ -93,7 +93,7 @@
 | LOCAL-03 | Phase 1 | Complete |
 | LOCAL-04 | Phase 1 | Complete |
 | LOCAL-05 | Phase 1 | Complete |
-| LOCAL-06 | Phase 1 | Pending |
+| LOCAL-06 | Phase 1 | Complete |
 | LOCAL-07 | Phase 1 | Complete |
 | HOOK-01 | Phase 2 | Pending |
 | HOOK-02 | Phase 2 | Pending |

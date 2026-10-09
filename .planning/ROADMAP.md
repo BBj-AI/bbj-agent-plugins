@@ -44,7 +44,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. Without the flag, the installer sends one `tools/list` probe (no user code) and only suggests `--with-local` when `bbj-ls` answers; with the flag and no answer it registers the server anyway and prints a warning; `tests/test_install_codex.sh` covers the flag, probe, probe failure, reruns and a lone marker
   5. One check-order block (`bbjcpl`, then local `bbj-ls`, then the hosted check only when neither exists) is byte-identical in `codex/AGENTS-snippet.md` and both SKILL.md files, a test fails if they drift, and README plus both install pages present `bbj-local` as the preferred route with its two reasons
 
-**Plans**: 6/7 plans executed
+**Plans**: 7/7 plans executed
 
 Plans:
 **Wave 1**
@@ -64,7 +64,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 01-07-PLAN.md — Docs: bbj-local preferred over the hosted check in README and both install pages; quoted installer messages gated (wave 4, after 01-01, 01-04, 01-05, 01-06)
+- [x] 01-07-PLAN.md — Docs: bbj-local preferred over the hosted check in README and both install pages; quoted installer messages gated (wave 4, after 01-01, 01-04, 01-05, 01-06)
 
 **Cross-cutting constraints:**
 
@@ -149,7 +149,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Repo-owned skills and local-first check route | 6/7 | In Progress|  |
+| 1. Repo-owned skills and local-first check route | 7/7 | In Progress|  |
 | 2. Hook no-route notice | 0/TBD | Not started | - |
 | 3. Example gate and structure lints | 0/TBD | Not started | - |
 | 4. bbj-programming makeover | 0/TBD | Not started | - |
