@@ -1,4 +1,6 @@
 """tests/test_layout.py -- plan 19-03: pins every manifest value the requirements fix.
+Plan 01-01 (VEND-01, VEND-03): the skills are ordinary repository files; the hosted-host rule
+covers them (D-02) and the lock and hash test stay removed.
 
 stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate layout_<name> ok|FAIL <detail>
@@ -6,6 +8,7 @@ and exits 1 when any gate failed. An optional argv[1] is the repository root to 
 (default: the parent of the tests directory); the mutation check points it at a copy.
 Nothing here runs BBj code or touches a Claude Code configuration.
 """
+import glob
 import json
 import os
 import subprocess
@@ -19,6 +22,9 @@ DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 LOCAL_URL = "http://127.0.0.1:5009/mcp"
+# assembled from pieces so this file never names what it searches for (self-scan convention)
+LOCK_NAME = "skills" + ".lock.json"
+HASH_TEST = "test_sk" + "ills_hash"
 
 failed = False
 
@@ -127,14 +133,10 @@ gate("bbj_default_enabled", "defaultEnabled" not in bbj
      and "defaultEnabled" not in entries.get("bbj", {}),
      "bbj does not switch itself off")
 
-# the hosted host name occurs once outside the vendored skills
+# the hosted host name occurs once under plugins/ (the skills included, D-02)
 hits = []
 plugins_dir = os.path.join(ROOT, "plugins")
-skills_dir = os.path.join(plugins_dir, "bbj", "skills")
 for dirpath, dirnames, filenames in os.walk(plugins_dir):
-    if os.path.abspath(dirpath) == skills_dir:
-        dirnames[:] = []
-        continue
     for fn in filenames:
         path = os.path.join(dirpath, fn)
         try:
@@ -145,5 +147,35 @@ for dirpath, dirnames, filenames in os.walk(plugins_dir):
             pass
 gate("docs_host_single_source", hits == ["plugins/bbj/.claude-plugin/plugin.json"],
      "files naming %s: %r" % (DOCS_HOST, sorted(hits)))
+
+# VEND-01: the lock file and the hash test are gone and nothing names them
+gone = [n for n in (LOCK_NAME, os.path.join("tests", HASH_TEST + ".py"))
+        if os.path.exists(os.path.join(ROOT, n))]
+scan = []
+for pattern in ("tests/*.sh", "tests/*.py", "codex/*.sh", "plugins/bbj/scripts/*.sh",
+                ".github/workflows/*.yml", "README.md", "NOTICE", "docs/*.md",
+                ".claude-plugin/marketplace.json", "plugins/*/.claude-plugin/plugin.json"):
+    scan.extend(glob.glob(os.path.join(ROOT, pattern)))
+naming = []
+for path in sorted(set(scan)):
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            text = f.read()
+    except OSError:
+        continue
+    if LOCK_NAME in text or HASH_TEST in text:
+        naming.append(os.path.relpath(path, ROOT))
+gate("no_skills_lock", not gone and not naming,
+     "present=%r naming=%r" % (gone, naming))
+
+# VEND-03: the one property of the removed hash test worth keeping: no executable skill file
+execs = []
+for dirpath, dirnames, filenames in os.walk(os.path.join(ROOT, "plugins", "bbj", "skills")):
+    for fn in filenames:
+        path = os.path.join(dirpath, fn)
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            execs.append(os.path.relpath(path, ROOT))
+gate("skills_not_executable", not execs,
+     ", ".join(sorted(execs)) if execs else "no skill file is executable")
 
 sys.exit(1 if failed else 0)
