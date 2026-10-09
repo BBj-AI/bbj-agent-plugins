@@ -63,7 +63,10 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
 - The `bbj-docs` MCP server. Its tools show up in Claude Code as
   `mcp__plugin_bbj_bbj-docs__<tool>`: `bbj_search`, `bbj_fetch_page`, `bbj_lookup`,
   `bbj_reserved_word` and `bbj_examples`, plus the language primer as the resource `bbj://primer`.
-  Every answer carries the URL of the documentation page it relies on.
+  Every answer carries the URL of the documentation page it relies on. Where BASIS runs the hosted
+  check next to the docs server, as on the pre-production instance, the server also lists
+  `bbj_check_syntax`, `bbj_format` and `bbj_denum`; their answers say `hosted check, stock BBj
+  <version>`, a stock BBj rather than your own PREFIX, classpath and config.
 - Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (the BBjSkills, shipped
   unchanged).
 - A hook: after every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file Claude Code compiles
