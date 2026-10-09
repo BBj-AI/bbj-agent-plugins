@@ -34,11 +34,11 @@ with `bbjcpl -t -N -X`, which checks syntax and types only. It never runs BBj co
 sends code off the machine. A compile error comes back to the agent (exit code 2) with the
 compiler's own lines; a clean file, a non-BBj file or a missing compiler is silent.
 
-## Vendored skills
+## Skills
 
-`plugins/bbj/skills` is a byte-for-byte copy of the two BBjSkills at the commit recorded in
-`skills.lock.json`. Never edit it here; changes are made upstream in BBjSkills and re-synced.
-`tests/test_skills_hash.py` fails on any edit, addition or deletion.
+The two skills, `bbj-programming` and `bbj-web-programming`, live in `plugins/bbj/skills` and
+are maintained in this repository. Changes to them go through this repository's tests
+(`sh tests/run.sh`).
 
 ## Development
 
