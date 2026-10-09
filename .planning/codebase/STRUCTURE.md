@@ -27,7 +27,7 @@ bbj-agent-plugins/
 │   │   ├── .mcp.json
 │   │   ├── hooks/hooks.json
 │   │   ├── scripts/bbj-check.sh
-│   │   └── skills/              # VENDORED, hash-locked; do not edit
+│   │   └── skills/              # the two skills, maintained here
 │   │       ├── bbj-programming/
 │   │       │   ├── SKILL.md
 │   │       │   └── references/  # 5 files
@@ -44,7 +44,6 @@ bbj-agent-plugins/
 ├── LICENSE
 ├── NOTICE
 ├── README.md
-├── skills.lock.json             # Upstream commit and SHA-256 of each vendored file
 ├── .shellcheckrc
 ├── .gitattributes               # text=auto eol=lf
 └── .gitignore                   # *.swp, *.swo
@@ -83,7 +82,7 @@ bbj-agent-plugins/
 
 **`plugins/bbj/`:**
 - Purpose: The main plugin, installed by `claude plugin install bbj@basis-bbj`.
-- Contains: Manifest, MCP declaration, hook config, check script, vendored skills.
+- Contains: Manifest, MCP declaration, hook config, check script, skills.
 - Key files: `plugins/bbj/.claude-plugin/plugin.json` (user options `docs_url`, `bbj_home`),
   `plugins/bbj/.mcp.json`, `plugins/bbj/hooks/hooks.json`, `plugins/bbj/scripts/bbj-check.sh`
 
@@ -101,8 +100,7 @@ bbj-agent-plugins/
 - Contains: Two skill directories, each with `SKILL.md` and `references/`.
 - Key files: `plugins/bbj/skills/bbj-programming/SKILL.md`,
   `plugins/bbj/skills/bbj-web-programming/SKILL.md`
-- Generated: No. Vendored from upstream BBjSkills at the commit in `skills.lock.json`.
-  Do not edit.
+- Generated: No.
 
 **`plugins/bbj-local/`:**
 - Purpose: Registers the local `bbj-ls` MCP server; off by default.
@@ -113,7 +111,7 @@ bbj-agent-plugins/
 - Purpose: Every automated check of the repository.
 - Contains: Test scripts, runner and CI entry, fixtures.
 - Key files: `tests/run.sh` (runner), `tests/ci.sh` (entry used by CI),
-  `tests/lib.sh` (shared helpers), `tests/test_skills_hash.py` (vendored-content lock),
+  `tests/lib.sh` (shared helpers),
   `tests/test_layout.py` (layout rules), `tests/test_install_codex.sh` (installer, 715 lines),
   `tests/test_real_compiler.sh` (skipped without BBj)
 - Fixtures: `tests/fake-bin/` (stub `bbjcpl`, `bbj`, `codex`, `curl`, `cygpath`) and
@@ -132,7 +130,6 @@ bbj-agent-plugins/
 - `plugins/bbj/.mcp.json`: `bbj-docs` server (`${user_config.docs_url}`).
 - `plugins/bbj-local/.mcp.json`: `bbj-ls` server on loopback.
 - `plugins/bbj/hooks/hooks.json`: Hook matcher and timeout (30 s).
-- `skills.lock.json`: Upstream commit and per-file SHA-256.
 - `.shellcheckrc`: Shellcheck settings for `tests/ci.sh`.
 - `.gitattributes`: `text=auto eol=lf`. Keep shell scripts LF.
 - `.github/dependabot.yml`: Dependency update rules for pinned actions and npm.
@@ -142,7 +139,7 @@ bbj-agent-plugins/
 - `codex/install-codex.sh`: Codex install, config edit, skill and hook copy.
 
 **Documentation:**
-- `README.md`: Overview, install, the check hook, vendored skills, development.
+- `README.md`: Overview, install, the check hook, the skills, development.
 - `docs/install-claude-code.md`, `docs/install-codex.md`: Install pages.
 - `codex/AGENTS-snippet.md`: BBj instructions for `AGENTS.md`.
 - `CHANGELOG.md`: Release notes.
@@ -156,7 +153,7 @@ bbj-agent-plugins/
 **Files:**
 - Shell scripts: lowercase kebab-case with `.sh`: `bbj-check.sh`, `install-codex.sh`
 - Tests: `test_<topic>.sh` or `test_<topic>.py` with snake_case topics:
-  `test_never_execute.sh`, `test_skills_hash.py`, `test_install_codex.sh`
+  `test_never_execute.sh`, `test_install_codex.sh`
 - Test helpers: `lib.sh`, `fake_mcp.py` (snake_case), `run.sh`, `ci.sh`
 - Markdown content: lowercase kebab-case for references (`callback-performance.md`,
   `shadow-dom-styling.md`); `SKILL.md` in uppercase for each skill
@@ -197,9 +194,7 @@ bbj-agent-plugins/
 - Validation: `tests/ci.sh` checks `plugins/<name>` only when added to its `for p in ...` list
 
 **New skill content:**
-- Do not add to `plugins/bbj/skills/` while the lock applies. Use the upstream
-  BBjSkills repository; after re-sync, update `skills.lock.json`. Planned in-repo makeover:
-  see `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md`.
+- Add or change skill files directly; `tests/test_layout.py` applies the host and exec-bit rules.
 
 **New test:**
 - Shell: `tests/test_<topic>.sh`, print `gate NAME ok|FAIL|skip DETAIL` lines, exit non-zero
@@ -218,10 +213,9 @@ bbj-agent-plugins/
 ## Special Directories
 
 **`plugins/bbj/skills/`:**
-- Purpose: Vendored upstream BBj skills.
-- Generated: No (copied from upstream).
-- Committed: Yes. Byte-for-byte against `skills.lock.json`; `tests/test_skills_hash.py` fails
-  on any change.
+- Purpose: The two BBj skills, maintained in this repository.
+- Generated: No.
+- Committed: Yes.
 
 **`.planning/codebase/`:**
 - Purpose: Codebase map documents for GSD commands.

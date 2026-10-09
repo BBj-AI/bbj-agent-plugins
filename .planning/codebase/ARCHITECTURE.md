@@ -25,7 +25,7 @@
                                                      └─────────────────────────┘
 
 Static content (no runtime code of its own):
-  `plugins/bbj/skills/*/SKILL.md` + `references/*.md`   (vendored, read by agent)
+  `plugins/bbj/skills/*/SKILL.md` + `references/*.md`   (read by agent)
   `codex/AGENTS-snippet.md`                              (instructions for Codex)
 
 Installation and distribution:
@@ -54,11 +54,7 @@ in the remote or local MCP servers the manifests point at.
   (`tests/test_never_execute.sh`).
 - Two MCP servers are declared, not implemented here: the hosted `bbj-docs` server (URL from
   the `docs_url` user option) and the local `bbj-ls` server of BBjServices on `127.0.0.1:5009`.
-- Content is vendored and frozen: `plugins/bbj/skills` must match `skills.lock.json`
-  byte-for-byte, enforced by `tests/test_skills_hash.py`.
-- The repository is the source of truth for the two skills from plugin release 0.2.0 onward,
-  according to the seed `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md`. Until
-  then, edits to the vendored copy are forbidden.
+- The skills are maintained in this repository under the normal tests (`tests/test_layout.py`).
 
 ## Layers
 
@@ -116,7 +112,7 @@ in the remote or local MCP servers the manifests point at.
   Claude Code).
 
 **Verification layer (tests and CI):**
-- Purpose: Gate every change to manifests, hook, installer and vendored content.
+- Purpose: Gate every change to manifests, hook, installer and skills.
 - Location: `tests/run.sh` (runner), `tests/ci.sh` (entry point), `tests/test_*.sh` and
   `tests/test_*.py`, fixtures in `tests/fake-bin/` and `tests/fake_mcp.py`,
   `.github/workflows/ci.yml`, `.github/ci-tools/` (pinned `claude` CLI).
@@ -186,8 +182,7 @@ in the remote or local MCP servers the manifests point at.
 - Purpose: A self-contained body of guidance the agent loads for BBj tasks.
 - Examples: `plugins/bbj/skills/bbj-programming/SKILL.md`,
   `plugins/bbj/skills/bbj-web-programming/SKILL.md`
-- Pattern: `SKILL.md` index plus `references/*.md` loaded on demand. Vendored and hash-locked
-  in `skills.lock.json`.
+- Pattern: `SKILL.md` index plus `references/*.md` loaded on demand.
 
 **Compile-check route:**
 - Purpose: One way to decide whether a BBj file is syntactically and type-correct.
@@ -205,11 +200,6 @@ in the remote or local MCP servers the manifests point at.
 - Examples: `analyze`, `print_block`, `state` in `codex/install-codex.sh`
 - Pattern: Writes only the tables it manages; refuses and exits 3 for forms it does not
   edit (single-quoted keys, dotted keys, sub-tables).
-
-**Vendored content:**
-- Purpose: Byte-identical copy of upstream skills at a recorded commit.
-- Examples: `skills.lock.json` (commit `79f19822ab82dfe787290d0e564aa889b4bec500`)
-- Pattern: Per-file SHA-256 plus per-skill tree hash; any drift fails tests.
 
 ## Entry Points
 
@@ -256,22 +246,12 @@ in the remote or local MCP servers the manifests point at.
   `tests/test_exit_contract.sh`.
 - **Loopback only for tier 2:** Only `http` to `127.0.0.1`, `localhost` or `[::1]`; the
   hosted check is never called from the hook.
-- **Vendored skills are read-only here:** `plugins/bbj/skills/**` is hash-locked. Changes go
-  upstream and are re-synced.
 - **Portability:** POSIX `sh`, `awk`, `sed`, `grep`; Git for Windows paths are handled through
   `cygpath` when present. Avoids `readlink -f` for older macOS.
 - **Codex payload shape:** Documentation-derived; the header of `bbj-check.sh` marks it as
   unverified until captured on a real Codex install.
 
 ## Anti-Patterns
-
-### Editing the vendored skills in place
-
-**What happens:** A change is made under `plugins/bbj/skills/` to fix wording or an example.
-**Why it's wrong:** `skills.lock.json` and `tests/test_skills_hash.py` make the test suite
-fail on any edit, addition or deletion. The README states the skills are re-synced from upstream.
-**Do this instead:** Make the change upstream, then re-sync and update `skills.lock.json`.
-Planned exception: the makeover in `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md`.
 
 ### Calling the hosted check from the hook
 

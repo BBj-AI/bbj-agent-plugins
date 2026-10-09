@@ -10,12 +10,6 @@
 - Impact: Agents copy invalid syntax from the examples; the compile check then rejects the agent's own output. The MCP primer states that a `REM` after a statement needs a semicolon, so the examples are the outlier.
 - Fix approach: Run every example through `bbj_check_syntax` (local `bbj-ls` first, per `plugins/bbj-local/.claude-plugin/plugin.json`) and rewrite failing lines, e.g. `stmt; REM note`. Add a test under `tests/` that extracts fenced BBj blocks and checks them with the local route when BBj is present.
 
-**Vendored skills are a copy of an upstream that is being retired:**
-- Issue: The two skills are vendored byte-for-byte from BBjSkills at a pinned commit, recorded in `skills.lock.json`. `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md` plans to stop vendoring and makeover the skills in this repository.
-- Files: `skills.lock.json`, `tests/test_skills_hash.py`, `codex/install-codex.sh` (copies the skills at lines ~445-466)
-- Impact: Every skill edit currently breaks `tests/test_skills_hash.py` unless the lockfile hashes are regenerated, so the makeover is blocked by the drift gate.
-- Fix approach: When the makeover starts, remove the lockfile and its gate (or change the gate to check only the lockfile schema), then update `skills.lock.json` in the same commit as the first edit.
-
 **Hook and installer duplicate the same logic in two shells:**
 - Issue: BBj discovery, the loopback URL validation, and the JSON escaping are implemented in `plugins/bbj/scripts/bbj-check.sh` (POSIX sh with awk) and again in `codex/install-codex.sh`.
 - Files: `plugins/bbj/scripts/bbj-check.sh`, `codex/install-codex.sh`
@@ -101,11 +95,6 @@
 - Risk: `.github/ci-tools/package.json` pins `@anthropic-ai/claude-code` at an exact version. `.github/dependabot.yml` deliberately does not watch it, so it will not update itself.
 - Impact: `claude plugin validate --strict` in `tests/ci.sh` tests against a fixed CLI; new plugin manifest features may be rejected or unchecked until a human bumps the version.
 - Migration plan: Bump it as a deliberate edit of both `package.json` and `package-lock.json`, re-run `tests/test_ci_guards.py`, and record the version in `CHANGELOG.md`.
-
-**Upstream BBjSkills dependency:**
-- Risk: The skills are pinned to one commit (`skills.lock.json`, `"commit": "79f1982..."`). Upstream changes do not reach this repository unless someone re-syncs them.
-- Impact: Skill content can fall behind BBj releases.
-- Migration plan: Covered by the makeover in the Tech Debt section; after it, the skills are owned here.
 
 ## Missing Critical Features
 

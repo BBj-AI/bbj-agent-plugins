@@ -40,7 +40,7 @@ shellcheck -s sh plugins/bbj/scripts/bbj-check.sh   # lint a single script (conf
 - All tests live in the top-level `tests/` directory, separate from the code they test. There are no co-located tests.
 
 **Naming:**
-- `test_<area>.sh` or `test_<area>.py`, where `<area>` names the behavior under test: `test_exit_contract.sh`, `test_discovery.sh`, `test_never_execute.sh`, `test_static_guards.sh`, `test_tier2_fake.sh`, `test_tier2_live.sh`, `test_real_compiler.sh`, `test_codex_patch.sh`, `test_install_codex.sh`, `test_install_pages.sh`, `test_claude_plugin.sh`, `test_hook_review_fixes.sh`, `test_ci_gates.sh`, `test_layout.py`, `test_skills_hash.py`, `test_ci_guards.py`.
+- `test_<area>.sh` or `test_<area>.py`, where `<area>` names the behavior under test: `test_exit_contract.sh`, `test_discovery.sh`, `test_never_execute.sh`, `test_static_guards.sh`, `test_tier2_fake.sh`, `test_tier2_live.sh`, `test_real_compiler.sh`, `test_codex_patch.sh`, `test_install_codex.sh`, `test_install_pages.sh`, `test_claude_plugin.sh`, `test_hook_review_fixes.sh`, `test_ci_gates.sh`, `test_layout.py`, `test_ci_guards.py`.
 
 **Support files:**
 - `tests/lib.sh`: shared helpers (`gate`, `finish`, `mkwork`, `json_escape`, `claude_payload`, `codex_payload`, `run_check`). Sourced by every shell test.
@@ -57,7 +57,7 @@ tests/
 ├── fake-bin/               # fake bbj, bbjcpl, codex, curl, cygpath
 ├── fake_mcp.py             # fake loopback MCP server
 ├── test_*.sh               # shell tests (fake compiler, never-execute, static, installer, ...)
-└── test_*.py               # python tests (layout, skills hash, CI guards)
+└── test_*.py               # python tests (layout, CI guards)
 ```
 
 ## Test Structure
@@ -212,7 +212,6 @@ grep -rn "D-12" tests/
 
 **Manifest and integrity tests (Python):**
 - `tests/test_layout.py`: marketplace entries, plugin versions (`0.1.0` everywhere), license, `.mcp.json` shape, `userConfig` keys, the `PostToolUse` matcher `Write|Edit` and the exact hook command.
-- `tests/test_skills_hash.py`: each file under the lock's `dest` matches its SHA-256 in `skills.lock.json`, no file is missing or extra, and no vendored file is executable.
 
 **Installer tests:**
 - `tests/test_install_codex.sh` (about 700 lines, the largest test) and `tests/test_install_pages.sh` run `codex/install-codex.sh` in a temp home with a fake codex. They check each exit code (0, 2, 3), backups, managed-block markers, idempotent reruns, and the refusal paths.
@@ -281,7 +280,7 @@ Feed garbage stdin, an empty `PATH`, a crashing compiler (`FAKE_EXIT=139`), an u
 
 - No tests run on Windows or macOS hosts; the cygpath path conversion in `bbj-check.sh` is exercised only with the fake `tests/fake-bin/cygpath` (used by `tests/test_discovery.sh` and `tests/test_install_codex.sh`).
 - The Codex payload shape is documentation-derived and has no captured fixture yet; tests use synthetic payloads (`codex_payload`).
-- Skill content (`plugins/bbj/skills/**`) is checked only for byte identity against `skills.lock.json`; no test checks the semantic accuracy of skill references.
+- Skill content is covered by `tests/test_layout.py` (hosted host named only in `plugins/bbj/.claude-plugin/plugin.json`, no executable files); the check-order block is pinned by `tests/test_check_order.py` (plan 01-05). No test checks the semantic accuracy of skill references.
 
 ---
 

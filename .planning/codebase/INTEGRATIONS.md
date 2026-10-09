@@ -29,10 +29,6 @@
 - Integrity: `.github/ci-tools/package-lock.json` (integrity hashes), `npm ci --ignore-scripts`, `npm audit signatures`, and a single explicit run of the package's `install.cjs`
 - Auto-update of this pin is disabled: `.github/dependabot.yml` watches only `github-actions`
 
-**BBjSkills upstream (historical source):**
-- Skills were vendored from BBjSkills at commit `79f19822ab82dfe787290d0e564aa889b4bec500` (`skills.lock.json`, `"source": "BBjSkills"`)
-- No live connection. `tests/test_skills_hash.py` checks local files against the lock hashes only
-
 ## Data Storage
 
 **Databases:**

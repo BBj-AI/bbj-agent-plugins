@@ -6,11 +6,11 @@
 
 **Primary:**
 - POSIX shell (`sh`) - Claude Code and Codex hook script, Codex installer, test harness: `plugins/bbj/scripts/bbj-check.sh`, `codex/install-codex.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/lib.sh`, `tests/test_*.sh`
-- Python 3 (standard library only) - Repository and layout tests, a fake MCP server: `tests/test_layout.py`, `tests/test_ci_guards.py`, `tests/test_skills_hash.py`, `tests/test_codex_patch.sh` (helpers), `tests/fake_mcp.py`
+- Python 3 (standard library only) - Repository and layout tests, a fake MCP server: `tests/test_layout.py`, `tests/test_ci_guards.py`, `tests/test_codex_patch.sh` (helpers), `tests/fake_mcp.py`
 
 **Secondary:**
 - Markdown - Skills, references, install docs, changelog: `plugins/bbj/skills/**/*.md`, `docs/*.md`, `README.md`, `CHANGELOG.md`
-- JSON - Plugin and marketplace manifests, hooks, MCP config, lock file: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/bbj/hooks/hooks.json`, `plugins/*/.mcp.json`, `skills.lock.json`
+- JSON - Plugin and marketplace manifests, hooks, MCP config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/bbj/hooks/hooks.json`, `plugins/*/.mcp.json`
 - YAML - GitHub Actions workflow and Dependabot config: `.github/workflows/ci.yml`, `.github/dependabot.yml`
 - BBj (subject matter only) - The plugin checks BBj source files (`.bbj`, `.src`, `.bbx`) but never runs them. BBj code appears only in the skill references under `plugins/bbj/skills/`.
 
@@ -48,13 +48,13 @@
 
 **Critical:**
 - `@anthropic-ai/claude-code` 2.1.293 (exact pin) - Provides the `claude` CLI used by CI for plugin validation: `.github/ci-tools/package.json`. Installed with `npm ci --ignore-scripts`, then its install script is run explicitly; `npm audit signatures` verifies registry signatures. The changelog notes the tested Claude Code version as 2.1.294 (`CHANGELOG.md`).
-- BBj compiler (`bbjcpl` / `bbjcplw`, BBj 26.03 for tier 2) - External, not vendored. Used by `plugins/bbj/scripts/bbj-check.sh` with `-t -N -X -P<dirs>`. Optional at runtime; the hook exits silently when no compiler is found.
+- BBj compiler (`bbjcpl` / `bbjcplw`, BBj 26.03 for tier 2) - External, not shipped here. Used by `plugins/bbj/scripts/bbj-check.sh` with `-t -N -X -P<dirs>`. Optional at runtime; the hook exits silently when no compiler is found.
 - `curl` - Used by `plugins/bbj/scripts/bbj-check.sh` for the loopback tier-2 request (`--noproxy '*'`, `--proto =http`). Optional.
 
 **Infrastructure:**
 - GitHub Actions - Workflow `.github/workflows/ci.yml`, runner `ubuntu-24.04`, 15-minute timeout. Actions pinned by full commit SHA, for example `actions/checkout` at `v7.0.1`.
 - Dependabot - Weekly updates for `github-actions` only: `.github/dependabot.yml`. The Claude CLI version is deliberately not watched.
-- Vendored skills - `plugins/bbj/skills/bbj-programming/` and `plugins/bbj/skills/bbj-web-programming/`, locked by SHA-256 in `skills.lock.json` (lock `source` is BBjSkills at commit `79f19822ab82dfe787290d0e564aa889b4bec500`). `tests/test_skills_hash.py` enforces byte-identity. `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md` records the plan to stop vendoring and make these skills native to this repository.
+- Skills - `plugins/bbj/skills/bbj-programming/` and `plugins/bbj/skills/bbj-web-programming/`, maintained in this repository; `tests/test_layout.py` applies the normal rules to them (hosted host named only in `plugins/bbj/.claude-plugin/plugin.json`, no executable files).
 
 ## Configuration
 
