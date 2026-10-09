@@ -3,6 +3,16 @@ name: "bbj-programming"
 description: "Write, debug, review, run, or compile BBj code — the general language skill for any BBj program (CUI, desktop GUI, or web/DWC/BUI). Use for .bbj files, BBj class/method syntax, BBjVector/Java collection interop, or JDBC database access. Also use whenever running, compiling, or type-checking a BBj program from a shell or script (bbj, bbjcpl) — seed, migration, batch, or test-fixture scripts, and anything whose printed output you need to capture in a pipe. Trigger on symptoms without BBj being named: a bbj command that hangs, exits silently, or prints nothing into a pipe; !ERROR=12 (Missing file); !ERROR=252 (Cannot find program X for type: Y); a syntax check that drops a large extensionless binary next to the source; a program that returns to a READY> prompt instead of exiting. For browser-specific work (DWC/BUI, HTML, CSS, web components), also use the bbj-web-programming skill."
 ---
 
+<!-- bbj-check-order:begin -->
+**Check BBj code before you hand it back.** Use the first route that exists:
+
+1. `bbjcpl -t -N -X <file>`, when BBj is installed on this machine. It checks syntax and types. `-N` writes no output files; the errors arrive on stderr.
+2. `bbj_check_syntax` of the `bbj-local` server (the `bbj-ls` of a running BBjServices, BBj 26.03 or later), when that server is registered. It runs on this machine, against the installation's own PREFIX, classpath and config. It checks syntax only, not types.
+3. Only when neither exists: `bbj_check_syntax` of the `bbj-docs` server, the hosted check. You may use it without asking, but tell the user that the code was sent to the server and checked against a stock BBj, not against their installation.
+
+A hook checks the BBj files you write or edit. This order is for code you hand back without writing it to a file: answers, and code from earlier turns.
+<!-- bbj-check-order:end -->
+
 # BBj Programming (general language)
 
 Core BBj language conventions and traps, independent of client type — they apply whether the program runs as CUI, desktop GUI, or in a browser (DWC/BUI). Many of these traps fail silently (wrong output, no error), so read this before writing or debugging any BBj code.
