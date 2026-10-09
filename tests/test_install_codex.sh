@@ -64,7 +64,7 @@ count() {
   grep -c -Fx -e "$1" "$2" 2> /dev/null
 }
 
-DEFAULT_URL=https://bbj-mcp.basis-europe.eu/mcp
+DEFAULT_URL=https://mcp.bbj-ai.com/mcp
 HAVE_TOML=0
 if command -v python3 > /dev/null 2>&1 && python3 -I -c 'import tomllib' 2> /dev/null; then HAVE_TOML=1; fi
 
@@ -116,7 +116,7 @@ run_inst "$WITH_CODEX"
 [ "$RC" = 0 ] && gate first_exit ok "exit 0" || gate first_exit FAIL "exit $RC: $(head -c 300 "$WORK/err")"
 head -n 1 "$WORK/out" | grep 'not yet run on Windows or macOS' > /dev/null \
   && gate first_status_banner ok "first stdout line states the tested platforms" || gate first_status_banner FAIL "first line: $(head -n 1 "$WORK/out")"
-grep -Fx 'mcp add bbj-docs --url https://bbj-mcp.basis-europe.eu/mcp' "$E_LOG" > /dev/null \
+grep -Fx 'mcp add bbj-docs --url https://mcp.bbj-ai.com/mcp' "$E_LOG" > /dev/null \
   && gate first_codex_mcp_add ok "codex mcp add bbj-docs --url <default>" || gate first_codex_mcp_add FAIL "log: $(cat "$E_LOG")"
 CFG=$E_CODEX/config.toml
 note_cfg "$CFG"
@@ -230,7 +230,7 @@ if [ "$RC" = 0 ] \
   && [ "$(count '# >>> bbj-agent-plugins (managed) >>>' "$CFG")" = 1 ] \
   && [ "$(count '# <<< bbj-agent-plugins (managed) <<<' "$CFG")" = 1 ] \
   && [ "$(count '[mcp_servers.bbj-docs]' "$CFG")" = 1 ] \
-  && [ "$(count 'url = "https://bbj-mcp.basis-europe.eu/mcp"' "$CFG")" = 1 ] \
+  && [ "$(count 'url = "https://mcp.bbj-ai.com/mcp"' "$CFG")" = 1 ] \
   && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] && [ "$inside" = 5 ] \
   && [ "$(grep -c default_tools_approval_mode "$CFG")" = 0 ]; then
   gate managed_block ok "markers, table and url once each, the five tool tables between the markers, no server-wide key"
@@ -312,7 +312,7 @@ for form in "[mcp_servers.'bbj-docs']" '  [mcp_servers.bbj-docs]' '[ mcp_servers
     && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_search]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_fetch_page]' "$WORK/out" > /dev/null \
     && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_lookup]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_reserved_word]' "$WORK/out" > /dev/null \
     && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_examples]' "$WORK/out" > /dev/null && [ "$(grep -Fxc 'approval_mode = "approve"' "$WORK/out")" = 5 ] \
-    && grep -Fx '[mcp_servers.bbj-docs]' "$WORK/out" > /dev/null && grep -Fx 'url = "https://bbj-mcp.basis-europe.eu/mcp"' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-docs]' "$WORK/out" > /dev/null && grep -Fx 'url = "https://mcp.bbj-ai.com/mcp"' "$WORK/out" > /dev/null \
     && ! grep -Fx 'default_tools_approval_mode = "approve"' "$WORK/out" > /dev/null; then
     :
   else

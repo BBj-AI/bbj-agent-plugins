@@ -13,7 +13,7 @@ file Codex writes through `apply_patch`. For Claude Code, see
 
 - Codex CLI with hooks and MCP support. The installer does not need `codex` on `PATH`: without it,
   it writes the server registration into `config.toml` itself.
-- A network connection to the docs server (default `https://bbj-mcp.basis-europe.eu/mcp`, the
+- A network connection to the docs server (default `https://mcp.bbj-ai.com/mcp`, the
   pre-production instance until the go-live release).
 - BBj is optional. It is needed for the check, not for the docs tools or the skills.
 - A checkout of this repository.
@@ -30,7 +30,7 @@ Options:
 
 | Option | Meaning |
 |--------|---------|
-| `--docs-url URL` | The docs server URL. Default `https://bbj-mcp.basis-europe.eu/mcp`. `https` is accepted anywhere; plain `http` only for `127.0.0.1`, `localhost` or `[::1]`. |
+| `--docs-url URL` | The docs server URL. Default `https://mcp.bbj-ai.com/mcp`. `https` is accepted anywhere; plain `http` only for `127.0.0.1`, `localhost` or `[::1]`. |
 | `--skills-dir DIR` | Where the two skills go. Default `~/.agents/skills`. |
 | `--codex-home DIR` | The Codex home. Default `$CODEX_HOME`, else `~/.codex`. |
 | `--force` | Replace a skill directory that differs from the shipped one. |
@@ -51,7 +51,7 @@ what to do in that case. Running it a second time changes nothing.
 
    ```toml
    [mcp_servers.bbj-docs]
-   url = "https://bbj-mcp.basis-europe.eu/mcp"
+   url = "https://mcp.bbj-ai.com/mcp"
 
    [mcp_servers.bbj-docs.tools.bbj_search]
    approval_mode = "approve"
@@ -128,7 +128,7 @@ the BBj installation is found through `BBJ_HOME` instead of a `bbj_home` option.
 The hook never runs BBj code and never sends code off the machine. Unresolved `use` targets are
 listed as "Not counted" and never fail the check on their own, and files named `config*.bbx` are
 not checked. The hosted docs server logs what its data-handling statement says:
-<https://bbj-mcp.basis-europe.eu/data-handling>.
+<https://mcp.bbj-ai.com/data-handling>.
 
 ## Not covered
 

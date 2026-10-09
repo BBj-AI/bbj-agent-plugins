@@ -14,7 +14,7 @@ The `basis-bbj` marketplace for Claude Code, version 0.1.0, with two plugins:
     claude plugin install bbj@basis-bbj
 
 The docs server URL is the plugin option `docs_url` (default: the pre-production instance
-`https://bbj-mcp.basis-europe.eu/mcp` until the go-live release). The option `bbj_home`
+`https://mcp.bbj-ai.com/mcp` until the go-live release). The option `bbj_home`
 names the BBj installation for the check hook; left empty, the hook looks at `BBJ_HOME`,
 `BBJHOME`, `PATH` and the usual install locations.
 

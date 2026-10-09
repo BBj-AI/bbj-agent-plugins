@@ -15,7 +15,7 @@ ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
 
 VERSION = "0.1.0"
-DOCS_HOST = "bbj-mcp.basis-europe.eu"
+DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 LOCAL_URL = "http://127.0.0.1:5009/mcp"

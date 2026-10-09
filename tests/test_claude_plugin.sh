@@ -21,7 +21,7 @@ REAL_BEFORE=$(claude plugin list 2>&1)
 mkwork
 CFG=$WORK/cfg
 mkdir "$CFG"
-DOCS_HOST=bbj-mcp.basis-europe.eu
+DOCS_HOST=mcp.bbj-ai.com
 
 # cc ARGS...: run claude with the throwaway configuration directory, for this call only.
 cc() {

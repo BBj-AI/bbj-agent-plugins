@@ -54,7 +54,7 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'claude plugin marketplace add BBj-AI/bbj-agent-plugins' \
     'docs_url' \
     'bbj_home' \
-    'https://bbj-mcp.basis-europe.eu/mcp' \
+    'https://mcp.bbj-ai.com/mcp' \
     'bbj-local' \
     '## Check routes' \
     'bbjcpl -t -N -X' \

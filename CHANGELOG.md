@@ -22,7 +22,7 @@ First version of the `basis-bbj` marketplace.
 
 ### Tested against
 
-- Docs server: version 1.1.1, the pre-production instance `https://bbj-mcp.basis-europe.eu/mcp`
+- Docs server: version 1.1.1, the pre-production instance `https://mcp.bbj-ai.com/mcp`
   (the version is the `serverInfo` entry of its `server/discover` answer).
 - Claude Code: 2.1.294 (`claude plugin validate --strict` passes on the marketplace and both
   plugins; install from a local directory marketplace into a throwaway configuration).

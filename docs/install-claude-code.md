@@ -55,7 +55,7 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
 
 | Option | Default | Meaning |
 |--------|---------|---------|
-| `docs_url` | `https://bbj-mcp.basis-europe.eu/mcp` | URL of the BBj docs MCP server. The default is the pre-production instance; it stays the default until the go-live release, which changes the default. |
+| `docs_url` | `https://mcp.bbj-ai.com/mcp` | URL of the BBj docs MCP server. The default is the pre-production instance; it stays the default until the go-live release, which changes the default. |
 | `bbj_home` | empty | The BBj installation directory for the check hook. Empty means the hook looks in `BBJ_HOME`, `BBJHOME`, on `PATH`, then in the usual install locations. |
 
 ## What you get
@@ -106,7 +106,7 @@ Claude repairs a file it did not write is up to the model. Asking for code that 
 (for example, "leave the file in a state that compiles") can help.
 
 What is sent where: the hook sends nothing off the machine. The hosted docs server logs what its
-data-handling statement says, and nothing else: <https://bbj-mcp.basis-europe.eu/data-handling>.
+data-handling statement says, and nothing else: <https://mcp.bbj-ai.com/data-handling>.
 
 ## Not covered
 

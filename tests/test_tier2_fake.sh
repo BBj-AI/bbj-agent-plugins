@@ -205,7 +205,7 @@ refused() {
   fi
 }
 refused http://example.com/mcp remote_http
-refused https://bbj-mcp.basis-europe.eu/mcp hosted_https
+refused https://mcp.bbj-ai.com/mcp hosted_https
 refused http://127.0.0.1.evil.example/mcp lookalike_host
 refused http://user@127.0.0.1:5009/mcp userinfo
 refused http://127.0.0.1:5009/mcp?x=1 query

@@ -51,7 +51,7 @@
 # It never runs BBj and never calls a compiler; the hook it installs follows the same
 # never-execute rule. POSIX sh plus awk, sed, grep, cp, mv, cmp, diff, mktemp.
 
-DEFAULT_DOCS_URL=https://bbj-mcp.basis-europe.eu/mcp
+DEFAULT_DOCS_URL=https://mcp.bbj-ai.com/mcp
 MARK_BEGIN='# >>> bbj-agent-plugins (managed) >>>'
 MARK_END='# <<< bbj-agent-plugins (managed) <<<'
 # the five read-only docs tools of bbj-docs, approved by name; one list, also checked against
