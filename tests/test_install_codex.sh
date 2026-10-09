@@ -277,7 +277,7 @@ if [ "$RC" = 0 ] && [ "$removed" = 0 ] && cmp -s "$WORK/cfg.added" "$WORK/cfg.ex
   && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ]; then
   gate existing_table_gains_tools ok "nothing removed, the added lines are the five headers and five approvals, url kept, codex not called"
 else
-  gate existing_table_gains_tools FAIL "exit $RC, removed $removed: $(cat "$WORK/cfg.added" | tr '\n' ';')"
+  gate existing_table_gains_tools FAIL "exit $RC, removed $removed: $(tr '\n' ';' < "$WORK/cfg.added")"
 fi
 if [ "$HAVE_TOML" = 1 ]; then
   [ "$(tsum "$CFG")" = "$(five_expected https://example.invalid/mcp)" ] && python3 -I -c 'import sys, tomllib; assert tomllib.load(open(sys.argv[1], "rb"))["mcp_servers"]["other"]["url"] == "https://other.invalid/mcp"' "$CFG" 2> /dev/null \
@@ -525,7 +525,7 @@ if [ "$RC" = 0 ] && ! grep -Fx "$OLDLINE" "$CFG" > /dev/null && all_once "$CFG" 
   && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected https://example.invalid/mcp)" ]; } && same_after_rerun "$WITH_CODEX" 0; then
   gate upgrade_removes_old_key ok "the old line removed and reported, five tool tables, backup holds the original, rerun byte-identical"
 else
-  gate upgrade_removes_old_key FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+  gate upgrade_removes_old_key FAIL "exit $RC: $(tr '\n' ';' < "$CFG")"
 fi
 real_parse upgrade "$CFG" https://example.invalid/mcp
 
@@ -541,7 +541,7 @@ if [ "$RC" = 0 ] && ! grep -Fx "$OLDLINE" "$CFG" > /dev/null && all_once "$CFG" 
   && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ]; } && same_after_rerun "$NO_CODEX" 0; then
   gate upgrade_managed_block ok "the managed block of an earlier version loses the old line and gets the five tool tables inside the markers"
 else
-  gate upgrade_managed_block FAIL "exit $RC, $inside inside: $(cat "$CFG" | tr '\n' ';')"
+  gate upgrade_managed_block FAIL "exit $RC, $inside inside: $(tr '\n' ';' < "$CFG")"
 fi
 real_parse upgradeblock "$CFG" "$DEFAULT_URL"
 
@@ -556,7 +556,7 @@ if [ "$RC" = 0 ] && grep -Fx 'default_tools_approval_mode = "prompt"' "$CFG" > /
   && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_with https://example.invalid/mcp prompt)" ]; }; then
   gate default_other_value_kept ok "a prompt default stays byte for byte, is reported, the tools are added, exit 0"
 else
-  gate default_other_value_kept FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+  gate default_other_value_kept FAIL "exit $RC: $(tr '\n' ';' < "$CFG")"
 fi
 real_parse defprompt "$CFG" https://example.invalid/mcp
 
@@ -571,7 +571,7 @@ if [ "$RC" = 3 ] && grep -Fx 'default_tools_approval_mode="approve"' "$CFG" > /d
   && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_with https://example.invalid/mcp approve)" ]; }; then
   gate default_approve_other_spelling ok "an approve default in another spelling stays, the tools are added, the output names bbj_check_syntax, exit 3"
 else
-  gate default_approve_other_spelling FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+  gate default_approve_other_spelling FAIL "exit $RC: $(tr '\n' ';' < "$CFG")"
 fi
 real_parse defapprove "$CFG" https://example.invalid/mcp
 
@@ -590,7 +590,7 @@ if [ "$RC" = 0 ] && all_once "$CFG" && [ "$(count 'approval_mode = "prompt"' "$C
   && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(cat "$WORK/partial.expected")" ]; } && same_after_rerun "$WITH_CODEX" 0; then
   gate partial_set_completed ok "three tool tables added once each, the user's prompt for bbj_lookup kept and reported, rerun byte-identical"
 else
-  gate partial_set_completed FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+  gate partial_set_completed FAIL "exit $RC: $(tr '\n' ';' < "$CFG")"
 fi
 real_parse partial "$CFG" https://example.invalid/mcp
 
@@ -605,7 +605,7 @@ if [ "$RC" = 0 ] && all_once "$CFG" && [ "$(count 'approval_mode = "approve"' "$
   && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected https://example.invalid/mcp)" ]; }; then
   gate tool_table_without_key ok "a tool table without approval_mode gains it directly under its header, header once"
 else
-  gate tool_table_without_key FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+  gate tool_table_without_key FAIL "exit $RC: $(tr '\n' ';' < "$CFG")"
 fi
 real_parse nokey "$CFG" https://example.invalid/mcp
 
@@ -622,7 +622,7 @@ if [ "$RC" = 0 ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] && all_once "$C
   && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ]; } && same_after_rerun "$WITH_CODEX" 0; then
   gate subtables_without_main_table ok "codex not called, the table appended once in a managed block, the missing tools added, every header once, backup written"
 else
-  gate subtables_without_main_table FAIL "exit $RC, codex calls $(awk 'END { print NR }' "$E_LOG"): $(cat "$CFG" | tr '\n' ';')"
+  gate subtables_without_main_table FAIL "exit $RC, codex calls $(awk 'END { print NR }' "$E_LOG"): $(tr '\n' ';' < "$CFG")"
 fi
 real_parse subtables "$CFG" "$DEFAULT_URL"
 
