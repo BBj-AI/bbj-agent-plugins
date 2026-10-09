@@ -176,23 +176,24 @@ done
 [ ! -e "$script_dst" ] || [ -w "$script_dst" ] || refuse "$script_dst is not writable"
 
 # ---- 1. the docs server: registration and the per-tool approval ----
-# analyze: one pass over config.toml (or nothing when it does not exist); prints
-#   main=1|0     the [mcp_servers.bbj-docs] table is there (plain or quoted key, column 0)
-#   mention=1|0  a line that is not a comment names bbj-docs in a form this script does not edit
+# analyze: one pass over config.toml (or nothing when it does not exist) for the server the
+# srv_* globals name (SRV below; it reaches awk only as an -v value); prints
+#   main=1|0     the [mcp_servers.SRV] table is there (plain or quoted key, column 0)
+#   mention=1|0  a line that is not a comment names SRV in a form this script does not edit
 #                (single-quoted key, indented or spaced header, dotted key, inline table, another
-#                sub-table); our own [mcp_servers.bbj-docs.tools.NAME] headers do not count
-#   tfor=1|0     bbj-docs tools are named in a form this script does not edit: a [..bbj-docs.tools]
+#                sub-table); our own [mcp_servers.SRV.tools.NAME] headers do not count
+#   tfor=1|0     SRV tools are named in a form this script does not edit: a [..SRV.tools]
 #                table, a quoted or indented tool header, a dotted key, a tools key in the main
-#                table, an approval_mode written other than as a bare key in a docs-tool table,
-#                or a docs-tool table twice (only acted on when main=1)
-#   dstate=      none | ours (exactly OLD_KEY_LINE) | approve (default_tools_approval_mode set to
+#                table, an approval_mode written other than as a bare key in a tool table,
+#                or a tool table twice (only acted on when main=1)
+#   dstate=      none | ours (exactly srv_old_key) | approve (default_tools_approval_mode set to
 #                approve in another spelling) | other:VALUE, from the main table
-#   anytool=N    how many [mcp_servers.bbj-docs.tools.NAME] tables there are
-#   tool.NAME=   missing | nokey | approve | other:VALUE, for each of the five docs tools
+#   anytool=N    how many [mcp_servers.SRV.tools.NAME] tables there are
+#   tool.NAME=   missing | nokey | approve | other:VALUE, for each tool of srv_tools
 analyze() {
   src=$config
   [ -f "$src" ] || src=/dev/null
-  awk -v tools="$DOCS_TOOLS" -v sq="'" -v old_key="$OLD_KEY_LINE" '
+  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" '
     function val(l) {
       sub(/^[^=]*=/, "", l)
       sub(/[ \t]*#.*$/, "", l)
@@ -205,6 +206,10 @@ analyze() {
       for (i = 1; i <= n; i++) st[tl[i]] = "missing"
       dstate = "none"
       tools_re = "^[ \t]*[\"" sq "]?tools[\"" sq "]?[ \t]*[.=]"
+      key = "(\"" srv "\"|" srv ")"
+      main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
+      tool_re = "^\\[mcp_servers\\." key "\\.tools\\.[A-Za-z0-9_-]+\\][ \t]*(#.*)?$"
+      tool_pre = "^\\[mcp_servers\\." key "\\.tools\\."
     }
     {
       line = $0
@@ -212,32 +217,32 @@ analyze() {
       if (line ~ /^[ \t]*\[/) {
         sect = "other"
         name = ""
-        if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\][ \t]*(#.*)?$/) {
+        if (line ~ main_re) {
           sect = "main"
           main = 1
-        } else if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\.[A-Za-z0-9_-]+\][ \t]*(#.*)?$/) {
+        } else if (line ~ tool_re) {
           sect = "tool"
           name = line
-          sub(/^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\./, "", name)
+          sub(tool_pre, "", name)
           sub(/\].*$/, "", name)
           anytool++
           if (name in st) {
             if (st[name] != "missing") tfor = 1
             st[name] = "nokey"
           }
-        } else if (line ~ /bbj-docs/) {
+        } else if (index(line, srv) > 0) {
           mention = 1
           if (line ~ /tools/) tfor = 1
         }
       } else if (line !~ /^[ \t]*#/) {
-        if (line ~ /bbj-docs/) {
+        if (index(line, srv) > 0) {
           mention = 1
           if (line ~ /tools/) tfor = 1
         }
         if (sect == "main") {
           if (line ~ /^[ \t]*default_tools_approval_mode[ \t]*=/) {
             v = val(line)
-            if (line == old_key) dstate = "ours"
+            if (old_key != "" && line == old_key) dstate = "ours"
             else dstate = (v == "approve") ? "approve" : "other:" v
           }
           if (line ~ tools_re) tfor = 1
@@ -268,23 +273,23 @@ refresh() {
 an() {
   printf '%s\n' "$analysis" | sed -n "s/^$1=//p" | head -n 1
 }
-# tools_in_state STATE: the docs tools in that state, space separated
+# tools_in_state STATE: the srv_tools in that state, space separated
 tools_in_state() {
   _out=
-  for _t in $DOCS_TOOLS; do
+  for _t in $srv_tools; do
     [ "$(an "tool.$_t")" = "$1" ] && _out="$_out $_t"
   done
   printf '%s' "${_out# }"
 }
-# print_tools: the five tool tables to put into config.toml by hand
+# print_tools: the tool tables to put into config.toml by hand
 print_tools() {
-  for _t in $DOCS_TOOLS; do
-    printf '\n[mcp_servers.bbj-docs.tools.%s]\n%s\n' "$_t" "$TOOL_KEY"
+  for _t in $srv_tools; do
+    printf '\n[mcp_servers.%s.tools.%s]\n%s\n' "$srv" "$_t" "$TOOL_KEY"
   done
 }
-# print_block URL: the whole bbj-docs entry to put into config.toml by hand
+# print_block URL: the whole server entry to put into config.toml by hand
 print_block() {
-  printf '%s\n' '[mcp_servers.bbj-docs]' "url = \"$1\""
+  printf '%s\n' "[mcp_servers.$srv]" "url = \"$1\""
   print_tools
 }
 
@@ -337,8 +342,8 @@ sync_server() {
 
   if [ "$foreign" = 0 ] && [ "$(an main)" = 0 ]; then
     if [ "$(an anytool)" != 0 ]; then
-      # Codex 0.156.1 cannot load tool tables without the bbj-docs table, and its mcp add then fails
-      say "bbj-docs: $config holds tool tables of bbj-docs but no bbj-docs table, which Codex cannot load; adding the table in a managed block"
+      # Codex 0.156.1 cannot load tool tables without the server table, and its mcp add then fails
+      say "$srv: $config holds tool tables of $srv but no $srv table, which Codex cannot load; adding the table in a managed block"
     elif [ "$srv_codex_add" = 1 ] && command -v codex > /dev/null 2>&1; then
       if CODEX_HOME=$codex_home codex mcp add "$srv" --url "$srv_url" > /dev/null 2>&1; then
         say "$srv: registered with codex mcp add $srv --url $srv_url"
@@ -351,15 +356,15 @@ sync_server() {
   refresh
   state
   if [ "$foreign" = 1 ]; then
-    say "bbj-docs: $config already names bbj-docs in a form this script does not edit; config.toml was not modified."
+    say "$srv: $config already names $srv in a form this script does not edit; $srv_untouched"
     say "Check that it holds these tables (url and per-tool approval), or add them by hand:"
-    print_block "$docs_url"
+    print_block "$srv_url"
     pending=1
   elif [ "$tools_foreign" = 1 ]; then
-    say "bbj-docs: $config names tools of bbj-docs in a form this script does not edit; config.toml was not modified."
+    say "$srv: $config names tools of $srv in a form this script does not edit; $srv_untouched"
     say "Check that it approves these five tools by name, or add the tables by hand:"
     print_tools
-    [ "$dstate" != ours ] || say "Also remove the line $OLD_KEY_LINE from the bbj-docs table by hand: an earlier version of this script wrote it and it approves every tool of bbj-docs, including bbj_check_syntax, bbj_format and bbj_denum."
+    [ "$dstate" != ours ] || say "Also remove the line $srv_old_key from the $srv table by hand: an earlier version of this script wrote it and it approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum."
     pending=1
   elif [ "$(an main)" = 0 ]; then
     # shellcheck disable=SC2094  # the group reads $config (its last byte) before the append writes it
@@ -375,21 +380,21 @@ sync_server() {
     refresh
     state
   elif [ "$need_change" = 0 ]; then
-    say "bbj-docs: already registered in $config with the five docs tools approved; nothing changed"
+    say "$srv: already registered in $config with $srv_label approved; nothing changed"
   fi
 
   # what the user chose stays; say so
   if [ "$foreign" = 0 ] && [ "$(an main)" = 1 ]; then
     case "$dstate" in
       approve)
-        say "bbj-docs: $config sets default_tools_approval_mode to approve in a form this script did not write; left as is. It approves every tool of bbj-docs, including bbj_check_syntax, bbj_format and bbj_denum, which send your code to the server; remove the line by hand to keep Codex's prompt for them."
+        say "$srv: $config sets default_tools_approval_mode to approve in a form this script did not write; left as is. It approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum, which send your code to the server; remove the line by hand to keep Codex's prompt for them."
         pending=1
         ;;
-      other:*) say "bbj-docs: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
+      other:*) say "$srv: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
     esac
-    for _t in $DOCS_TOOLS; do
+    for _t in $srv_tools; do
       case "$(an "tool.$_t")" in
-        other:*) say "bbj-docs: tool $_t has approval_mode $(an "tool.$_t" | sed 's/^other://') (yours); left as is" ;;
+        other:*) say "$srv: tool $_t has approval_mode $(an "tool.$_t" | sed 's/^other://') (yours); left as is" ;;
       esac
     done
   fi
@@ -400,8 +405,8 @@ sync_server() {
     [ "$dstate" = ours ] && drop=1
     tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
     # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
-    if awk -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$OLD_KEY_LINE" -v tool_key="$TOOL_KEY" -v mark_end="$MARK_END" '
-        # the missing tool tables go at the end of the bbj-docs table body, before the blank
+    if awk -v srv="$srv" -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$srv_old_key" -v tool_key="$TOOL_KEY" -v mark_end="$srv_end" '
+        # the missing tool tables go at the end of the server table body, before the blank
         # lines and comments that lead into the next table (or the end marker)
         function flush_main(atheader,   i, n, names) {
           if (!inmain) return
@@ -409,13 +414,19 @@ sync_server() {
           n = split(miss, names, " ")
           for (i = 1; i <= n; i++) {
             print ""
-            print "[mcp_servers.bbj-docs.tools." names[i] "]"
+            print "[mcp_servers." srv ".tools." names[i] "]"
             print tool_key
           }
           if (n > 0 && atheader && !hasblank) print ""
           for (i = 1; i <= nb; i++) print buf[i]
           nb = 0
           hasblank = 0
+        }
+        BEGIN {
+          key = "(\"" srv "\"|" srv ")"
+          main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
+          tool_re = "^\\[mcp_servers\\." key "\\.tools\\.[A-Za-z0-9_-]+\\][ \t]*(#.*)?$"
+          tool_pre = "^\\[mcp_servers\\." key "\\.tools\\."
         }
         {
           line = $0
@@ -435,10 +446,10 @@ sync_server() {
             }
           }
           print
-          if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\][ \t]*(#.*)?$/) inmain = 1
-          else if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\.[A-Za-z0-9_-]+\][ \t]*(#.*)?$/) {
+          if (line ~ main_re) inmain = 1
+          else if (line ~ tool_re) {
             name = line
-            sub(/^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\./, "", name)
+            sub(tool_pre, "", name)
             sub(/\].*$/, "", name)
             if (index(" " nokey " ", " " name " ") > 0) print tool_key
           }
@@ -450,12 +461,12 @@ sync_server() {
       rm -f "$tmp"
       wrote="$wrote config.toml"
       if [ "$drop" = 1 ]; then
-        say "bbj-docs: removed the line $OLD_KEY_LINE from $config (an earlier version of this script wrote it; it approved every tool of bbj-docs, including the hosted check tools)"
+        say "$srv: removed the line $srv_old_key from $config (an earlier version of this script wrote it; it approved every tool of $srv, including the hosted check tools)"
       fi
       approved="$miss $nokey"
       approved=$(printf '%s' "$approved" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */, /g')
       if [ -n "$approved" ]; then
-        say "bbj-docs: approved by name in $config: $approved; every other tool of bbj-docs keeps Codex's prompt (the hosted check tools bbj_check_syntax, bbj_format and bbj_denum send your code to the server)"
+        say "$srv: approved by name in $config: $approved; every other tool of $srv keeps Codex's prompt $srv_approved_note"
       fi
     else
       rm -f "$tmp"
