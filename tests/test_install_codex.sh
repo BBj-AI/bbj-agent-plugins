@@ -2,9 +2,15 @@
 # tests/test_install_codex.sh -- plan 19-05 Task 2 (PLUG-04, D-15): codex/install-codex.sh in
 # a temp HOME and CODEX_HOME with a fake codex. Every case has its own temp directories; the
 # real ~/.codex and ~/.agents are never touched (gate real_home_untouched). Nothing here runs
-# BBj or Codex (the real-Codex check is a human test; it passed on Linux on 2026-10-08).
+# BBj. Codex runs only in the optional gate real_codex_parses_configs (BBJ_TEST_CODEX=/path/to/codex,
+# else a codex on the caller's PATH), only as `codex mcp get bbj-docs` and `codex mcp add` in temp
+# homes, never a session; without a codex that gate is a clean skip.
 . "$(dirname "$0")/lib.sh"
 mkwork
+
+# the real codex of the optional gate, resolved before any case narrows PATH
+REAL_CODEX=${BBJ_TEST_CODEX:-$(command -v codex 2> /dev/null)}
+[ -n "$REAL_CODEX" ] && [ -x "$REAL_CODEX" ] || REAL_CODEX=
 
 INSTALLER=$REPO/codex/install-codex.sh
 SYSPATH=/usr/bin:/bin
@@ -58,6 +64,52 @@ count() {
   grep -c -Fx -e "$1" "$2" 2> /dev/null
 }
 
+DEFAULT_URL=https://bbj-mcp.basis-europe.eu/mcp
+HAVE_TOML=0
+if command -v python3 > /dev/null 2>&1 && python3 -I -c 'import tomllib' 2> /dev/null; then HAVE_TOML=1; fi
+
+# tsum FILE: canonical summary of the bbj-docs server of a config.toml, parsed with tomllib:
+# the url, the default_tools_approval_mode value or -, one "NAME VALUE" line per tool, sorted
+tsum() {
+  python3 -I -c '
+import sys, tomllib
+d = tomllib.load(open(sys.argv[1], "rb"))
+s = d["mcp_servers"]["bbj-docs"]
+print("url", s["url"])
+print("default", s.get("default_tools_approval_mode", "-"))
+for k in sorted(s.get("tools", {})):
+    print(k, s["tools"][k].get("approval_mode", "-"))
+' "$1" 2> /dev/null
+}
+
+# five_expected URL: the summary of a config with the five docs tools approved
+five_expected() {
+  printf 'url %s\ndefault -\nbbj_examples approve\nbbj_fetch_page approve\nbbj_lookup approve\nbbj_reserved_word approve\nbbj_search approve\n' "$1"
+}
+
+# note_cfg FILE: a config.toml the installer wrote, for the check_tools_never_named aggregate
+note_cfg() {
+  printf '%s\n' "$1" >> "$WORK/written.list"
+}
+
+# real_parse LABEL FILE URL: the real codex loads a copy of FILE (codex mcp get bbj-docs exits 0
+# and prints the url); no codex means nothing is run and nothing counted
+RP_N=0
+RP_BAD=
+real_parse() {
+  [ -n "$REAL_CODEX" ] || return 0
+  _rp=$WORK/rp-$1
+  mkdir -p "$_rp/home/.codex"
+  cp -L "$2" "$_rp/home/.codex/config.toml"
+  _rpout=$(env HOME="$_rp/home" CODEX_HOME="$_rp/home/.codex" PATH="$SYSPATH:$(dirname "$REAL_CODEX")" "$REAL_CODEX" mcp get bbj-docs 2> /dev/null)
+  _rprc=$?
+  RP_N=$((RP_N + 1))
+  case "$_rpout" in
+    *"url: $3"*) [ "$_rprc" = 0 ] || RP_BAD="$RP_BAD $1(exit $_rprc)" ;;
+    *) RP_BAD="$RP_BAD $1(exit $_rprc, no url)" ;;
+  esac
+}
+
 # ---- first run, fake codex on PATH ----
 newenv first
 run_inst "$WITH_CODEX"
@@ -67,14 +119,31 @@ head -n 1 "$WORK/out" | grep 'not yet run on Windows or macOS' > /dev/null \
 grep -Fx 'mcp add bbj-docs --url https://bbj-mcp.basis-europe.eu/mcp' "$E_LOG" > /dev/null \
   && gate first_codex_mcp_add ok "codex mcp add bbj-docs --url <default>" || gate first_codex_mcp_add FAIL "log: $(cat "$E_LOG")"
 CFG=$E_CODEX/config.toml
-if [ "$(count '[mcp_servers.bbj-docs]' "$CFG")" = 1 ] && [ "$(count 'default_tools_approval_mode = "approve"' "$CFG")" = 1 ]; then
-  gate first_config_toml ok "one bbj-docs table, one approval key"
+note_cfg "$CFG"
+five_ok=1
+for _t in bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples; do
+  [ "$(count "[mcp_servers.bbj-docs.tools.$_t]" "$CFG")" = 1 ] || five_ok=0
+done
+if [ "$(count '[mcp_servers.bbj-docs]' "$CFG")" = 1 ] && [ "$five_ok" = 1 ] && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] \
+  && [ "$(grep -c default_tools_approval_mode "$CFG")" = 0 ]; then
+  gate first_config_toml ok "one bbj-docs table, five tool tables once each, five approvals, no server-wide key"
 else
   gate first_config_toml FAIL "$(cat "$CFG" 2> /dev/null)"
 fi
-# the approval key sits inside the bbj-docs table
-awk '/^\[/ { t = ($0 == "[mcp_servers.bbj-docs]") } t && /^default_tools_approval_mode = "approve"$/ { f = 1 } END { exit !f }' "$CFG" \
-  && gate first_key_inside_table ok "key is in the bbj-docs table" || gate first_key_inside_table FAIL "key outside the table"
+# parsed: the five tools hold approve, the url is the default, nothing else is set
+if [ "$HAVE_TOML" = 1 ]; then
+  [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ] \
+    && gate first_tools_tables ok "tomllib: url, no default_tools_approval_mode, the five docs tools approve" || gate first_tools_tables FAIL "$(tsum "$CFG" | tr '\n' ';')"
+else
+  gate first_tools_tables skip "no python3 with tomllib"
+fi
+real_parse first "$CFG" "$DEFAULT_URL"
+if grep -F 'bbj_search' "$WORK/out" > /dev/null && grep -F 'bbj_fetch_page' "$WORK/out" > /dev/null && grep -F 'bbj_lookup' "$WORK/out" > /dev/null \
+  && grep -F 'bbj_reserved_word' "$WORK/out" > /dev/null && grep -F 'bbj_examples' "$WORK/out" > /dev/null && grep -F 'bbj_check_syntax' "$WORK/out" > /dev/null; then
+  gate first_prints_tools ok "stdout names the five approved tools and bbj_check_syntax as the one that keeps the prompt"
+else
+  gate first_prints_tools FAIL "a tool name is missing from stdout"
+fi
 if diff -r "$SKILLS/bbj-programming" "$E_SKILLS/bbj-programming" > /dev/null 2>&1 \
   && diff -r "$SKILLS/bbj-web-programming" "$E_SKILLS/bbj-web-programming" > /dev/null 2>&1; then
   gate first_skills ok "both skills in ~/.agents/skills are identical to plugins/bbj/skills"
@@ -154,21 +223,32 @@ fi
 newenv nocodex
 run_inst "$NO_CODEX"
 CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+# all five tool tables lie between the markers
+inside=$(awk '$0 == "# >>> bbj-agent-plugins (managed) >>>" { b = 1 } $0 == "# <<< bbj-agent-plugins (managed) <<<" { b = 0 } b && /^\[mcp_servers\.bbj-docs\.tools\.bbj_(search|fetch_page|lookup|reserved_word|examples)\]$/ { n++ } END { print n + 0 }' "$CFG")
 if [ "$RC" = 0 ] \
   && [ "$(count '# >>> bbj-agent-plugins (managed) >>>' "$CFG")" = 1 ] \
   && [ "$(count '# <<< bbj-agent-plugins (managed) <<<' "$CFG")" = 1 ] \
   && [ "$(count '[mcp_servers.bbj-docs]' "$CFG")" = 1 ] \
   && [ "$(count 'url = "https://bbj-mcp.basis-europe.eu/mcp"' "$CFG")" = 1 ] \
-  && [ "$(count 'default_tools_approval_mode = "approve"' "$CFG")" = 1 ]; then
-  gate managed_block ok "markers, table, url and approval key once each"
+  && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] && [ "$inside" = 5 ] \
+  && [ "$(grep -c default_tools_approval_mode "$CFG")" = 0 ]; then
+  gate managed_block ok "markers, table and url once each, the five tool tables between the markers, no server-wide key"
 else
-  gate managed_block FAIL "exit $RC: $(head -c 400 "$CFG" 2> /dev/null)"
+  gate managed_block FAIL "exit $RC, $inside tool tables inside: $(head -c 400 "$CFG" 2> /dev/null)"
 fi
+if [ "$HAVE_TOML" = 1 ]; then
+  [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ] \
+    && gate managed_block_tools_tables ok "tomllib: the five docs tools approve" || gate managed_block_tools_tables FAIL "$(tsum "$CFG" | tr '\n' ';')"
+else
+  gate managed_block_tools_tables skip "no python3 with tomllib"
+fi
+real_parse nocodex "$CFG" "$DEFAULT_URL"
 cp "$CFG" "$WORK/cfg.m1"
 run_inst "$NO_CODEX"
 cmp -s "$CFG" "$WORK/cfg.m1" && [ "$RC" = 0 ] && gate managed_block_idempotent ok "second run leaves it as is" || gate managed_block_idempotent FAIL "changed on second run"
 
-# ---- an existing config.toml: only the approval key is added ----
+# ---- an existing config.toml: only the five tool tables are added ----
 newenv existing
 mkdir -p "$E_CODEX"
 cat > "$E_CODEX/config.toml" <<'TOML'
@@ -184,15 +264,28 @@ cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
 run_inst "$WITH_CODEX"
 CFG=$E_CODEX/config.toml
 diff "$WORK/cfg.orig" "$CFG" > "$WORK/cfg.diff"
-added=$(grep -c '^>' "$WORK/cfg.diff")
+note_cfg "$CFG"
 removed=$(grep -c '^<' "$WORK/cfg.diff")
-if [ "$RC" = 0 ] && [ "$added" = 1 ] && [ "$removed" = 0 ] && grep -Fx '> default_tools_approval_mode = "approve"' "$WORK/cfg.diff" > /dev/null \
-  && awk '/^\[/ { t = ($0 == "[mcp_servers.bbj-docs]") } t && /^default_tools_approval_mode/ { f = 1 } END { exit !f }' "$CFG" \
-  && [ "$(count 'url = "https://example.invalid/mcp"' "$CFG")" = 1 ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ]; then
-  gate existing_table_gains_key ok "one line added inside bbj-docs, url kept, codex not called"
+grep '^>' "$WORK/cfg.diff" | grep -v '^> *$' | sort > "$WORK/cfg.added"
+{
+  for _t in bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples; do
+    printf '%s\n' "> [mcp_servers.bbj-docs.tools.$_t]" '> approval_mode = "approve"'
+  done
+} | sort > "$WORK/cfg.expected"
+if [ "$RC" = 0 ] && [ "$removed" = 0 ] && cmp -s "$WORK/cfg.added" "$WORK/cfg.expected" \
+  && [ "$(count 'url = "https://example.invalid/mcp"' "$CFG")" = 1 ] && [ "$(count '[mcp_servers.other]' "$CFG")" = 1 ] \
+  && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ]; then
+  gate existing_table_gains_tools ok "nothing removed, the added lines are the five headers and five approvals, url kept, codex not called"
 else
-  gate existing_table_gains_key FAIL "exit $RC, added $added, removed $removed"
+  gate existing_table_gains_tools FAIL "exit $RC, removed $removed: $(cat "$WORK/cfg.added" | tr '\n' ';')"
 fi
+if [ "$HAVE_TOML" = 1 ]; then
+  [ "$(tsum "$CFG")" = "$(five_expected https://example.invalid/mcp)" ] && python3 -I -c 'import sys, tomllib; assert tomllib.load(open(sys.argv[1], "rb"))["mcp_servers"]["other"]["url"] == "https://other.invalid/mcp"' "$CFG" 2> /dev/null \
+    && gate existing_parses ok "tomllib: five tools approve, url kept, mcp_servers.other still parses" || gate existing_parses FAIL "$(tsum "$CFG" | tr '\n' ';')"
+else
+  gate existing_parses skip "no python3 with tomllib"
+fi
+real_parse existing "$CFG" https://example.invalid/mcp
 if cmp -s "$WORK/cfg.orig" "$CFG.bbj-backup"; then
   gate existing_backup ok "config.toml.bbj-backup holds the original"
 else
@@ -216,7 +309,11 @@ for form in "[mcp_servers.'bbj-docs']" '  [mcp_servers.bbj-docs]' '[ mcp_servers
   run_inst "$WITH_CODEX"
   if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && [ ! -e "$E_CODEX/config.toml.bbj-backup" ] \
     && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] && grep -F 'was not modified' "$WORK/out" > /dev/null \
-    && grep -Fx 'default_tools_approval_mode = "approve"' "$WORK/out" > /dev/null; then
+    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_search]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_fetch_page]' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_lookup]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_reserved_word]' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_examples]' "$WORK/out" > /dev/null && [ "$(grep -Fxc 'approval_mode = "approve"' "$WORK/out")" = 5 ] \
+    && grep -Fx '[mcp_servers.bbj-docs]' "$WORK/out" > /dev/null && grep -Fx 'url = "https://bbj-mcp.basis-europe.eu/mcp"' "$WORK/out" > /dev/null \
+    && ! grep -Fx 'default_tools_approval_mode = "approve"' "$WORK/out" > /dev/null; then
     :
   else
     gate foreign_toml_form FAIL "form '$form': exit $RC, config changed or codex called"
@@ -236,12 +333,15 @@ printf 'model = "x"\n\n[mcp_servers.bbj-docs]\nurl = "https://example.invalid/mc
 chmod 644 "$E_ROOT/dots/config.toml"
 ln -s "$E_ROOT/dots/config.toml" "$E_CODEX/config.toml"
 run_inst "$WITH_CODEX"
-if [ "$RC" = 0 ] && [ -L "$E_CODEX/config.toml" ] && grep -Fx 'default_tools_approval_mode = "approve"' "$E_ROOT/dots/config.toml" > /dev/null \
+note_cfg "$E_ROOT/dots/config.toml"
+if [ "$RC" = 0 ] && [ -L "$E_CODEX/config.toml" ] && [ "$(count 'approval_mode = "approve"' "$E_ROOT/dots/config.toml")" = 5 ] \
+  && [ "$(count '[mcp_servers.bbj-docs.tools.bbj_search]' "$E_ROOT/dots/config.toml")" = 1 ] \
   && [ "$(ls -l "$E_ROOT/dots/config.toml" | cut -c1-10)" = "-rw-r--r--" ]; then
-  gate approval_key_keeps_symlink_and_mode ok "the link survives, its target gained the key, mode 644 kept"
+  gate approval_key_keeps_symlink_and_mode ok "the link survives, its target gained the five tool tables, mode 644 kept"
 else
   gate approval_key_keeps_symlink_and_mode FAIL "exit $RC, link: $([ -L "$E_CODEX/config.toml" ] && echo kept || echo replaced)"
 fi
+real_parse symlinkcfg "$E_ROOT/dots/config.toml" https://example.invalid/mcp
 
 # ---- WR-02: exit 2 on an unusable destination happens before any write ----
 newenv unusabledest
@@ -319,10 +419,14 @@ if [ "$RC" = 0 ] && grep -Fx 'mcp add bbj-docs --url http://127.0.0.1:8765/mcp' 
 else
   gate docs_url_loopback_http FAIL "exit $RC"
 fi
+note_cfg "$E_CODEX/config.toml"
+real_parse loopback "$E_CODEX/config.toml" http://127.0.0.1:8765/mcp
 newenv httpsother
 run_inst "$WITH_CODEX" --docs-url https://docs.example.org/mcp
 [ "$RC" = 0 ] && grep -Fx 'mcp add bbj-docs --url https://docs.example.org/mcp' "$E_LOG" > /dev/null \
   && gate docs_url_https_other ok "https to any host is accepted" || gate docs_url_https_other FAIL "exit $RC"
+note_cfg "$E_CODEX/config.toml"
+real_parse httpsother "$E_CODEX/config.toml" https://docs.example.org/mcp
 
 # ---- --skills-dir and --codex-home ----
 newenv custom
@@ -333,10 +437,14 @@ if [ "$RC" = 0 ] && [ -f "$E_ROOT/sk/bbj-programming/SKILL.md" ] && [ -f "$E_ROO
 else
   gate custom_dirs FAIL "exit $RC"
 fi
+note_cfg "$E_ROOT/ch/config.toml"
+real_parse custom "$E_ROOT/ch/config.toml" "$DEFAULT_URL"
 
 # ---- Windows command field through cygpath ----
 newenv cyg
 run_inst "$WORK/fbcyg:$WITH_CODEX"
+note_cfg "$E_CODEX/config.toml"
+real_parse cyg "$E_CODEX/config.toml" "$DEFAULT_URL"
 if command -v python3 > /dev/null 2>&1; then
   if python3 -I -c '
 import json, sys
@@ -359,6 +467,8 @@ FAKE_LOG=$WORK/compiler.log
 export FAKE_LOG
 : > "$FAKE_LOG"
 run_inst "$WORK/fbcpl:$WITH_CODEX"
+note_cfg "$E_CODEX/config.toml"
+real_parse nocompiler "$E_CODEX/config.toml" "$DEFAULT_URL"
 [ "$RC" = 0 ] && [ ! -s "$FAKE_LOG" ] && gate installer_no_compiler_calls ok "no compiler or bbj call during an install" || gate installer_no_compiler_calls FAIL "exit $RC, log: $(head -c 200 "$FAKE_LOG")"
 
 # ---- usage ----
@@ -381,6 +491,39 @@ fi
 lines=$(awk 'END { print NR }' "$SNIPPET")
 [ "$lines" -lt 60 ] && grep -F 'Built in: no USE needed.' "$SNIPPET" > /dev/null \
   && gate snippet_shape ok "$lines lines, carries the USE sentence" || gate snippet_shape FAIL "$lines lines or no USE sentence"
+
+# ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
+if [ -n "$REAL_CODEX" ]; then
+  newenv realcodex
+  mkdir -p "$WORK/realbin"
+  ln -s "$REAL_CODEX" "$WORK/realbin/codex"
+  run_inst "$WORK/realbin:$SYSPATH:$(dirname "$REAL_CODEX")"
+  CFG=$E_CODEX/config.toml
+  note_cfg "$CFG"
+  if [ "$RC" = 0 ] && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ]; } && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ]; then
+    gate real_codex_install ok "codex mcp add by the real codex, then the five tool tables"
+  else
+    gate real_codex_install FAIL "exit $RC: $(head -c 300 "$WORK/err")"
+  fi
+  real_parse realcodex "$CFG" "$DEFAULT_URL"
+fi
+
+# ---- the real codex loads every config the installer wrote above ----
+if [ -z "$REAL_CODEX" ]; then
+  gate real_codex_parses_configs skip "no real codex (set BBJ_TEST_CODEX=/path/to/codex)"
+elif [ -z "$RP_BAD" ]; then
+  gate real_codex_parses_configs ok "$RP_N configs"
+else
+  gate real_codex_parses_configs FAIL "$RP_N configs, not loaded:$RP_BAD"
+fi
+
+# ---- no config the installer wrote names a hosted check tool: they keep Codex's prompt ----
+named=
+while IFS= read -r _f; do
+  [ -f "$_f" ] || continue
+  grep -E 'bbj_check_syntax|bbj_format|bbj_denum' "$_f" > /dev/null && named="$named $_f"
+done < "$WORK/written.list"
+[ -z "$named" ] && gate check_tools_never_named ok "$(awk 'END { print NR }' "$WORK/written.list") written configs: none names bbj_check_syntax, bbj_format or bbj_denum" || gate check_tools_never_named FAIL "named in:$named"
 
 # ---- the real ~/.codex and ~/.agents were never touched ----
 touched=$(find "$REALHOME/.codex" "$REALHOME/.agents" -newer "$WORK/marker" 2> /dev/null | head -n 3)
