@@ -245,7 +245,6 @@ and `bbj-ls`).
 - BBj code is never executed. The check path calls the BBj compiler with `-N` (compile-only)
 - Two MCP servers are declared, not implemented here: the hosted `bbj-docs` server (URL from
 - The skills are maintained in this repository under the normal tests (`tests/test_layout.py`).
-- The repository is the source of truth for the two skills from plugin release 0.2.0 onward,
 
 ## Layers
 
