@@ -948,6 +948,48 @@ for form in otherurl singlequoted dotted subtable; do
 done
 [ "${LFOREIGN_BAD:-0}" = 1 ] || gate local_foreign_forms ok "another url, a single-quoted key, a dotted key, a sub-table without the table: exit 3, config.toml byte-identical and parseable, no backup, codex not called, the block printed"
 
+# WR-02: two more spellings of a bbj-local definition are still foreign: a dotted key at the top level and a
+# quoted key under [mcp_servers]
+i=0
+for form in rootdotted quotedkey; do
+  i=$((i + 1))
+  newenv localforeignkey$i
+  mkdir -p "$E_CODEX"
+  case "$form" in
+    rootdotted) printf '%s\n' "mcp_servers.bbj-local.url = \"$LOCAL_URL_T\"" '' > "$E_CODEX/config.toml" ;;
+    quotedkey) printf '%s\n' '[mcp_servers]' "\"bbj-local\" = { url = \"$LOCAL_URL_T\" }" '' > "$E_CODEX/config.toml" ;;
+  esac
+  docs_done "$E_CODEX/config.toml"
+  cp "$E_CODEX/config.toml" "$WORK/cfg.foreign"
+  run_inst "$NO_CODEX" --with-local
+  note_local "$E_CODEX/config.toml"
+  if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && [ ! -e "$E_CODEX/config.toml.bbj-backup" ] \
+    && grep -F 'the bbj-local entry was not modified' "$WORK/out" > /dev/null; then
+    :
+  else
+    gate local_foreign_key_forms FAIL "form $form: exit $RC, config changed or no refusal printed"
+    LFKEY_BAD=1
+  fi
+done
+[ "${LFKEY_BAD:-0}" = 1 ] || gate local_foreign_key_forms ok "a top-level dotted key and a quoted key under [mcp_servers]: exit 3, config.toml byte-identical, no backup"
+
+# WR-02: a server name inside a path or a value is not a server definition. Codex writes [projects."<path>"]
+# trust tables itself; a project directory called bbj-local or bbj-docs must not make the installer refuse
+newenv localprojects
+mkdir -p "$E_CODEX"
+printf '%s\n' '[projects."/home/u/src/bbj-local"]' 'trust_level = "trusted"' '' '[projects."/home/u/src/bbj-docs"]' 'trust_level = "trusted"' '' '[notes]' 'text = "bbj-local and bbj-docs are names"' > "$E_CODEX/config.toml"
+run_inst "$NO_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if [ "$RC" = 0 ] && local_shape "$CFG" && all_once "$CFG" && ! grep -F 'in a form this script does not edit' "$WORK/out" > /dev/null \
+  && [ "$(count '[projects."/home/u/src/bbj-local"]' "$CFG")" = 1 ] && [ "$(count 'text = "bbj-local and bbj-docs are names"' "$CFG")" = 1 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; } && same_after_rerun "$NO_CODEX" 0; then
+  gate local_name_in_path_not_foreign ok "bbj-local and bbj-docs inside a [projects] path and a string value: exit 0, both servers registered normally, nothing refused, a rerun byte-identical"
+else
+  gate local_name_in_path_not_foreign FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 700)"
+fi
+local_parse localprojects "$CFG" "$DEFAULT_URL"
+
 # both servers: the docs table directly followed by the local block, and the reverse; the begin marker stays above its table
 for order in docs_first local_first; do
   newenv localboth-$order
@@ -1357,6 +1399,23 @@ if command -v python3 > /dev/null 2>&1; then
     gate local_markers_without_table_no_probe ok "both markers, no table, no flag: no request reached the fake, no bbj-local line of output, config.toml byte-identical, exit 0"
   else
     gate local_markers_without_table_no_probe FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF"), out: $(grep bbj-local "$WORK/out" | head -c 300)"
+  fi
+
+  # WR-02: bbj-local inside a [projects] path is no registration, so the flagless run probes and suggests
+  newenv probeprojects
+  mkdir -p "$E_CODEX"
+  docs_done "$E_CODEX/config.toml"
+  printf '%s\n' '' '[projects."/home/u/src/bbj-local"]' 'trust_level = "trusted"' >> "$E_CODEX/config.toml"
+  cp "$E_CODEX/config.toml" "$WORK/cfg.projects"
+  start_fake tools-list
+  run_inst "$WITH_CODEX"
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  _reqs=$(awk 'END { print NR }' "$LOGF")
+  if [ "$RC" = 0 ] && [ "$_reqs" = 1 ] && [ "$(nlines 'bbj-local: a bbj-ls answers at')" = 1 ] && cmp -s "$WORK/cfg.projects" "$CFG"; then
+    gate local_name_in_path_is_probed ok "bbj-local only in a [projects] path and no flag: one request, the suggestion line, config.toml byte-identical, exit 0"
+  else
+    gate local_name_in_path_is_probed FAIL "exit $RC, requests: $_reqs, out: $(grep bbj-local "$WORK/out" | head -c 300)"
   fi
 
   # the probe never changes the exit code: a foreign bbj-docs form still exits 3, the fixed form exits 0
