@@ -155,3 +155,8 @@ Also treat WR-03 as the escalated user question the review fix report records, n
 
 _Verified: 2026-10-09T19:00:00Z_
 _Verifier: Claude (gsd-verifier)_
+
+## User rulings (2026-10-09)
+
+- **CHANGELOG (VEND-01 / SC1):** reword. `CHANGELOG.md` lines 9 and 41 no longer name the upstream repository or the lock file; `tests/test_layout.py` gates `no_skills_lock` and `no_vendoring_wording` now scan `CHANGELOG.md` (mutation-checked). Commit 718c77c. The candidate gap is closed.
+- **WR-03 / D-01:** keep D-01. The agent may use the hosted check without asking and must tell the user afterwards. Accepted, not a gap.
