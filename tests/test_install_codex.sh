@@ -492,6 +492,186 @@ lines=$(awk 'END { print NR }' "$SNIPPET")
 [ "$lines" -lt 60 ] && grep -F 'Built in: no USE needed.' "$SNIPPET" > /dev/null \
   && gate snippet_shape ok "$lines lines, carries the USE sentence" || gate snippet_shape FAIL "$lines lines or no USE sentence"
 
+# ---- the upgrade, user values, partial sets, foreign tool forms, tool tables without a table ----
+OLDLINE='default_tools_approval_mode = "approve"'
+# five_with: the five_expected summary with the default line "default VALUE"
+five_with() {
+  five_expected "$1" | sed "s/^default -\$/default $2/"
+}
+# all_once FILE: the bbj-docs table and each of the five tool tables are there exactly once
+all_once() {
+  [ "$(count '[mcp_servers.bbj-docs]' "$1")" = 1 ] || return 1
+  for _t in bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples; do
+    [ "$(count "[mcp_servers.bbj-docs.tools.$_t]" "$1")" = 1 ] || return 1
+  done
+}
+# same_after_rerun: a second run changes no byte of config.toml
+same_after_rerun() {
+  cp "$CFG" "$WORK/cfg.rerun"
+  run_inst "$1"
+  [ "$RC" = "$2" ] && cmp -s "$WORK/cfg.rerun" "$CFG"
+}
+
+newenv upgrade
+mkdir -p "$E_CODEX"
+printf '%s\n' 'model = "x"' '' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' "$OLDLINE" '' '[mcp_servers.other]' 'url = "https://other.invalid/mcp"' > "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+if [ "$RC" = 0 ] && ! grep -Fx "$OLDLINE" "$CFG" > /dev/null && all_once "$CFG" && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] \
+  && grep -F "removed the line $OLDLINE" "$WORK/out" > /dev/null && cmp -s "$WORK/cfg.orig" "$CFG.bbj-backup" \
+  && [ "$(count '[mcp_servers.other]' "$CFG")" = 1 ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected https://example.invalid/mcp)" ]; } && same_after_rerun "$WITH_CODEX" 0; then
+  gate upgrade_removes_old_key ok "the old line removed and reported, five tool tables, backup holds the original, rerun byte-identical"
+else
+  gate upgrade_removes_old_key FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+fi
+real_parse upgrade "$CFG" https://example.invalid/mcp
+
+newenv upgradeblock
+mkdir -p "$E_CODEX"
+printf '%s\n' '# >>> bbj-agent-plugins (managed) >>>' '[mcp_servers.bbj-docs]' "url = \"$DEFAULT_URL\"" "$OLDLINE" '# <<< bbj-agent-plugins (managed) <<<' > "$E_CODEX/config.toml"
+run_inst "$NO_CODEX"
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+inside=$(awk '$0 == "# >>> bbj-agent-plugins (managed) >>>" { b = 1 } $0 == "# <<< bbj-agent-plugins (managed) <<<" { b = 0 } b && /^\[mcp_servers\.bbj-docs\.tools\.bbj_(search|fetch_page|lookup|reserved_word|examples)\]$/ { n++ } END { print n + 0 }' "$CFG")
+if [ "$RC" = 0 ] && ! grep -Fx "$OLDLINE" "$CFG" > /dev/null && all_once "$CFG" && [ "$inside" = 5 ] \
+  && [ "$(count '# >>> bbj-agent-plugins (managed) >>>' "$CFG")" = 1 ] && [ "$(count '# <<< bbj-agent-plugins (managed) <<<' "$CFG")" = 1 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ]; } && same_after_rerun "$NO_CODEX" 0; then
+  gate upgrade_managed_block ok "the managed block of an earlier version loses the old line and gets the five tool tables inside the markers"
+else
+  gate upgrade_managed_block FAIL "exit $RC, $inside inside: $(cat "$CFG" | tr '\n' ';')"
+fi
+real_parse upgradeblock "$CFG" "$DEFAULT_URL"
+
+newenv defprompt
+mkdir -p "$E_CODEX"
+printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' 'default_tools_approval_mode = "prompt"' > "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+if [ "$RC" = 0 ] && grep -Fx 'default_tools_approval_mode = "prompt"' "$CFG" > /dev/null && all_once "$CFG" \
+  && grep -F 'default_tools_approval_mode to prompt; left as is' "$WORK/out" > /dev/null \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_with https://example.invalid/mcp prompt)" ]; }; then
+  gate default_other_value_kept ok "a prompt default stays byte for byte, is reported, the tools are added, exit 0"
+else
+  gate default_other_value_kept FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+fi
+real_parse defprompt "$CFG" https://example.invalid/mcp
+
+newenv defapprove
+mkdir -p "$E_CODEX"
+printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' 'default_tools_approval_mode="approve"' > "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+if [ "$RC" = 3 ] && grep -Fx 'default_tools_approval_mode="approve"' "$CFG" > /dev/null && all_once "$CFG" \
+  && grep -F 'bbj_check_syntax' "$WORK/out" | grep -F 'remove the line by hand' > /dev/null \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_with https://example.invalid/mcp approve)" ]; }; then
+  gate default_approve_other_spelling ok "an approve default in another spelling stays, the tools are added, the output names bbj_check_syntax, exit 3"
+else
+  gate default_approve_other_spelling FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+fi
+real_parse defapprove "$CFG" https://example.invalid/mcp
+
+newenv partial
+mkdir -p "$E_CODEX"
+printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' '' '[mcp_servers.bbj-docs.tools.bbj_search]' 'approval_mode = "approve"' '' '[mcp_servers.bbj-docs.tools.bbj_lookup]' 'approval_mode = "prompt"' > "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+{
+  printf 'url https://example.invalid/mcp\ndefault -\n'
+  printf '%s\n' 'bbj_examples approve' 'bbj_fetch_page approve' 'bbj_lookup prompt' 'bbj_reserved_word approve' 'bbj_search approve'
+} > "$WORK/partial.expected"
+if [ "$RC" = 0 ] && all_once "$CFG" && [ "$(count 'approval_mode = "prompt"' "$CFG")" = 1 ] \
+  && grep -F 'tool bbj_lookup has approval_mode prompt (yours); left as is' "$WORK/out" > /dev/null \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(cat "$WORK/partial.expected")" ]; } && same_after_rerun "$WITH_CODEX" 0; then
+  gate partial_set_completed ok "three tool tables added once each, the user's prompt for bbj_lookup kept and reported, rerun byte-identical"
+else
+  gate partial_set_completed FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+fi
+real_parse partial "$CFG" https://example.invalid/mcp
+
+newenv nokey
+mkdir -p "$E_CODEX"
+printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' '' '[mcp_servers.bbj-docs.tools.bbj_examples]' '' '[mcp_servers.other]' 'url = "https://other.invalid/mcp"' > "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+if [ "$RC" = 0 ] && all_once "$CFG" && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] \
+  && [ "$(grep -A 1 -Fx '[mcp_servers.bbj-docs.tools.bbj_examples]' "$CFG" | tail -n 1)" = 'approval_mode = "approve"' ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected https://example.invalid/mcp)" ]; }; then
+  gate tool_table_without_key ok "a tool table without approval_mode gains it directly under its header, header once"
+else
+  gate tool_table_without_key FAIL "exit $RC: $(cat "$CFG" | tr '\n' ';')"
+fi
+real_parse nokey "$CFG" https://example.invalid/mcp
+
+newenv subtables
+mkdir -p "$E_CODEX"
+printf '%s\n' 'model = "x"' '' '[mcp_servers.bbj-docs.tools.bbj_search]' 'approval_mode = "approve"' '' '[mcp_servers.bbj-docs.tools.bbj_lookup]' 'approval_mode = "approve"' > "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+if [ "$RC" = 0 ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] && all_once "$CFG" && [ "$(count "url = \"$DEFAULT_URL\"" "$CFG")" = 1 ] \
+  && [ "$(count '# >>> bbj-agent-plugins (managed) >>>' "$CFG")" = 1 ] && [ "$(count '# <<< bbj-agent-plugins (managed) <<<' "$CFG")" = 1 ] \
+  && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] && cmp -s "$WORK/cfg.orig" "$CFG.bbj-backup" \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ]; } && same_after_rerun "$WITH_CODEX" 0; then
+  gate subtables_without_main_table ok "codex not called, the table appended once in a managed block, the missing tools added, every header once, backup written"
+else
+  gate subtables_without_main_table FAIL "exit $RC, codex calls $(awk 'END { print NR }' "$E_LOG"): $(cat "$CFG" | tr '\n' ';')"
+fi
+real_parse subtables "$CFG" "$DEFAULT_URL"
+
+# tool approvals written in a form this script does not edit: config.toml stays as it is
+i=0
+for form in inline dotted quotedname singlequoted quotedkey; do
+  i=$((i + 1))
+  newenv foreigntools$i
+  mkdir -p "$E_CODEX"
+  case "$form" in
+    inline) printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' '' '[mcp_servers.bbj-docs.tools]' 'bbj_search = { approval_mode = "approve" }' > "$E_CODEX/config.toml" ;;
+    dotted) printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' 'tools.bbj_search.approval_mode = "approve"' > "$E_CODEX/config.toml" ;;
+    quotedname) printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' '' '[mcp_servers.bbj-docs.tools."bbj_search"]' 'approval_mode = "approve"' > "$E_CODEX/config.toml" ;;
+    singlequoted) printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' '' "[mcp_servers.'bbj-docs'.tools.bbj_search]" 'approval_mode = "approve"' > "$E_CODEX/config.toml" ;;
+    quotedkey) printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' '' '[mcp_servers.bbj-docs.tools.bbj_search]' '"approval_mode" = "approve"' > "$E_CODEX/config.toml" ;;
+  esac
+  cp "$E_CODEX/config.toml" "$WORK/cfg.foreign"
+  run_inst "$WITH_CODEX"
+  if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && [ ! -e "$E_CODEX/config.toml.bbj-backup" ] \
+    && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] && grep -F 'in a form this script does not edit' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_search]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_fetch_page]' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_lookup]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_reserved_word]' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_examples]' "$WORK/out" > /dev/null && [ "$(grep -Fxc 'approval_mode = "approve"' "$WORK/out")" = 5 ]; then
+    :
+  else
+    gate foreign_tool_forms FAIL "form $form: exit $RC, config changed, backup written or codex called"
+    FTOOLS_BAD=1
+  fi
+done
+[ "${FTOOLS_BAD:-0}" = 1 ] || gate foreign_tool_forms ok "five forms: exit 3, config.toml byte-identical, no backup, codex not called, the five tool tables printed"
+# the same, with the old server-wide line in the table: the output says to remove it by hand
+newenv foreigntoolsold
+mkdir -p "$E_CODEX"
+printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' "$OLDLINE" '' '[mcp_servers.bbj-docs.tools]' 'bbj_search = { approval_mode = "approve" }' > "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.foreign"
+run_inst "$WITH_CODEX"
+if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && grep -F "remove the line $OLDLINE" "$WORK/out" > /dev/null; then
+  gate foreign_tool_forms_old_line ok "the old line is left, the output says to remove it by hand, exit 3"
+else
+  gate foreign_tool_forms_old_line FAIL "exit $RC"
+fi
+
+# ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
+inst_tools=$(sed -n 's/^DOCS_TOOLS=//p' "$INSTALLER" | head -n 1 | tr -d "'\"" | tr ' ' '\n' | sort)
+snip_tools=$(sed -n 's/^- `\(bbj_[a-z_]*\)`:.*/\1/p' "$SNIPPET" | sort)
+[ -n "$inst_tools" ] && [ "$inst_tools" = "$snip_tools" ] \
+  && gate tools_list_single_source ok "DOCS_TOOLS equals the tool bullets of AGENTS-snippet.md ($(printf '%s' "$inst_tools" | awk 'END { print NR }') tools)" \
+  || gate tools_list_single_source FAIL "installer '$(printf '%s' "$inst_tools" | tr '\n' ' ')', snippet '$(printf '%s' "$snip_tools" | tr '\n' ' ')'"
+
 # ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
 if [ -n "$REAL_CODEX" ]; then
   newenv realcodex
