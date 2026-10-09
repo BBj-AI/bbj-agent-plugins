@@ -33,7 +33,7 @@ Options:
 | `--docs-url URL` | The docs server URL. Default `https://mcp.bbj-ai.com/mcp`. `https` is accepted anywhere; plain `http` only for `127.0.0.1`, `localhost` or `[::1]`. |
 | `--skills-dir DIR` | Where the two skills go. Default `~/.agents/skills`. |
 | `--codex-home DIR` | The Codex home. Default `$CODEX_HOME`, else `~/.codex`. |
-| `--with-local` | Also register the local check server `bbj-local` (the `bbj-ls` of a running BBjServices 26.03 or later, `http://127.0.0.1:5009/mcp`) and approve its three tools; see step 2. |
+| `--with-local` | Also register the local check server `bbj-local` (the `bbj-ls` of a running BBjServices 26.03 or later, `http://127.0.0.1:5009/mcp`) and approve its three tools; see section 2, "Enable the local check". |
 | `--force` | Replace a skill directory that differs from the shipped one. |
 | `--help` | Print the usage text. |
 
@@ -89,7 +89,7 @@ what to do in that case. Running it a second time changes nothing.
    still approves every tool (the same value in another spelling), the installer ends with exit
    code `3` and tells you to remove the line by hand to keep the prompt for the check tools.
 2. **Registers the local check** as `bbj-local`, only with `--with-local` or when its managed block
-   is already in `config.toml`; see step 2. Without the flag the installer sends one `tools/list`
+   is already in `config.toml`; see section 2, "Enable the local check". Without the flag the installer sends one `tools/list`
    request to the local `bbj-ls` and only suggests the flag when one answers.
 3. **Installs the two skills**, `bbj-programming` and `bbj-web-programming`, into
    `~/.agents/skills`, where Codex CLI 0.156.1 finds them; if your Codex version does not
