@@ -47,7 +47,7 @@ Filled by the planner per task; requirement-level map:
 | LOCAL-01 | `bbj-docs` behaviour unchanged after refactor | regression | `sh tests/test_install_codex.sh` | ✅ | ⬜ pending |
 | LOCAL-02 | one managed block, markers, rerun, lone end marker, D-09, D-12 | integration | `sh tests/test_install_codex.sh` (`local_*`) | ❌ W0 | ⬜ pending |
 | LOCAL-03 | probe suggests only | integration (fake server) | `sh tests/test_install_codex.sh` (`probe_*`) | ❌ W0 | ⬜ pending |
-| LOCAL-04 | flag + silent probe registers and warns | integration | `sh tests/test_install_codex.sh` (`with_local_probe_fail_registers_and_warns`) | ❌ W0 | ⬜ pending |
+| LOCAL-04 | with the flag every probe outcome registers; a warning on every outcome except found | integration | `sh tests/test_install_codex.sh` (`with_local_probe_found_registers`, `with_local_probe_fail_registers_and_warns`, `with_local_probe_other_server_registers_and_warns`, `with_local_probe_nocurl_registers_and_warns`, `with_local_probe_refused_registers_and_warns`) | ❌ W0 | ⬜ pending |
 | LOCAL-05 | block byte-identical, placement, content pins | unit + mutation | `python3 -I tests/test_check_order.py` | ❌ W0 | ⬜ pending |
 | LOCAL-06 | docs local-first with the two reasons | gate | `sh tests/test_install_pages.sh` | ✅ (edit) | ⬜ pending |
 | LOCAL-07 | fake server `tools/list` mode; tests cover all cases | meta | gates above + `sh tests/test_tier2_fake.sh` | ✅ (edit) | ⬜ pending |

@@ -40,15 +40,16 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `install-codex.sh --with-local` writes exactly one managed `bbj-local` block (`http://127.0.0.1:5009/mcp`, the three tools auto-approved), a rerun updates it in place, a lone end marker is tolerated, and the existing `bbj-docs` installer tests stay green after the refactor
   4. Without the flag, the installer sends one `tools/list` probe (no user code) and only suggests `--with-local` when `bbj-ls` answers; with the flag and no answer it registers the server anyway and prints a warning; `tests/test_install_codex.sh` covers the flag, probe, probe failure, reruns and a lone marker
   5. One check-order block (`bbjcpl`, then local `bbj-ls`, then the hosted check only when neither exists) is byte-identical in `codex/AGENTS-snippet.md` and both SKILL.md files, a test fails if they drift, and README plus both install pages present `bbj-local` as the preferred route with its two reasons
-**Plans**: 6 plans
+**Plans**: 7 plans
 
 Plans:
 - [ ] 01-01-PLAN.md — Stop vendoring: delete the lock and hash test, skills under the layout rules, maintained-here wording (wave 1)
-- [ ] 01-02-PLAN.md — Drop vendoring statements from .claude/CLAUDE.md and the codebase maps, D-16 (wave 1)
-- [ ] 01-03-PLAN.md — Installer: parameterised sync_server refactor, then --with-local managed bbj-local block (wave 1)
-- [ ] 01-04-PLAN.md — Check-order block in the snippet and both skills, pinned by tests/test_check_order.py (wave 2)
-- [ ] 01-05-PLAN.md — Installer tools/list probe, registered-anyway warning, fake server tools/list mode (wave 2)
-- [ ] 01-06-PLAN.md — Docs: bbj-local preferred over the hosted check in README and both install pages (wave 2)
+- [ ] 01-02-PLAN.md — Drop vendoring statements from .claude/CLAUDE.md and the codebase maps, D-16; runs the phase-wide grep-zero (wave 2, after 01-01)
+- [ ] 01-03-PLAN.md — Installer refactor: parameterised sync_server, bbj-docs output byte-identical on six golden scenarios (wave 1)
+- [ ] 01-04-PLAN.md — Installer --with-local: managed bbj-local block, reruns, lone end marker, D-12 forms (wave 2, after 01-03)
+- [ ] 01-05-PLAN.md — Check-order block in the snippet and both skills, pinned by tests/test_check_order.py (wave 2, after 01-01)
+- [ ] 01-06-PLAN.md — Installer tools/list probe, LOCAL-04 outcome matrix (registers on every outcome, warns unless found), fake server tools/list mode (wave 3, after 01-04)
+- [ ] 01-07-PLAN.md — Docs: bbj-local preferred over the hosted check in README and both install pages; quoted installer messages gated (wave 4, after 01-01, 01-04, 01-05, 01-06)
 
 ### Phase 2: Hook no-route notice
 **Goal**: When no check route is available, the agent is told once per session that the file it wrote was not checked, instead of the hook exiting silently
