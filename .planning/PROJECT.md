@@ -12,7 +12,8 @@ the first choice wherever it is available.
 ## Core Value
 
 Every BBj claim and every code example the plugin hands an agent is correct: documented (URL
-cited) or reproduced on a real BBj, and every code block passes `bbj_check_syntax`.
+cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t`
+and `bbj-ls`).
 
 ## Requirements
 
@@ -99,6 +100,12 @@ cited) or reproduced on a real BBj, and every code block passes `bbj_check_synta
 | Skill-example syntax gate is local-only | CI has no BBj; keeps the check route consistent with the local-first decision | — Pending |
 | Hook notifies when no check route exists | Silent exit leaves the agent unaware it is unchecked | — Pending |
 | 0.2.0 includes release cut and tag | Done means shipped | — Pending |
+| Example gate runs `bbjcpl -t` then `bbj-ls`; must pass both | `bbj-ls` is parse-only; `bbjcpl -t` catches 18+ wrong blocks it passes | — Pending |
+| Runtime-only claims rewritten to compile-time proxy or dropped | Never-execute rule | — Pending |
+| DWC DOM/CSS claims need a docs URL or owner reproduction | No doc source found for several | — Pending |
+| Hook notice: exit 0 + `additionalContext`, once per session | Exit 2 replaces the tool result on Codex | — Pending |
+| `--with-local` registers and warns when probe fails | User asked explicitly; server may be stopped | — Pending |
+| Tag `0.2.0`; both plugins bumped; no NOTICE provenance line | Release decision | — Pending |
 
 ## Evolution
 
