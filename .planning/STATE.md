@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 1
 current_phase_name: Repo-owned skills and local-first check route
 status: executing
-stopped_at: Completed 01-01-PLAN.md
-last_updated: "2026-10-09T17:13:06.437Z"
+stopped_at: Completed 01-03-PLAN.md
+last_updated: "2026-10-09T17:25:38.763Z"
 last_activity: 2026-10-09
 last_activity_desc: Phase 1 execution started
-state_head: 97b146ae0f70fa2f71fb73b79c8f714a0c06bd39
+state_head: b1063f472017f187d18741f84e3a6144f1a15907
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-09)
 ## Current Position
 
 Phase: 1 (Repo-owned skills and local-first check route) — EXECUTING
-Plan: 2 of 7
+Plan: 3 of 7
 Status: Ready to execute
 Last activity: 2026-10-09 — Phase 1 execution started
 
@@ -59,6 +59,7 @@ Progress: [░░░░░░░░░░] 0%
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 1 P01 | 4 min | 2 tasks | 10 files |
+| Phase 1 P03 | 12 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,7 @@ Recent decisions affecting current work:
 - [Roadmap]: Phase 2 (hook) is independent and can run in parallel with Phase 1 or 3
 - [Roadmap]: Gate runs `bbjcpl -t -N -X` then `bbj-ls`; a `bbj` block must pass every available route
 - [Phase 1]: [01-01] Gate name no_vendoring_wording is assembled from VEND_WORD so test_layout.py never spells the banned word — Keeps the scoped grep-zero over tests/ empty while the printed gate name stays as planned
+- [Phase 1]: [01-03] sync_server reads only srv_* globals set by use_docs; helpers stay top-level; awk gets the server name only via -v srv with regexes built in BEGIN
 
 ### Pending Todos
 
@@ -95,6 +97,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-09T17:13:06.412Z
-Stopped at: Completed 01-01-PLAN.md
+Last session: 2026-10-09T17:25:38.738Z
+Stopped at: Completed 01-03-PLAN.md
 Resume file: None
