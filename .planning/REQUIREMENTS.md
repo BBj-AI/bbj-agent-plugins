@@ -7,7 +7,7 @@
 
 ### Vendoring
 
-- [ ] **VEND-01**: `skills.lock.json` and `tests/test_skills_hash.py` are removed; no test, script or doc references them
+- [x] **VEND-01**: `skills.lock.json` and `tests/test_skills_hash.py` are removed; no test, script or doc references them
 - [x] **VEND-02**: README, NOTICE, both manifests and `docs/install-claude-code.md` describe the skills as maintained in this repository; no "vendored" or "the BBjSkills" wording remains, and NOTICE carries no provenance line
 - [x] **VEND-03**: The skills exemptions in `tests/test_layout.py` (e.g. `docs_host_single_source`) are updated so the skills fall under the normal layout and URL rules
 
@@ -85,7 +85,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| VEND-01 | Phase 1 | Pending |
+| VEND-01 | Phase 1 | Complete |
 | VEND-02 | Phase 1 | Complete |
 | VEND-03 | Phase 1 | Complete |
 | LOCAL-01 | Phase 1 | Complete |

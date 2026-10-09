@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 1
 current_phase_name: Repo-owned skills and local-first check route
 status: executing
-stopped_at: Completed 01-05-PLAN.md
-last_updated: "2026-10-09T17:38:34.834Z"
+stopped_at: Completed 01-02-PLAN.md
+last_updated: "2026-10-09T17:41:21.278Z"
 last_activity: 2026-10-09
 last_activity_desc: Phase 1 execution started
-state_head: 4aa1fa54daae8ea5d411fbd22958a23322b7891f
+state_head: 7676452697d5f00c86003dda5ae290113c306812
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-09)
 ## Current Position
 
 Phase: 1 (Repo-owned skills and local-first check route) — EXECUTING
-Plan: 5 of 7
+Plan: 6 of 7
 Status: Ready to execute
 Last activity: 2026-10-09 — Phase 1 execution started
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 1 P03 | 12 min | 2 tasks | 1 files |
 | Phase 1 P04 | 9 min | 3 tasks | 2 files |
 | Phase 1 P05 | 6 min | 2 tasks | 4 files |
+| Phase 1 P02 | 6 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,7 @@ Recent decisions affecting current work:
 - [Phase 1]: [01-03] sync_server reads only srv_* globals set by use_docs; helpers stay top-level; awk gets the server name only via -v srv with regexes built in BEGIN
 - [Phase 1]: [01-04] bbj-local url rule lives in state(): srv_fixed_url=1 and a url other than the fixed one is foreign (exit 3); section 1b runs sync_server only with --with-local or a managed block (D-09)
 - [Phase 1]: [01-05] Check-order block is pinned as exact decoded bytes between bbj-check-order markers in the snippet and both SKILL.md files; client_neutral runs on all three copies — Drift of any copy, or a client name in any copy, fails the suite
+- [Phase 1]: [01-02] Skills described as repository-owned in .claude/CLAUDE.md and all seven codebase maps with identical wording, so regenerated GSD sections keep it — Avoids reintroducing vendoring text on regeneration
 
 ### Pending Todos
 
@@ -101,6 +103,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-09T17:38:34.804Z
-Stopped at: Completed 01-05-PLAN.md
+Last session: 2026-10-09T17:41:21.255Z
+Stopped at: Completed 01-02-PLAN.md
 Resume file: None
