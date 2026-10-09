@@ -28,6 +28,24 @@
 #      sub-table), or its tools are (a [mcp_servers.bbj-docs.tools] table, a quoted tool
 #      header, a dotted tools key, an approval_mode written as anything but a bare key),
 #      config.toml is left alone, the tables are printed and the exit code is 3.
+#   1b. with --with-local (and on every later run once the block is there), registers the local
+#      check server bbj-local, the bbj-ls of a running BBjServices 26.03 or later, in one managed
+#      block of config.toml between the markers "# >>> bbj-agent-plugins bbj-local (managed) >>>"
+#      and "# <<< bbj-agent-plugins bbj-local (managed) <<<": [mcp_servers.bbj-local] with
+#      url = "http://127.0.0.1:5009/mcp" and one tool table with approval_mode = "approve" for
+#      each of bbj_check_syntax, bbj_format and bbj_denum (plan 01-04, LOCAL-02). These tools run
+#      on this machine and are approved by name only at that fixed url (D-12, D-17: the url does
+#      not follow BBJ_LOCAL_MCP_URL, which moves only the hook and the probe); never through
+#      "codex mcp add" (it cannot set approval_mode), never with default_tools_approval_mode,
+#      required, enabled or startup_timeout_sec. It goes through the same pass as bbj-docs, so
+#      the rules of step 1 apply: a rerun is byte-identical, missing tool tables and approval
+#      keys are added inside the markers and nothing is removed. A run without the flag keeps a
+#      managed block and refreshes it the same way (D-09); there is no removal flag (D-10): after
+#      "codex mcp remove bbj-local" the lone end marker stays in config.toml as a comment, is
+#      tolerated and, with the flag, a fresh block follows it. A plain [mcp_servers.bbj-local]
+#      table whose url is exactly the fixed url gains the three approvals; any other form of
+#      bbj-local (another url, single-quoted key, dotted key, a sub-table without the table) is
+#      left alone, the tables are printed and the exit code is 3 (D-12).
 #   2. copies the two skills to the skills directory (default ~/.agents/skills); a directory
 #      that differs is left alone unless --force.
 #   3. copies the shared check script to <codex home>/bbj/bbj-check.sh, a stable path outside
@@ -38,11 +56,13 @@
 #
 # Options: --docs-url URL (default DEFAULT_DOCS_URL, the same value as the bbj plugin's
 # docs_url default; plain http only to 127.0.0.1, localhost or [::1]), --skills-dir DIR,
-# --codex-home DIR (default $CODEX_HOME or ~/.codex), --force, --help.
+# --codex-home DIR (default $CODEX_HOME or ~/.codex), --with-local (register bbj-local, step 1b),
+# --force, --help.
 # Exit codes: 0 done, 2 usage error or refusal, 3 finished with something left to merge or
 # decide by hand: bbj-docs or its tools named in config.toml in a form this script does not
-# edit, a default_tools_approval_mode that approves every tool, an existing hooks.json, a
-# skill directory that differs.
+# edit, bbj-local named in a form it does not edit or with another url than the fixed one, a
+# default_tools_approval_mode that approves every tool, an existing hooks.json, a skill
+# directory that differs.
 #
 # Exit 2 before the first write means nothing was changed: the options are validated and every
 # destination (skills directory, <codex home>/bbj, config.toml) is created or checked up front.
@@ -57,6 +77,13 @@ MARK_END='# <<< bbj-agent-plugins (managed) <<<'
 # the five read-only docs tools of bbj-docs, approved by name; one list, also checked against
 # the tool bullets of AGENTS-snippet.md by the test suite
 DOCS_TOOLS='bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples'
+# the local check server bbj-local (plan 01-04, LOCAL-02): the bbj-ls of a running BBjServices.
+# Its three tools run on this machine and are approved by name only for this fixed loopback url
+# (D-12); the registration never follows BBJ_LOCAL_MCP_URL (D-17)
+LOCAL_URL=http://127.0.0.1:5009/mcp
+LOCAL_MARK_BEGIN='# >>> bbj-agent-plugins bbj-local (managed) >>>'
+LOCAL_MARK_END='# <<< bbj-agent-plugins bbj-local (managed) <<<'
+LOCAL_TOOLS='bbj_check_syntax bbj_format bbj_denum'
 TOOL_KEY='approval_mode = "approve"'
 # the server-wide line that versions up to 398aac5 of this script wrote; it is only ever
 # recognised and removed, never written again
@@ -76,19 +103,23 @@ refuse() {
 
 usage() {
   cat <<EOF
-Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--force]
+Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--with-local] [--force]
 
   --docs-url URL     docs server URL (default $DEFAULT_DOCS_URL);
                      https anywhere, http only to 127.0.0.1, localhost or [::1]
   --skills-dir DIR   where the skills go (default \$HOME/.agents/skills)
   --codex-home DIR   Codex home (default \$CODEX_HOME, else \$HOME/.codex)
+  --with-local       register bbj-local, the bbj-ls of a running BBjServices 26.03 or later at
+                     http://127.0.0.1:5009/mcp, and approve its three tools by name
   --force            replace a skill directory that differs from the shipped one
   --help             this text
 
 Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran),
       3 done except something to merge or decide by hand: bbj-docs or its tools named in
         config.toml in a form this script does not edit, a default_tools_approval_mode that
-        approves every tool, an existing hooks.json, a skill directory that differs.
+        approves every tool, bbj-local named in a form this script does not edit or with
+        another url than http://127.0.0.1:5009/mcp, an existing hooks.json, a skill directory
+        that differs.
 EOF
 }
 
@@ -98,11 +129,13 @@ docs_url=$DEFAULT_DOCS_URL
 skills_dir=
 codex_home=
 force=0
+with_local=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --docs-url) [ "$#" -ge 2 ] || refuse "--docs-url needs a value"; docs_url=$2; shift 2 ;;
     --skills-dir) [ "$#" -ge 2 ] || refuse "--skills-dir needs a value"; skills_dir=$2; shift 2 ;;
     --codex-home) [ "$#" -ge 2 ] || refuse "--codex-home needs a value"; codex_home=$2; shift 2 ;;
+    --with-local) with_local=1; shift ;;
     --force) force=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) refuse "unknown option: $1 (see --help)" ;;
@@ -188,12 +221,14 @@ done
 #                or a tool table twice (only acted on when main=1)
 #   dstate=      none | ours (exactly srv_old_key) | approve (default_tools_approval_mode set to
 #                approve in another spelling) | other:VALUE, from the main table
+#   managed=1|0  a line equals the begin marker srv_begin (a lone end marker is a comment: 0)
+#   url=VALUE    the url key of the main table (last one), "" when there is none
 #   anytool=N    how many [mcp_servers.SRV.tools.NAME] tables there are
 #   tool.NAME=   missing | nokey | approve | other:VALUE, for each tool of srv_tools
 analyze() {
   src=$config
   [ -f "$src" ] || src=/dev/null
-  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" '
+  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" -v begin="$srv_begin" '
     function val(l) {
       sub(/^[^=]*=/, "", l)
       sub(/[ \t]*#.*$/, "", l)
@@ -214,6 +249,7 @@ analyze() {
     {
       line = $0
       sub(/\r$/, "", line)
+      if (line == begin) managed = 1
       if (line ~ /^[ \t]*\[/) {
         sect = "other"
         name = ""
@@ -246,6 +282,7 @@ analyze() {
             else dstate = (v == "approve") ? "approve" : "other:" v
           }
           if (line ~ tools_re) tfor = 1
+          if (line ~ /^[ \t]*url[ \t]*=/) url = val(line)
         } else if (sect == "tool" && (name in st)) {
           if (line ~ /^[ \t]*approval_mode[ \t]*=/) {
             v = val(line)
@@ -259,6 +296,8 @@ analyze() {
     END {
       print "main=" (main ? 1 : 0)
       print "mention=" (mention ? 1 : 0)
+      print "managed=" (managed ? 1 : 0)
+      print "url=" url
       print "tfor=" (tfor ? 1 : 0)
       print "dstate=" dstate
       print "anytool=" anytool + 0
@@ -301,6 +340,12 @@ state() {
     [ "$(an mention)" = 1 ] && foreign=1
   else
     [ "$(an tfor)" = 1 ] && tools_foreign=1
+    # D-12: a server with a fixed url is edited only at exactly that url; its tools are never approved
+    # on another one, so any other url is a form this script does not edit
+    if [ "$srv_fixed_url" = 1 ] && [ "$(an url)" != "$srv_url" ]; then
+      foreign=1
+      tools_foreign=0
+    fi
   fi
   miss=$(tools_in_state missing)
   nokey=$(tools_in_state nokey)
@@ -312,7 +357,9 @@ state() {
 # srv_begin and srv_end the managed-block markers; srv_url the url it is registered with;
 # srv_old_key a legacy server-wide line to drop ("" for none); srv_codex_add 1 when a fresh
 # registration goes through "codex mcp add"; srv_label, srv_untouched and srv_approved_note the
-# words of the messages (LOCAL-01)
+# words of the messages (LOCAL-01); srv_fixed_url 1 when the url is part of the identity of the
+# server and tools are approved only at exactly that url (bbj-local, D-12), 0 when the user's own
+# url is kept (bbj-docs)
 use_docs() {
   srv=bbj-docs
   srv_tools=$DOCS_TOOLS
@@ -321,9 +368,27 @@ use_docs() {
   srv_url=$docs_url
   srv_old_key=$OLD_KEY_LINE
   srv_codex_add=1
+  srv_fixed_url=0
   srv_label='the five docs tools'
   srv_untouched='config.toml was not modified.'
   srv_approved_note='(the hosted check tools bbj_check_syntax, bbj_format and bbj_denum send your code to the server)'
+}
+
+# use_local: the same globals for bbj-local. The url is the fixed LOCAL_URL, never BBJ_LOCAL_MCP_URL (D-17);
+# srv_old_key is empty, so no server-wide key is ever recognised, written or removed; srv_codex_add is 0
+# because codex mcp add cannot set approval_mode
+use_local() {
+  srv=bbj-local
+  srv_tools=$LOCAL_TOOLS
+  srv_begin=$LOCAL_MARK_BEGIN
+  srv_end=$LOCAL_MARK_END
+  srv_url=$LOCAL_URL
+  srv_old_key=
+  srv_codex_add=0
+  srv_fixed_url=1
+  srv_label='the three bbj-ls tools'
+  srv_untouched='the bbj-local entry was not modified.'
+  srv_approved_note="(the three bbj-ls tools run on this machine, against this installation's own PREFIX, classpath and config; nothing leaves it)"
 }
 
 # sync_server: registration and per-tool approval of the server the srv_* globals describe
@@ -357,12 +422,19 @@ sync_server() {
   state
   if [ "$foreign" = 1 ]; then
     say "$srv: $config already names $srv in a form this script does not edit; $srv_untouched"
+    if [ "$srv_fixed_url" = 1 ] && [ "$(an main)" = 1 ] && [ "$(an url)" != "$srv_url" ]; then
+      say "$srv: its url is \"$(an url)\", not $srv_url; its tools are approved by name only at $srv_url"
+    fi
     say "Check that it holds these tables (url and per-tool approval), or add them by hand:"
     print_block "$srv_url"
     pending=1
   elif [ "$tools_foreign" = 1 ]; then
     say "$srv: $config names tools of $srv in a form this script does not edit; $srv_untouched"
-    say "Check that it approves these five tools by name, or add the tables by hand:"
+    if [ "$srv_fixed_url" = 1 ]; then
+      say "Check that it approves the three bbj-ls tools by name, or add the tables by hand:"
+    else
+      say "Check that it approves these five tools by name, or add the tables by hand:"
+    fi
     print_tools
     [ "$dstate" != ours ] || say "Also remove the line $srv_old_key from the $srv table by hand: an earlier version of this script wrote it and it approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum."
     pending=1
@@ -385,13 +457,20 @@ sync_server() {
 
   # what the user chose stays; say so
   if [ "$foreign" = 0 ] && [ "$(an main)" = 1 ]; then
-    case "$dstate" in
-      approve)
-        say "$srv: $config sets default_tools_approval_mode to approve in a form this script did not write; left as is. It approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum, which send your code to the server; remove the line by hand to keep Codex's prompt for them."
-        pending=1
-        ;;
-      other:*) say "$srv: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
-    esac
+    if [ -z "$srv_old_key" ]; then
+      # a server without a legacy server-wide line (bbj-local): report any value, never act on it
+      case "$dstate" in
+        approve|other:*) say "$srv: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
+      esac
+    else
+      case "$dstate" in
+        approve)
+          say "$srv: $config sets default_tools_approval_mode to approve in a form this script did not write; left as is. It approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum, which send your code to the server; remove the line by hand to keep Codex's prompt for them."
+          pending=1
+          ;;
+        other:*) say "$srv: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
+      esac
+    fi
     for _t in $srv_tools; do
       case "$(an "tool.$_t")" in
         other:*) say "$srv: tool $_t has approval_mode $(an "tool.$_t" | sed 's/^other://') (yours); left as is" ;;
@@ -477,6 +556,16 @@ sync_server() {
 
 use_docs
 sync_server
+
+# ---- 1b. the local check server: bbj-local (plan 01-04, LOCAL-02; D-09, D-12, D-17) ----
+# Runs after the bbj-docs pass on purpose: that pass is complete before this one starts, so
+# neither result depends on which block comes first in config.toml (LOCAL-01).
+# Without --with-local nothing is written and nothing is printed for bbj-local; the probe of a
+# running bbj-ls that plan 01-06 adds belongs in that branch.
+if [ "$with_local" = 1 ]; then
+  use_local
+  sync_server
+fi
 
 # ---- 2. the skills ----
 for s in bbj-programming bbj-web-programming; do
