@@ -6,7 +6,13 @@ The `basis-bbj` marketplace for Claude Code, version 0.1.0, with two plugins:
   `bbj-web-programming`) and a check hook that compiles every BBj file the agent writes.
 - `bbj-local`: registers the `bbj-ls` MCP server of a running BBjServices on
   `127.0.0.1:5009` (`bbj_check_syntax`, `bbj_denum`, `bbj_format`; BBj 26.03 or later).
-  It is a separate plugin and installs disabled; enable it where BBjServices runs.
+  It is a separate plugin and installs disabled, and it is recommended where BBjServices 26.03+
+  runs. It is preferred over the hosted check, for two reasons: your code stays on your machine,
+  and it is checked against your installation's own PREFIX, classpath and config. `bbjcpl`
+  stays the hook's first route (it also checks types); `bbj-local` checks syntax only. Claude
+  Code users enable it as described in
+  [the install page](docs/install-claude-code.md); Codex users run
+  `sh codex/install-codex.sh --with-local`.
 
 ## Install
 

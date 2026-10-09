@@ -78,11 +78,17 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'config*.bbx' \
     'not yet been run on Windows' \
     '`bbj-local reported' \
-    '`bbjcpl reported'
+    '`bbjcpl reported' \
+    'recommended where BBjServices 26.03' \
+    'preferred over the hosted check' \
+    'PREFIX, classpath and config' \
+    '## 3. Enable the local check' \
+    'claude plugin enable bbj-local@basis-bbj'
   do
     need "$n" "$CLAUDE_PAGE" "$p"
   done
   check_common "$n" "$CLAUDE_PAGE"
+  forbid "$n" "$CLAUDE_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
 
   sections=$(grep -c '^## ' "$CLAUDE_PAGE")
   if [ "$sections" -ge 5 ]; then
@@ -206,6 +212,22 @@ if [ -f "$CODEX_PAGE" ]; then
     grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
   done
   [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "six quoted fragments, each on the page and on a non-comment installer line"
+fi
+
+# ---- README: the local check, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
+README=$REPO/README.md
+if [ -f "$README" ]; then
+  n=readme
+  for p in \
+    'recommended where BBjServices 26.03' \
+    'preferred over the hosted check' \
+    'PREFIX, classpath and config' \
+    '--with-local' \
+    '## Skills'
+  do
+    need "$n" "$README" "$p"
+  done
+  forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
 fi
 
 # ---- relative Markdown links resolve ----
