@@ -32,9 +32,9 @@ and `bbj-ls`).
 ## Languages
 
 - POSIX shell (`sh`) - Claude Code and Codex hook script, Codex installer, test harness: `plugins/bbj/scripts/bbj-check.sh`, `codex/install-codex.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/lib.sh`, `tests/test_*.sh`
-- Python 3 (standard library only) - Repository and layout tests, a fake MCP server: `tests/test_layout.py`, `tests/test_ci_guards.py`, `tests/test_skills_hash.py`, `tests/test_codex_patch.sh` (helpers), `tests/fake_mcp.py`
+- Python 3 (standard library only) - Repository and layout tests, a fake MCP server: `tests/test_layout.py`, `tests/test_ci_guards.py`, `tests/test_codex_patch.sh` (helpers), `tests/fake_mcp.py`
 - Markdown - Skills, references, install docs, changelog: `plugins/bbj/skills/**/*.md`, `docs/*.md`, `README.md`, `CHANGELOG.md`
-- JSON - Plugin and marketplace manifests, hooks, MCP config, lock file: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/bbj/hooks/hooks.json`, `plugins/*/.mcp.json`, `skills.lock.json`
+- JSON - Plugin and marketplace manifests, hooks, MCP config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/bbj/hooks/hooks.json`, `plugins/*/.mcp.json`
 - YAML - GitHub Actions workflow and Dependabot config: `.github/workflows/ci.yml`, `.github/dependabot.yml`
 - BBj (subject matter only) - The plugin checks BBj source files (`.bbj`, `.src`, `.bbx`) but never runs them. BBj code appears only in the skill references under `plugins/bbj/skills/`.
 
@@ -63,11 +63,11 @@ and `bbj-ls`).
 ## Key Dependencies
 
 - `@anthropic-ai/claude-code` 2.1.293 (exact pin) - Provides the `claude` CLI used by CI for plugin validation: `.github/ci-tools/package.json`. Installed with `npm ci --ignore-scripts`, then its install script is run explicitly; `npm audit signatures` verifies registry signatures. The changelog notes the tested Claude Code version as 2.1.294 (`CHANGELOG.md`).
-- BBj compiler (`bbjcpl` / `bbjcplw`, BBj 26.03 for tier 2) - External, not vendored. Used by `plugins/bbj/scripts/bbj-check.sh` with `-t -N -X -P<dirs>`. Optional at runtime; the hook exits silently when no compiler is found.
+- BBj compiler (`bbjcpl` / `bbjcplw`, BBj 26.03 for tier 2) - External, not shipped here. Used by `plugins/bbj/scripts/bbj-check.sh` with `-t -N -X -P<dirs>`. Optional at runtime; the hook exits silently when no compiler is found.
 - `curl` - Used by `plugins/bbj/scripts/bbj-check.sh` for the loopback tier-2 request (`--noproxy '*'`, `--proto =http`). Optional.
 - GitHub Actions - Workflow `.github/workflows/ci.yml`, runner `ubuntu-24.04`, 15-minute timeout. Actions pinned by full commit SHA, for example `actions/checkout` at `v7.0.1`.
 - Dependabot - Weekly updates for `github-actions` only: `.github/dependabot.yml`. The Claude CLI version is deliberately not watched.
-- Vendored skills - `plugins/bbj/skills/bbj-programming/` and `plugins/bbj/skills/bbj-web-programming/`, locked by SHA-256 in `skills.lock.json` (lock `source` is BBjSkills at commit `79f19822ab82dfe787290d0e564aa889b4bec500`). `tests/test_skills_hash.py` enforces byte-identity. `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md` records the plan to stop vendoring and make these skills native to this repository.
+- Skills - `plugins/bbj/skills/bbj-programming/` and `plugins/bbj/skills/bbj-web-programming/`, maintained in this repository; `tests/test_layout.py` applies the normal rules to them (hosted host named only in `plugins/bbj/.claude-plugin/plugin.json`, no executable files).
 
 ## Configuration
 
@@ -105,15 +105,15 @@ and `bbj-ls`).
 
 - POSIX shell scripts (shipped hooks and installers): `plugins/bbj/scripts/bbj-check.sh`, `codex/install-codex.sh`
 - Shell and Python test suites: `tests/*.sh`, `tests/*.py`, plus fakes in `tests/fake-bin/` and `tests/fake_mcp.py`
-- JSON manifests and hook config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/*/.mcp.json`, `plugins/bbj/hooks/hooks.json`, `skills.lock.json`
+- JSON manifests and hook config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/*/.mcp.json`, `plugins/bbj/hooks/hooks.json`
 - Markdown skills and docs: `plugins/bbj/skills/**/SKILL.md`, `plugins/bbj/skills/**/references/*.md`, `docs/*.md`, `codex/AGENTS-snippet.md`, `README.md`, `CHANGELOG.md`
 - GitHub Actions workflow and CI tooling: `.github/workflows/ci.yml`, `.github/ci-tools/package.json`
 
 ## Naming Patterns
 
-- Shell scripts and tests are lowercase with hyphens for shipped scripts (`bbj-check.sh`, `install-codex.sh`) and underscores for tests (`test_exit_contract.sh`, `test_skills_hash.py`, `test_ci_guards.py`). Every test file starts with `test_`; `tests/run.sh` discovers them by that glob.
+- Shell scripts and tests are lowercase with hyphens for shipped scripts (`bbj-check.sh`, `install-codex.sh`) and underscores for tests (`test_exit_contract.sh`, `test_layout.py`, `test_ci_guards.py`). Every test file starts with `test_`; `tests/run.sh` discovers them by that glob.
 - Helper and fixture files: `tests/lib.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/fake_mcp.py`, `tests/fake-bin/<tool>` (fake binaries use hyphens for the directory, no extension).
-- Vendored skill docs use lowercase hyphenated names: `plugins/bbj/skills/bbj-programming/references/callback-performance.md`.
+- Skill reference docs use lowercase hyphenated names: `plugins/bbj/skills/bbj-programming/references/callback-performance.md`.
 - Skill entry points are always named `SKILL.md` inside a directory named after the skill.
 - Planning and seed docs are UPPERCASE for generated analysis (`.planning/codebase/CONVENTIONS.md`) and `SEED-NNN-kebab-name.md` for seeds (`.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md`).
 - Lowercase with underscores: `run_check`, `claude_payload`, `json_escape`, `no_tier1_route`, `report`, `start_fake`, `mkwork`.
@@ -244,7 +244,7 @@ and `bbj-ls`).
 - The hook and the installer are deliberately stateless: each invocation reads its input
 - BBj code is never executed. The check path calls the BBj compiler with `-N` (compile-only)
 - Two MCP servers are declared, not implemented here: the hosted `bbj-docs` server (URL from
-- Content is vendored and frozen: `plugins/bbj/skills` must match `skills.lock.json`
+- The skills are maintained in this repository under the normal tests (`tests/test_layout.py`).
 - The repository is the source of truth for the two skills from plugin release 0.2.0 onward,
 
 ## Layers
@@ -274,7 +274,7 @@ and `bbj-ls`).
 - Contains: Markdown only. Skills are loaded by the host on demand; references are read on
 - Depends on: Nothing executable. Content describes the `bbj-docs` and `bbj-ls` tools by name.
 - Used by: The host agent's skill loader (`~/.agents/skills` for Codex, the plugin cache for
-- Purpose: Gate every change to manifests, hook, installer and vendored content.
+- Purpose: Gate every change to manifests, hook, installer and skills.
 - Location: `tests/run.sh` (runner), `tests/ci.sh` (entry point), `tests/test_*.sh` and
 - Contains: Shell and Python tests that print `gate NAME ok|FAIL|skip` lines and a
 - Depends on: `python3`, `shellcheck`, `claude` CLI (mandatory in CI, skipped locally).
@@ -301,7 +301,7 @@ and `bbj-ls`).
 - Pattern: Directory with `.claude-plugin/plugin.json`, optional `.mcp.json`, `hooks/`,
 - Purpose: A self-contained body of guidance the agent loads for BBj tasks.
 - Examples: `plugins/bbj/skills/bbj-programming/SKILL.md`,
-- Pattern: `SKILL.md` index plus `references/*.md` loaded on demand. Vendored and hash-locked
+- Pattern: `SKILL.md` index plus `references/*.md` loaded on demand.
 - Purpose: One way to decide whether a BBj file is syntactically and type-correct.
 - Examples: Tier 1 `check_file` with the compiler; tier 2 `no_tier1_route` with `bbj_check_syntax`.
 - Pattern: Ordered fallback. Tier 2 never reports type errors; the hook header says so.
@@ -311,9 +311,6 @@ and `bbj-ls`).
 - Purpose: Idempotent edit of a `config.toml` the installer does not own entirely.
 - Examples: `analyze`, `print_block`, `state` in `codex/install-codex.sh`
 - Pattern: Writes only the tables it manages; refuses and exits 3 for forms it does not
-- Purpose: Byte-identical copy of upstream skills at a recorded commit.
-- Examples: `skills.lock.json` (commit `79f19822ab82dfe787290d0e564aa889b4bec500`)
-- Pattern: Per-file SHA-256 plus per-skill tree hash; any drift fails tests.
 
 ## Entry Points
 
@@ -341,13 +338,10 @@ and `bbj-ls`).
 - **Never execute BBj:** The compiler is always invoked with `-N`; source text is never
 - **Exit contract:** The hook exits only 0 or 2 and prints nothing to stdout. Enforced by
 - **Loopback only for tier 2:** Only `http` to `127.0.0.1`, `localhost` or `[::1]`; the
-- **Vendored skills are read-only here:** `plugins/bbj/skills/**` is hash-locked. Changes go
 - **Portability:** POSIX `sh`, `awk`, `sed`, `grep`; Git for Windows paths are handled through
 - **Codex payload shape:** Documentation-derived; the header of `bbj-check.sh` marks it as
 
 ## Anti-Patterns
-
-### Editing the vendored skills in place
 
 ### Calling the hosted check from the hook
 
