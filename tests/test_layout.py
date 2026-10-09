@@ -25,6 +25,8 @@ LOCAL_URL = "http://127.0.0.1:5009/mcp"
 # assembled from pieces so this file never names what it searches for (self-scan convention)
 LOCK_NAME = "skills" + ".lock.json"
 HASH_TEST = "test_sk" + "ills_hash"
+VEND_WORD = "vend" + "or"
+UPSTREAM_NAME = "bbj" + "skills"
 
 failed = False
 
@@ -177,5 +179,33 @@ for dirpath, dirnames, filenames in os.walk(os.path.join(ROOT, "plugins", "bbj",
             execs.append(os.path.relpath(path, ROOT))
 gate("skills_not_executable", not execs,
      ", ".join(sorted(execs)) if execs else "no skill file is executable")
+
+# VEND-02: shipped text says the skills are maintained here; no history, no upstream name.
+# CHANGELOG.md is not read: its never-tagged 0.1.0 entry keeps its historical wording.
+texts = ["README.md", "NOTICE", ".claude-plugin/marketplace.json",
+         "plugins/bbj/.claude-plugin/plugin.json", "plugins/bbj-local/.claude-plugin/plugin.json"]
+texts.extend(os.path.relpath(p, ROOT) for p in sorted(glob.glob(os.path.join(ROOT, "docs", "*.md"))))
+wording = []
+for rel in texts:
+    try:
+        with open(os.path.join(ROOT, rel), encoding="utf-8", errors="replace") as f:
+            low = f.read().lower()
+    except OSError:
+        continue
+    for word in (VEND_WORD, UPSTREAM_NAME):
+        if word in low:
+            wording.append("%s:%s" % (rel, word))
+gate("no_" + VEND_WORD + "ing_wording", not wording,
+     ", ".join(wording) if wording else "%d shipped texts hold no forbidden wording" % len(texts))
+
+# VEND-02, T-01-04: NOTICE is the name and the copyright line, nothing else
+try:
+    with open(os.path.join(ROOT, "NOTICE"), encoding="utf-8") as f:
+        notice = [ln.strip() for ln in f.read().splitlines() if ln.strip()]
+except OSError:
+    notice = None
+gate("notice_no_provenance",
+     notice == ["bbj-agent-plugins", "Copyright 2026 BASIS International Ltd."],
+     "NOTICE lines=%r" % (notice,))
 
 sys.exit(1 if failed else 0)

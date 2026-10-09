@@ -1,7 +1,7 @@
 {
   "name": "bbj",
   "version": "0.1.0",
-  "description": "The hosted BBj docs MCP server, the BBjSkills, and a compile-only check of every BBj file the agent writes (bbjcpl -N; BBj code is never run).",
+  "description": "The hosted BBj docs MCP server, the two BBj skills (bbj-programming, bbj-web-programming), and a compile-only check of every BBj file the agent writes (bbjcpl -N; BBj code is never run).",
   "author": {
     "name": "BASIS International Ltd."
   },
