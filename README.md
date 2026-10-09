@@ -2,7 +2,7 @@
 
 The `basis-bbj` marketplace for Claude Code, version 0.1.0, with two plugins:
 
-- `bbj`: the BBj docs MCP server (`bbj-docs`), the two BBjSkills (`bbj-programming`,
+- `bbj`: the BBj docs MCP server (`bbj-docs`), the two BBj skills (`bbj-programming`,
   `bbj-web-programming`) and a check hook that compiles every BBj file the agent writes.
 - `bbj-local`: registers the `bbj-ls` MCP server of a running BBjServices on
   `127.0.0.1:5009` (`bbj_check_syntax`, `bbj_denum`, `bbj_format`; BBj 26.03 or later).

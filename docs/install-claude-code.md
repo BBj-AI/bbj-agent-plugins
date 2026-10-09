@@ -67,8 +67,7 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
   check next to the docs server, as on the pre-production instance, the server also lists
   `bbj_check_syntax`, `bbj_format` and `bbj_denum`; their answers say `hosted check, stock BBj
   <version>`, a stock BBj rather than your own PREFIX, classpath and config.
-- Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (the BBjSkills, shipped
-  unchanged).
+- Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (maintained in this repository).
 - A hook: after every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file Claude Code compiles
   the file and hands any compiler error back to Claude, which can then repair it. The hook has
   a timeout of 30 seconds.
