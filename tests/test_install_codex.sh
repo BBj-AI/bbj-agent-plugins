@@ -770,6 +770,64 @@ else
   gate local_no_flag_writes_nothing FAIL "exit $RC"
 fi
 
+# ---- reruns refresh the managed block in place, with or without the flag; a lone end marker is tolerated (D-09, D-10) ----
+newenv localrerun
+run_inst "$NO_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+cp "$CFG" "$WORK/cfg.l1"
+run_inst "$NO_CODEX" --with-local
+if [ "$RC" = 0 ] && cmp -s "$WORK/cfg.l1" "$CFG" && grep -F 'bbj-local: already registered' "$WORK/out" > /dev/null; then
+  gate local_rerun_idempotent ok "a second --with-local run: exit 0, config.toml byte-identical, bbj-local reported as already registered"
+else
+  gate local_rerun_idempotent FAIL "exit $RC, identical: $(cmp -s "$WORK/cfg.l1" "$CFG" && echo yes || echo no)"
+fi
+run_inst "$NO_CODEX"
+if [ "$RC" = 0 ] && cmp -s "$WORK/cfg.l1" "$CFG"; then
+  gate local_kept_without_flag ok "a run without the flag keeps the managed block: exit 0, config.toml byte-identical"
+else
+  gate local_kept_without_flag FAIL "exit $RC, identical: $(cmp -s "$WORK/cfg.l1" "$CFG" && echo yes || echo no)"
+fi
+
+newenv localrefresh
+mkdir -p "$E_CODEX"
+docs_done "$E_CODEX/config.toml"
+printf '%s\n' '' "$LMB" '[mcp_servers.bbj-local]' "url = \"$LOCAL_URL_T\"" '' '[mcp_servers.bbj-local.tools.bbj_check_syntax]' 'approval_mode = "approve"' '' '[mcp_servers.bbj-local.tools.bbj_format]' "$LME" >> "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
+run_inst "$NO_CODEX"
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if [ "$RC" = 0 ] && local_shape "$CFG" && [ "$(count 'approval_mode = "approve"' "$CFG")" = 8 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; } \
+  && [ "$(diff "$WORK/cfg.orig" "$CFG" | grep -c '^<')" = 0 ]; then
+  gate local_rerun_without_flag_refreshes_in_place ok "no flag, an older managed block: the bbj_format key and the bbj_denum table added inside the markers, nothing removed, each header once"
+else
+  gate local_rerun_without_flag_refreshes_in_place FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 700)"
+fi
+local_parse localrefresh "$CFG" https://example.invalid/mcp
+
+newenv locallone
+mkdir -p "$E_CODEX"
+docs_done "$E_CODEX/config.toml"
+printf '%s\n' '' "$LME" >> "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.lone"
+run_inst "$NO_CODEX"
+CFG=$E_CODEX/config.toml
+if [ "$RC" = 0 ] && cmp -s "$WORK/cfg.lone" "$CFG" && ! grep -Fx "$LMB" "$CFG" > /dev/null; then
+  gate local_lone_end_marker_without_flag ok "a lone end marker and no flag: exit 0, config.toml byte-identical, no block added"
+else
+  gate local_lone_end_marker_without_flag FAIL "exit $RC"
+fi
+run_inst "$NO_CODEX" --with-local
+note_local "$CFG"
+if [ "$RC" = 0 ] && [ "$(count '[mcp_servers.bbj-local]' "$CFG")" = 1 ] && [ "$(count "$LMB" "$CFG")" = 1 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; } && same_after_rerun "$NO_CODEX" 0; then
+  gate local_lone_end_marker ok "a lone end marker (what codex mcp remove leaves) and the flag: a fresh block follows it, [mcp_servers.bbj-local] once, a rerun byte-identical"
+else
+  gate local_lone_end_marker FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 700)"
+fi
+local_parse locallone "$CFG" https://example.invalid/mcp
+
 # ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
 inst_tools=$(sed -n 's/^DOCS_TOOLS=//p' "$INSTALLER" | head -n 1 | tr -d "'\"" | tr ' ' '\n' | sort)
 snip_tools=$(sed -n 's/^- `\(bbj_[a-z_]*\)`:.*/\1/p' "$SNIPPET" | sort)
