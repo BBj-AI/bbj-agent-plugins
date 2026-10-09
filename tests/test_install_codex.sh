@@ -1144,6 +1144,181 @@ else
   gate probe_curl_flags FAIL "exit $RC, calls: $_calls, missing: ${_miss:-none}, data: $_data"
 fi
 
+# ---- plan 01-06 Task 3: --with-local probes first; every outcome registers, only "found" is silent (LOCAL-04) ----
+# matrix_registered: the last run exited 0 and left exactly the managed bbj-local block at the fixed url
+# with the three approvals (the registration never depends on the probe)
+matrix_registered() {
+  [ "$RC" = 0 ] && [ "$(count '[mcp_servers.bbj-local]' "$1")" = 1 ] && local_shape "$1" \
+    && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$1")" = "$(three_expected)" ]; }
+}
+
+# one_warning NEEDLE...: exactly one line starts with "bbj-local: warning:" and it holds every NEEDLE
+# and the words "registering it anyway"
+one_warning() {
+  [ "$(nlines 'bbj-local: warning:')" = 1 ] || return 1
+  _wl=$(grep -e '^bbj-local: warning:' "$WORK/out")
+  printf '%s\n' "$_wl" | grep -F -e 'registering it anyway' > /dev/null || return 1
+  for _n in "$@"; do
+    printf '%s\n' "$_wl" | grep -F -e "$_n" > /dev/null || return 1
+  done
+  return 0
+}
+
+if command -v python3 > /dev/null 2>&1; then
+  # found: a bbj-ls answers
+  newenv matrixfound
+  start_fake tools-list
+  run_inst "$WITH_CODEX" --with-local
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  note_local "$CFG"
+  _reqs=$(awk 'END { print NR }' "$LOGF")
+  if matrix_registered "$CFG" && [ "$_reqs" = 1 ] && [ "$(nlines 'bbj-local: a bbj-ls answers at')" = 1 ] && [ "$(nlines 'bbj-local: warning:')" = 0 ]; then
+    gate with_local_probe_found_registers ok "a bbj-ls answers: one request, the managed block written (fixed url, three approvals), one 'a bbj-ls answers' line, no warning, exit 0"
+  else
+    gate with_local_probe_found_registers FAIL "exit $RC, requests: $_reqs, out: $(grep bbj-local "$WORK/out" | head -c 400)"
+  fi
+  local_parse matrixfound "$CFG" "$DEFAULT_URL"
+else
+  gate with_local_probe_found_registers skip "no python3"
+fi
+
+# no answer: the closed port
+newenv matrixnone
+run_inst "$WITH_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if matrix_registered "$CFG" && one_warning 'no bbj-ls answered at' "$CLOSED_URL" && [ "$(nlines 'bbj-local: a bbj-ls answers')" = 0 ]; then
+  gate with_local_probe_fail_registers_and_warns ok "nothing answers: the managed block is written all the same, exactly one 'bbj-local: warning:' line naming the probe url and 'registering it anyway', exit 0"
+else
+  gate with_local_probe_fail_registers_and_warns FAIL "exit $RC, out: $(grep bbj-local "$WORK/out" | head -c 400)"
+fi
+local_parse matrixnone "$CFG" "$DEFAULT_URL"
+
+# another server on the port
+if command -v python3 > /dev/null 2>&1; then
+  newenv matrixother
+  start_fake tools-list-other
+  run_inst "$WITH_CODEX" --with-local
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  note_local "$CFG"
+  _reqs=$(awk 'END { print NR }' "$LOGF")
+  if matrix_registered "$CFG" && [ "$_reqs" = 1 ] && one_warning 'no bbj-ls answered at' && [ "$(nlines 'bbj-local: a bbj-ls answers')" = 0 ]; then
+    gate with_local_probe_other_server_registers_and_warns ok "another server answers (no bbj_check_syntax): one request, the block written, exactly one warning line, no 'a bbj-ls answers' line, exit 0"
+  else
+    gate with_local_probe_other_server_registers_and_warns FAIL "exit $RC, requests: $_reqs, out: $(grep bbj-local "$WORK/out" | head -c 400)"
+  fi
+  local_parse matrixother "$CFG" "$DEFAULT_URL"
+else
+  gate with_local_probe_other_server_registers_and_warns skip "no python3"
+fi
+
+# no curl
+newenv matrixnocurl
+run_inst "$NO_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if matrix_registered "$CFG" && one_warning 'not probed: curl not found'; then
+  gate with_local_probe_nocurl_registers_and_warns ok "no curl: the managed block is written, exactly one warning line 'not probed: curl not found' ... 'registering it anyway', exit 0"
+else
+  gate with_local_probe_nocurl_registers_and_warns FAIL "exit $RC, out: $(grep bbj-local "$WORK/out" | head -c 400)"
+fi
+local_parse matrixnocurl "$CFG" "$DEFAULT_URL"
+
+# a seam that is not loopback http: refused before curl, registered all the same, example.invalid nowhere in config.toml
+newenv matrixrefused
+: > "$WORK/curl.matrix"
+BBJ_LOCAL_MCP_URL=http://example.invalid:5009/mcp
+export BBJ_LOCAL_MCP_URL
+FAKE_CURL_LOG=$WORK/curl.matrix
+export FAKE_CURL_LOG
+run_inst "$FAKE_CURL_PATH" --with-local
+unset FAKE_CURL_LOG
+BBJ_LOCAL_MCP_URL=$CLOSED_URL
+export BBJ_LOCAL_MCP_URL
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if matrix_registered "$CFG" && [ ! -s "$WORK/curl.matrix" ] && one_warning 'is not a loopback http URL' && ! grep -F 'example.invalid' "$CFG" > /dev/null; then
+  gate with_local_probe_refused_registers_and_warns ok "a non-loopback seam: curl never called, the block written at the fixed url, exactly one warning line, example.invalid nowhere in config.toml, exit 0"
+else
+  gate with_local_probe_refused_registers_and_warns FAIL "exit $RC, curl log: $(head -c 100 "$WORK/curl.matrix"), out: $(grep bbj-local "$WORK/out" | head -c 400)"
+fi
+local_parse matrixrefused "$CFG" "$DEFAULT_URL"
+
+# D-09: a managed block is refreshed without a probe
+if command -v python3 > /dev/null 2>&1; then
+  newenv probemanaged
+  run_inst "$NO_CODEX" --with-local
+  CFG=$E_CODEX/config.toml
+  note_local "$CFG"
+  cp "$CFG" "$WORK/cfg.managed"
+  start_fake tools-list
+  run_inst "$WITH_CODEX"
+  stop_fake
+  if [ "$RC" = 0 ] && [ ! -s "$LOGF" ] && cmp -s "$WORK/cfg.managed" "$CFG" && [ "$(nlines 'bbj-local: a bbj-ls answers')" = 0 ]; then
+    gate local_rerun_without_flag_skips_probe ok "a managed block and no flag: the block is refreshed (byte-identical), no request reached the fake, no suggestion, exit 0"
+  else
+    gate local_rerun_without_flag_skips_probe FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
+  fi
+
+  # a hand-registered bbj-local is never probed and never mentioned without the flag
+  newenv probehand
+  mkdir -p "$E_CODEX"
+  docs_done "$E_CODEX/config.toml"
+  printf '%s\n' '' '[mcp_servers.bbj-local]' "url = \"$LOCAL_URL_T\"" >> "$E_CODEX/config.toml"
+  cp "$E_CODEX/config.toml" "$WORK/cfg.hand"
+  start_fake tools-list
+  run_inst "$WITH_CODEX"
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  if [ "$RC" = 0 ] && [ ! -s "$LOGF" ] && cmp -s "$WORK/cfg.hand" "$CFG" && [ "$(nlines 'bbj-local:')" = 0 ]; then
+    gate local_hand_registered_no_probe ok "a hand-registered bbj-local and no flag: no request, no bbj-local line of output, config.toml byte-identical, exit 0"
+  else
+    gate local_hand_registered_no_probe FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF"), out: $(grep bbj-local "$WORK/out" | head -c 300)"
+  fi
+
+  # a lone end marker is a comment: it counts as no bbj-local, so the probe runs and only suggests
+  newenv probelone
+  mkdir -p "$E_CODEX"
+  docs_done "$E_CODEX/config.toml"
+  printf '%s\n' '' "$LME" >> "$E_CODEX/config.toml"
+  cp "$E_CODEX/config.toml" "$WORK/cfg.lone"
+  start_fake tools-list
+  run_inst "$WITH_CODEX"
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  _reqs=$(awk 'END { print NR }' "$LOGF")
+  if [ "$RC" = 0 ] && [ "$_reqs" = 1 ] && [ "$(nlines 'bbj-local: a bbj-ls answers at')" = 1 ] && cmp -s "$WORK/cfg.lone" "$CFG"; then
+    gate local_lone_end_marker_without_flag_only_suggests ok "a lone end marker and no flag: one request, the suggestion line, config.toml byte-identical, exit 0"
+  else
+    gate local_lone_end_marker_without_flag_only_suggests FAIL "exit $RC, requests: $_reqs, out: $(grep bbj-local "$WORK/out" | head -c 300)"
+  fi
+
+  # the probe never changes the exit code: a foreign bbj-docs form still exits 3, the fixed form exits 0
+  newenv probeexit
+  mkdir -p "$E_CODEX"
+  printf '%s\n' "[mcp_servers.'bbj-docs']" 'url = "https://example.invalid/mcp"' > "$E_CODEX/config.toml"
+  start_fake tools-list
+  run_inst "$WITH_CODEX"
+  _rc_foreign=$RC
+  : > "$E_CODEX/config.toml"
+  docs_done "$E_CODEX/config.toml"
+  run_inst "$WITH_CODEX"
+  _rc_fixed=$RC
+  _suggested=$(nlines 'bbj-local: a bbj-ls answers at')
+  stop_fake
+  if [ "$_rc_foreign" = 3 ] && [ "$_rc_fixed" = 0 ] && [ "$_suggested" = 1 ]; then
+    gate probe_never_changes_exit ok "a foreign bbj-docs form with a suggestion still exits 3, the same home with the form fixed and a suggestion exits 0"
+  else
+    gate probe_never_changes_exit FAIL "foreign form exit $_rc_foreign, fixed form exit $_rc_fixed, suggestions: $_suggested"
+  fi
+else
+  for _g in local_rerun_without_flag_skips_probe local_hand_registered_no_probe local_lone_end_marker_without_flag_only_suggests probe_never_changes_exit; do
+    gate "$_g" skip "no python3"
+  done
+fi
+
 # ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
 inst_tools=$(sed -n 's/^DOCS_TOOLS=//p' "$INSTALLER" | head -n 1 | tr -d "'\"" | tr ' ' '\n' | sort)
 snip_tools=$(sed -n 's/^- `\(bbj_[a-z_]*\)`:.*/\1/p' "$SNIPPET" | sort)

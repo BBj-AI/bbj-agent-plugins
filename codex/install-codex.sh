@@ -46,6 +46,14 @@
 #      table whose url is exactly the fixed url gains the three approvals; any other form of
 #      bbj-local (another url, single-quoted key, dotted key, a sub-table without the table) is
 #      left alone, the tables are printed and the exit code is 3 (D-12).
+#      The probe (plan 01-06, LOCAL-03, LOCAL-04): without the flag, and with no bbj-local in
+#      config.toml at all, one tools/list request goes to a bbj-ls on this machine (BBJ_LOCAL_MCP_URL,
+#      else the fixed url; loopback http only, no proxy, no redirect), carries none of your code and
+#      only prints a suggestion to rerun with --with-local; a managed or hand-registered bbj-local is
+#      never probed. With the flag the same request runs first and bbj-local is registered whatever
+#      the answer: one warning line says so when no bbj-ls answered, curl is missing or the url is
+#      refused (Codex shows a registered server that is not running as failed). The probe never
+#      writes a file and never changes the exit code.
 #   2. copies the two skills to the skills directory (default ~/.agents/skills); a directory
 #      that differs is left alone unless --force.
 #   3. copies the shared check script to <codex home>/bbj/bbj-check.sh, a stable path outside
@@ -113,7 +121,10 @@ Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-ho
   --skills-dir DIR   where the skills go (default \$HOME/.agents/skills)
   --codex-home DIR   Codex home (default \$CODEX_HOME, else \$HOME/.codex)
   --with-local       register bbj-local, the bbj-ls of a running BBjServices 26.03 or later at
-                     http://127.0.0.1:5009/mcp, and approve its three tools by name
+                     http://127.0.0.1:5009/mcp, and approve its three tools by name; a probe (one
+                     tools/list request, no code sent) asks first, and with no answer bbj-local is
+                     registered anyway with a warning. Without the flag, and with no bbj-local in
+                     config.toml, the probe only suggests this option when a bbj-ls answers
   --force            replace a skill directory that differs from the shipped one
   --help             this text
 
@@ -582,21 +593,36 @@ probe_local() {
 use_docs
 sync_server
 
-# ---- 1b. the local check server: bbj-local (plan 01-04, LOCAL-02; D-09, D-12, D-17) ----
+# ---- 1b. the local check server: bbj-local (plan 01-04, LOCAL-02; plan 01-06, LOCAL-03, LOCAL-04; D-09, D-12, D-17) ----
 # Runs after the bbj-docs pass on purpose: that pass is complete before this one starts, so
 # neither result depends on which block comes first in config.toml (LOCAL-01).
-# With the flag, or when config.toml already holds a managed bbj-local block (the begin marker
-# line, as analyze reports it), the pass runs: leaving the flag out never removes or freezes a
+# With the flag, the probe of plan 01-06 asks a running bbj-ls for its tool list first. The outcome
+# only selects the line printed (LOCAL-04): bbj-local is registered on every outcome, a warning
+# is printed on every outcome except "a bbj-ls answers", and the probe never returns early, sets
+# pending or changes the exit code.
+# Without the flag, a config.toml that holds a managed bbj-local block (the begin marker line, as
+# analyze reports it) gets the pass and no probe: leaving the flag out never removes or freezes a
 # block the user opted into (D-09), it refreshes it in place. A lone end marker (what codex mcp
 # remove leaves behind, D-10) is a comment and counts as no block; it is never touched.
 # Without the flag and with no bbj-local in config.toml at all (no table, no mention, no managed
-# block) the probe of plan 01-06 asks a running bbj-ls on this machine for its tool list, once, and
-# only suggests --with-local when it answers (LOCAL-03, D-11); it writes nothing and sets nothing.
-# A bbj-local that is in config.toml (hand-registered or foreign) is never probed and never
-# mentioned without the flag.
+# block) the probe asks once and only suggests --with-local when a bbj-ls answers (LOCAL-03, D-11); it
+# writes nothing and sets nothing. A bbj-local that is in config.toml (hand-registered or foreign) is
+# never probed and never mentioned without the flag.
 use_local
 refresh
-if [ "$with_local" = 1 ] || [ "$(an managed)" = 1 ]; then
+if [ "$with_local" = 1 ]; then
+  probe_local
+  _regat=
+  [ "$probe_url" = "$LOCAL_URL" ] || _regat=" at $LOCAL_URL"
+  _warn="; registering it anyway$_regat. Codex shows bbj-local as failed until BBjServices 26.03+ runs on this machine."
+  case "$probe" in
+    found) say "bbj-local: a bbj-ls answers at $probe_url" ;;
+    none) say "bbj-local: warning: no bbj-ls answered at $probe_url$_warn" ;;
+    nocurl) say "bbj-local: warning: not probed: curl not found$_warn" ;;
+    refused) say "bbj-local: warning: not probed: $probe_url (BBJ_LOCAL_MCP_URL) is not a loopback http URL$_warn" ;;
+  esac
+  sync_server
+elif [ "$(an managed)" = 1 ]; then
   sync_server
 elif [ "$(an main)" = 0 ] && [ "$(an mention)" = 0 ]; then
   probe_local
