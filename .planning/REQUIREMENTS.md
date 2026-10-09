@@ -13,8 +13,8 @@
 
 ### Local check route
 
-- [ ] **LOCAL-01**: The Codex installer's server-block logic is parameterised by server name and tool list; existing `bbj-docs` tests stay green after the refactor
-- [ ] **LOCAL-02**: `install-codex.sh --with-local` writes one managed `bbj-local` block (`http://127.0.0.1:5009/mcp`, the three tools `bbj_check_syntax`, `bbj_format`, `bbj_denum` at `approval_mode = "approve"`) with its own markers; reruns update in place; a lone end marker is tolerated
+- [x] **LOCAL-01**: The Codex installer's server-block logic is parameterised by server name and tool list; existing `bbj-docs` tests stay green after the refactor
+- [x] **LOCAL-02**: `install-codex.sh --with-local` writes one managed `bbj-local` block (`http://127.0.0.1:5009/mcp`, the three tools `bbj_check_syntax`, `bbj_format`, `bbj_denum` at `approval_mode = "approve"`) with its own markers; reruns update in place; a lone end marker is tolerated
 - [ ] **LOCAL-03**: Without `--with-local`, the installer probes `bbj-ls` with one `tools/list` POST (no user code); if it answers, the installer suggests `--with-local` and writes nothing for it
 - [ ] **LOCAL-04**: With `--with-local` and a probe that gets no answer, the installer registers the server anyway and prints a warning
 - [ ] **LOCAL-05**: One canonical check-order block (`bbjcpl`, then local `bbj-ls`, then the hosted check only when neither exists, noting it sends code to the server and checks against a stock BBj) appears byte-identical in `codex/AGENTS-snippet.md` and both SKILL.md files, pinned by a test; it uses no client-qualified tool names
@@ -88,8 +88,8 @@
 | VEND-01 | Phase 1 | Pending |
 | VEND-02 | Phase 1 | Complete |
 | VEND-03 | Phase 1 | Complete |
-| LOCAL-01 | Phase 1 | Pending |
-| LOCAL-02 | Phase 1 | Pending |
+| LOCAL-01 | Phase 1 | Complete |
+| LOCAL-02 | Phase 1 | Complete |
 | LOCAL-03 | Phase 1 | Pending |
 | LOCAL-04 | Phase 1 | Pending |
 | LOCAL-05 | Phase 1 | Pending |

@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 1
 current_phase_name: Repo-owned skills and local-first check route
 status: executing
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-10-09T17:25:38.763Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-10-09T17:35:33.443Z"
 last_activity: 2026-10-09
 last_activity_desc: Phase 1 execution started
-state_head: b1063f472017f187d18741f84e3a6144f1a15907
+state_head: bcf698aa31966315f4185f602878774ec5c64100
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-09)
 ## Current Position
 
 Phase: 1 (Repo-owned skills and local-first check route) — EXECUTING
-Plan: 3 of 7
+Plan: 4 of 7
 Status: Ready to execute
 Last activity: 2026-10-09 — Phase 1 execution started
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 |------|----------|-------|-------|
 | Phase 1 P01 | 4 min | 2 tasks | 10 files |
 | Phase 1 P03 | 12 min | 2 tasks | 1 files |
+| Phase 1 P04 | 9 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ Recent decisions affecting current work:
 - [Roadmap]: Gate runs `bbjcpl -t -N -X` then `bbj-ls`; a `bbj` block must pass every available route
 - [Phase 1]: [01-01] Gate name no_vendoring_wording is assembled from VEND_WORD so test_layout.py never spells the banned word — Keeps the scoped grep-zero over tests/ empty while the printed gate name stays as planned
 - [Phase 1]: [01-03] sync_server reads only srv_* globals set by use_docs; helpers stay top-level; awk gets the server name only via -v srv with regexes built in BEGIN
+- [Phase 1]: [01-04] bbj-local url rule lives in state(): srv_fixed_url=1 and a url other than the fixed one is foreign (exit 3); section 1b runs sync_server only with --with-local or a managed block (D-09)
 
 ### Pending Todos
 
@@ -97,6 +99,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-09T17:25:38.738Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-10-09T17:35:33.417Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
