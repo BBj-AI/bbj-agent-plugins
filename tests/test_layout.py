@@ -155,7 +155,7 @@ gone = [n for n in (LOCK_NAME, os.path.join("tests", HASH_TEST + ".py"))
         if os.path.exists(os.path.join(ROOT, n))]
 scan = []
 for pattern in ("tests/*.sh", "tests/*.py", "codex/*.sh", "plugins/bbj/scripts/*.sh",
-                ".github/workflows/*.yml", "README.md", "NOTICE", "docs/*.md",
+                ".github/workflows/*.yml", "README.md", "NOTICE", "CHANGELOG.md", "docs/*.md",
                 ".claude-plugin/marketplace.json", "plugins/*/.claude-plugin/plugin.json"):
     scan.extend(glob.glob(os.path.join(ROOT, pattern)))
 naming = []
@@ -181,8 +181,8 @@ gate("skills_not_executable", not execs,
      ", ".join(sorted(execs)) if execs else "no skill file is executable")
 
 # VEND-02: shipped text says the skills are maintained here; no history, no upstream name.
-# CHANGELOG.md is not read: its never-tagged 0.1.0 entry keeps its historical wording.
-texts = ["README.md", "NOTICE", ".claude-plugin/marketplace.json",
+# CHANGELOG.md is read too: its never-tagged 0.1.0 entry was reworded (phase 1 UAT ruling).
+texts = ["README.md", "NOTICE", "CHANGELOG.md", ".claude-plugin/marketplace.json",
          "plugins/bbj/.claude-plugin/plugin.json", "plugins/bbj-local/.claude-plugin/plugin.json"]
 texts.extend(os.path.relpath(p, ROOT) for p in sorted(glob.glob(os.path.join(ROOT, "docs", "*.md"))))
 wording = []

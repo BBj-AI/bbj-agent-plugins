@@ -6,7 +6,7 @@ First version of the `basis-bbj` marketplace.
 
 - Marketplace `basis-bbj` with two plugins, both at version 0.1.0:
   - `bbj`: the BBj docs MCP server (`bbj-docs`, option `docs_url`, default the pre-production
-    instance), the two BBjSkills (`bbj-programming`, `bbj-web-programming`) and a
+    instance), the two BBj skills (`bbj-programming`, `bbj-web-programming`) and a
     `PostToolUse` hook on `Write|Edit` that compiles every BBj file the agent writes
     (`bbjcpl -t -N -X`, never runs BBj code; falls back to `bbj-local` over loopback, syntax only;
     option `bbj_home`).
@@ -38,7 +38,7 @@ First version of the `basis-bbj` marketplace.
   tables included; `codex mcp get bbj-docs` exits 0). In a terminal session `bbj_search` runs
   without asking and `bbj_check_syntax` shows Codex's "Allow the bbj-docs MCP server to run
   tool" dialog; `codex exec` does not ask for either tool, so it cannot show the difference.
-- BBjSkills: commit `79f19822ab82`, vendored byte for byte (see `skills.lock.json`).
+- The skills `bbj-programming` and `bbj-web-programming` as shipped in `plugins/bbj/skills`.
 - The plugin test suite, `sh tests/run.sh`: all gates green (ok=367, fail=0, skip=1 with
   `shellcheck` and a real Codex, `BBJ_TEST_CODEX=<path to codex>`; the skipped gate needs
   `busybox`, which was not installed. Without a Codex the real-Codex gate is a skip).
