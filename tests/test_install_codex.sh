@@ -990,6 +990,37 @@ else
 fi
 local_parse localprojects "$CFG" "$DEFAULT_URL"
 
+# IN-02: a CRLF config.toml stays CRLF: every line the installer inserts ends in a carriage return as well
+# crlf FILE: rewrite FILE with CRLF line ends; bare_lf FILE: how many lines do not end in a carriage return
+crlf() {
+  awk '{ sub(/\r$/, ""); printf "%s\r\n", $0 }' "$1" > "$1.crlf" && cat "$1.crlf" > "$1" && rm -f "$1.crlf"
+}
+bare_lf() {
+  awk '{ if ($0 !~ /\r$/) n++ } END { print n + 0 }' "$1"
+}
+CRLF_BAD=
+for form in docsonly appended restored; do
+  newenv crlf$form
+  mkdir -p "$E_CODEX"
+  case "$form" in
+    docsonly) printf '%s\n' 'model = "x"' '' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' '' '[mcp_servers.other]' 'url = "https://other.invalid/mcp"' > "$E_CODEX/config.toml"; crlf "$E_CODEX/config.toml"; _args= ;;
+    appended) docs_done "$E_CODEX/config.toml"; crlf "$E_CODEX/config.toml"; _args=--with-local ;;
+    restored) docs_done "$E_CODEX/config.toml"; printf '%s\n' '' "$LMB" "$LME" >> "$E_CODEX/config.toml"; crlf "$E_CODEX/config.toml"; _args=--with-local ;;
+  esac
+  # shellcheck disable=SC2086  # _args is empty or the one flag
+  run_inst "$NO_CODEX" $_args
+  CFG=$E_CODEX/config.toml
+  note_local "$CFG"
+  _bare=$(bare_lf "$CFG")
+  if [ "$RC" != 0 ] || [ "$_bare" != 0 ] || [ "$(count '[mcp_servers.bbj-docs.tools.bbj_lookup]'"$(printf '\r')" "$CFG")" != 1 ] \
+    || { [ "$form" != docsonly ] && [ "$(count '[mcp_servers.bbj-local]'"$(printf '\r')" "$CFG")" != 1 ]; } \
+    || { [ "$HAVE_TOML" = 1 ] && ! python3 -I -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$CFG" 2> /dev/null; }; then
+    CRLF_BAD="$CRLF_BAD $form(exit $RC, $_bare line(s) without a carriage return)"
+  fi
+done
+[ -z "$CRLF_BAD" ] && gate crlf_config_stays_crlf ok "a CRLF config.toml (tool tables added, a block appended, a table restored between markers): every line still ends CRLF, the file still parses" \
+  || gate crlf_config_stays_crlf FAIL "$CRLF_BAD"
+
 # both servers: the docs table directly followed by the local block, and the reverse; the begin marker stays above its table
 for order in docs_first local_first; do
   newenv localboth-$order

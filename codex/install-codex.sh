@@ -339,6 +339,14 @@ refresh() {
 an() {
   printf '%s\n' "$analysis" | sed -n "s/^$1=//p" | head -n 1
 }
+# config_cr: a carriage return when the first line of config.toml ends in one (a CRLF file), else nothing. The
+# lines this script inserts follow it, so a CRLF file stays CRLF (IN-02). Command substitution only drops
+# newlines, so the carriage return survives.
+config_cr() {
+  if [ -f "$config" ] && [ "$(awk 'NR == 1 { print ($0 ~ /\r$/) ? 1 : 0; exit }' "$config")" = 1 ]; then
+    printf '\r'
+  fi
+}
 # tools_in_state STATE: the srv_tools in that state, space separated
 tools_in_state() {
   _out=
@@ -477,10 +485,11 @@ sync_server() {
     ' "$config")
     tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
     # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
-    if awk -v srv="$srv" -v url="$srv_url" -v b="$srv_begin" -v e="$srv_end" -v hasend="${_hasend:-0}" '
+    _cr=$(config_cr)
+    if awk -v srv="$srv" -v url="$srv_url" -v b="$srv_begin" -v e="$srv_end" -v hasend="${_hasend:-0}" -v cr="$_cr" '
         function ins() {
-          print "[mcp_servers." srv "]"
-          print "url = \"" url "\""
+          printf "%s%s\n", "[mcp_servers." srv "]", cr
+          printf "%s%s\n", "url = \"" url "\"", cr
         }
         {
           l = $0
@@ -488,7 +497,7 @@ sync_server() {
           if (!done && !inb && l == b) {
             print
             inb = 1
-            if (!hasend) { ins(); print e; done = 1; inb = 0 }
+            if (!hasend) { ins(); printf "%s%s\n", e, cr; done = 1; inb = 0 }
             next
           }
           if (!done && inb && l == e) { ins(); done = 1; inb = 0 }
@@ -505,13 +514,14 @@ sync_server() {
     refresh
     state
   elif [ "$(an main)" = 0 ]; then
+    _cr=$(config_cr)
     # shellcheck disable=SC2094  # the group reads $config (its last byte) before the append writes it
     {
       if [ -s "$config" ]; then
-        [ -z "$(tail -c 1 "$config")" ] || printf '\n'
-        printf '\n'
+        [ -z "$(tail -c 1 "$config")" ] || printf '%s\n' "$_cr"
+        printf '%s\n' "$_cr"
       fi
-      printf '%s\n' "$srv_begin" "[mcp_servers.$srv]" "url = \"$srv_url\"" "$srv_end"
+      printf '%s%s\n' "$srv_begin" "$_cr" "[mcp_servers.$srv]" "$_cr" "url = \"$srv_url\"" "$_cr" "$srv_end" "$_cr"
     } >> "$config" || refuse "cannot write $config"
     wrote="$wrote config.toml"
     say "$srv: appended a managed block to $config (url $srv_url)"
@@ -549,8 +559,9 @@ sync_server() {
     drop=0
     [ "$dstate" = ours ] && drop=1
     tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
+    _cr=$(config_cr)
     # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
-    if awk -v srv="$srv" -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$srv_old_key" -v tool_key="$TOOL_KEY" -v mark_end="$srv_end" '
+    if awk -v srv="$srv" -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$srv_old_key" -v tool_key="$TOOL_KEY" -v mark_end="$srv_end" -v cr="$_cr" '
         # the missing tool tables go at the end of the server table body, before the blank
         # lines and comments that lead into the next table (or the end marker)
         function flush_main(atheader,   i, n, names) {
@@ -558,11 +569,11 @@ sync_server() {
           inmain = 0
           n = split(miss, names, " ")
           for (i = 1; i <= n; i++) {
-            print ""
-            print "[mcp_servers." srv ".tools." names[i] "]"
-            print tool_key
+            printf "%s\n", cr
+            printf "%s%s\n", "[mcp_servers." srv ".tools." names[i] "]", cr
+            printf "%s%s\n", tool_key, cr
           }
-          if (n > 0 && atheader && !hasblank) print ""
+          if (n > 0 && atheader && !hasblank) printf "%s\n", cr
           for (i = 1; i <= nb; i++) print buf[i]
           nb = 0
           hasblank = 0
@@ -596,7 +607,7 @@ sync_server() {
             name = line
             sub(tool_pre, "", name)
             sub(/\].*$/, "", name)
-            if (index(" " nokey " ", " " name " ") > 0) print tool_key
+            if (index(" " nokey " ", " " name " ") > 0) printf "%s%s\n", tool_key, cr
           }
         }
         END { flush_main(0) }
