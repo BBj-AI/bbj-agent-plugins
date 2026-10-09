@@ -65,9 +65,15 @@ the hook no-route notice (Phase 2), the example gate (Phase 3).
   redirects), short timeout (~2 s connect / ~3 s total). Without `curl`, or with no answer, print
   one line (e.g. "bbj-ls not probed: curl not found" / not answering) and continue. The probe
   never makes the installer fail or changes its exit code. `curl` stays optional.
-- **D-12:** If `config.toml` names `bbj-local` in a form the installer did not write (e.g. a
-  hand-run `codex mcp add bbj-local`), behave as for `bbj-docs` today: leave it, print the block
-  to merge by hand, exit 3. No adopting of foreign tables.
+- **D-12 (refined after research, user-confirmed 2026-10-09):** A plain
+  `[mcp_servers.bbj-local]` table whose `url` is exactly `http://127.0.0.1:5009/mcp` (what a
+  hand-run `codex mcp add bbj-local --url ...` writes) is treated like `bbj-docs` today: the
+  installer adds the three tool approvals and exits 0. Any other form (other URL, quoted/dotted/
+  inline key, foreign sub-tables) is foreign: leave it, print the block to merge by hand, exit 3.
+  Tools are never auto-approved on a non-loopback server.
+- **D-17 (Claude's discretion, from research):** The probe URL reuses `BBJ_LOCAL_MCP_URL` as its
+  test seam (already hermetic in `tests/lib.sh`); the registered URL stays fixed at
+  `http://127.0.0.1:5009/mcp`, and when the two differ the installer prints both.
 
 ### Docs framing
 - **D-13:** "Preferred" means **preferred over the hosted check** ("local before hosted"), for the
