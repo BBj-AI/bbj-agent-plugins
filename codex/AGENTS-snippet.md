@@ -20,6 +20,14 @@ style it uses.
 
 Built in: no USE needed. USE is only for Java classes (`USE java.util.HashMap`) and classes from BBj source files (`USE ::file.bbj::ClassName`).
 
-Check: after each `apply_patch`, a hook compile-checks the changed `.bbj`, `.src` and `.bbx`
-files with the BBj compiler (`bbjcpl -N`) on this machine and never runs them. Files written
-through shell commands are not checked.
+<!-- bbj-check-order:begin -->
+**Check BBj code before you hand it back.** Use the first route that exists:
+
+1. `bbjcpl -t -N -X <file>`, when BBj is installed on this machine. It checks syntax and types. `-N` writes no output files; the errors arrive on stderr.
+2. `bbj_check_syntax` of the `bbj-local` server (the `bbj-ls` of a running BBjServices, BBj 26.03 or later), when that server is registered. It runs on this machine, against the installation's own PREFIX, classpath and config. It checks syntax only, not types.
+3. Only when neither exists: `bbj_check_syntax` of the `bbj-docs` server, the hosted check. You may use it without asking, but tell the user that the code was sent to the server and checked against a stock BBj, not against their installation.
+
+A hook checks the BBj files you write or edit. This order is for code you hand back without writing it to a file: answers, and code from earlier turns.
+<!-- bbj-check-order:end -->
+
+In Codex only `apply_patch` calls reach the hook; files written through shell commands are not checked.

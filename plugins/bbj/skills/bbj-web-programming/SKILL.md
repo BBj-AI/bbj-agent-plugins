@@ -3,6 +3,16 @@ name: "bbj-web-programming"
 description: "Write, debug, or review browser-facing BBj code for DWC (Dynamic Web Client) or BUI applications — anything where a BBj program renders in a browser and touches HTML, CSS, or JavaScript. Use this whenever the user works with DWC window/CSS theming, --dwc-* design tokens, light/dark themes, expanse/component theming, setAttribute/getAttribute vs. setProperty/getProperty, client-side or server-side form validation (ClientValidation, BBjFormValidationEvent), the dwc-frame/dwc-window-center/dwc-window-content/dwc-panel DOM structure, setStyle/setOuterStyle/addOuterStyle, Automatic Layout ($00100000$) and making a DWC app responsive with CSS Grid/Flexbox and media queries, window creation flags (modal/Dialog, Invisible, Maximized), converting a legacy fixed-coordinate or .arc-resource GUI app to DWC, injecting CSS/JS/fonts into a BBj app, BBjWebManager, BBjWebComponent, Shoelace or other web components, dwc-icon/icon buttons, BBjColorChooser, or HTML text inside BBj controls. Also trigger on symptoms without BBj being named: a DWC window's CSS not applying or only half-applying, a window or dialog appearing off-centre / clipped / with its top or left cut off, controls truncated or overlapping, a window that won't fill the viewport, Shoelace components not loading or icons missing, HTML showing as literal text in a control, HTML entities getting garbled in output, a form control not validating as expected, or a submit button not unlocking the window. Always use this together with the bbj-programming skill, which covers general language syntax and gotchas."
 ---
 
+<!-- bbj-check-order:begin -->
+**Check BBj code before you hand it back.** Use the first route that exists:
+
+1. `bbjcpl -t -N -X <file>`, when BBj is installed on this machine. It checks syntax and types. `-N` writes no output files; the errors arrive on stderr.
+2. `bbj_check_syntax` of the `bbj-local` server (the `bbj-ls` of a running BBjServices, BBj 26.03 or later), when that server is registered. It runs on this machine, against the installation's own PREFIX, classpath and config. It checks syntax only, not types.
+3. Only when neither exists: `bbj_check_syntax` of the `bbj-docs` server, the hosted check. You may use it without asking, but tell the user that the code was sent to the server and checked against a stock BBj, not against their installation.
+
+A hook checks the BBj files you write or edit. This order is for code you hand back without writing it to a file: answers, and code from earlier turns.
+<!-- bbj-check-order:end -->
+
 # BBj Web Programming (DWC / BUI)
 
 BBj DWC (Dynamic Web Client) apps are **not** HTML pages — they are ordinary BBj programs whose UI renders in a browser via the DWC runtime. All widgets are created with BBj calls (`addButton`, `addStaticText`, etc.); HTML/CSS only enters the picture through deliberate injection points (see below) and through wrapping third-party web components (Shoelace, custom elements) via `BBjWebComponent`.
