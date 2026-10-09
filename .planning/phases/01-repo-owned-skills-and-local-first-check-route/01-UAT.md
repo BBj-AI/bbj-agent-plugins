@@ -8,11 +8,11 @@ updated: 2026-10-09T00:00:00Z
 
 ## Current Test
 
-number: 3
-name: Codex skill loader accepts the check-order markers
+number: 5
+name: Judgment-tier prohibitions
 expected: |
-  With the skills in ~/.agents/skills, a real Codex lists both skills; the markers between
-  frontmatter and H1 do not break parsing or leak into the description
+  README and both install pages never present bbj-local as better or earlier than bbjcpl,
+  never imply it type-checks, and say the hosted check sends code off the machine
 awaiting: user response
 
 ## Tests
@@ -29,11 +29,13 @@ note: User ruled "keep D-01". WR-03 closed as accepted; block and pin test uncha
 
 ### 3. Codex skill loader accepts the check-order markers
 expected: With the skills in ~/.agents/skills, a real Codex lists both skills; the `<!-- bbj-check-order:begin/end -->` markers between frontmatter and H1 do not break parsing or leak into the description
-result: [pending]
+result: pass
+note: 2026-10-09, Codex CLI 0.156.1: both shipped skills copied into a scratch repo's .agents/skills; `codex debug prompt-input` lists bbj-programming and bbj-web-programming with their full frontmatter descriptions; the string bbj-check-order does not appear in the skill list. Real ~/.codex untouched.
 
 ### 4. ShellCheck in CI
 expected: Push the branch; the CI run's ShellCheck gate prints ok on codex/install-codex.sh and the changed test scripts
-result: [pending]
+result: pass
+note: GitHub Actions run 37993749758 on gsd/planning-setup (commit 390aa3d): static_shellcheck_install-codex.sh ok, ci_shellcheck ok over plugins/bbj/scripts, codex and tests; tests/run.sh SUMMARY ok=425 fail=0 skip=6; CI SUMMARY ok=6 fail=0 skip=0.
 
 ### 5. Judgment-tier prohibitions
 expected: (a) 01-05 check-order text discloses hosted use (timing covered by test 2); (b) README and both install pages never present bbj-local as better or earlier than bbjcpl, never imply it type-checks, and say the hosted check sends code off the machine
@@ -42,9 +44,9 @@ result: [pending]
 ## Summary
 
 total: 5
-passed: 2
+passed: 4
 issues: 0
-pending: 3
+pending: 1
 skipped: 0
 blocked: 0
 
