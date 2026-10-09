@@ -85,13 +85,45 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (filled by roadmap) | | |
+| VEND-01 | Phase 1 | Pending |
+| VEND-02 | Phase 1 | Pending |
+| VEND-03 | Phase 1 | Pending |
+| LOCAL-01 | Phase 1 | Pending |
+| LOCAL-02 | Phase 1 | Pending |
+| LOCAL-03 | Phase 1 | Pending |
+| LOCAL-04 | Phase 1 | Pending |
+| LOCAL-05 | Phase 1 | Pending |
+| LOCAL-06 | Phase 1 | Pending |
+| LOCAL-07 | Phase 1 | Pending |
+| HOOK-01 | Phase 2 | Pending |
+| HOOK-02 | Phase 2 | Pending |
+| HOOK-03 | Phase 2 | Pending |
+| HOOK-04 | Phase 2 | Pending |
+| GATE-01 | Phase 3 | Pending |
+| GATE-02 | Phase 3 | Pending |
+| GATE-03 | Phase 3 | Pending |
+| GATE-04 | Phase 3 | Pending |
+| GATE-05 | Phase 3 | Pending |
+| GATE-06 | Phase 3 | Pending |
+| PROG-01 | Phase 4 | Pending |
+| PROG-02 | Phase 4 | Pending |
+| PROG-03 | Phase 4 | Pending |
+| PROG-04 | Phase 4 | Pending |
+| PROG-05 | Phase 4 | Pending |
+| PROG-06 | Phase 4 | Pending |
+| WEB-01 | Phase 5 | Pending |
+| WEB-02 | Phase 5 | Pending |
+| WEB-03 | Phase 5 | Pending |
+| REL-01 | Phase 6 | Pending |
+| REL-02 | Phase 6 | Pending |
+| REL-03 | Phase 6 | Pending |
+| REL-04 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 33 total
-- Mapped to phases: 0
-- Unmapped: 33 ⚠️
+- Mapped to phases: 33
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-10-09*
-*Last updated: 2026-10-09 after initial definition*
+*Last updated: 2026-10-09 after roadmap creation*
