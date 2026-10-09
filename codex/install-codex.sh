@@ -226,9 +226,10 @@ done
 # analyze: one pass over config.toml (or nothing when it does not exist) for the server the
 # srv_* globals name (SRV below; it reaches awk only as an -v value); prints
 #   main=1|0     the [mcp_servers.SRV] table is there (plain or quoted key, column 0)
-#   mention=1|0  a line that is not a comment names SRV in a form this script does not edit
-#                (single-quoted key, indented or spaced header, dotted key, inline table, another
-#                sub-table); our own [mcp_servers.SRV.tools.NAME] headers do not count
+#   mention=1|0  config.toml defines SRV in a form this script does not edit (single-quoted key,
+#                indented or spaced header, dotted key, inline table, another sub-table); our own
+#                [mcp_servers.SRV.tools.NAME] headers do not count, and neither does the name inside a
+#                path or a value (a [projects."/src/bbj-local"] table is not a server, WR-02)
 #   tfor=1|0     SRV tools are named in a form this script does not edit: a [..SRV.tools]
 #                table, a quoted or indented tool header, a dotted key, a tools key in the main
 #                table, an approval_mode written other than as a bare key in a tool table,
@@ -259,6 +260,15 @@ analyze() {
       main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
       tool_re = "^\\[mcp_servers\\." key "\\.tools\\.[A-Za-z0-9_-]+\\][ \t]*(#.*)?$"
       tool_pre = "^\\[mcp_servers\\." key "\\.tools\\."
+      # WR-02: only a definition of the server counts as a mention, never the name inside a path or a value
+      # (a [projects."/src/bbj-local"] trust table is not a server): a header whose key under mcp_servers is
+      # exactly SRV (any spelling of the quotes and spaces); under [mcp_servers] itself a key that starts
+      # with SRV; at the top level or under [mcp_servers] a dotted key that starts with mcp_servers
+      q = "[\"" sq "]?"
+      def_hdr_re = "^[ \t]*\\[\\[?[ \t]*" q "mcp_servers" q "[ \t]*\\.[ \t]*" q srv q "[ \t]*(\\.|\\])"
+      all_hdr_re = "^[ \t]*\\[[ \t]*" q "mcp_servers" q "[ \t]*\\][ \t]*(#.*)?$"
+      all_key_re = "^[ \t]*" q srv q "[ \t]*[.=]"
+      dotted_re = "^[ \t]*" q "mcp_servers" q "[ \t]*[.=]"
     }
     {
       line = $0
@@ -280,12 +290,15 @@ analyze() {
             if (st[name] != "missing") tfor = 1
             st[name] = "nokey"
           }
-        } else if (index(line, srv) > 0) {
+        } else if (line ~ def_hdr_re) {
           mention = 1
           if (line ~ /tools/) tfor = 1
+        } else if (line ~ all_hdr_re) {
+          sect = "servers"
         }
       } else if (line !~ /^[ \t]*#/) {
-        if (index(line, srv) > 0) {
+        if (index(line, srv) > 0 && ((line ~ all_key_re && sect == "servers") \
+            || (line ~ dotted_re && (sect == "" || sect == "servers")))) {
           mention = 1
           if (line ~ /tools/) tfor = 1
         }
