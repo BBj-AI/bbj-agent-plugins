@@ -19,23 +19,34 @@ scan() {
   fi
 }
 
-# curl_gate FILE BODY: every curl call of BODY (comment lines already removed) carries --noproxy and
-# --proto =http and follows no redirect (plan 19-01; applied to codex/*.sh by plan 01-06). A line that
-# only tests for curl (command -v) or only prints a message (say "...") is not a call.
-curl_gate() {
-  _curls=$(printf '%s\n' "$2" | grep -E '(^|[;&|(`[:space:]])curl([[:space:]]|$)' | grep -v 'command -v' | grep -Ev '(^|[[:space:];)])say[[:space:]]+"')
+# curl_check BODY: sets CURL_STATUS (ok or FAIL) and CURL_DETAIL for every curl call of BODY (comment lines
+# already removed): each carries --noproxy and --proto =http and follows no redirect (plan 19-01; applied to
+# codex/*.sh by plan 01-06). A line that only tests for curl (command -v) is not a call. A line that is
+# nothing but one say "..." message (optionally behind a case-arm label such as nocurl) is a message, not a
+# call (WR-01): a curl call that shares its line with a say, or a say whose text runs a command ($( or a
+# backtick), stays in the scan.
+curl_check() {
+  _curls=$(printf '%s\n' "$1" | grep -E '(^|[;&|(`[:space:]])curl([[:space:]]|$)' | grep -v 'command -v' \
+    | grep -Ev '^[[:space:]]*([A-Za-z_|*]+\)[[:space:]]*)?say[[:space:]]+"([^"`$]|[$][^("`])*"[[:space:]]*(;;)?$')
   if [ -z "$_curls" ]; then
-    gate "static_curl_call_$(basename "$1")" ok "no curl call in this file"
+    CURL_STATUS=ok
+    CURL_DETAIL="no curl call in this file"
   else
     _nosafe=$(printf '%s\n' "$_curls" | grep -v -e '--noproxy' | head -n 1)
     _noproto=$(printf '%s\n' "$_curls" | grep -v -e '--proto =http' | head -n 1)
     _redirect=$(printf '%s\n' "$_curls" | grep -E -e '[[:space:]](-L|--location[a-z-]*|-[A-Za-z]*L[A-Za-z]*)([[:space:]]|$)' | head -n 1)
-    if [ -n "$_nosafe" ]; then gate "static_curl_call_$(basename "$1")" FAIL "curl call without --noproxy: $_nosafe"
-    elif [ -n "$_noproto" ]; then gate "static_curl_call_$(basename "$1")" FAIL "curl call without --proto =http: $_noproto"
-    elif [ -n "$_redirect" ]; then gate "static_curl_call_$(basename "$1")" FAIL "curl call follows redirects: $_redirect"
-    else gate "static_curl_call_$(basename "$1")" ok "every curl call has --noproxy and --proto =http, no -L"
+    if [ -n "$_nosafe" ]; then CURL_STATUS=FAIL; CURL_DETAIL="curl call without --noproxy: $_nosafe"
+    elif [ -n "$_noproto" ]; then CURL_STATUS=FAIL; CURL_DETAIL="curl call without --proto =http: $_noproto"
+    elif [ -n "$_redirect" ]; then CURL_STATUS=FAIL; CURL_DETAIL="curl call follows redirects: $_redirect"
+    else CURL_STATUS=ok; CURL_DETAIL="every curl call has --noproxy and --proto =http, no -L"
     fi
   fi
+}
+
+# curl_gate FILE BODY: the gate of one file
+curl_gate() {
+  curl_check "$2"
+  gate "static_curl_call_$(basename "$1")" "$CURL_STATUS" "$CURL_DETAIL"
 }
 
 found=0
@@ -141,5 +152,42 @@ for f in $CODEX_GLOB; do
   fi
 done
 [ "$foundc" = 1 ] || gate static_codex_files FAIL "no installer matched $CODEX_GLOB"
+
+# ---- WR-01: the say exclusion of curl_gate stays narrow (mutation gates) ----
+# Each body below is a made-up script line; curl_check must FAIL every one that runs a curl call and pass
+# the plain messages, so the exclusion cannot widen to "any line that also holds a say".
+_mut_n=0
+_mut_bad=
+for _m in \
+  'r=$(curl -sL http://127.0.0.1:1/x) && say "done"' \
+  'curl -L --url "$u"; say "ok"' \
+  'say "start"; curl -s --url "$u"' \
+  '  nocurl) say "x"; curl -sL "$u" ;;' \
+  'say "$(curl -sL "$u")"' \
+  'say "`curl -sL "$u"`"'; do
+  _mut_n=$((_mut_n + 1))
+  curl_check "$_m"
+  [ "$CURL_STATUS" = FAIL ] || _mut_bad="$_mut_bad [$_m]"
+done
+if [ -n "$_mut_bad" ]; then
+  gate static_curl_say_not_excused FAIL "the guard passed:$_mut_bad"
+else
+  gate static_curl_say_not_excused ok "$_mut_n curl calls sharing a line with a say are all caught"
+fi
+_mut_bad=
+for _m in \
+  '    nocurl) say "bbj-local: warning: not probed: curl not found$_warn" ;;' \
+  '    nocurl) say "bbj-local: not probed: curl not found." ;;' \
+  'say "curl not found"' \
+  '  command -v curl > /dev/null 2>&1 || { probe=nocurl; return 0; }' \
+  "_r=\$(curl -q -sS -g --noproxy '*' --proto =http --url \"\$u\" 2> /dev/null); say \"x\""; do
+  curl_check "$_m"
+  [ "$CURL_STATUS" = ok ] || _mut_bad="$_mut_bad [$_m]"
+done
+if [ -n "$_mut_bad" ]; then
+  gate static_curl_say_messages_ok FAIL "the guard flagged:$_mut_bad"
+else
+  gate static_curl_say_messages_ok ok "plain say messages that name curl, a command -v test and a safe call followed by a say all pass"
+fi
 
 finish
