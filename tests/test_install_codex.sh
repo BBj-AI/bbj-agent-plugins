@@ -839,6 +839,54 @@ else
 fi
 local_parse locallone "$CFG" https://example.invalid/mcp
 
+# CR-01: both markers, the table deleted between them (the documented removal). No flag: nothing is
+# registered and config.toml stays byte-identical, no backup (the registration stays removed, D-09 opt-in).
+# With the flag: the table goes back inside the existing markers, never a second begin marker.
+newenv localmarkers
+mkdir -p "$E_CODEX"
+docs_done "$E_CODEX/config.toml"
+printf '%s\n' '' "$LMB" "$LME" >> "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.markers"
+run_inst "$NO_CODEX"
+CFG=$E_CODEX/config.toml
+if [ "$RC" = 0 ] && cmp -s "$WORK/cfg.markers" "$CFG" && [ ! -e "$CFG.bbj-backup" ] && [ "$(count '[mcp_servers.bbj-local]' "$CFG")" = 0 ] \
+  && ! grep -F 'appended a managed block' "$WORK/out" > /dev/null; then
+  gate local_markers_without_table_no_flag ok "both markers, no table, no flag: exit 0, config.toml byte-identical, no backup, bbj-local not registered"
+else
+  gate local_markers_without_table_no_flag FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 700)"
+fi
+run_inst "$NO_CODEX" --with-local
+note_local "$CFG"
+if [ "$RC" = 0 ] && local_shape "$CFG" && [ "$(count "$LME" "$CFG")" = 1 ] && [ "$(count 'approval_mode = "approve"' "$CFG")" = 8 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; } && same_after_rerun "$NO_CODEX" 0; then
+  gate local_markers_without_table_with_flag ok "both markers, no table, the flag: the table and its three approvals sit between the existing markers, one begin and one end marker, a rerun byte-identical"
+else
+  gate local_markers_without_table_with_flag FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 700)"
+fi
+awk -v b="$LMB" -v e="$LME" '$0 == b { s = 1 } s && /^\[mcp_servers\.bbj-local\]$/ { t = 1 } $0 == e { s = 0 } END { exit !t }' "$CFG" \
+  && gate local_markers_table_inside ok "the restored bbj-local table lies between the begin and the end marker" \
+  || gate local_markers_table_inside FAIL "the table is outside the markers"
+local_parse localmarkers "$CFG" https://example.invalid/mcp
+# a begin marker alone (the end marker deleted too): no flag leaves it, the flag adds the table and one end marker
+newenv localbeginonly
+mkdir -p "$E_CODEX"
+docs_done "$E_CODEX/config.toml"
+printf '%s\n' '' "$LMB" >> "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.markers"
+run_inst "$NO_CODEX"
+CFG=$E_CODEX/config.toml
+_noflag_rc=$RC
+_noflag_same=0
+cmp -s "$WORK/cfg.markers" "$CFG" && _noflag_same=1
+run_inst "$NO_CODEX" --with-local
+note_local "$CFG"
+if [ "$_noflag_rc" = 0 ] && [ "$_noflag_same" = 1 ] && [ "$RC" = 0 ] && local_shape "$CFG" && [ "$(count "$LME" "$CFG")" = 1 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; } && same_after_rerun "$NO_CODEX" 0; then
+  gate local_begin_marker_alone ok "a begin marker alone: no flag leaves config.toml byte-identical, the flag adds the table and one end marker after it, a rerun byte-identical"
+else
+  gate local_begin_marker_alone FAIL "no-flag exit $_noflag_rc identical $_noflag_same, flag exit $RC: $(tr '\n' ';' < "$CFG" | head -c 700)"
+fi
+
 # ---- every bbj-local form the installer meets in real configs (D-12, LOCAL-01 adjacency and ordering) ----
 # a plain table at the fixed url, as codex mcp add bbj-local --url writes it, gains the three approvals
 newenv localhand
@@ -1293,6 +1341,22 @@ if command -v python3 > /dev/null 2>&1; then
     gate local_lone_end_marker_without_flag_only_suggests ok "a lone end marker and no flag: one request, the suggestion line, config.toml byte-identical, exit 0"
   else
     gate local_lone_end_marker_without_flag_only_suggests FAIL "exit $RC, requests: $_reqs, out: $(grep bbj-local "$WORK/out" | head -c 300)"
+  fi
+
+  # CR-01: both markers without a table and no flag: no probe, no suggestion, nothing written
+  newenv probemarkers
+  mkdir -p "$E_CODEX"
+  docs_done "$E_CODEX/config.toml"
+  printf '%s\n' '' "$LMB" "$LME" >> "$E_CODEX/config.toml"
+  cp "$E_CODEX/config.toml" "$WORK/cfg.markers"
+  start_fake tools-list
+  run_inst "$WITH_CODEX"
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  if [ "$RC" = 0 ] && [ ! -s "$LOGF" ] && cmp -s "$WORK/cfg.markers" "$CFG" && [ "$(nlines 'bbj-local:')" = 0 ]; then
+    gate local_markers_without_table_no_probe ok "both markers, no table, no flag: no request reached the fake, no bbj-local line of output, config.toml byte-identical, exit 0"
+  else
+    gate local_markers_without_table_no_probe FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF"), out: $(grep bbj-local "$WORK/out" | head -c 300)"
   fi
 
   # the probe never changes the exit code: a foreign bbj-docs form still exits 3, the fixed form exits 0

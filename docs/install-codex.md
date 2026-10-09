@@ -167,7 +167,8 @@ asking; they are approved by name and only at this url.
   change; it is not rewritten later.
 - **To remove it,** delete the lines between the two marker comments, or run
   `codex mcp remove bbj-local`, which leaves the end-marker comment behind; the installer tolerates
-  that line. There is no removal option.
+  that line. A rerun without the flag leaves it removed; with `--with-local` the table comes back
+  inside the markers that are still there. There is no removal option.
 
 ## 3. Trust the hook in /hooks
 
