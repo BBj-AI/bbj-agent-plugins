@@ -1,9 +1,14 @@
 #!/bin/sh
-# tests/test_install_pages.sh -- keeps the install pages honest (plan 19-07, PLUG-05).
+# tests/test_install_pages.sh -- keeps the install pages honest (plan 19-07, PLUG-05; plan 01-07, LOCAL-06).
 #
 # For every docs/install-*.md that exists:
 #   - a required-phrase list per page (what the page must state),
 #   - forbidden claims: the go-live host as a default, and "subagent edits are not covered",
+#   - the local check (plan 01-07, LOCAL-06; D-13, D-14): its own numbered step on both install pages,
+#     the two reasons it is preferred over the hosted check on both pages and in README, and a forbid
+#     so that no page ranks bbj-local above bbjcpl; the bbj-local tool tables of the Codex page equal
+#     LOCAL_TOOLS of the installer, and every installer message the Codex page quotes is printed by
+#     the installer on a line that is not a comment,
 #   - every relative Markdown link in docs/*.md, README.md and CHANGELOG.md resolves,
 #   - every "claude plugin <subcommand>" line in the Claude page's fenced blocks names a real
 #     subcommand of the installed CLI (claude plugin <words> --help exits 0); skipped when
@@ -45,6 +50,9 @@ check_common() {
   forbid "$1" "$2" 'bbj-mcp\.basis\.cloud' go_live_host
   forbid "$1" "$2" 'subagent[^.]*not (covered|checked)' subagent_not_covered
 }
+
+# the local check must never read as better than the compiler (D-13): bbjcpl also checks types
+LOCAL_ABOVE_BBJCPL='(preferred|better) (than|over) `?bbjcpl'
 
 # ---- Claude Code page ----
 if [ -f "$CLAUDE_PAGE" ]; then
@@ -150,13 +158,54 @@ if [ -f "$CODEX_PAGE" ]; then
     '## Windows' \
     'Git for Windows' \
     'commandWindows' \
-    'guardrail'
+    'guardrail' \
+    '--with-local' \
+    'recommended where BBjServices 26.03' \
+    'preferred over the hosted check' \
+    'PREFIX, classpath and config' \
+    '## 2. Enable the local check' \
+    '[mcp_servers.bbj-local]' \
+    '[mcp_servers.bbj-local.tools.bbj_check_syntax]' \
+    '[mcp_servers.bbj-local.tools.bbj_format]' \
+    '[mcp_servers.bbj-local.tools.bbj_denum]' \
+    'http://127.0.0.1:5009/mcp' \
+    'codex mcp remove bbj-local' \
+    'BBJ_LOCAL_MCP_URL' \
+    'tools/list'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
   check_common "$n" "$CODEX_PAGE"
   # the Codex route is unverified: the page must not say it was verified or tested on Codex
   forbid "$n" "$CODEX_PAGE" '(was|has been|is) (verified|tested) (on|with) (a )?Codex' codex_verified_claim
+  forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+
+  # the bbj-local tool tables of the page are the installer's LOCAL_TOOLS, one list (plan 01-07)
+  INSTALLER=$REPO/codex/install-codex.sh
+  inst_local=$(sed -n "s/^LOCAL_TOOLS='\(.*\)'\$/\1/p" "$INSTALLER" | tr ' ' '\n' | sort)
+  page_local=$(sed -n 's/^ *\[mcp_servers\.bbj-local\.tools\.\([a-z_]*\)\]$/\1/p' "$CODEX_PAGE" | sort)
+  if [ -n "$inst_local" ] && [ "$inst_local" = "$page_local" ]; then
+    gate codex_local_tools_single_source ok "LOCAL_TOOLS equals the bbj-local tool tables of the page ($(printf '%s\n' "$inst_local" | awk 'END { print NR }') tools)"
+  else
+    gate codex_local_tools_single_source FAIL "installer '$(printf '%s' "$inst_local" | tr '\n' ' ')', page '$(printf '%s' "$page_local" | tr '\n' ' ')'"
+  fi
+
+  # every installer message the page quotes is printed by the installer, on a line that is not a
+  # comment, so the page cannot describe a message the installer does not print (T-01-28)
+  grep -v '^[[:space:]]*#' "$INSTALLER" > "$WORK/installer.code"
+  quoted_bad=0
+  for p in \
+    'a bbj-ls answers at' \
+    'no bbj-ls answered at' \
+    'not probed: curl not found' \
+    'is not a loopback http URL' \
+    'registering it anyway' \
+    'already registered in'
+  do
+    grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
+    grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
+  done
+  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "six quoted fragments, each on the page and on a non-comment installer line"
 fi
 
 # ---- relative Markdown links resolve ----
