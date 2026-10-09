@@ -452,6 +452,45 @@ sync_server() {
     print_tools
     [ "$dstate" != ours ] || say "Also remove the line $srv_old_key from the $srv table by hand: an earlier version of this script wrote it and it approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum."
     pending=1
+  elif [ "$(an main)" = 0 ] && [ "$(an managed)" = 1 ]; then
+    # CR-01: the begin marker is there but the table is not (deleting the lines between the markers, the
+    # documented way to drop the registration, leaves exactly this). A second begin marker would break the
+    # one-block rule, so the table goes back inside the existing markers: before the end marker, or, when
+    # no end marker follows the begin marker, right after the begin marker together with a new end marker.
+    _hasend=$(awk -v b="$srv_begin" -v e="$srv_end" '
+      { l = $0; sub(/\r$/, "", l) }
+      l == b { s = 1; next }
+      s && l == e { print 1; exit }
+    ' "$config")
+    tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
+    # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
+    if awk -v srv="$srv" -v url="$srv_url" -v b="$srv_begin" -v e="$srv_end" -v hasend="${_hasend:-0}" '
+        function ins() {
+          print "[mcp_servers." srv "]"
+          print "url = \"" url "\""
+        }
+        {
+          l = $0
+          sub(/\r$/, "", l)
+          if (!done && !inb && l == b) {
+            print
+            inb = 1
+            if (!hasend) { ins(); print e; done = 1; inb = 0 }
+            next
+          }
+          if (!done && inb && l == e) { ins(); done = 1; inb = 0 }
+          print
+        }
+      ' "$config" > "$tmp" && cat "$tmp" > "$config"; then
+      rm -f "$tmp"
+    else
+      rm -f "$tmp"
+      refuse "cannot update $config"
+    fi
+    wrote="$wrote config.toml"
+    say "$srv: put the table back inside the managed block in $config (url $srv_url)"
+    refresh
+    state
   elif [ "$(an main)" = 0 ]; then
     # shellcheck disable=SC2094  # the group reads $config (its last byte) before the append writes it
     {
@@ -600,9 +639,12 @@ sync_server
 # only selects the line printed (LOCAL-04): bbj-local is registered on every outcome, a warning
 # is printed on every outcome except "a bbj-ls answers", and the probe never returns early, sets
 # pending or changes the exit code.
-# Without the flag, a config.toml that holds a managed bbj-local block (the begin marker line, as
-# analyze reports it) gets the pass and no probe: leaving the flag out never removes or freezes a
-# block the user opted into (D-09), it refreshes it in place. A lone end marker (what codex mcp
+# Without the flag, a config.toml that holds a managed bbj-local block (the begin marker line and the
+# table, as analyze reports them) gets the pass and no probe: leaving the flag out never removes or
+# freezes a block the user opted into (D-09), it refreshes it in place. Markers whose table was
+# deleted (the documented removal) get nothing without the flag: no probe, no write, the registration
+# stays removed (D-09, opt-in); with the flag the table is put back inside the existing markers, so
+# there is never a second begin marker. A lone end marker (what codex mcp
 # remove leaves behind, D-10) is a comment and counts as no block; it is never touched.
 # Without the flag and with no bbj-local in config.toml at all (no table, no mention, no managed
 # block) the probe asks once and only suggests --with-local when a bbj-ls answers (LOCAL-03, D-11); it
@@ -622,8 +664,13 @@ if [ "$with_local" = 1 ]; then
     refused) say "bbj-local: warning: not probed: $probe_url (BBJ_LOCAL_MCP_URL) is not a loopback http URL$_warn" ;;
   esac
   sync_server
-elif [ "$(an managed)" = 1 ]; then
+elif [ "$(an managed)" = 1 ] && [ "$(an main)" = 1 ]; then
   sync_server
+elif [ "$(an managed)" = 1 ]; then
+  # CR-01: the markers are there but the table is not: the user removed the registration (the documented
+  # way), so a run without the flag leaves it removed. No probe, no write, no line of output, as for a
+  # hand-registered bbj-local; only --with-local puts the table back, inside these markers.
+  :
 elif [ "$(an main)" = 0 ] && [ "$(an mention)" = 0 ]; then
   probe_local
   # when the seam moved the probe, the none line also names the url the registration always uses (D-17)
