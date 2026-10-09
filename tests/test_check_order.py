@@ -62,17 +62,6 @@ def markers(lines):
             [i for i, l in enumerate(lines) if l == END])
 
 
-def extract(rel):
-    """Text between the single BEGIN line and the single END line, or None."""
-    lines = read_lines(rel)
-    if lines is None:
-        return None
-    begins, ends = markers(lines)
-    if len(begins) != 1 or len(ends) != 1 or begins[0] >= ends[0]:
-        return None
-    return "\n".join(lines[begins[0] + 1:ends[0]])
-
-
 texts = {}
 for tag, rel in FILES.items():
     lines = read_lines(rel)
