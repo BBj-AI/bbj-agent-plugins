@@ -3,7 +3,7 @@
 # a temp HOME and CODEX_HOME with a fake codex. Every case has its own temp directories; the
 # real ~/.codex and ~/.agents are never touched (gate real_home_untouched). Nothing here runs
 # BBj. Codex runs only in the optional gate real_codex_parses_configs (BBJ_TEST_CODEX=/path/to/codex,
-# else a codex on the caller's PATH), only as `codex mcp get bbj-docs` and `codex mcp add` in temp
+# else a codex on the caller's PATH), only as `codex mcp get bbj-docs` (and bbj-local) and `codex mcp add` in temp
 # homes, never a session; without a codex that gate is a clean skip.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -92,8 +92,8 @@ note_cfg() {
   printf '%s\n' "$1" >> "$WORK/written.list"
 }
 
-# real_parse LABEL FILE URL: the real codex loads a copy of FILE (codex mcp get bbj-docs exits 0
-# and prints the url); no codex means nothing is run and nothing counted
+# real_parse LABEL FILE URL [SERVER]: the real codex loads a copy of FILE (codex mcp get SERVER, default
+# bbj-docs, exits 0 and prints the url); no codex means nothing is run and nothing counted
 RP_N=0
 RP_BAD=
 real_parse() {
@@ -101,7 +101,7 @@ real_parse() {
   _rp=$WORK/rp-$1
   mkdir -p "$_rp/home/.codex"
   cp -L "$2" "$_rp/home/.codex/config.toml"
-  _rpout=$(env HOME="$_rp/home" CODEX_HOME="$_rp/home/.codex" PATH="$SYSPATH:$(dirname "$REAL_CODEX")" "$REAL_CODEX" mcp get bbj-docs 2> /dev/null)
+  _rpout=$(env HOME="$_rp/home" CODEX_HOME="$_rp/home/.codex" PATH="$SYSPATH:$(dirname "$REAL_CODEX")" "$REAL_CODEX" mcp get "${4:-bbj-docs}" 2> /dev/null)
   _rprc=$?
   RP_N=$((RP_N + 1))
   case "$_rpout" in
@@ -663,6 +663,111 @@ if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && grep -F
   gate foreign_tool_forms_old_line ok "the old line is left, the output says to remove it by hand, exit 3"
 else
   gate foreign_tool_forms_old_line FAIL "exit $RC"
+fi
+
+# ---- plan 01-04: --with-local, the managed bbj-local block (LOCAL-02, D-09, D-10, D-12, D-17) ----
+# The three bbj-ls tools run on this machine and are approved by name only on the fixed loopback
+# url. Their names appear only in configs of this section (WORK/local.list), never in written.list:
+# check_tools_never_named forbids them there.
+LMB='# >>> bbj-agent-plugins bbj-local (managed) >>>'
+LME='# <<< bbj-agent-plugins bbj-local (managed) <<<'
+LOCAL_URL_T=http://127.0.0.1:5009/mcp
+: > "$WORK/local.list"
+
+# lsum FILE: canonical summary of the bbj-local server of a config.toml, in tsum's shape
+lsum() {
+  python3 -I -c '
+import sys, tomllib
+d = tomllib.load(open(sys.argv[1], "rb"))
+s = d["mcp_servers"]["bbj-local"]
+print("url", s["url"])
+print("default", s.get("default_tools_approval_mode", "-"))
+for k in sorted(s.get("tools", {})):
+    print(k, s["tools"][k].get("approval_mode", "-"))
+' "$1" 2> /dev/null
+}
+
+# three_expected: the summary of a bbj-local server with its three tools approved
+three_expected() {
+  printf 'url %s\ndefault -\nbbj_check_syntax approve\nbbj_denum approve\nbbj_format approve\n' "$LOCAL_URL_T"
+}
+
+# docs_done FILE: a plain bbj-docs table with its five approved tool tables, so the docs pass changes nothing
+docs_done() {
+  {
+    printf '[mcp_servers.bbj-docs]\nurl = "https://example.invalid/mcp"\n'
+    for _t in bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples; do
+      printf '\n[mcp_servers.bbj-docs.tools.%s]\napproval_mode = "approve"\n' "$_t"
+    done
+  } >> "$1"
+}
+
+# note_local FILE: a config of this section (kept out of written.list on purpose)
+note_local() {
+  printf '%s\n' "$1" >> "$WORK/local.list"
+}
+
+# local_parse LABEL FILE: the real codex loads both servers of a local-run config
+local_parse() {
+  real_parse "$1-local" "$2" "$LOCAL_URL_T" bbj-local
+  real_parse "$1-docs" "$2" "$3" bbj-docs
+}
+
+# local_shape FILE: one begin and one end marker, one bbj-local table, the url once, the three tool tables
+# between the markers, no server-wide key; prints nothing, returns 0 or 1
+local_shape() {
+  [ "$(count "$LMB" "$1")" = 1 ] && [ "$(count "$LME" "$1")" -ge 1 ] && [ "$(count '[mcp_servers.bbj-local]' "$1")" = 1 ] \
+    && [ "$(count "url = \"$LOCAL_URL_T\"" "$1")" = 1 ] || return 1
+  _in=$(awk -v b="$LMB" -v e="$LME" '$0 == b { s = 1 } $0 == e { s = 0 } s && /^\[mcp_servers\.bbj-local\.tools\.bbj_(check_syntax|format|denum)\]$/ { n++ } END { print n + 0 }' "$1")
+  [ "$_in" = 3 ] && [ "$(grep -c default_tools_approval_mode "$1")" = 0 ] \
+    && ! grep -Eq '^(required|enabled|startup_timeout_sec)[ ]*=' "$1"
+}
+
+newenv localfresh
+run_inst "$NO_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if [ "$RC" = 0 ] && local_shape "$CFG" && [ "$(count 'approval_mode = "approve"' "$CFG")" = 8 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; }; then
+  gate local_block_fresh_no_codex ok "--with-local, no codex: the markers once, [mcp_servers.bbj-local] once, the fixed url, the three tool tables between the markers, eight approvals, no server-wide key"
+else
+  gate local_block_fresh_no_codex FAIL "exit $RC: $(tr '\n' ';' < "$CFG" 2> /dev/null | head -c 600)"
+fi
+local_parse localfresh "$CFG" "$DEFAULT_URL"
+
+newenv localcodex
+run_inst "$WITH_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if [ "$RC" = 0 ] && grep -Fx 'mcp add bbj-docs --url https://mcp.bbj-ai.com/mcp' "$E_LOG" > /dev/null && ! grep -q '^mcp add bbj-local' "$E_LOG" \
+  && local_shape "$CFG" && [ "$(count 'approval_mode = "approve"' "$CFG")" = 8 ] \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; }; then
+  gate local_block_fresh_with_codex_on_path ok "codex on PATH: mcp add for bbj-docs only, never for bbj-local; the same block shape"
+else
+  gate local_block_fresh_with_codex_on_path FAIL "exit $RC, codex log: $(tr '\n' ';' < "$E_LOG")"
+fi
+local_parse localcodex "$CFG" "$DEFAULT_URL"
+
+newenv localseam
+BBJ_LOCAL_MCP_URL=http://127.0.0.1:9999/mcp
+export BBJ_LOCAL_MCP_URL
+run_inst "$NO_CODEX" --with-local
+unset BBJ_LOCAL_MCP_URL
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if [ "$RC" = 0 ] && local_shape "$CFG" && ! grep -F 9999 "$CFG" > /dev/null; then
+  gate local_url_fixed_ignores_seam ok "BBJ_LOCAL_MCP_URL=...:9999 does not move the registration: the url is $LOCAL_URL_T, 9999 is nowhere in config.toml (D-17)"
+else
+  gate local_url_fixed_ignores_seam FAIL "exit $RC: $(tr '\n' ';' < "$CFG" 2> /dev/null | head -c 400)"
+fi
+
+newenv localnoflag
+run_inst "$WITH_CODEX"
+CFG=$E_CODEX/config.toml
+if [ "$RC" = 0 ] && ! grep -F bbj-local "$CFG" > /dev/null; then
+  gate local_no_flag_writes_nothing ok "a fresh run without --with-local: no line of config.toml names bbj-local"
+else
+  gate local_no_flag_writes_nothing FAIL "exit $RC"
 fi
 
 # ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
