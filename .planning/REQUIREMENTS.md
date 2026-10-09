@@ -8,8 +8,8 @@
 ### Vendoring
 
 - [ ] **VEND-01**: `skills.lock.json` and `tests/test_skills_hash.py` are removed; no test, script or doc references them
-- [ ] **VEND-02**: README, NOTICE, both manifests and `docs/install-claude-code.md` describe the skills as maintained in this repository; no "vendored" or "the BBjSkills" wording remains, and NOTICE carries no provenance line
-- [ ] **VEND-03**: The skills exemptions in `tests/test_layout.py` (e.g. `docs_host_single_source`) are updated so the skills fall under the normal layout and URL rules
+- [x] **VEND-02**: README, NOTICE, both manifests and `docs/install-claude-code.md` describe the skills as maintained in this repository; no "vendored" or "the BBjSkills" wording remains, and NOTICE carries no provenance line
+- [x] **VEND-03**: The skills exemptions in `tests/test_layout.py` (e.g. `docs_host_single_source`) are updated so the skills fall under the normal layout and URL rules
 
 ### Local check route
 
@@ -86,8 +86,8 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | VEND-01 | Phase 1 | Pending |
-| VEND-02 | Phase 1 | Pending |
-| VEND-03 | Phase 1 | Pending |
+| VEND-02 | Phase 1 | Complete |
+| VEND-03 | Phase 1 | Complete |
 | LOCAL-01 | Phase 1 | Pending |
 | LOCAL-02 | Phase 1 | Pending |
 | LOCAL-03 | Phase 1 | Pending |
@@ -120,6 +120,7 @@
 | REL-04 | Phase 6 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 33 total
 - Mapped to phases: 33
 - Unmapped: 0
