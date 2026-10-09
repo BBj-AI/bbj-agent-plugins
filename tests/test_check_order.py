@@ -94,4 +94,63 @@ gate("identical", snippet_text is not None and not differs,
      "all three copies equal" if not differs and snippet_text is not None
      else "%s differs from the snippet copy" % (differs[0] if differs else "snippet"))
 
+# route order and disclosure (D-01, D-04; T-01-13): hosted check last, with the disclosure phrases
+block = snippet_text if snippet_text is not None else ""
+needed = ["bbjcpl -t -N -X <file>", "writes no output files", "stderr", "bbj_check_syntax",
+          "the hosted check", "without asking", "sent to the server", "stock BBj"]
+missing = [s for s in needed if s not in block]
+pos = [block.find(s) for s in ("bbjcpl", "bbj-local", "bbj-docs")]
+in_order = -1 not in pos and pos[0] < pos[1] < pos[2]
+gate("route_order", snippet_text is not None and not missing and in_order,
+     "bbjcpl, bbj-local, bbj-docs in that order, disclosure phrases present"
+     if not missing and in_order else
+     "missing %s; positions bbjcpl/bbj-local/bbj-docs %s" % (missing, pos))
+
+# client neutral (D-02, D-03, T-01-14): checked on every copy so the skills stay neutral too
+hits = []
+for tag in FILES:
+    text = texts.get(tag) or ""
+    for word in (QUALIFIED, MATCHER, PATCH_TOOL, HOST):
+        if word in text:
+            hits.append("%s has %r" % (tag, word))
+    for word in ("claude", "codex"):
+        if word in text.lower():
+            hits.append("%s has %r" % (tag, word))
+gate("client_neutral", not hits and all(texts.get(t) is not None for t in FILES),
+     "no client, qualified tool name, matcher, patch tool or host name" if not hits
+     else "; ".join(hits))
+
+# skill placement (D-06): the block is the first thing after the frontmatter, before the H1
+for tag in SKILLS:
+    lines = read_lines(FILES[tag]) or []
+    close = [i for i, l in enumerate(lines) if l == "---"][1:2]
+    begins = markers(lines)[0]
+    h1 = [i for i, l in enumerate(lines) if l.startswith("# ")][:1]
+    ok = (bool(lines) and lines[0] == "---" and bool(close) and len(begins) == 1 and bool(h1)
+          and all(l.strip() == "" for l in lines[close[0] + 1:begins[0]]) and begins[0] < h1[0])
+    gate("skill_placement_" + tag, ok,
+         "block directly after the frontmatter, before the H1" if ok else
+         "frontmatter close %s, begin %s, first H1 %s, or text between the frontmatter and the block"
+         % (close, begins, h1))
+
+# snippet: the old Check paragraph is gone, the Codex-only sentence stays outside the block (D-07)
+lines = read_lines(FILES["snippet"]) or []
+begins, ends = markers(lines)
+outside = lines
+if len(begins) == 1 and len(ends) == 1 and begins[0] < ends[0]:
+    outside = lines[:begins[0]] + lines[ends[0] + 1:]
+old_back = [l for l in lines if l.startswith(OLD_CHECK_OPENING)]
+shell_ok = SHELL_SENTENCE in "\n".join(outside).lower()
+built_in = any(l.startswith("Built in: no USE needed.") for l in outside)
+gate("snippet_check_paragraph_replaced", not old_back and shell_ok and built_in,
+     "old paragraph gone, shell-command sentence and Built in line outside the block"
+     if not old_back and shell_ok and built_in else
+     "old opening back: %d, shell sentence outside: %s, Built in line outside: %s"
+     % (len(old_back), shell_ok, built_in))
+
+# no tool bullets (keeps tools_list_single_source reading exactly the five docs tools)
+bullets = [l for l in block.split("\n") if TOOL_BULLET.match(l)]
+gate("no_tool_bullets", snippet_text is not None and not bullets,
+     "no '- `bbj_...`:' line in the block" if not bullets else "tool bullet in the block: %s" % bullets[0])
+
 sys.exit(1 if failed else 0)
