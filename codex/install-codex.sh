@@ -560,10 +560,15 @@ sync_server
 # ---- 1b. the local check server: bbj-local (plan 01-04, LOCAL-02; D-09, D-12, D-17) ----
 # Runs after the bbj-docs pass on purpose: that pass is complete before this one starts, so
 # neither result depends on which block comes first in config.toml (LOCAL-01).
-# Without --with-local nothing is written and nothing is printed for bbj-local; the probe of a
-# running bbj-ls that plan 01-06 adds belongs in that branch.
-if [ "$with_local" = 1 ]; then
-  use_local
+# With the flag, or when config.toml already holds a managed bbj-local block (the begin marker
+# line, as analyze reports it), the pass runs: leaving the flag out never removes or freezes a
+# block the user opted into (D-09), it refreshes it in place. A lone end marker (what codex mcp
+# remove leaves behind, D-10) is a comment and counts as no block; it is never touched.
+# With neither, nothing is written and nothing is printed for bbj-local; the probe of a running
+# bbj-ls that plan 01-06 adds belongs in that branch.
+use_local
+refresh
+if [ "$with_local" = 1 ] || [ "$(an managed)" = 1 ]; then
   sync_server
 fi
 
