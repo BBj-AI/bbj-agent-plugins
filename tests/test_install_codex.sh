@@ -828,6 +828,137 @@ else
 fi
 local_parse locallone "$CFG" https://example.invalid/mcp
 
+# ---- every bbj-local form the installer meets in real configs (D-12, LOCAL-01 adjacency and ordering) ----
+# a plain table at the fixed url, as codex mcp add bbj-local --url writes it, gains the three approvals
+newenv localhand
+mkdir -p "$E_CODEX"
+docs_done "$E_CODEX/config.toml"
+printf '%s\n' '' '[mcp_servers.bbj-local]' "url = \"$LOCAL_URL_T\"" >> "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
+run_inst "$WITH_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if [ "$RC" = 0 ] && [ "$(count '[mcp_servers.bbj-local]' "$CFG")" = 1 ] && [ "$(count 'approval_mode = "approve"' "$CFG")" = 8 ] \
+  && ! grep -F 'bbj-agent-plugins bbj-local' "$CFG" > /dev/null && cmp -s "$WORK/cfg.orig" "$CFG.bbj-backup" \
+  && ! grep -q 'bbj-local' "$E_LOG" \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG")" = "$(three_expected)" ]; }; then
+  gate local_hand_registered_same_url ok "a hand-registered table at the fixed url gains the three approvals, no marker added, backup holds the original, codex not called for bbj-local, exit 0"
+else
+  gate local_hand_registered_same_url FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 600)"
+fi
+local_parse localhand "$CFG" https://example.invalid/mcp
+
+# any other form of bbj-local: exit 3, config.toml byte-identical, no backup, the block printed
+i=0
+for form in otherurl singlequoted dotted subtable; do
+  i=$((i + 1))
+  newenv localforeign$i
+  mkdir -p "$E_CODEX"
+  case "$form" in
+    otherurl) docs_done "$E_CODEX/config.toml"; printf '%s\n' '' '[mcp_servers.bbj-local]' 'url = "http://127.0.0.1:5010/mcp"' >> "$E_CODEX/config.toml" ;;
+    singlequoted) docs_done "$E_CODEX/config.toml"; printf '%s\n' '' "[mcp_servers.'bbj-local']" "url = \"$LOCAL_URL_T\"" >> "$E_CODEX/config.toml" ;;
+    dotted) printf '%s\n' '[mcp_servers]' "bbj-local.url = \"$LOCAL_URL_T\"" '' > "$E_CODEX/config.toml"; docs_done "$E_CODEX/config.toml" ;;
+    subtable) docs_done "$E_CODEX/config.toml"; printf '%s\n' '' '[mcp_servers.bbj-local.env]' 'K = "v"' >> "$E_CODEX/config.toml" ;;
+  esac
+  cp "$E_CODEX/config.toml" "$WORK/cfg.foreign"
+  run_inst "$WITH_CODEX" --with-local
+  note_local "$E_CODEX/config.toml"
+  if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && [ ! -e "$E_CODEX/config.toml.bbj-backup" ] \
+    && ! grep -q 'bbj-local' "$E_LOG" && grep -F 'the bbj-local entry was not modified' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-local]' "$WORK/out" > /dev/null && grep -Fx "url = \"$LOCAL_URL_T\"" "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-local.tools.bbj_check_syntax]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-local.tools.bbj_format]' "$WORK/out" > /dev/null \
+    && grep -Fx '[mcp_servers.bbj-local.tools.bbj_denum]' "$WORK/out" > /dev/null; then
+    :
+  else
+    gate local_foreign_forms FAIL "form $form: exit $RC, config changed, backup written, codex called or the block not printed"
+    LFOREIGN_BAD=1
+  fi
+  if [ "$HAVE_TOML" = 1 ]; then
+    python3 -I -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$E_CODEX/config.toml" 2> /dev/null \
+      || { gate local_foreign_forms FAIL "form $form: config.toml no longer parses"; LFOREIGN_BAD=1; }
+  fi
+  # the real codex refuses a whole config that holds a bbj-local server without a transport (the sub-table form)
+  case "$form" in
+    subtable) ;;
+    *) real_parse "localforeign$i-docs" "$E_CODEX/config.toml" https://example.invalid/mcp bbj-docs ;;
+  esac
+  case "$form" in
+    otherurl) real_parse "localforeign$i-local" "$E_CODEX/config.toml" http://127.0.0.1:5010/mcp bbj-local ;;
+    singlequoted|dotted) real_parse "localforeign$i-local" "$E_CODEX/config.toml" "$LOCAL_URL_T" bbj-local ;;
+  esac
+done
+[ "${LFOREIGN_BAD:-0}" = 1 ] || gate local_foreign_forms ok "another url, a single-quoted key, a dotted key, a sub-table without the table: exit 3, config.toml byte-identical and parseable, no backup, codex not called, the block printed"
+
+# both servers: the docs table directly followed by the local block, and the reverse; the begin marker stays above its table
+for order in docs_first local_first; do
+  newenv localboth-$order
+  mkdir -p "$E_CODEX"
+  case "$order" in
+    docs_first) printf '%s\n' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' "$LMB" '[mcp_servers.bbj-local]' "url = \"$LOCAL_URL_T\"" "$LME" > "$E_CODEX/config.toml" ;;
+    local_first) printf '%s\n' "$LMB" '[mcp_servers.bbj-local]' "url = \"$LOCAL_URL_T\"" "$LME" '' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' > "$E_CODEX/config.toml" ;;
+  esac
+  run_inst "$WITH_CODEX" --with-local
+  CFG=$E_CODEX/config.toml
+  note_local "$CFG"
+  above=$(grep -B 1 -Fx '[mcp_servers.bbj-local]' "$CFG" | head -n 1)
+  if [ "$RC" = 0 ] && [ "$(count '[mcp_servers.bbj-docs]' "$CFG")" = 1 ] && [ "$(count '[mcp_servers.bbj-local]' "$CFG")" = 1 ] \
+    && [ "$(count 'approval_mode = "approve"' "$CFG")" = 8 ] && [ "$above" = "$LMB" ] && local_shape "$CFG" \
+    && { [ "$HAVE_TOML" = 0 ] || { [ "$(tsum "$CFG")" = "$(five_expected https://example.invalid/mcp)" ] && [ "$(lsum "$CFG")" = "$(three_expected)" ]; }; }; then
+    :
+  else
+    gate local_and_docs_coexist_both_orders FAIL "order $order: exit $RC, above bbj-local: '$above': $(tr '\n' ';' < "$CFG" | head -c 500)"
+    LBOTH_BAD=1
+  fi
+  local_parse "localboth-$order" "$CFG" https://example.invalid/mcp
+done
+[ "${LBOTH_BAD:-0}" = 1 ] || gate local_and_docs_coexist_both_orders ok "docs first and local first: five docs approvals, three local approvals, each table once, the begin marker directly above [mcp_servers.bbj-local]"
+
+# a user value of a local tool stays and is named
+newenv localuser
+mkdir -p "$E_CODEX"
+docs_done "$E_CODEX/config.toml"
+printf '%s\n' '' "$LMB" '[mcp_servers.bbj-local]' "url = \"$LOCAL_URL_T\"" '' '[mcp_servers.bbj-local.tools.bbj_check_syntax]' 'approval_mode = "approve"' '' '[mcp_servers.bbj-local.tools.bbj_format]' 'approval_mode = "prompt"' '' '[mcp_servers.bbj-local.tools.bbj_denum]' 'approval_mode = "approve"' "$LME" >> "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
+run_inst "$WITH_CODEX" --with-local
+CFG=$E_CODEX/config.toml
+note_local "$CFG"
+if [ "$RC" = 0 ] && cmp -s "$WORK/cfg.orig" "$CFG" && [ "$(count 'approval_mode = "prompt"' "$CFG")" = 1 ] \
+  && grep -F 'tool bbj_format has approval_mode prompt (yours); left as is' "$WORK/out" > /dev/null \
+  && { [ "$HAVE_TOML" = 0 ] || [ "$(lsum "$CFG" | grep -c '^bbj_format prompt$')" = 1 ]; }; then
+  gate local_user_value_kept ok "a prompt on bbj_format stays byte for byte and is named in the output, exit 0"
+else
+  gate local_user_value_kept FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 500)"
+fi
+local_parse localuser "$CFG" https://example.invalid/mcp
+
+# in every config of this section the check tools sit only in bbj-local tables, and bbj-local holds no server-wide key
+if [ "$HAVE_TOML" = 1 ]; then
+  bad=$(python3 -I -c '
+import sys, tomllib
+check = {"bbj_check_syntax", "bbj_format", "bbj_denum"}
+bad = []
+for path in open(sys.argv[1]).read().split():
+    try:
+        d = tomllib.load(open(path, "rb"))
+    except (OSError, tomllib.TOMLDecodeError):
+        bad.append(path + "(not parsed)")
+        continue
+    for name, srv in d.get("mcp_servers", {}).items():
+        if name == "bbj-local":
+            for key in ("default_tools_approval_mode", "required", "enabled", "startup_timeout_sec"):
+                if key in srv:
+                    bad.append(path + " bbj-local " + key)
+        elif check & set(srv.get("tools", {})):
+            bad.append(path + " " + name)
+print(" ".join(bad))
+' "$WORK/local.list")
+  n=$(awk 'END { print NR }' "$WORK/local.list")
+  [ -z "$bad" ] && gate local_check_tools_only_in_local_tables ok "$n configs: bbj_check_syntax, bbj_format and bbj_denum are named under no server but bbj-local; bbj-local has no default_tools_approval_mode, required, enabled or startup_timeout_sec" \
+    || gate local_check_tools_only_in_local_tables FAIL "$bad"
+else
+  gate local_check_tools_only_in_local_tables skip "no python3 with tomllib"
+fi
+
 # ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
 inst_tools=$(sed -n 's/^DOCS_TOOLS=//p' "$INSTALLER" | head -n 1 | tr -d "'\"" | tr ' ' '\n' | sort)
 snip_tools=$(sed -n 's/^- `\(bbj_[a-z_]*\)`:.*/\1/p' "$SNIPPET" | sort)
