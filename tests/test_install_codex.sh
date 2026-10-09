@@ -4,9 +4,20 @@
 # real ~/.codex and ~/.agents are never touched (gate real_home_untouched). Nothing here runs
 # BBj. Codex runs only in the optional gate real_codex_parses_configs (BBJ_TEST_CODEX=/path/to/codex,
 # else a codex on the caller's PATH), only as `codex mcp get bbj-docs` (and bbj-local) and `codex mcp add` in temp
-# homes, never a session; without a codex that gate is a clean skip.
+# homes, never a session; without a codex that gate is a clean skip. Plan 01-06 adds the tools/list
+# probe gates (LOCAL-03, LOCAL-04) against tests/fake_mcp.py and a fake curl; the probe URL is always
+# the BBJ_LOCAL_MCP_URL seam (a fake port or the closed port 9), never a real bbj-ls.
 . "$(dirname "$0")/lib.sh"
 mkwork
+
+# plan 01-06: the fake servers of the probe gates are killed with the work directory
+FAKE_PIDS=
+cleanup() {
+  for _p in $FAKE_PIDS; do kill "$_p" 2> /dev/null; done
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
+trap 'exit 1' INT TERM HUP
 
 # the real codex of the optional gate, resolved before any case narrows PATH
 REAL_CODEX=${BBJ_TEST_CODEX:-$(command -v codex 2> /dev/null)}
@@ -957,6 +968,97 @@ print(" ".join(bad))
     || gate local_check_tools_only_in_local_tables FAIL "$bad"
 else
   gate local_check_tools_only_in_local_tables skip "no python3 with tomllib"
+fi
+
+# ---- plan 01-06: the tools/list probe (LOCAL-03, LOCAL-04, D-09, D-11, D-17) ----
+# Without --with-local and with no bbj-local in config.toml the installer sends one static tools/list
+# request to the probe URL (BBJ_LOCAL_MCP_URL, else the fixed url) and only suggests; with the flag
+# it registers on every outcome and warns unless a bbj-ls answered. Every case here has the seam on a
+# fake server or on the closed port, so a bbj-ls running on this machine is never contacted.
+CLOSED_URL=http://127.0.0.1:9/mcp
+
+# start_fake MODE: starts tests/fake_mcp.py, sets FAKE_PID, LOGF and BBJ_LOCAL_MCP_URL (the seam)
+start_fake() {
+  PORTF=$WORK/port.$1
+  LOGF=$WORK/req.$1.log
+  : > "$LOGF"
+  rm -f "$PORTF"
+  python3 -I "$REPO/tests/fake_mcp.py" --port-file "$PORTF" --log "$LOGF" --mode "$1" &
+  FAKE_PID=$!
+  FAKE_PIDS="$FAKE_PIDS $FAKE_PID"
+  _w=0
+  while [ ! -s "$PORTF" ] && [ "$_w" -lt 100 ]; do sleep 0.1; _w=$((_w + 1)); done
+  [ -s "$PORTF" ] || { gate "fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
+  BBJ_LOCAL_MCP_URL=http://127.0.0.1:$(cat "$PORTF")/mcp
+  export BBJ_LOCAL_MCP_URL
+}
+
+# stop_fake: kills the fake and puts the seam back on the closed port, so later cases stay hermetic
+stop_fake() {
+  kill "$FAKE_PID" 2> /dev/null
+  wait "$FAKE_PID" 2> /dev/null
+  BBJ_LOCAL_MCP_URL=$CLOSED_URL
+  export BBJ_LOCAL_MCP_URL
+}
+
+# nlines PREFIX: how many lines of the last run's stdout start with PREFIX
+nlines() {
+  grep -c -e "^$1" "$WORK/out"
+}
+
+if command -v python3 > /dev/null 2>&1; then
+  newenv probefound
+  start_fake tools-list
+  run_inst "$WITH_CODEX"
+  stop_fake
+  CFG=$E_CODEX/config.toml
+  _sug=$(grep -e '^bbj-local: a bbj-ls answers at' "$WORK/out")
+  _reqs=$(awk 'END { print NR }' "$LOGF")
+  if [ "$RC" = 0 ] && [ "$(nlines 'bbj-local: a bbj-ls answers at')" = 1 ] && printf '%s\n' "$_sug" | grep -F -e '--with-local' > /dev/null \
+    && printf '%s\n' "$_sug" | grep -F -e "$LOCAL_URL_T" > /dev/null && ! grep -F bbj-local "$CFG" > /dev/null && [ "$_reqs" = 1 ]; then
+    gate probe_found_suggests ok "a bbj-ls answers: exit 0, one suggestion line naming --with-local and $LOCAL_URL_T, no line of config.toml names bbj-local, one request"
+  else
+    gate probe_found_suggests FAIL "exit $RC, suggestions: $(nlines 'bbj-local: a bbj-ls answers at'), requests: $_reqs, out: $(grep bbj-local "$WORK/out" | head -c 300)"
+  fi
+  cat > "$WORK/probe_shape.py" << 'PYEOF'
+import json, sys
+entries = [json.loads(l) for l in open(sys.argv[1], encoding="utf-8") if l.strip()]
+if len(entries) != 1:
+    print("FAIL %d requests" % len(entries))
+    sys.exit(0)
+r = entries[0]
+h = r["headers"]
+problems = []
+if r["method"] != "POST" or r["path"] != "/mcp":
+    problems.append("%s %s" % (r["method"], r["path"]))
+if h.get("mcp-method") != "tools/list":
+    problems.append("Mcp-Method %r" % h.get("mcp-method"))
+if h.get("mcp-protocol-version") != "2026-07-28":
+    problems.append("MCP-Protocol-Version %r" % h.get("mcp-protocol-version"))
+if h.get("content-type") != "application/json":
+    problems.append("Content-Type %r" % h.get("content-type"))
+try:
+    b = json.loads(r["body"])
+except ValueError:
+    b = {}
+    problems.append("body is not JSON")
+if b.get("method") != "tools/list":
+    problems.append("method %r" % b.get("method"))
+if list(b.get("params", {})) != ["_meta"]:
+    problems.append("params %r" % list(b.get("params", {})))
+if "arguments" in r["body"] or "code" in r["body"]:
+    problems.append("the body names arguments or code")
+print("FAIL " + "; ".join(problems) if problems else "ok")
+PYEOF
+  _shape=$(python3 -I "$WORK/probe_shape.py" "$LOGF" 2>&1)
+  if [ "$_shape" = ok ]; then
+    gate probe_request_shape ok "one POST /mcp: Mcp-Method tools/list, MCP-Protocol-Version 2026-07-28, Content-Type application/json; the body is a tools/list whose params hold only _meta and names neither arguments nor code (T-01-17)"
+  else
+    gate probe_request_shape FAIL "$_shape"
+  fi
+else
+  gate probe_found_suggests skip "no python3"
+  gate probe_request_shape skip "no python3"
 fi
 
 # ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----

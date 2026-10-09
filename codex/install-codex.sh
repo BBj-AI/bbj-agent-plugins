@@ -84,6 +84,9 @@ LOCAL_URL=http://127.0.0.1:5009/mcp
 LOCAL_MARK_BEGIN='# >>> bbj-agent-plugins bbj-local (managed) >>>'
 LOCAL_MARK_END='# <<< bbj-agent-plugins bbj-local (managed) <<<'
 LOCAL_TOOLS='bbj_check_syntax bbj_format bbj_denum'
+# the tools/list probe of step 1b (plan 01-06, LOCAL-03, D-11): a static request that names no file,
+# no code and no project; the _meta keys are the ones the hook's check sends
+PROBE_BODY='{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}'
 TOOL_KEY='approval_mode = "approve"'
 # the server-wide line that versions up to 398aac5 of this script wrote; it is only ever
 # recognised and removed, never written again
@@ -554,6 +557,28 @@ sync_server() {
   fi
 }
 
+# probe_local: asks the bbj-ls of a running BBjServices for its tool list (plan 01-06, LOCAL-03, D-11).
+# Sets probe (found: a reply names bbj_check_syntax | none: no answer, or another server | nocurl |
+# refused: the url is not loopback http) and probe_url (BBJ_LOCAL_MCP_URL, else LOCAL_URL; the seam
+# moves only the probe, never the registration, D-17). It never writes a file, never exits and always
+# returns 0. Only a validated loopback url reaches curl, with no proxy, no .curlrc and no redirect; the
+# verdict is the tool name in the reply, never curl's exit code.
+probe_local() {
+  probe=none
+  probe_url=${BBJ_LOCAL_MCP_URL:-$LOCAL_URL}
+  case "$probe_url" in
+    *[[:space:]]*|*@*|*'?'*|*'#'*|*'\'*) probe=refused; return 0 ;;
+  esac
+  _pok=$(printf '%s' "$probe_url" | sed -nE 's#^http://(\[::1\]|127\.0\.0\.1|[Ll][Oo][Cc][Aa][Ll][Hh][Oo][Ss][Tt])(:[0-9]+)?(/[^ ]*)?$#ok#p')
+  [ "$_pok" = ok ] || { probe=refused; return 0; }
+  command -v curl > /dev/null 2>&1 || { probe=nocurl; return 0; }
+  _preply=$(curl -q -sS -g --noproxy '*' --proto =http --connect-timeout 2 -m 3 -X POST -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/list' --data "$PROBE_BODY" --url "$probe_url" 2> /dev/null)
+  if printf '%s' "$_preply" | grep -Eq '"name"[[:space:]]*:[[:space:]]*"bbj_check_syntax"'; then
+    probe=found
+  fi
+  return 0
+}
+
 use_docs
 sync_server
 
@@ -564,12 +589,20 @@ sync_server
 # line, as analyze reports it), the pass runs: leaving the flag out never removes or freezes a
 # block the user opted into (D-09), it refreshes it in place. A lone end marker (what codex mcp
 # remove leaves behind, D-10) is a comment and counts as no block; it is never touched.
-# With neither, nothing is written and nothing is printed for bbj-local; the probe of a running
-# bbj-ls that plan 01-06 adds belongs in that branch.
+# Without the flag and with no bbj-local in config.toml at all (no table, no mention, no managed
+# block) the probe of plan 01-06 asks a running bbj-ls on this machine for its tool list, once, and
+# only suggests --with-local when it answers (LOCAL-03, D-11); it writes nothing and sets nothing.
+# A bbj-local that is in config.toml (hand-registered or foreign) is never probed and never
+# mentioned without the flag.
 use_local
 refresh
 if [ "$with_local" = 1 ] || [ "$(an managed)" = 1 ]; then
   sync_server
+elif [ "$(an main)" = 0 ] && [ "$(an mention)" = 0 ]; then
+  probe_local
+  case "$probe" in
+    found) say "bbj-local: a bbj-ls answers at $probe_url; it is not registered with Codex. Rerun with --with-local to register it as bbj-local ($LOCAL_URL); nothing was written for it." ;;
+  esac
 fi
 
 # ---- 2. the skills ----
