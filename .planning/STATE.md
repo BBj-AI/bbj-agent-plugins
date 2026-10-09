@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 1
 current_phase_name: Repo-owned skills and local-first check route
 status: executing
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-10-09T17:41:21.278Z"
+stopped_at: Completed 01-06-PLAN.md
+last_updated: "2026-10-09T17:51:29.897Z"
 last_activity: 2026-10-09
 last_activity_desc: Phase 1 execution started
-state_head: 7676452697d5f00c86003dda5ae290113c306812
+state_head: 77f56034e2478a036ed7f2c80a3670e16feb4fee
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-09)
 ## Current Position
 
 Phase: 1 (Repo-owned skills and local-first check route) — EXECUTING
-Plan: 6 of 7
+Plan: 7 of 7
 Status: Ready to execute
 Last activity: 2026-10-09 — Phase 1 execution started
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 1 P04 | 9 min | 3 tasks | 2 files |
 | Phase 1 P05 | 6 min | 2 tasks | 4 files |
 | Phase 1 P02 | 6 min | 2 tasks | 8 files |
+| Phase 1 P06 | 9 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,8 @@ Recent decisions affecting current work:
 - [Phase 1]: [01-04] bbj-local url rule lives in state(): srv_fixed_url=1 and a url other than the fixed one is foreign (exit 3); section 1b runs sync_server only with --with-local or a managed block (D-09)
 - [Phase 1]: [01-05] Check-order block is pinned as exact decoded bytes between bbj-check-order markers in the snippet and both SKILL.md files; client_neutral runs on all three copies — Drift of any copy, or a client name in any copy, fails the suite
 - [Phase 1]: [01-02] Skills described as repository-owned in .claude/CLAUDE.md and all seven codebase maps with identical wording, so regenerated GSD sections keep it — Avoids reintroducing vendoring text on regeneration
+- [Phase 1]: [01-06] Probe verdict is the bbj_check_syntax name in the tools/list reply; with --with-local the probe only selects the printed line and bbj-local is registered on every outcome — LOCAL-04 predicate: registered anyway, warning on every outcome but found; the seam moves only the probe, never the registered url (D-17)
+- [Phase 1]: [01-06] curl_gate skips message-only say lines; the curl rules of the hook now hold for codex/*.sh — The installer's no-curl message holds the word curl but is not a call; a mutation run without --noproxy still fails the gate
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-09T17:41:21.255Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-10-09T17:51:29.869Z
+Stopped at: Completed 01-06-PLAN.md
 Resume file: None
