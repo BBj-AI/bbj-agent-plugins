@@ -978,14 +978,14 @@ def run_gates(root):
             if not measured[check]:
                 continue
             status, detail = decide(check, len(mine), entry)
-            gate("ratchet_%s_%s" % (name, check), status, detail)
+            gate("ratchet_" + gate_name(name, check), status, detail)
         if entry is not None:
             counts = counts_of(info["violations"], name)
             if all_zero(counts, measured, entry):
-                gate("pending_" + name, "FAIL", "remove from pending: every count is 0; "
+                gate("pending_" + gate_name(name), "FAIL", "remove from pending: every count is 0; "
                      "regenerate the baseline with --report")
             else:
-                gate("pending_" + name, "ok", "pending (Phase %s): %s" % (
+                gate("pending_" + gate_name(name), "ok", "pending (Phase %s): %s" % (
                     entry["phase"], " ".join(
                         "%s=%d" % (c, counts[c] if measured[c] else entry["counts"][c])
                         for c in CHECKS)))
@@ -1628,6 +1628,22 @@ def selftest_structure():
              "status=%s: rc %d, wanted a failing line starting %r among %d line(s)"
              % ("ok" if ok else "FAIL", rc, want, len(lines)))
     fx("structure_linked_skill_dir", linked_skill_dir)
+
+    # a hostile directory name (a space, a newline, a forged gate line) reaches no gate name raw (WR-03)
+    def hostile_dir_name():
+        hostile = "a ok b" + chr(10) + "gate skills_forged ok y"
+        files = two_skill_files()
+        files["%s/%s/SKILL.md" % (SKILLS_REL, hostile)] = dirty_skill_md("x")
+        root = make_root(files, fixture_baseline({}))
+        rc, lines = child_run(root)
+        forged = [l for l in lines if l.startswith("gate skills_forged")]
+        odd = [l for l in lines if l.split(" ")[2:3] not in (["ok"], ["FAIL"], ["skip"])]
+        named = [l for l in lines if l.startswith("gate skills_ratchet_a_ok_b_gate_skills_forged_ok_y_grammar ")]
+        ok = rc == 1 and not forged and not odd and len(named) == 1 and named[0].split(" ")[2] == "FAIL"
+        gate("fx_structure_hostile_dir_name", "ok" if ok else "FAIL",
+             "status=%s: rc %d, %d forged, %d malformed, %d sanitised ratchet line(s) of %d"
+             % ("ok" if ok else "FAIL", rc, len(forged), len(odd), len(named), len(lines)))
+    fx("structure_hostile_dir_name", hostile_dir_name)
 
     struct_case("no_skill_md", {"references/x.md": sources_ok}, [("SKILL.md", 1, "no SKILL.md")])
 
