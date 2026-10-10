@@ -445,6 +445,49 @@ else
   gate notice_header_marker_rules FAIL "the header lacks:$_miss"
 fi
 
+# ---- D-02: a compiler that runs but gives no verdict, with no tier-2 route (plan 02-02) ----
+# mkhome NAME: $WORK/NAME/bin/bbjcpl is a copy of the fake compiler (as in tests/test_discovery.sh)
+mkhome() {
+  mkdir -p "$WORK/$1/bin"
+  cp "$REPO/tests/fake-bin/bbjcpl" "$WORK/$1/bin/bbjcpl"
+  chmod 755 "$WORK/$1/bin/bbjcpl"
+}
+mkhome d02
+printf 'Error: could not find java\n' > "$WORK/javaerr"
+BBJ_HOME=$WORK/d02
+FAKE_LOG=$WORK/d02.log
+FAKE_OUT=$WORK/javaerr
+export BBJ_HOME FAKE_LOG FAKE_OUT
+fresh_state
+run_check "$PAYLOAD"
+DTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
+  holds_all notice_d02_reason "$DTEXT" "$FILE was written" 'bbjcpl found but gave no result' \
+    'no bbj-ls answering on 127.0.0.1:9'
+  holds_none notice_d02_not_no_bbjcpl "$DTEXT" 'no bbjcpl found'
+  run_check "$PAYLOAD"
+  silent_out notice_d02_second_silent
+else
+  gate notice_d02_reason FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
+  gate notice_d02_not_no_bbjcpl FAIL "no valid notice object"
+  gate notice_d02_second_silent FAIL "no valid notice object"
+fi
+# no output at all but exit status 126 (not executable) or higher is no verdict either
+unset FAKE_OUT
+FAKE_EXIT=126
+export FAKE_EXIT
+fresh_state
+run_check "$PAYLOAD"
+DTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
+  holds_all notice_d02_rc126 "$DTEXT" 'bbjcpl found but gave no result'
+else
+  gate notice_d02_rc126 FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
+fi
+unset BBJ_HOME FAKE_LOG FAKE_OUT FAKE_EXIT
+
 # ---- no marker in the real temp directory ----
 TMPLIST_AFTER=$(ls -d "${TMPDIR:-/tmp}"/bbj-check-noroute-* 2> /dev/null | sort)
 if [ "$TMPLIST_BEFORE" = "$TMPLIST_AFTER" ]; then
