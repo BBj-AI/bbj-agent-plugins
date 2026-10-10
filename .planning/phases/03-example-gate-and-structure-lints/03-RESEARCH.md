@@ -553,20 +553,25 @@ This confirms the earlier research figures (51 and 69). The per-file, per-line l
 | A4 | Counting `bbj-ls` diagnostics of any severity (only `error` seen) as failure is acceptable | Pattern 4 | A future warning would fail blocks; the verdict function keys on the text, which lists the diagnostics the server counts as errors |
 | A5 | The grammar and structure counting units proposed below are acceptable (planner may choose others) | Baseline JSON | Only changes what numbers go in the baseline |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Initial `nocheck` budget**
    - What we know: the current count is 0; Phases 4-5 will probably need `bbj nocheck (reason)` for real fragments; D-15 fails the gate if the count exceeds the recorded number.
    - What's unclear: whether the planner should record 0 (strict, Phases 4-5 must edit the baseline visibly) or a starting budget.
    - Recommendation: record 0; the baseline edit is the visible review point. Document the procedure in the test docstring.
+   - RESOLVED: budget 0, raised only through `--report` plus a committed baseline diff (03-02).
 2. **Granularity of pending `skip` gates (reading of D-01)**
    - What we know: D-01 says "a violation prints as a `skip` gate"; 69 + 51 live failures plus lint violations would add well over 120 skip lines.
    - Recommendation: one `skip` gate per (skill, check or route) with count and baseline in the detail, per-violation lines printed as non-gate lines; non-pending skills get one FAIL gate per violation. If the planner wants strict per-violation skip gates, the cost is noisy `SUMMARY: skip=`.
+   - RESOLVED: one gate per violation (skip for a pending skill, FAIL otherwise) plus one ratchet gate per (skill, check), the literal reading of D-01 and D-14 (03-01).
 3. **Counting units for grammar and structure** (feeds the ratchet numbers)
    - Recommendation: grammar = one violation per fence (untagged / unknown attribute / unclosed / disallowed tag) plus one per `bbj` or `should-fail` block containing `...` (today: programming 6 + 5 = 11, web 1 + 4 = 5); structure = one per (rule, file) for description, one per file for a missing `## Sources`, one per file for a missing "Verified on BBj" line, one per denylisted string per line (today: programming 12 line hits, 5 + 5 reference-file items; web 1 + 7 + 7). Report mode computes the actual numbers.
+   - RESOLVED: units as recommended; report mode records the measured numbers (03-01 grammar, 03-02 structure, 03-03/03-04 live).
 4. **`should-fail` on a machine with only `bbj-ls`**
    - A type-check-only negative example (e.g. an invented method) passes `bbj-ls`, so with only that route it would fail the "must fail on at least one route" rule. Recommendation: a `should-fail` block that no available route fails is a FAIL only when `bbjcpl` is among the available routes or `BBJ_SKILLS_LIVE=1`; otherwise report it as `skip` "needs bbjcpl". No should-fail blocks exist yet, so this affects only Phases 4-5; the planner should decide and pin it with a fixture.
+   - RESOLVED: no available route fails it and `bbjcpl` is available -> violation; only `bbj-ls` available -> undecided (skip, FAIL under `BBJ_SKILLS_LIVE=1`), recorded as the D-08 amendment in 03-CONTEXT.md and pinned by fixture `skills_fx_outcome_sf_undecided` (03-03).
 5. **Deferred (out of scope per CONTEXT):** content-hash stamps, `-W` undeclared-variable warnings, matching expected error text.
+   - RESOLVED: stays deferred.
 
 ## Environment Availability
 

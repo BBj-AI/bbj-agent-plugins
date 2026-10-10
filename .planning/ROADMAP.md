@@ -121,7 +121,29 @@ Plans:
   4. Structure lints fail on a skill description over 1,024 characters, on any denylisted project leftover or fixed install path (`DailyDrift`, `DriftDB`, `migrateSortPrefs`, `watches!`, `cart-updated`, `/opt/basis/bin/`), and on a reference file that lacks a Sources section or a "Verified on BBj <version>" line
   5. A baseline report of the current skills against the gate (failing blocks per route, lint violations) is committed, and skills not yet reworked are listed as pending rather than silently exempt, so the suite's pass/fail stays meaningful until Phases 4-5 finish
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 03-01-PLAN.md — Grammar lint vertical slice: fence extractor, D-05..D-07 grammar, pending list and ratchet (D-01..D-04), --report baseline writer, grammar/ratchet/report fixtures (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 03-02-PLAN.md — Structure lints (description length, denylist, Sources + Verified line) and the repository-wide nocheck ratchet, with fixtures (wave 2, after 03-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 03-03-PLAN.md — Live route 1: one batched bbjcpl -t -N -X call with canaries and record attribution, bbj / should-fail outcome rules, skip-unless-BBJ_SKILLS_LIVE route gate, fake-compiler guards (wave 3, after 03-02)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 03-04-PLAN.md — Live route 2: bbj-ls over loopback with the hook's rules (no proxy, no redirect), network guard fixtures; committed baseline and 03-BASELINE.md from a two-route run on BBj 26.03; ci.sh header line (wave 4, after 03-03)
+
+**Cross-cutting constraints:**
+
+- All four plans edit tests/test_skill_examples.py and regenerate tests/skills_baseline.json, so they run strictly in sequence; the baseline is only ever written by --report, never by hand
+- No file under plugins/bbj/skills/ changes in this phase
 
 ### Phase 4: bbj-programming makeover
 
@@ -175,7 +197,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 |-------|----------------|--------|-----------|
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
-| 3. Example gate and structure lints | 0/TBD | Not started | - |
+| 3. Example gate and structure lints | 0/4 | Planned | - |
 | 4. bbj-programming makeover | 0/TBD | Not started | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |

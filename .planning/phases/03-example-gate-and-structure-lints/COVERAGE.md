@@ -1,0 +1,1 @@
+No external API integration: the phase adds a local test gate (tests/test_skill_examples.py) that reads the skill Markdown and calls only this machine's own BBj compiler (bbjcpl -t -N -X) and the loopback bbj-ls check route on 127.0.0.1 (refusing any non-loopback URL, the hosted check included); no external service, SDK or remote API is integrated.

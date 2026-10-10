@@ -46,6 +46,11 @@ Not in scope: fixing any skill content. This phase changes no text under
   blocks are exempt (they are already skipped and counted).
 - **D-08:** `bbj should-fail` passes when the block fails on at least one available route. No
   matching of the error text in this phase (deferred).
+  - **D-08 amendment (planning, auto mode):** when no available route fails a `should-fail`
+    block and `bbjcpl` is among the available routes, it is a violation. When only `bbj-ls` is
+    available, the outcome is undecided (bbj-ls is syntax-only and cannot confirm a type-check
+    negative): it prints `skip`, becomes FAIL under `BBJ_SKILLS_LIVE=1` (as D-13), and is not
+    counted in the baseline. Source: research Open Question 4; implemented in plan 03-03.
 - **D-09:** The lint (extraction + grammar + structure + nocheck ratchet) needs only Python 3
   stdlib and runs in CI under `tests/run.sh`; it is green in CI from day one through D-01/D-02.
 
@@ -64,6 +69,10 @@ Not in scope: fixing any skill content. This phase changes no text under
 - **D-13:** A `bbj` block must pass every available route. Without any route the live check
   prints `skip`; with `BBJ_SKILLS_LIVE=1` a missing route (either one) is a FAIL. Under
   `CI=true` without `BBJ_SKILLS_LIVE=1` it stays a skip (local-only gate decision).
+  - **D-13 CI exemption (reviewed exception):** the repository convention (CLAUDE.md, `tests/run.sh`)
+    makes a missing prerequisite a FAIL under `CI=true`. The live routes are exempt: CI has no BBj
+    (PROJECT.md "local-only gate"), so they stay `skip` there, exactly as `tests/test_real_compiler.sh`
+    already does. The lint gates (D-09) have no such exemption. Stated in the test docstring (plan 03-01).
 - **D-14:** Gate names carry skill, file, source line and route so a failure points at the
   block; totals per route are printed as well.
 
