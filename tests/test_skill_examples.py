@@ -1111,12 +1111,12 @@ def fence_line(text):
     return extract(lines_of(text))[0]["line"]
 
 
-def child_case(name, files, baseline, want_rc, wants, forbids=(), args=None):
+def child_case(name, files, baseline, want_rc, wants, forbids=(), args=None, env=None):
     """One child run: the return code, the child gate lines that must be there (by prefix) and
     those that must not. Child output is never echoed with a leading 'gate ' (run.sh counts it)."""
     def run():
         root = make_root(files, baseline)
-        rc, lines = child_run(root, args=args)
+        rc, lines = child_run(root, args=args, env=env)
         missing = [w for w in wants if not any(l.startswith(w) for l in lines)]
         present = [l for l in lines if any(l.startswith(p) for p in forbids)]
         if want_rc == 0:
@@ -1459,6 +1459,307 @@ def selftest_nocheck():
 
 
 # ---------------------------------------------------------------------------------------------
+# fixtures for live route 1: the fake compiler stands in for BBj, so CI proves the plumbing
+# ---------------------------------------------------------------------------------------------
+
+FAKE_CPL = os.path.join(os.path.dirname(THIS), "fake-bin", "bbjcpl")
+
+
+def fake_home(script=None):
+    """A temp BBj home whose bin/bbjcpl is a copy of tests/fake-bin/bbjcpl (or the given script
+    text); returns the home."""
+    home = tempfile.mkdtemp(prefix="skillfx-")
+    TEMP_DIRS.append(home)
+    os.makedirs(os.path.join(home, "bin"))
+    target = os.path.join(home, "bin", "bbjcpl")
+    if script is None:
+        shutil.copyfile(FAKE_CPL, target)
+    else:
+        write_text(target, script)
+    os.chmod(target, 0o755)
+    return home
+
+
+def sblock(line, *body, **kw):
+    """A block dict shaped like extract() output."""
+    return {"line": line, "fence": "`" * 3, "info": kw.get("info", "bbj"), "body": list(body),
+            "closed": True}
+
+
+def sblocks(*specs):
+    """[(index, skill, file, block)] from (opener line, body line) pairs."""
+    return [(n, "s", "a.md", sblock(line, text)) for n, (line, text) in enumerate(specs)]
+
+
+def fake_route(blocks, out_text, extra=None, script=None):
+    """Run cpl_route against the fake compiler. out_text(work dir) is the text the fake prints on
+    stderr, or None to leave FAKE_OUT unset; extra adds environment variables, script replaces the
+    fake. Returns the route, the call log and the pieces."""
+    home = fake_home(script)
+    work = tempfile.mkdtemp(prefix="skillfx-")
+    TEMP_DIRS.append(work)
+    base = os.path.abspath(work)
+    log = os.path.join(home, "calls.log")
+    env = dict(os.environ)
+    for key in ("FAKE_OUT", "FAKE_EXIT", "FAKE_STDOUT"):
+        env.pop(key, None)
+    env["FAKE_LOG"] = log
+    env.update(extra or {})
+    if out_text is not None:
+        out_file = os.path.join(home, "out.txt")
+        write_text(out_file, out_text(base))
+        env["FAKE_OUT"] = out_file
+    fake = os.path.join(home, "bin", "bbjcpl")
+    route = cpl_route(fake, blocks, work, env=env)
+    logged = read_text(log) if os.path.exists(log) else ""
+    return {"route": route, "log": logged, "base": base, "fake": fake}
+
+
+def parse_log(text):
+    """(calls, ARG0 lines) of a fake compiler log: each call is its list of arguments."""
+    calls, current, arg0 = [], None, []
+    for line in text.split("\n"):
+        if line == "CALL":
+            current = []
+            calls.append(current)
+        elif line.startswith("ARG0 "):
+            arg0.append(line[5:])
+        elif line != "" and current is not None:
+            current.append(line)
+    return calls, arg0
+
+
+def argv_problem(call, base):
+    """None when the call is -t -N -X then only absolute .bbj paths inside base, else a reason."""
+    if call[:3] != ["-t", "-N", "-X"]:
+        return "arguments start with %s, not -t -N -X" % call[:3]
+    for arg in call[3:]:
+        if not (os.path.isabs(arg) and arg.endswith(".bbj") and arg.startswith(base + os.sep)):
+            return "unexpected argument %r" % arg
+    return None
+
+
+def lines_text(*lines):
+    return "\n".join(lines) + "\n"
+
+
+def case(name, got, want):
+    gate("fx_" + name, "ok" if got == want else "FAIL", "want %r, got %r" % (want, got))
+
+
+def selftest_cpl():
+    # skills_guard_cpl_argv: research Pitfall 8 in Python form
+    def argv_guard():
+        r = fake_route(sblocks((10, "print 1"), (20, "print 2")), lambda base: "")
+        calls, arg0 = parse_log(r["log"])
+        names = ["b0000.bbj", "b0001.bbj", "canary_good.bbj", "canary_bad.bbj"]
+        want = [os.path.join(r["base"], n) for n in names]
+        problem = argv_problem(calls[0], r["base"]) if calls else "no call logged"
+        ok = (len(calls) == 1 and problem is None and calls[0][3:] == want
+              and arg0 == [r["fake"]])
+        gate("guard_cpl_argv", "ok" if ok else "FAIL",
+             "one call of -t -N -X and four counter-named paths" if ok
+             else "calls %d, problem %s, args %s" % (len(calls), problem, calls[:1]))
+    fx("guard_cpl_argv", argv_guard)
+
+    def attribution():
+        def out(base):
+            return lines_text(
+                os.path.join(base, "canary_bad.bbj") + ': error at line 10 (1): print "a"   rem same line',
+                os.path.join(base, "b0001.bbj")
+                + ": type check error [Ambiguous signatures <init>(java.util.Collection)",
+                "<init>(int)",
+                "] at line 20 (2):     list! = new java.util.ArrayList(mru!.keySet())")
+        route = fake_route(sblocks((10, "print 1"), (20, "list! = new java.util.ArrayList(m!)")),
+                           out)["route"]
+        want = {0: {"fail": False, "detail": ""},
+                1: {"fail": True, "detail": "line 22: type check error [Ambiguous signatures "
+                                             "<init>(java.util.Collection)"}}
+        case("cpl_attribution", (route["state"], route["verdicts"]), ("ok", want))
+    fx("cpl_attribution", attribution)
+
+    def prefix_exact():
+        paths = ["/w/b0001.bbj", "/w/b0010.bbj"]
+        records, stray = cpl_records(lines_text("/w/b0010.bbj: error at line 10 (1): x"), paths)
+        case("cpl_records_prefix_exact", (records, stray),
+             ({"/w/b0010.bbj": [["error at line 10 (1): x"]]}, []))
+        # a look-alike path never opens a record: unattributed before any record, a continuation after
+        records, stray = cpl_records(lines_text("/w/b0001.bbjx: z", "/w/b0001.bbj: e"), paths)
+        case("cpl_records_lookalike_unattributed", (records, stray),
+             ({"/w/b0001.bbj": [["e"]]}, ["/w/b0001.bbjx: z"]))
+    fx("cpl_records_prefix_exact", prefix_exact)
+
+    def continuation():
+        records, stray = cpl_records("P: first\nsecond\n\n   \nthird\nP: another\n", ["P"])
+        case("cpl_records_continuation", (records, stray),
+             ({"P": [["first", "second", "third"], ["another"]]}, []))
+    fx("cpl_records_continuation", continuation)
+
+    def no_line():
+        records, stray = cpl_records("P: error: Unable to open file\n", ["P"])
+        got = (records, stray, record_detail(5, records["P"][0]), len(record_detail(5, ["x" * 300])))
+        case("cpl_records_no_line", got,
+             ({"P": [["error: Unable to open file"]]}, [], "error: Unable to open file", 200))
+    fx("cpl_records_no_line", no_line)
+
+    def stdin_and_exit():
+        # a compiler that reads stdin must see end-of-file at once (a bare bbjcpl waits there), and
+        # its exit status carries no verdict: it is 0 on every outcome on BBj 26.03
+        script = "\n".join([
+            "#!/bin/sh",
+            'if read _x; then echo stdin-data >> "$FAKE_LOG"; else echo stdin-eof >> "$FAKE_LOG"; fi',
+            'for a in "$@"; do last=$a; done',
+            "printf '%s: error at line 10 (1): a\\n' \"$last\" >&2",
+            "exit 3", ""])
+        r = fake_route(sblocks((10, "print 1")), None, script=script)
+        case("cpl_stdin_eof_exit_ignored", (r["log"].split("\n")[0], r["route"]["state"]),
+             ("stdin-eof", "ok"))
+    fx("cpl_stdin_eof_exit_ignored", stdin_and_exit)
+
+    def canary_silent():
+        route = fake_route(sblocks((10, "print 1")), lambda base: "")["route"]
+        case("cpl_canary_silent", (route["state"], "canary_bad.bbj" in route["detail"],
+                                   route["verdicts"]), ("broken", True, {}))
+    fx("cpl_canary_silent", canary_silent)
+
+    def canary_good_record():
+        def out(base):
+            return lines_text(os.path.join(base, "canary_bad.bbj") + ": error at line 10 (1): a",
+                              os.path.join(base, "canary_good.bbj") + ": error at line 10 (1): b")
+        route = fake_route(sblocks((10, "print 1")), out)["route"]
+        case("cpl_canary_good_record", (route["state"], route["detail"], route["verdicts"]),
+             ("broken", "canary_good.bbj got an error record", {}))
+    fx("cpl_canary_good_record", canary_good_record)
+
+    def stray():
+        def out(base):
+            return lines_text("stray line from nowhere",
+                              os.path.join(base, "canary_bad.bbj") + ": error at line 10 (1): a")
+        route = fake_route(sblocks((10, "print 1")), out)["route"]
+        case("cpl_stray", (route["state"], route["detail"], route["verdicts"]),
+             ("broken", "unattributed compiler output: stray line from nowhere", {}))
+    fx("cpl_stray", stray)
+
+    def zero_blocks():
+        def out(base):
+            return lines_text(os.path.join(base, "canary_bad.bbj") + ": error at line 10 (1): a")
+        r = fake_route([], out)
+        calls, arg0 = parse_log(r["log"])
+        want = [os.path.join(r["base"], "canary_good.bbj"), os.path.join(r["base"], "canary_bad.bbj")]
+        got = (len(calls), calls[0][3:] if calls else None, argv_problem(calls[0], r["base"])
+               if calls else "no call", r["route"]["state"], r["route"]["verdicts"])
+        case("cpl_zero_blocks", got, (1, want, None, "ok", {}))
+    fx("cpl_zero_blocks", zero_blocks)
+
+    def selection():
+        f = "`" * 3
+        text = "".join([fence_text(f + "bbj", "a", f), fence_text(f + "bbj should-fail", "b", f),
+                        fence_text(f + "bbj nocheck (why)", "c", f), fence_text(f + "css", "d", f),
+                        fence_text(f, "e", f), fence_text(f + "bbj", "f")])
+        tree = {"fx": {"blocks": {"a.md": extract(lines_of(text))}}}
+        got = [(i, skill, rel, b["line"], b["info"]) for i, skill, rel, b in live_blocks(tree)]
+        case("live_blocks_selection", got, [(0, "fx", "a.md", 1, "bbj"),
+                                            (1, "fx", "a.md", 4, "bbj should-fail")])
+    fx("live_blocks_selection", selection)
+
+    def outcomes():
+        ok = {"fail": False, "detail": ""}
+
+        def bad(text):
+            return {"fail": True, "detail": text}
+
+        case("outcome_bbj_pass", block_outcome("bbj", {"bbjcpl": ok}, True), [])
+        case("outcome_bbj_fail_cpl", block_outcome("bbj", {"bbjcpl": bad("d1")}, True),
+             [("bbjcpl", "violation", "d1")])
+        case("outcome_bbj_fail_both",
+             block_outcome("bbj", {"bbj-ls": bad("d2"), "bbjcpl": bad("d1")}, True),
+             [("bbjcpl", "violation", "d1"), ("bbj-ls", "violation", "d2")])
+        case("outcome_sf_failed_by_cpl", block_outcome("should-fail", {"bbjcpl": bad("d")}, True), [])
+        case("outcome_sf_failed_by_ls",
+             block_outcome("should-fail", {"bbjcpl": ok, "bbj-ls": bad("d")}, True), [])
+        case("outcome_sf_unfailed", block_outcome("should-fail", {"bbjcpl": ok}, True),
+             [("should-fail", "violation", "should-fail block passes every available route (bbjcpl)")])
+        case("outcome_sf_undecided", block_outcome("should-fail", {"bbj-ls": ok}, False),
+             [("should-fail", "undecided",
+               "undecided: should-fail block passes bbj-ls; only bbjcpl can confirm it")])
+        case("outcome_no_route", (block_outcome("bbj", {}, False), block_outcome("should-fail", {}, False)),
+             ([], []))
+    fx("outcomes", outcomes)
+
+    def refusal():
+        def route(state):
+            return {"route": "bbjcpl", "state": state, "detail": "why"}
+
+        got = (report_refusal([route("missing")]), report_refusal([route("broken")]),
+               report_refusal([route("ok")]))
+        case("report_refusal_unit", got, ("route bbjcpl is missing: why",
+                                          "route bbjcpl is broken: why", None))
+    fx("report_refusal_unit", refusal)
+
+
+def route_files():
+    """The two known skills as clean fixtures, each with one closed bbj block."""
+    f = "`" * 3
+    files = {}
+    for name in ("bbj-programming", "bbj-web-programming"):
+        files["%s/%s/SKILL.md" % (SKILLS_REL, name)] = (
+            clean_skill_md(name) + fence_text("", f + "bbj", 'print "a"', f))
+    return files
+
+
+def selftest_routes():
+    none = fixture_baseline({})
+    skip = "gate skills_route_bbjcpl skip no executable "
+    child_case("route_missing_skip", route_files(), none, 0, [skip])
+    child_case("route_missing_strict_fail", route_files(), none, 1,
+               ["gate skills_route_bbjcpl FAIL BBJ_SKILLS_LIVE=1 but no executable "],
+               env={"BBJ_SKILLS_LIVE": "1"})
+    child_case("route_ci_stays_skip", route_files(), none, 0, [skip], env={"CI": "true"})
+
+    def broken(name, strict):
+        def run():
+            home = fake_home()
+            log = os.path.join(home, "calls.log")
+            env = {"BBJ_TEST_HOME": home, "FAKE_LOG": log, "FAKE_OUT": None, "FAKE_EXIT": None,
+                   "FAKE_STDOUT": None, "BBJ_SKILLS_LIVE": "1" if strict else None}
+            root = make_root(route_files(), none)
+            rc, lines = child_run(root, env=env)
+            reason = "canary_bad.bbj got no error record; the compiler did not check"
+            want = ("gate skills_route_bbjcpl FAIL BBJ_SKILLS_LIVE=1 but " + reason if strict
+                    else "gate skills_route_bbjcpl skip " + reason + "; set BBJ_SKILLS_LIVE=1 "
+                    "to make this a failure")
+            calls, arg0 = parse_log(read_text(log) if os.path.exists(log) else "")
+            problem = argv_problem(calls[0], os.path.dirname(calls[0][-1])) if calls else "no call"
+            ok = (rc == (1 if strict else 0) and want in lines and len(calls) == 1
+                  and problem is None)
+            gate("fx_" + name, "ok" if ok else "FAIL",
+                 "rc %d, route line present %s, calls %d, problem %s"
+                 % (rc, want in lines, len(calls), problem))
+        fx(name, run)
+
+    broken("route_broken_skip", False)
+    broken("route_broken_strict_fail", True)
+
+    def refused():
+        out_dir = tempfile.mkdtemp(prefix="skillfx-")
+        TEMP_DIRS.append(out_dir)
+        json_path = os.path.join(out_dir, "b.json")
+        md_path = os.path.join(out_dir, "b.md")
+        root = make_root(route_files(), none)
+        rc, lines = child_run(root, args=["--report", json_path, md_path])
+        left = sorted(os.listdir(out_dir))
+        gate("fx_report_refused_no_route", "ok" if rc == 2 and not left else "FAIL",
+             "rc %d, files left in the output directory: %s" % (rc, left))
+    fx("report_refused_no_route", refused)
+
+    two = two_skill_files()
+    child_case("pending_unmeasured_uses_baseline", two,
+               fixture_baseline({"bbj-programming": {"bbjcpl": 3}}), 0,
+               ["gate skills_pending_bbj-programming ok"],
+               forbids=["gate skills_ratchet_bbj-programming_bbjcpl"])
+
+
+# ---------------------------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------------------------
 
@@ -1477,6 +1778,8 @@ def main():
             selftest_report()
             selftest_structure()
             selftest_nocheck()
+            selftest_cpl()
+            selftest_routes()
     except Exception as e:
         print("gate skills_internal FAIL %s: %s" % (type(e).__name__, safe(e)))
         return 1
