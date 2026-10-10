@@ -186,7 +186,9 @@ if [ -f "$CODEX_PAGE" ]; then
     'http://127.0.0.1:5009/mcp' \
     'codex mcp remove bbj-local' \
     'BBJ_LOCAL_MCP_URL' \
-    'tools/list'
+    'tools/list' \
+    'once per session' \
+    'not compile-checked'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
@@ -194,6 +196,7 @@ if [ -f "$CODEX_PAGE" ]; then
   # the Codex route is unverified: the page must not say it was verified or tested on Codex
   forbid "$n" "$CODEX_PAGE" '(was|has been|is) (verified|tested) (on|with) (a )?Codex' codex_verified_claim
   forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$CODEX_PAGE" "$NOROUTE_SILENCE" noroute_silence
 
   # the bbj-local tool tables of the page are the installer's LOCAL_TOOLS, one list (plan 01-07)
   INSTALLER=$REPO/codex/install-codex.sh
@@ -239,6 +242,13 @@ if [ -f "$README" ]; then
   done
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$README" "$NOROUTE_SILENCE" noroute_silence
+fi
+
+# ---- installer output: the Known gaps line names the no-route notice (plan 02-03, HOOK-02) ----
+if [ -f "$REPO/codex/install-codex.sh" ]; then
+  n=installer
+  need "$n" "$REPO/codex/install-codex.sh" 'once per session'
+  forbid "$n" "$REPO/codex/install-codex.sh" "$NOROUTE_SILENCE" noroute_silence
 fi
 
 # ---- relative Markdown links resolve ----
