@@ -222,25 +222,29 @@ fi
 # tab and a Latin-1 byte), and a command substitution in a name is never run
 _tab=$(printf '\t')
 _l1=$(printf 'caf\351')
+HOSTILE_BAD=
 hostile() {
-  # hostile NAME FILE-NAME EXPECTED-FRAGMENT
-  : > "$WORK/proj/$2"
+  # hostile FILE-NAME EXPECTED-FRAGMENT: a Write of that file gives a valid notice naming it
+  : > "$WORK/proj/$1"
   fresh_state
-  run_check "$(claude_payload Write "$WORK/proj/$2" "$WORK/proj")"
+  run_check "$(claude_payload Write "$WORK/proj/$1" "$WORK/proj")"
   _htext=$(notice_text "$WORK/stdout")
   _nr=$?
-  if [ "$_nr" = 0 ] && printf '%s' "$_htext" | grep -F -- "$3" > /dev/null; then
-    gate "$1" ok "valid object naming $3"
-  else
-    gate "$1" FAIL "notice_text $_nr: $(printf '%s' "$_htext" | head -c 160)"
+  if [ "$_nr" != 0 ] || ! printf '%s' "$_htext" | grep -F -- "$2" > /dev/null; then
+    HOSTILE_BAD="$HOSTILE_BAD [$2: notice_text $_nr]"
   fi
 }
 cd "$WORK" || exit 1
-hostile notice_hostile_names_json_quote 'q"uote.bbj' 'q"uote.bbj'
-hostile notice_hostile_names_json_backslash 'back\slash.bbj' 'back\slash.bbj'
-hostile notice_hostile_names_json_tab "tab${_tab}name.bbj" 'tab?name.bbj'
-hostile notice_hostile_names_json_latin1 "$_l1.bbj" 'caf?.bbj'
-hostile notice_hostile_names_json_subst 'x$(touch PWNED).bbj' 'x$(touch PWNED).bbj'
+hostile 'q"uote.bbj' 'q"uote.bbj'
+hostile 'back\slash.bbj' 'back\slash.bbj'
+hostile "tab${_tab}name.bbj" 'tab?name.bbj'
+hostile "$_l1.bbj" 'caf?.bbj'
+hostile 'x$(touch PWNED).bbj' 'x$(touch PWNED).bbj'
+if [ -z "$HOSTILE_BAD" ]; then
+  gate notice_hostile_names_json ok "valid object for a quote, a backslash, a tab, a Latin-1 byte and a command substitution"
+else
+  gate notice_hostile_names_json FAIL "$HOSTILE_BAD"
+fi
 if [ -z "$(find "$WORK" -name PWNED)" ] && [ ! -e PWNED ]; then
   gate notice_no_pwned ok "no file PWNED anywhere"
 else
