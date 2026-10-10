@@ -1,13 +1,14 @@
 ---
 phase: 01-repo-owned-skills-and-local-first-check-route
 verified: 2026-10-09T19:00:00Z
-status: human_needed
+status: passed
 score: 4/5 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 re_verification: null
 coincidental_reliance_items: []
 human_verification:
+
   - test: "Decide whether CHANGELOG.md line 41 (0.1.0 entry) may keep naming the removed lock file"
     expected: "Either accept it as historical release-note text (add an override, see Gaps Summary) or reword/remove the line so the grep-zero for VEND-01 'no doc references them' is literal"
     why_human: "VEND-01 and roadmap SC1 say 'no test, script or doc references them'; CHANGELOG.md:41 still reads 'vendored byte for byte (see `skills.lock.json`)' and line 9 still says 'the two BBjSkills'. Plan 01-01 and an orchestrator ruling excluded CHANGELOG as historical, but no override is recorded and the 0.1.0 entry is marked 'unreleased' (never tagged)"
@@ -141,6 +142,7 @@ No FAILED must-have. One item is a candidate gap pending a ruling:
 
 ```yaml
 overrides:
+
   - must_have: "skills.lock.json and tests/test_skills_hash.py are gone, nothing references them"
     reason: "CHANGELOG.md 0.1.0 entry is historical release text (never tagged); deliberate decision in plan 01-01"
     accepted_by: "{name}"

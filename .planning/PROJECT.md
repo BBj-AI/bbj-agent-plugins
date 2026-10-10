@@ -25,26 +25,20 @@ and `bbj-ls`).
 - ✓ `PostToolUse` hook on `Write|Edit` compile-checks BBj files: `bbjcpl -t -N -X`, then loopback `bbj-ls`, never the hosted check, never runs BBj code — 0.1.0
 - ✓ Codex installer (`codex/install-codex.sh`) registers `bbj-docs`, installs skills and the hook; the five docs tools auto-approved, the three code-sending tools keep the prompt — 0.1.0
 - ✓ Shell/Python test suite (`tests/run.sh`, `tests/ci.sh`) with ShellCheck and plugin validation in CI — 0.1.0
-- ✓ Skills vendored byte-for-byte from BBjSkills, pinned by `skills.lock.json` — 0.1.0 (to be retired in 0.2.0)
+- ✓ Codex installer `--with-local`: registers `bbj-local` at `http://127.0.0.1:5009/mcp` with its three tools auto-approved; opt-in, suggested by an install-time probe; registers and warns when the probe does not find it — Phase 1
+- ✓ `codex/AGENTS-snippet.md` and both SKILL.md files carry one shared check-order block (`bbjcpl`, then `bbj-local`, then hosted only when neither exists, disclosing that hosted sends code away), pinned byte-identical by `tests/test_check_order.py` — Phase 1
+- ✓ Docs and README present `bbj-local` as preferred over the hosted check (never over `bbjcpl`), with the two reasons — Phase 1
+- ✓ Installer tests cover `--with-local` and the probe in `tests/test_install_codex.sh` — Phase 1
+- ✓ Vendoring retired: `skills.lock.json`, `tests/test_skills_hash.py`, the README section and NOTICE provenance removed; "the BBjSkills" wording replaced; skills under the normal layout tests — Phase 1
 
 ### Active
-
-**A. Local check route**
-- [ ] Codex installer offers `--with-local`: registers `[mcp_servers.bbj-local]` at `http://127.0.0.1:5009/mcp`, its three tools auto-approved (nothing leaves the machine); opt-in, suggested when an install-time probe finds `bbj-ls`
-- [ ] `codex/AGENTS-snippet.md` tells the agent to use `bbj-local`'s tools when registered, the hosted ones only otherwise
-- [ ] Docs and README present `bbj-local` as the preferred check route, with the two reasons (code stays on the machine; checked against the installation's own PREFIX, classpath and config)
-- [ ] Installer tests cover `--with-local` in `tests/test_install_codex.sh`
-
-**B. Stop vendoring**
-- [ ] `skills.lock.json`, `tests/test_skills_hash.py`, the README "Vendored skills" section and the vendoring wording in NOTICE are removed
-- [ ] "the BBjSkills" wording replaced in `plugins/bbj/.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `docs/install-claude-code.md`
 
 **C. Skills makeover (`bbj-programming`, `bbj-web-programming` and their references)**
 - [ ] Every claim is either in the BBj docs (URL cited) or reproduced on a real BBj (version noted); taste is cut entirely
 - [ ] Every BBj code block passes `bbj_check_syntax` on local `bbj-ls`
 - [ ] A test extracts every fenced BBj block and checks it when `bbj-ls` or `bbjcpl` is present (local-only gate, like `BBJ_LS_LIVE`); CI checks the extraction only
 - [ ] Neutral example names; no project leftovers, no fixed install paths
-- [ ] Skills state the check order (`bbjcpl`, then local `bbj-ls`, then hosted only when neither exists) and point to the docs tools instead of copying reference tables
+- [ ] Skills point to the docs tools instead of copying reference tables (check-order block shipped in Phase 1)
 - [ ] "Built in: no USE needed" sentence lands in `bbj-programming`
 - [ ] Skill names unchanged (`/bbj:bbj-programming`, `/bbj:bbj-web-programming`)
 
@@ -78,8 +72,8 @@ and `bbj-ls`).
   focus-ring padding rule.
 - Hosted `bbj_check_syntax`, `bbj_format`, `bbj_denum` send code to `https://mcp.bbj-ai.com/mcp`
   (pre-production); that is the reason the local route is preferred.
-- Editing the skills today breaks `tests/test_skills_hash.py`, so stop-vendoring comes before
-  the makeover.
+- Vendoring retired in Phase 1: the skills are edited here under `tests/test_layout.py`; the
+  hash test is gone.
 
 ## Constraints
 
@@ -93,8 +87,8 @@ and `bbj-ls`).
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| This repo hosts the skills; BBjSkills no longer upstream | Skills need a makeover, not a re-sync | — Pending |
-| Local `bbj-ls` preferred over hosted check | Code stays local; checked against the installation's own config | — Pending |
+| This repo hosts the skills; BBjSkills no longer upstream | Skills need a makeover, not a re-sync | ✓ Good — Phase 1 |
+| Local `bbj-ls` preferred over hosted check | Code stays local; checked against the installation's own config | ✓ Good — Phase 1 |
 | Cut all taste from skills (no labelled suggestions) | Skills should state verified facts only | — Pending |
 | `bbj-local` URL stays fixed at 5009 | Simplest; BBjServices default | — Pending |
 | Skill-example syntax gate is local-only | CI has no BBj; keeps the check route consistent with the local-first decision | — Pending |
@@ -104,8 +98,9 @@ and `bbj-ls`).
 | Runtime-only claims rewritten to compile-time proxy or dropped | Never-execute rule | — Pending |
 | DWC DOM/CSS claims need a docs URL or owner reproduction | No doc source found for several | — Pending |
 | Hook notice: exit 0 + `additionalContext`, once per session | Exit 2 replaces the tool result on Codex | — Pending |
-| `--with-local` registers and warns when probe fails | User asked explicitly; server may be stopped | — Pending |
+| `--with-local` registers and warns when probe fails | User asked explicitly; server may be stopped | ✓ Good — Phase 1 |
 | Tag `0.2.0`; both plugins bumped; no NOTICE provenance line | Release decision | — Pending |
+| Hosted check used without asking when no local route exists, but the user is told (D-01) | Keeps agents checking code; disclosure instead of a prompt | ✓ Kept at Phase 1 UAT |
 
 ## Evolution
 
@@ -125,4 +120,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-09 after initialization*
+*Last updated: 2026-10-10 after Phase 1*
