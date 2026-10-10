@@ -9,3 +9,4 @@ payload_keys: session_id,turn_id,transcript_path,cwd,hook_event_name,model,permi
 session_id_before_tool_input: yes
 item_types: agent_message=2,file_change=2
 runs: 2
+d15_fallback: not-needed (additionalContext reached the model after apply_patch, as hidden developer context that the model paraphrased instead of quoting verbatim; the paraphrase carries the Codex-only enable step; see README.md, Delivery judgement)
