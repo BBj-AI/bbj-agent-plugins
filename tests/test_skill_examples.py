@@ -5,7 +5,21 @@ a BBj block is tagged bbj, bbj should-fail or bbj nocheck (reason); an untagged,
 fence and a '...' placeholder in a checked block are violations), the pending list and its ratchet
 (D-01..D-04: a pending skill prints its violations as skip gates and may only get better; any other
 skill is fully enforced), and the report mode that writes the baseline (D-19, D-20). Later plans add
-the live routes to this file and to this text.
+the other live route to this file and to this text.
+
+Live route 1, bbjcpl (GATE-03; D-08, D-10, D-11, D-13, D-14): every closed bbj and bbj should-fail block
+is written as its own file b<NNNN>.bbj (name from a counter, never from skill text; no wrapper code) in
+a fresh temp directory outside the repository, together with canary_good.bbj and canary_bad.bbj, and
+all of them are compiled in ONE call of ${BBJ_TEST_HOME:-/opt/bbx}/bin/bbjcpl -t -N -X (an argument
+list, no shell, stdin from /dev/null, 120 s timeout; the exit status is never used). A compiler record
+is attributed to a file by the exact path at the start of its first line; a block fails when it owns
+a record. The canary pair makes a dead compiler visible: canary_bad.bbj must own a record, canary_good.bbj
+none, and no output may be unattributed, else the route is broken and none of its verdicts is used.
+A bbj block must pass; a bbj should-fail block must fail on at least one available route, and when no
+available route fails it, bbjcpl being available, that is a violation; when only bbj-ls is available it is
+undecided (skip, FAIL under BBJ_SKILLS_LIVE=1) because bbj-ls cannot see type errors. Without a
+working bbjcpl the route gate is skip; BBJ_SKILLS_LIVE=1 makes it a FAIL; CI=true does not (D-13, no
+BBj in CI). bbjcpl with -N is the only BBj tool this file ever starts; --report refuses without it.
 
 Structure lints and the nocheck ratchet (GATE-04, GATE-05; D-15..D-18) are one more check, "structure",
 that goes through the same per-violation gates, ratchet and pending rule as the grammar:
@@ -93,7 +107,16 @@ NON_BBJ = ("css", "html", "js", "json", "bash", "sh", "text", "xml")
 OPEN_RE = re.compile(r"^([ \t]*)(`{3,}|~{3,})(.*)$")
 CLOSE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})[ \t]*$")
 NOCHECK_RE = re.compile(r"^bbj nocheck \((.*\S.*)\)$")
-CHECKS = ("grammar", "structure")
+CHECKS = ("grammar", "structure", "bbjcpl", "should-fail")
+LIVE_CHECKS = ("bbjcpl", "bbj-ls", "should-fail")
+ROUTE_ORDER = ("bbjcpl", "bbj-ls")
+# -N is compile only: no output file, nothing runs (D-11); skills_guard_cpl_args pins this constant
+CPL_ARGS = ["-t", "-N", "-X"]
+CPL_TIMEOUT = 120
+CANARY_GOOD = 'print "a"; rem ok\n'
+# the syntax error that tests/test_real_compiler.sh reproduces: a same-line rem needs a semicolon
+CANARY_BAD = 'print "a"   rem same line\n'
+STRICT = os.environ.get("BBJ_SKILLS_LIVE") == "1"
 DESC_LIMIT = 1024
 # the six strings of D-17, assembled from pieces so that no scan of this file can match them
 DENYLIST = ("Daily" + "Drift", "Drift" + "DB", "migrate" + "SortPrefs", "watches" + "!",
@@ -499,6 +522,194 @@ def nocheck_count(tree):
                for b in blocks if kind_of(b["info"])[0] == "nocheck")
 
 
+# ---------------------------------------------------------------------------------------------
+# live route 1: bbjcpl (D-08, D-10, D-11, D-13, D-14)
+# ---------------------------------------------------------------------------------------------
+
+def bbjcpl_path():
+    """(path, reason): the compiler under BBJ_TEST_HOME (default /opt/bbx) when it is a regular
+    executable file, else (None, reason)."""
+    home = os.environ.get("BBJ_TEST_HOME") or "/opt/bbx"
+    path = os.path.join(home, "bin", "bbjcpl")
+    if os.path.isfile(path) and os.access(path, os.X_OK):
+        return path, ""
+    return None, "no executable %s" % path
+
+
+def live_blocks(tree):
+    """(index, skill, file, block) for every closed bbj and should-fail block, in (skill, file, line)
+    order; nocheck, unclosed and other blocks are never compiled (D-10)."""
+    out = []
+    for name in sorted(tree):
+        for rel in sorted(tree[name]["blocks"]):
+            for b in tree[name]["blocks"][rel]:
+                if b["closed"] and kind_of(b["info"])[0] in ("bbj", "should-fail"):
+                    out.append((len(out), name, rel, b))
+    return out
+
+
+def write_text(path, text):
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+
+
+def write_block_files(blocks, workdir):
+    """Write b<NNNN>.bbj per block and the two canaries into workdir.
+
+    Returns (absolute path by block index, canary good path, canary bad path). A file name comes
+    from the counter, never from skill text (T-03-10)."""
+    base = os.path.abspath(workdir)
+    paths = {}
+    for index, skill, rel, b in blocks:
+        paths[index] = os.path.join(base, "b%04d.bbj" % index)
+        write_text(paths[index], "\n".join(b["body"]) + "\n")
+    good = os.path.join(base, "canary_good.bbj")
+    bad = os.path.join(base, "canary_bad.bbj")
+    write_text(good, CANARY_GOOD)
+    write_text(bad, CANARY_BAD)
+    return paths, good, bad
+
+
+def cpl_records(text, paths):
+    """(records by path, unattributed lines) of the compiler output.
+
+    A line that starts with one of the exact paths followed by ': ' opens a record for that path
+    (whole-path comparison, so b0001.bbj never takes a record of b0010.bbj); every other non-empty
+    line continues the previous record; a non-empty line before the first record is unattributed."""
+    known = sorted(set(paths), key=len, reverse=True)
+    records, current, stray = {}, None, []
+    for line in text.split("\n"):
+        owner = None
+        for path in known:
+            if line.startswith(path + ": "):
+                owner = path
+                break
+        if owner is not None:
+            current = [line[len(owner) + 2:]]
+            records.setdefault(owner, []).append(current)
+        elif line.strip():
+            if current is not None:
+                current.append(line)
+            else:
+                stray.append(line)
+    return records, stray
+
+
+def record_detail(opener, record):
+    """'line <file line>: <first line>' of a failing block's first record, cut to 200 characters.
+
+    The parenthesised number of the last 'at line N (n)' is the block line; opener + n is the file
+    line. A record without it (a missing file) gives just the first line."""
+    found = re.findall(r"at line [0-9]+ \(([0-9]+)\)", "\n".join(record))
+    text = record[0]
+    if found:
+        text = "line %d: %s" % (opener + int(found[-1]), text)
+    return text[:200]
+
+
+def cpl_route(cpl, blocks, workdir, env=None):
+    """Compile every block and both canaries in ONE bbjcpl call; the route dict (see run_live).
+
+    The argument list never goes through a shell, stdin is /dev/null (a bare bbjcpl waits on it)
+    and the exit status is not used: it is 0 on every outcome. Anything that makes the compiler's
+    answer untrustworthy makes the route broken, and a broken route gives no verdicts (T-03-11,
+    T-03-12)."""
+    route = {"route": "bbjcpl", "state": "broken", "detail": "", "verdicts": {}, "version": None}
+    paths, good, bad = write_block_files(blocks, workdir)
+    argv = [cpl] + CPL_ARGS + [paths[i] for i in sorted(paths)] + [good, bad]
+    try:
+        done = subprocess.run(argv, cwd=workdir, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, timeout=CPL_TIMEOUT, env=env)
+    except OSError as e:
+        route["detail"] = "cannot start %s: %s" % (cpl, e)
+        return route
+    except subprocess.TimeoutExpired:
+        route["detail"] = "no answer in %d s" % CPL_TIMEOUT
+        return route
+    text = done.stdout.decode("utf-8", errors="replace").replace("\r\n", "\n")
+    records, stray = cpl_records(text, list(paths.values()) + [good, bad])
+    if stray:
+        route["detail"] = "unattributed compiler output: %s" % stray[0]
+    elif bad not in records:
+        route["detail"] = "canary_bad.bbj got no error record; the compiler did not check"
+    elif good in records:
+        route["detail"] = "canary_good.bbj got an error record"
+    else:
+        route["state"] = "ok"
+        route["detail"] = "%s: %d file(s) in one call" % (cpl, len(paths) + 2)
+        for index, skill, rel, b in blocks:
+            mine = records.get(paths[index])
+            route["verdicts"][index] = {
+                "fail": bool(mine),
+                "detail": record_detail(b["line"], mine[0]) if mine else ""}
+    return route
+
+
+def block_outcome(kind, verdicts, cpl_ok):
+    """[(check, 'violation'|'undecided', detail)] of one block (D-08, D-14).
+
+    verdicts maps route name -> {'fail', 'detail'} for the routes that are ok. A bbj block gives one
+    violation per route that fails it. A should-fail block gives none when any route fails it; else a
+    violation when bbjcpl is available, else (only bbj-ls) an undecided result, because bbj-ls cannot
+    see type errors. No route at all gives nothing."""
+    routes = [r for r in ROUTE_ORDER if r in verdicts]
+    if not routes:
+        return []
+    if kind == "bbj":
+        return [(r, "violation", verdicts[r]["detail"]) for r in routes if verdicts[r]["fail"]]
+    if any(verdicts[r]["fail"] for r in routes):
+        return []
+    if cpl_ok:
+        return [("should-fail", "violation",
+                 "should-fail block passes every available route (%s)" % ", ".join(routes))]
+    return [("should-fail", "undecided",
+             "undecided: should-fail block passes bbj-ls; only bbjcpl can confirm it")]
+
+
+def run_live(tree):
+    """(routes, measured flags by live check, violation records, undecided records, totals by route).
+
+    A route dict: route, state ok|missing|broken, detail, verdicts {block index: {fail, detail}},
+    version. A live check is measured only when its route is ok; a missing or broken route gives no
+    verdicts at all, so it can never read as every block passing."""
+    blocks = live_blocks(tree)
+    cpl, reason = bbjcpl_path()
+    if cpl is None:
+        route = {"route": "bbjcpl", "state": "missing", "detail": reason, "verdicts": {},
+                 "version": None}
+    else:
+        workdir = tempfile.mkdtemp(prefix="bbj-skills-")
+        try:
+            route = cpl_route(cpl, blocks, workdir)
+        finally:
+            shutil.rmtree(workdir, ignore_errors=True)
+    cpl_ok = route["state"] == "ok"
+    measured = dict((c, False) for c in LIVE_CHECKS)
+    measured["bbjcpl"] = cpl_ok
+    measured["should-fail"] = cpl_ok
+    violations, undecided, totals = [], [], {}
+    for index, skill, rel, b in blocks:
+        verdicts = {"bbjcpl": route["verdicts"][index]} if cpl_ok else {}
+        for check, what, detail in block_outcome(kind_of(b["info"])[0], verdicts, cpl_ok):
+            record = violation(skill, check, rel, b["line"], detail)
+            (violations if what == "violation" else undecided).append(record)
+    if cpl_ok:
+        plain = [i for i, skill, rel, b in blocks if kind_of(b["info"])[0] == "bbj"]
+        failing = [i for i in plain if route["verdicts"][i]["fail"]]
+        totals["bbjcpl"] = {"bbj": len(plain), "pass": len(plain) - len(failing),
+                            "fail": len(failing), "should-fail": len(blocks) - len(plain)}
+    return [route], measured, violations, undecided, totals
+
+
+def report_refusal(routes):
+    """The reason --report must refuse, or None when every route is ok (the baseline carries live
+    counts, which only a working route can measure)."""
+    for route in routes:
+        if route["state"] != "ok":
+            return "route %s is %s: %s" % (route["route"], route["state"], route["detail"])
+    return None
+
+
 def counts_of(violations, skill):
     return dict((c, len([v for v in violations if v["skill"] == skill and v["check"] == c]))
                 for c in CHECKS)
@@ -528,7 +739,24 @@ def run_gates(root):
              "with --report" % (used, data["nocheck"]))
     else:
         gate("nocheck_count", "ok", "%d bbj nocheck block(s) (baseline %d)" % (used, data["nocheck"]))
-    measured = dict((c, True) for c in CHECKS)
+    gate("guard_cpl_args", "ok" if CPL_ARGS == ["-t", "-N", "-X"] else "FAIL",
+         "CPL_ARGS is %s" % " ".join(CPL_ARGS))
+    routes, live_measured, live_violations, undecided, totals = run_live(skills)
+    for record in live_violations:
+        skills[record["skill"]]["violations"].append(record)
+    route = routes[0]
+    if route["state"] == "ok":
+        gate("route_bbjcpl", "ok", route["detail"])
+    elif STRICT:
+        gate("route_bbjcpl", "FAIL", "BBJ_SKILLS_LIVE=1 but %s" % route["detail"])
+    else:
+        gate("route_bbjcpl", "skip", "%s; set BBJ_SKILLS_LIVE=1 to make this a failure"
+             % route["detail"])
+    if "bbjcpl" in totals:
+        t = totals["bbjcpl"]
+        gate("total_bbjcpl", "ok", "%d bbj blocks: %d pass, %d fail; %d should-fail blocks"
+             % (t["bbj"], t["pass"], t["fail"], t["should-fail"]))
+    measured = dict((c, live_measured.get(c, True)) for c in CHECKS)
     for name in sorted(skills):
         info = skills[name]
         entry = valid.get(name)
@@ -543,6 +771,13 @@ def run_gates(root):
                 else:
                     gate(gate_name(check, name, v["file"], v["line"]), "skip",
                          "pending (Phase %s): %s" % (entry["phase"], v["detail"]))
+            if check == "should-fail":
+                for v in sorted((u for u in undecided if u["skill"] == name),
+                                key=lambda u: (u["file"], u["line"], u["detail"])):
+                    gate(gate_name(check, name, v["file"], v["line"]),
+                         "FAIL" if STRICT else "skip", v["detail"])
+            if not measured[check]:
+                continue
             status, detail = decide(check, len(mine), entry)
             gate("ratchet_%s_%s" % (name, check), status, detail)
         if entry is not None:
@@ -552,7 +787,9 @@ def run_gates(root):
                      "regenerate the baseline with --report")
             else:
                 gate("pending_" + name, "ok", "pending (Phase %s): %s" % (
-                    entry["phase"], " ".join("%s=%d" % (c, counts[c]) for c in CHECKS)))
+                    entry["phase"], " ".join(
+                        "%s=%d" % (c, counts[c] if measured[c] else entry["counts"][c])
+                        for c in CHECKS)))
 
 
 # ---------------------------------------------------------------------------------------------
@@ -664,10 +901,16 @@ def run_report(root, json_path, md_path):
     except ValueError as e:
         return refuse("%s; fix it by hand first" % e)
     skills = scan_tree(root)
+    routes, live_measured, live_violations, undecided, totals = run_live(skills)
+    reason = report_refusal(routes)
+    if reason:
+        return refuse(reason)
+    for record in live_violations:
+        skills[record["skill"]]["violations"].append(record)
     violations = [v for name in sorted(skills) for v in skills[name]["violations"]]
-    measured = dict((c, True) for c in CHECKS)
-    meta = {"bbj_version": "unknown", "routes": [], "date": datetime.date.today().isoformat(),
-            "nocheck": nocheck_count(skills)}
+    measured = dict((c, live_measured.get(c, True)) for c in CHECKS)
+    meta = {"bbj_version": "unknown", "routes": [r["route"] for r in routes if r["state"] == "ok"],
+            "date": datetime.date.today().isoformat(), "nocheck": nocheck_count(skills)}
     json_text, md_text = build_report(sorted(skills), violations, measured, meta, old)
     try:
         write_atomic(json_path, json_text)
