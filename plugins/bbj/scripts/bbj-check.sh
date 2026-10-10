@@ -154,13 +154,29 @@ notice() {
     badurl) _why2='bbj-ls URL refused (not loopback)' ;;
     *) _why2='no bbj-ls answering' ;;
   esac
-  _files=$(printf '%s' "$NR_LIST" | LC_ALL=C awk 'length($0) { printf "%s%s", sep, $0; sep = ", " }')
+  # the paths: the first 5, each cut to its first 200 bytes (byte-wise under LC_ALL=C), joined
+  # with ", "; any more are counted. NR_LIST holds one name per line (a name never holds a
+  # newline), so the text handed to json_body is one line.
+  _files=$(printf '%s' "$NR_LIST" | LC_ALL=C awk '
+    length($0) { n++; if (n <= 5) { printf "%s%s", sep, substr($0, 1, 200); sep = ", " } }
+    END { if (n > 5) printf " and %d more", n - 5 }')
+  if [ "$NR_N" -gt 1 ]; then
+    _were=were
+    _these='these files were'
+  else
+    _were=was
+    _these='this file was'
+  fi
   _later='Later BBj files in this session are not checked either unless a check is enabled'
   if [ "$_fresh" = 1 ]; then _later="$_later, and this notice is not repeated"; fi
-  _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or enable the bbj-local@basis-bbj plugin (BBjServices 26.03+ running on this machine).'
-  _txt="$_files was written but not compile-checked: $_why1; $_why2. $_later. $_how"
+  # the enable steps are the only text that differs by tool (D-06)
+  case "$1" in
+    apply_patch) _how='To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or rerun install-codex.sh --with-local (BBjServices 26.03+ running on this machine).' ;;
+    *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or enable the bbj-local@basis-bbj plugin (BBjServices 26.03+ running on this machine).' ;;
+  esac
+  _txt="$_files $_were written but not compile-checked: $_why1; $_why2. $_later. $_how"
   _txt="$_txt Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
-  _txt="$_txt Tell the user that this file was not compile-checked and how to enable a check."
+  _txt="$_txt Tell the user that $_these not compile-checked and how to enable a check."
   # user data (file names) only ever goes in the printf arguments, never in the format
   printf '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' \
     "$(printf '%s' "$_txt" | json_body)"
