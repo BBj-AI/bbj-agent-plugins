@@ -1,9 +1,10 @@
 {
-  "bbj_version": "unknown",
+  "bbj_version": "26.03",
   "nocheck": 0,
   "pending": {
     "bbj-programming": {
       "counts": {
+        "bbj-ls": 36,
         "bbjcpl": 44,
         "grammar": 11,
         "should-fail": 0,
@@ -13,6 +14,7 @@
     },
     "bbj-web-programming": {
       "counts": {
+        "bbj-ls": 15,
         "bbjcpl": 25,
         "grammar": 5,
         "should-fail": 0,
