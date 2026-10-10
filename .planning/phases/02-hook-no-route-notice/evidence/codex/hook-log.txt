@@ -1,0 +1,9 @@
+2026-10-10T11:59:52Z rc=0
+--- stdout:
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"/tmp/bbj-capture-codex/proj/hello.bbj was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9. Later BBj files in this session are not checked either unless a check is enabled, and this notice is not repeated. To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or rerun install-codex.sh --with-local (BBjServices 26.03+ running on this machine). Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told. Tell the user that this file was not compile-checked and how to enable a check."}}
+--- stderr:
+---
+2026-10-10T11:59:53Z rc=0
+--- stdout:
+--- stderr:
+---

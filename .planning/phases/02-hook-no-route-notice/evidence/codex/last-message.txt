@@ -1,0 +1,9 @@
+Created `hello.bbj` and `second.bbj` with the requested single lines.
+
+## PATCH 1
+
+I received hidden developer context, which I can’t quote verbatim. The file was not compile-checked. To enable checking, set `BBJ_HOME` to a BBj installation directory or put `bbjcpl` on `PATH`.
+
+## PATCH 2
+
+NONE
