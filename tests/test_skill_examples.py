@@ -4,8 +4,7 @@ What is locked: the fence grammar of every Markdown file under each skill direct
 a BBj block is tagged bbj, bbj should-fail or bbj nocheck (reason); an untagged, unknown or unclosed
 fence and a '...' placeholder in a checked block are violations), the pending list and its ratchet
 (D-01..D-04: a pending skill prints its violations as skip gates and may only get better; any other
-skill is fully enforced), and the report mode that writes the baseline (D-19, D-20). Later plans add
-the other live route to this file and to this text.
+skill is fully enforced), and the report mode that writes the baseline (D-19, D-20).
 
 Live route 1, bbjcpl (GATE-03; D-08, D-10, D-11, D-13, D-14): every closed bbj and bbj should-fail block
 is written as its own file b<NNNN>.bbj (name from a counter, never from skill text; no wrapper code) in
@@ -19,7 +18,25 @@ A bbj block must pass; a bbj should-fail block must fail on at least one availab
 available route fails it, bbjcpl being available, that is a violation; when only bbj-ls is available it is
 undecided (skip, FAIL under BBJ_SKILLS_LIVE=1) because bbj-ls cannot see type errors. Without a
 working bbjcpl the route gate is skip; BBJ_SKILLS_LIVE=1 makes it a FAIL; CI=true does not (D-13, no
-BBj in CI). bbjcpl with -N is the only BBj tool this file ever starts; --report refuses without it.
+BBj in CI). bbjcpl with -N is the only BBj tool this file ever starts; --report refuses unless both routes are ok.
+
+Live route 2, bbj-ls (GATE-03; D-12, D-13, D-14, D-20): each closed bbj and bbj should-fail block is sent
+as one bbj_check_syntax call to the loopback bbj-ls at BBJ_LOCAL_MCP_URL (default
+http://127.0.0.1:5009/mcp), directly and never through the hook. The URL rule is the hook's: it is used
+only when it holds no whitespace, backslash, '@', '?' or '#' and is http:// then 127.0.0.1, localhost
+(any letter case) or [::1] with an optional :port and /path; any other URL, the hosted docs server
+included, is refused before any connection and the route is missing ("not loopback"). Every request
+of this file goes through one opener with an empty ProxyHandler (environment proxies are ignored) and
+a redirect handler that refuses (a 3xx reply is a route failure and its Location is never requested).
+The route is detected by a GET that must be answered with 405 within 2 seconds; a block is one POST of
+the hook's tools/call body with the hook's four headers and a 12 s timeout. The verdict is read like
+the hook reads it: a text/event-stream reply uses the payload of its last data: line; an HTTP error, a
+body that is not JSON, a JSON-RPC error member, an isError that is not false, or a text with neither
+"No errors found." at its start nor a line "line N, column M:" is no verdict, and one such reply breaks
+the route for the whole run (none of its verdicts is used). bbj-ls checks syntax only, so it cannot
+confirm a should-fail block that bbjcpl would fail on a type error. The BBj version of the report is
+structuredContent.bbjVersion of a reply (1-20 characters of digits, letters, '.' and '-', else
+unknown). The hosted check is never contacted and skill code never leaves the machine.
 
 Structure lints and the nocheck ratchet (GATE-04, GATE-05; D-15..D-18) are one more check, "structure",
 that goes through the same per-violation gates, ratchet and pending rule as the grammar:
@@ -63,6 +80,7 @@ Nothing here runs BBj code.
 """
 import atexit
 import datetime
+import http.client
 import json
 import os
 import re
@@ -70,6 +88,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import urllib.error
+import urllib.request
 
 THIS = os.path.abspath(__file__)
 USAGE = ("usage: python3 -I tests/test_skill_examples.py [ROOT]\n"
@@ -107,7 +127,7 @@ NON_BBJ = ("css", "html", "js", "json", "bash", "sh", "text", "xml")
 OPEN_RE = re.compile(r"^([ \t]*)(`{3,}|~{3,})(.*)$")
 CLOSE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})[ \t]*$")
 NOCHECK_RE = re.compile(r"^bbj nocheck \((.*\S.*)\)$")
-CHECKS = ("grammar", "structure", "bbjcpl", "should-fail")
+CHECKS = ("grammar", "structure", "bbjcpl", "bbj-ls", "should-fail")
 LIVE_CHECKS = ("bbjcpl", "bbj-ls", "should-fail")
 ROUTE_ORDER = ("bbjcpl", "bbj-ls")
 # -N is compile only: no output file, nothing runs (D-11); skills_guard_cpl_args pins this constant
@@ -116,6 +136,15 @@ CPL_TIMEOUT = 120
 CANARY_GOOD = 'print "a"; rem ok\n'
 # the syntax error that tests/test_real_compiler.sh reproduces: a same-line rem needs a semicolon
 CANARY_BAD = 'print "a"   rem same line\n'
+DEFAULT_LS_URL = "http://127.0.0.1:5009/mcp"
+PROTOCOL = "2026-07-28"
+LS_TIMEOUT = 12
+LS_PROBE_TIMEOUT = 2
+LS_MAX_REPLY = 1048576
+LS_LINE_RE = re.compile(r"^line ([0-9]+), column ([0-9]+):(.*)$")
+VERSION_RE = re.compile(r"[0-9A-Za-z.-]{1,20}")
+# the hook's loopback rule (plugins/bbj/scripts/bbj-check.sh): localhost in any letter case only
+LOOPBACK_RE = re.compile(r"http://(?:127\.0\.0\.1|(?i:localhost)|\[::1\])(?::[0-9]+)?(?:/[^ ]*)?")
 STRICT = os.environ.get("BBJ_SKILLS_LIVE") == "1"
 DESC_LIMIT = 1024
 # the six strings of D-17, assembled from pieces so that no scan of this file can match them
@@ -666,12 +695,151 @@ def block_outcome(kind, verdicts, cpl_ok):
              "undecided: should-fail block passes bbj-ls; only bbjcpl can confirm it")]
 
 
+# ---------------------------------------------------------------------------------------------
+# live route 2: bbj-ls over loopback (D-12, D-13, D-14, D-20)
+# ---------------------------------------------------------------------------------------------
+
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """A 3xx reply is an error here, never a second request: its Location is not requested (T-03-15)."""
+
+    def redirect_request(self, *args, **kwargs):
+        return None
+
+
+# one opener for every network access of this file: an empty ProxyHandler ignores the proxy
+# variables of the environment, and the refusing redirect handler replaces the default one
+OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}), _NoRedirect())
+
+
+def url_ok(url):
+    """The hook's loopback rule (T-03-14): http:// then 127.0.0.1, localhost or [::1], an optional
+    port and path, and no whitespace, backslash, '@', '?' or '#' anywhere."""
+    if not isinstance(url, str) or re.search(r"[\s\\@?#]", url):
+        return False
+    return LOOPBACK_RE.fullmatch(url) is not None
+
+
+def ls_url():
+    """(url, reason): BBJ_LOCAL_MCP_URL, default DEFAULT_LS_URL; url is None when it is refused."""
+    url = os.environ.get("BBJ_LOCAL_MCP_URL") or DEFAULT_LS_URL
+    if not url_ok(url):
+        return None, "BBJ_LOCAL_MCP_URL %s refused: not loopback http" % safe(url)
+    return url, ""
+
+
+def ls_up(url):
+    """True when a GET to url is answered with 405 (the bbj-ls route probe); anything else is False."""
+    try:
+        with OPENER.open(urllib.request.Request(url, method="GET"), timeout=LS_PROBE_TIMEOUT):
+            return False
+    except urllib.error.HTTPError as e:
+        e.close()
+        return e.code == 405
+    except (urllib.error.URLError, OSError, http.client.HTTPException, ValueError):
+        return False
+
+
+def ls_call(url, code):
+    """(reply dict or None, error text): one bbj_check_syntax call, the hook's request.
+
+    A URL that fails url_ok is refused before any request is built. A text/event-stream reply is
+    reduced to the payload of its last data: line. Every transport, HTTP or parse failure is an
+    error text, never an exception."""
+    if not url_ok(url):
+        return None, "not loopback"
+    body = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+            "params": {"name": "bbj_check_syntax", "arguments": {"code": code},
+                       "_meta": {"io.modelcontextprotocol/protocolVersion": PROTOCOL,
+                                 "io.modelcontextprotocol/clientCapabilities": {}}}}
+    headers = {"Content-Type": "application/json", "MCP-Protocol-Version": PROTOCOL,
+               "Mcp-Method": "tools/call", "Mcp-Name": "bbj_check_syntax"}
+    try:
+        req = urllib.request.Request(url, data=json.dumps(body).encode("utf-8"), headers=headers,
+                                     method="POST")
+        with OPENER.open(req, timeout=LS_TIMEOUT) as r:
+            text = r.read(LS_MAX_REPLY).decode("utf-8", errors="replace")
+        data = [l.replace("\r", "") for l in text.split("\n") if l.startswith("data:")]
+        if data:
+            text = data[-1][len("data:"):].strip()
+        return json.loads(text), ""
+    except (urllib.error.URLError, OSError, http.client.HTTPException, ValueError) as e:
+        return None, safe("%s: %s" % (type(e).__name__, e))[:200]
+
+
+def ls_verdict(reply):
+    """(verdict, first error line, version): verdict is pass, fail or noverdict (T-03-16).
+
+    Like the hook: no verdict unless the reply is an object without an 'error' member whose result
+    is an object with isError exactly false; pass when the text starts with 'No errors found.', fail
+    when a line 'line N, column M:' exists, else no verdict. The version is
+    structuredContent.bbjVersion when it is 1-20 characters of [0-9A-Za-z.-], else None (T-03-18)."""
+    if not isinstance(reply, dict) or "error" in reply:
+        return "noverdict", "", None
+    result = reply.get("result")
+    if not isinstance(result, dict) or result.get("isError") is not False:
+        return "noverdict", "", None
+    version = None
+    structured = result.get("structuredContent")
+    if isinstance(structured, dict):
+        value = structured.get("bbjVersion")
+        if isinstance(value, str) and VERSION_RE.fullmatch(value):
+            version = value
+    content = result.get("content")
+    text = "\n".join(c["text"] for c in content if isinstance(c, dict) and isinstance(c.get("text"), str)
+                     ) if isinstance(content, list) else ""
+    if text.startswith("No errors found."):
+        return "pass", "", version
+    for line in text.split("\n"):
+        if LS_LINE_RE.match(line):
+            return "fail", line, version
+    return "noverdict", "", version
+
+
+def ls_route(url, blocks, reason=""):
+    """The route dict of bbj-ls (see run_live): one call per block, in order.
+
+    A refused URL is never connected to; a server that does not answer 405 to a GET is missing; a
+    call that fails or has no verdict breaks the route, which then gives no verdicts at all."""
+    route = {"route": "bbj-ls", "state": "missing", "detail": "", "verdicts": {}, "version": None}
+    if url is None:
+        route["detail"] = reason or "no URL"
+        return route
+    if not url_ok(url):
+        route["detail"] = "%s refused: not loopback http" % safe(url)
+        return route
+    if not ls_up(url):
+        route["detail"] = "%s did not answer 405 to GET" % safe(url)
+        return route
+    verdicts = {}
+    for index, skill, rel, b in blocks:
+        reply, error = ls_call(url, "\n".join(b["body"]) + "\n")
+        verdict, line, version = ls_verdict(reply) if reply is not None else ("noverdict", "", None)
+        if verdict == "noverdict":
+            route["state"] = "broken"
+            route["detail"] = safe("no verdict for %s/%s:%d: %s" % (
+                skill, rel, b["line"], error or "reply without a verdict"))
+            return route
+        if route["version"] is None:
+            route["version"] = version
+        detail = ""
+        if verdict == "fail":
+            found = LS_LINE_RE.match(line)
+            detail = safe("line %d, column %s: %s" % (b["line"] + int(found.group(1)), found.group(2),
+                                                      found.group(3).strip()))[:200]
+        verdicts[index] = {"fail": verdict == "fail", "detail": detail}
+    route["state"] = "ok"
+    route["detail"] = "%s: %d call(s)" % (safe(url), len(blocks))
+    route["verdicts"] = verdicts
+    return route
+
+
 def run_live(tree):
     """(routes, measured flags by live check, violation records, undecided records, totals by route).
 
     A route dict: route, state ok|missing|broken, detail, verdicts {block index: {fail, detail}},
     version. A live check is measured only when its route is ok; a missing or broken route gives no
-    verdicts at all, so it can never read as every block passing."""
+    verdicts at all, so it can never read as every block passing. Every block must pass every route
+    that is ok (D-13)."""
     blocks = live_blocks(tree)
     cpl, reason = bbjcpl_path()
     if cpl is None:
@@ -683,22 +851,26 @@ def run_live(tree):
             route = cpl_route(cpl, blocks, workdir)
         finally:
             shutil.rmtree(workdir, ignore_errors=True)
+    url, url_reason = ls_url()
+    routes = [route, ls_route(url, blocks, url_reason)]
+    ok_routes = [r for r in routes if r["state"] == "ok"]
     cpl_ok = route["state"] == "ok"
     measured = dict((c, False) for c in LIVE_CHECKS)
-    measured["bbjcpl"] = cpl_ok
+    for r in ok_routes:
+        measured[r["route"]] = True
     measured["should-fail"] = cpl_ok
     violations, undecided, totals = [], [], {}
     for index, skill, rel, b in blocks:
-        verdicts = {"bbjcpl": route["verdicts"][index]} if cpl_ok else {}
+        verdicts = dict((r["route"], r["verdicts"][index]) for r in ok_routes)
         for check, what, detail in block_outcome(kind_of(b["info"])[0], verdicts, cpl_ok):
             record = violation(skill, check, rel, b["line"], detail)
             (violations if what == "violation" else undecided).append(record)
-    if cpl_ok:
-        plain = [i for i, skill, rel, b in blocks if kind_of(b["info"])[0] == "bbj"]
-        failing = [i for i in plain if route["verdicts"][i]["fail"]]
-        totals["bbjcpl"] = {"bbj": len(plain), "pass": len(plain) - len(failing),
-                            "fail": len(failing), "should-fail": len(blocks) - len(plain)}
-    return [route], measured, violations, undecided, totals
+    plain = [i for i, skill, rel, b in blocks if kind_of(b["info"])[0] == "bbj"]
+    for r in ok_routes:
+        failing = [i for i in plain if r["verdicts"][i]["fail"]]
+        totals[r["route"]] = {"bbj": len(plain), "pass": len(plain) - len(failing),
+                              "fail": len(failing), "should-fail": len(blocks) - len(plain)}
+    return routes, measured, violations, undecided, totals
 
 
 def report_refusal(routes):
@@ -744,18 +916,19 @@ def run_gates(root):
     routes, live_measured, live_violations, undecided, totals = run_live(skills)
     for record in live_violations:
         skills[record["skill"]]["violations"].append(record)
-    route = routes[0]
-    if route["state"] == "ok":
-        gate("route_bbjcpl", "ok", route["detail"])
-    elif STRICT:
-        gate("route_bbjcpl", "FAIL", "BBJ_SKILLS_LIVE=1 but %s" % route["detail"])
-    else:
-        gate("route_bbjcpl", "skip", "%s; set BBJ_SKILLS_LIVE=1 to make this a failure"
-             % route["detail"])
-    if "bbjcpl" in totals:
-        t = totals["bbjcpl"]
-        gate("total_bbjcpl", "ok", "%d bbj blocks: %d pass, %d fail; %d should-fail blocks"
-             % (t["bbj"], t["pass"], t["fail"], t["should-fail"]))
+    for route in routes:
+        name = "route_" + route["route"]
+        if route["state"] == "ok":
+            gate(name, "ok", route["detail"])
+        elif STRICT:
+            gate(name, "FAIL", "BBJ_SKILLS_LIVE=1 but %s" % route["detail"])
+        else:
+            gate(name, "skip", "%s; set BBJ_SKILLS_LIVE=1 to make this a failure" % route["detail"])
+    for route in routes:
+        if route["route"] in totals:
+            t = totals[route["route"]]
+            gate("total_" + route["route"], "ok", "%d bbj blocks: %d pass, %d fail; %d should-fail blocks"
+                 % (t["bbj"], t["pass"], t["fail"], t["should-fail"]))
     measured = dict((c, live_measured.get(c, True)) for c in CHECKS)
     for name in sorted(skills):
         info = skills[name]
@@ -909,7 +1082,8 @@ def run_report(root, json_path, md_path):
         skills[record["skill"]]["violations"].append(record)
     violations = [v for name in sorted(skills) for v in skills[name]["violations"]]
     measured = dict((c, live_measured.get(c, True)) for c in CHECKS)
-    meta = {"bbj_version": "unknown", "routes": [r["route"] for r in routes if r["state"] == "ok"],
+    meta = {"bbj_version": next((r["version"] for r in routes if r["version"]), "unknown"),
+            "routes": [r["route"] for r in routes if r["state"] == "ok"],
             "date": datetime.date.today().isoformat(), "nocheck": nocheck_count(skills)}
     json_text, md_text = build_report(sorted(skills), violations, measured, meta, old)
     try:
