@@ -917,6 +917,11 @@ def run_gates(root):
     for name in skill_links(root):
         gate(gate_name("structure", name), "FAIL",
              "%s/%s is a symlink (not followed); make it a real directory" % (SKILLS_REL, name))
+    # an empty or missing skills tree must not pass vacuously (WR-02)
+    if skills:
+        gate("discovery", "ok", "%d skill(s): %s" % (len(skills), ", ".join(sorted(skills))))
+    else:
+        gate("discovery", "FAIL", "no skill directory under %s" % SKILLS_REL)
     valid, problems = check_pending_keys(pending, set(skills))
     if problems:
         gate("pending_keys", "FAIL", "; ".join(problems))
@@ -1390,6 +1395,12 @@ def selftest_ratchet():
     bool_count["pending"]["bbj-programming"]["counts"][first] = True
     child_case("baseline_bool_count", two_skill_files(("bbj-programming",)), bool_count, 1,
                ["gate skills_baseline FAIL"])
+    child_case("discovery_ok", two_skill_files(), fixture_baseline({}), 0,
+               ["gate skills_discovery ok 2 skill(s): bbj-programming, bbj-web-programming"])
+    child_case("discovery_missing_tree_fails", {"README.md": "no skills here\n"},
+               fixture_baseline({}), 1, ["gate skills_discovery FAIL no skill directory under"])
+    child_case("discovery_empty_dir_fails", {SKILLS_REL + "/stray.txt": "a file, not a skill\n"},
+               fixture_baseline({}), 1, ["gate skills_discovery FAIL no skill directory under"])
     child_case("cli_root_runs_no_fixtures", two_skill_files(), fixture_baseline({}), 0,
                ["gate skills_baseline ok"], forbids=["gate skills_fx_"])
     child_case("cli_usage_error", two_skill_files(), fixture_baseline({}), 2, [],
