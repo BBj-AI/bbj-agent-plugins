@@ -196,7 +196,9 @@ the BBj installation is found through `BBJ_HOME` instead of a `bbj_home` option.
    returns a message starting `bbjcpl reported N error(s) in <file>:`.
 2. **bbj-local.** With no compiler, the hook asks the `bbj-ls` server of a running BBjServices on
    `127.0.0.1:5009` (syntax only; no type check). Its message starts `bbj-local reported`.
-3. **Neither:** the hook does nothing and says nothing.
+3. **Neither:** the hook tells Codex once per session that the file was written but
+   not compile-checked, and how to enable a check (`BBJ_HOME`, `bbjcpl` on `PATH`, or
+   `--with-local`). Later BBj files in that session are not checked either.
 
 For code Codex hands back without writing a file, the snippet and the skills give Codex its own
 order of check calls: `bbjcpl`, then `bbj_check_syntax` of `bbj-local`, and `bbj_check_syntax` of
