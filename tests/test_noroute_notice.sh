@@ -113,6 +113,140 @@ else
   gate notice_other_session FAIL "exit $RC, notice_text $_nr"
 fi
 
+# holds_none NAME TEXT FRAGMENT...: no fixed fragment occurs in TEXT
+holds_none() {
+  _hn=$1
+  _ht=$2
+  shift 2
+  _found=
+  for _f in "$@"; do
+    if printf '%s' "$_ht" | grep -F -- "$_f" > /dev/null; then _found="$_found [$_f]"; fi
+  done
+  if [ -z "$_found" ]; then
+    gate "$_hn" ok "no forbidden fragment present"
+  else
+    gate "$_hn" FAIL "found:$_found"
+  fi
+}
+
+# patch LINES...: a Codex patch text, one argument per line
+patch() {
+  printf '%s\n' '*** Begin Patch' "$@" '*** End Patch'
+}
+
+# ---- Codex: its own enable steps; several, long and hostile file names (plan 02-01 Task 2) ----
+CPROJ=$WORK/cproj
+mkdir "$CPROJ"
+: > "$CPROJ/a.bbj"
+: > "$CPROJ/b.bbj"
+fresh_state
+run_check "$(codex_payload "$CPROJ" "$(patch '*** Add File: a.bbj' '+print "a"')")"
+CTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
+  holds_all notice_codex_text "$CTEXT" 'BBJ_HOME' 'bbjcpl on PATH' 'install-codex.sh --with-local' \
+    'BBjServices 26.03' 'bbj_check_syntax' 'no bbjcpl found'
+  holds_none notice_codex_text_no_claude_steps "$CTEXT" 'bbj_home' 'bbj-local@basis-bbj'
+else
+  gate notice_codex_text FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
+  gate notice_codex_text_no_claude_steps FAIL "no valid notice object"
+fi
+
+fresh_state
+run_check "$(claude_payload Edit "$FILE" "$WORK/proj")"
+ETEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+if [ "$_nr" = 0 ]; then
+  holds_all notice_edit_text "$ETEXT" 'bbj_home' 'bbj-local@basis-bbj'
+else
+  gate notice_edit_text FAIL "no valid notice object (notice_text $_nr)"
+fi
+
+fresh_state
+run_check "$(codex_payload "$CPROJ" "$(patch '*** Add File: a.bbj' '+x' '*** Add File: b.bbj' '+y')")"
+TTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+case "$TTEXT" in
+  "$CPROJ/a.bbj, $CPROJ/b.bbj were written but not compile-checked"*)
+    holds_all notice_two_files "$TTEXT" 'these files were not compile-checked' ;;
+  *) gate notice_two_files FAIL "notice_text $_nr, text: $(printf '%s' "$TTEXT" | head -c 200)" ;;
+esac
+
+# eight files: the first five are named, the rest are counted
+NL='
+'
+_pl=
+for _i in 1 2 3 4 5 6 7 8; do
+  : > "$CPROJ/f$_i.bbj"
+  _pl="$_pl*** Add File: f$_i.bbj$NL+x$NL"
+done
+fresh_state
+run_check "$(codex_payload "$CPROJ" "$(printf '*** Begin Patch\n%s*** End Patch\n' "$_pl")")"
+PTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+if [ "$_nr" = 0 ]; then
+  holds_all notice_path_cap "$PTEXT" "$CPROJ/f1.bbj" "$CPROJ/f2.bbj" "$CPROJ/f3.bbj" "$CPROJ/f4.bbj" \
+    "$CPROJ/f5.bbj" ' and 3 more were written'
+  holds_none notice_path_cap_rest "$PTEXT" 'f6.bbj' 'f7.bbj' 'f8.bbj'
+else
+  gate notice_path_cap FAIL "no valid notice object (notice_text $_nr)"
+  gate notice_path_cap_rest FAIL "no valid notice object"
+fi
+
+# six files with 240-character base names: every path is cut to 200 bytes
+_pad=$(awk 'BEGIN { for (i = 0; i < 236; i++) printf "x" }')
+_pl=
+for _i in 1 2 3 4 5 6; do
+  _bn=f$_i$_pad.bbj
+  : > "$CPROJ/$_bn"
+  _pl="$_pl*** Add File: $_bn$NL+x$NL"
+done
+_first=$CPROJ/f1$_pad.bbj
+_cut=$(printf '%s' "$_first" | head -c 200)
+fresh_state
+run_check "$(codex_payload "$CPROJ" "$(printf '*** Begin Patch\n%s*** End Patch\n' "$_pl")")"
+LTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+_maxlen=$(printf '%s' "$LTEXT" | tr ' ' '\n' | grep -F "$CPROJ" | awk '{ sub(/,$/, ""); if (length($0) > m) m = length($0) } END { print m + 0 }')
+if [ "$_nr" = 0 ] && [ "$_maxlen" -le 200 ] && [ "$_maxlen" -gt 0 ] \
+  && printf '%s' "$LTEXT" | grep -F "$_cut" > /dev/null \
+  && ! printf '%s' "$LTEXT" | grep -F "$_first" > /dev/null \
+  && printf '%s' "$LTEXT" | grep -F ' and 1 more' > /dev/null \
+  && [ "${#LTEXT}" -lt 10000 ]; then
+  gate notice_long_names_bounded ok "longest path $_maxlen bytes, 5 named and 1 more, text ${#LTEXT} characters"
+else
+  gate notice_long_names_bounded FAIL "notice_text $_nr, longest path $_maxlen, text length ${#LTEXT}"
+fi
+
+# hostile names: the object stays valid JSON and the name is shown printable (quote, backslash,
+# tab and a Latin-1 byte), and a command substitution in a name is never run
+_tab=$(printf '\t')
+_l1=$(printf 'caf\351')
+hostile() {
+  # hostile NAME FILE-NAME EXPECTED-FRAGMENT
+  : > "$WORK/proj/$2"
+  fresh_state
+  run_check "$(claude_payload Write "$WORK/proj/$2" "$WORK/proj")"
+  _htext=$(notice_text "$WORK/stdout")
+  _nr=$?
+  if [ "$_nr" = 0 ] && printf '%s' "$_htext" | grep -F -- "$3" > /dev/null; then
+    gate "$1" ok "valid object naming $3"
+  else
+    gate "$1" FAIL "notice_text $_nr: $(printf '%s' "$_htext" | head -c 160)"
+  fi
+}
+cd "$WORK" || exit 1
+hostile notice_hostile_names_json_quote 'q"uote.bbj' 'q"uote.bbj'
+hostile notice_hostile_names_json_backslash 'back\slash.bbj' 'back\slash.bbj'
+hostile notice_hostile_names_json_tab "tab${_tab}name.bbj" 'tab?name.bbj'
+hostile notice_hostile_names_json_latin1 "$_l1.bbj" 'caf?.bbj'
+hostile notice_hostile_names_json_subst 'x$(touch PWNED).bbj' 'x$(touch PWNED).bbj'
+if [ -z "$(find "$WORK" -name PWNED)" ] && [ ! -e PWNED ]; then
+  gate notice_no_pwned ok "no file PWNED anywhere"
+else
+  gate notice_no_pwned FAIL "a command in a file name ran"
+fi
+
 # ---- no marker in the real temp directory ----
 TMPLIST_AFTER=$(ls -d "${TMPDIR:-/tmp}"/bbj-check-noroute-* 2> /dev/null | sort)
 if [ "$TMPLIST_BEFORE" = "$TMPLIST_AFTER" ]; then
