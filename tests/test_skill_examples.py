@@ -78,9 +78,11 @@ Environment variables named here for the plans that use them: BBJ_TEST_HOME (the
 
 Nothing here runs BBj code.
 """
+import ast
 import atexit
 import datetime
 import http.client
+import http.server
 import json
 import os
 import re
@@ -88,6 +90,8 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import urllib.error
 import urllib.request
 
@@ -1934,6 +1938,373 @@ def selftest_routes():
 
 
 # ---------------------------------------------------------------------------------------------
+# fixtures for live route 2: the stdlib fake bbj-ls (tests/fake_mcp.py) stands in for BBj, so CI
+# proves the route, the verdict rules and the network rules; every server here is loopback only
+# ---------------------------------------------------------------------------------------------
+
+FAKE_MCP = os.path.join(os.path.dirname(THIS), "fake_mcp.py")
+
+
+def stop_fake(proc):
+    """Stop a fixture server: terminate, then kill when it does not leave within 5 seconds."""
+    proc.terminate()
+    try:
+        proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.wait(timeout=5)
+
+
+def start_fake(mode):
+    """(url, process, log path): tests/fake_mcp.py in MODE on a free loopback port.
+
+    The caller stops it in a finally block (stop_fake); the port is read from the port file, which
+    is polled for up to 5 seconds."""
+    work = tempfile.mkdtemp(prefix="skillfx-")
+    TEMP_DIRS.append(work)
+    port_file = os.path.join(work, "port")
+    log = os.path.join(work, "requests.log")
+    proc = subprocess.Popen([sys.executable, "-I", FAKE_MCP, "--port-file", port_file, "--log", log,
+                             "--mode", mode], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                            stderr=subprocess.DEVNULL)
+    try:
+        deadline = time.monotonic() + 5
+        while time.monotonic() < deadline and proc.poll() is None:
+            text = read_text(port_file) if os.path.exists(port_file) else None
+            if text is not None and text.strip().isdigit():
+                return "http://127.0.0.1:%s/mcp" % text.strip(), proc, log
+            time.sleep(0.05)
+    except BaseException:
+        stop_fake(proc)
+        raise
+    stop_fake(proc)
+    raise RuntimeError("the fake server did not report a port")
+
+
+def with_fake(mode, fn):
+    """fn(url, log path) while a fake server in MODE runs; the server is always stopped."""
+    url, proc, log = start_fake(mode)
+    try:
+        return fn(url, log)
+    finally:
+        stop_fake(proc)
+
+
+def log_entries(path):
+    """The request entries the fake logged (an absent log file is no request)."""
+    text = read_text(path) if os.path.exists(path) else ""
+    return [json.loads(l) for l in (text or "").split("\n") if l.strip()]
+
+
+def ls_files(info="bbj"):
+    """One clean, non-pending skill 'new-skill' with one closed block tagged INFO."""
+    f = "`" * 3
+    return {"%s/new-skill/SKILL.md" % SKILLS_REL:
+            clean_skill_md("new-skill") + fence_text("", f + info, 'print "a"', f)}
+
+
+def ls_block_line(info="bbj"):
+    return fence_line(list(ls_files(info).values())[0].split("\n\n", 1)[1]) + 5
+
+
+def fake_child_case(name, files, mode, want_rc, wants, env=None):
+    """child_case with BBJ_LOCAL_MCP_URL pointing at a fake server in MODE (stopped afterwards)."""
+    def run():
+        def child(url, log):
+            child_case(name, files, fixture_baseline({}), want_rc, wants,
+                       env=dict(env or {}, BBJ_LOCAL_MCP_URL=url))
+        with_fake(mode, child)
+    fx(name + "_server", run)
+
+
+def reply_of(text, **extra):
+    """A bbj-ls style reply object with one text item; extra keys go into the result."""
+    result = {"content": [{"type": "text", "text": text}], "isError": False}
+    result.update(extra)
+    return {"jsonrpc": "2.0", "id": 1, "result": result}
+
+
+def selftest_ls():
+    one = sblocks((10, "print 1"))
+    caf = "line 11, column 1: [SyntaxError] syntax error near '=' in caf?"
+
+    def mode_case(mode, want_state, want_verdicts):
+        name = "ls_mode_" + mode.replace("-", "_")
+
+        def run():
+            route = with_fake(mode, lambda url, log: ls_route(url, one))
+            prefix = route["state"] == "ok" or route["detail"].startswith("no verdict for s/a.md:10: ")
+            case(name, (route["state"], route["verdicts"], prefix), (want_state, want_verdicts, True))
+        fx(name, run)
+
+    mode_case("clean", "ok", {0: {"fail": False, "detail": ""}})
+    mode_case("one-error", "ok", {0: {"fail": True, "detail": caf}})
+    mode_case("many", "ok", {0: {"fail": True, "detail": "line 11, column 1: [SyntaxError] syntax error 1"}})
+    mode_case("sse", "ok", {0: {"fail": True, "detail": "line 11, column 1: [SyntaxError] syntax error"}})
+    for mode in ("rpc-error", "garbage", "is-error", "empty", "no-verdict"):
+        mode_case(mode, "broken", {})
+
+    def up_closed():
+        case("ls_up_closed", ls_up("http://127.0.0.1:9/mcp"), False)
+    fx("ls_up_closed", up_closed)
+
+    def up_codes():
+        got = {}
+        for code in (200, 302, 404, 405, 500):
+            server, thread, paths = local_server(get_code=code)
+            try:
+                got[code] = ls_up("http://127.0.0.1:%d/mcp" % server.server_address[1])
+            finally:
+                stop_local(server, thread)
+        case("ls_up_only_405", got, {200: False, 302: False, 404: False, 405: True, 500: False})
+    fx("ls_up_only_405", up_codes)
+
+    def version():
+        def v(value):
+            return ls_verdict(reply_of("No errors found.", structuredContent={"bbjVersion": value}))[2]
+
+        got = (v("26.03"), v("26.03" + chr(10)), v("a" * 20), v("a" * 21), v(""), v("a b"), v(26.03),
+               ls_verdict(reply_of("No errors found."))[2])
+        case("ls_version", got, ("26.03", None, "a" * 20, None, None, None, None, None))
+    fx("ls_version", version)
+
+    def verdict_table():
+        err = "line 3, column 4: [E] bad"
+        broken = reply_of("No errors found.")
+        broken["result"]["isError"] = True
+        missing = reply_of("No errors found.")
+        del missing["result"]["isError"]
+        quoted = reply_of("No errors found.")
+        quoted["result"]["isError"] = "false"
+        with_error = reply_of("No errors found.")
+        with_error["error"] = {"code": -32020, "message": "x"}
+        no_list = reply_of("No errors found.")
+        no_list["result"]["content"] = "No errors found."
+        table = [
+            ("pass", reply_of("No errors found. Checked."), ("pass", "")),
+            ("fail", reply_of("1 error found.\n" + err), ("fail", err)),
+            ("is_error_true", broken, ("noverdict", "")),
+            ("is_error_missing", missing, ("noverdict", "")),
+            ("is_error_string", quoted, ("noverdict", "")),
+            ("error_member", with_error, ("noverdict", "")),
+            ("content_not_list", no_list, ("noverdict", "")),
+            ("list_reply", [1], ("noverdict", "")),
+            ("no_text_verdict", reply_of("Checked."), ("noverdict", "")),
+            ("pass_not_at_start", reply_of("x\nNo errors found."), ("noverdict", "")),
+        ]
+        got = [(n, ls_verdict(r)[:2]) for n, r, w in table]
+        case("ls_verdict_table", got, [(n, w) for n, r, w in table])
+    fx("ls_verdict_table", verdict_table)
+
+    def refusal():
+        def route(name, state):
+            return {"route": name, "state": state, "detail": "why"}
+
+        got = (report_refusal([route("bbjcpl", "ok"), route("bbj-ls", "missing")]),
+               report_refusal([route("bbjcpl", "ok"), route("bbj-ls", "broken")]),
+               report_refusal([route("bbjcpl", "ok"), route("bbj-ls", "ok")]))
+        case("report_refusal_ls_unit", got, ("route bbj-ls is missing: why",
+                                             "route bbj-ls is broken: why", None))
+    fx("report_refusal_ls_unit", refusal)
+
+    # child runs: a fixture root with one non-pending skill; BBJ_TEST_HOME stays missing (child_run)
+    skip_head = "gate skills_route_bbj-ls skip "
+    child_case("route_ls_missing_skip", ls_files(), fixture_baseline({}), 0,
+               [skip_head + "http://127.0.0.1:9/mcp did not answer 405 to GET; set BBJ_SKILLS_LIVE=1"])
+    child_case("route_ls_missing_strict_fail", ls_files(), fixture_baseline({}), 1,
+               ["gate skills_route_bbj-ls FAIL BBJ_SKILLS_LIVE=1 but http://127.0.0.1:9/mcp did not answer"],
+               env={"BBJ_SKILLS_LIVE": "1"})
+    child_case("route_ls_not_loopback_skip", ls_files(), fixture_baseline({}), 0,
+               [skip_head + "BBJ_LOCAL_MCP_URL http://example.com/mcp refused: not loopback"],
+               env={"BBJ_LOCAL_MCP_URL": "http://example.com/mcp"})
+    line = ls_block_line()
+    fake_child_case("route_ls_broken_skip", ls_files(), "rpc-error", 0,
+                    [skip_head + "no verdict for new-skill/SKILL.md:%d" % line])
+    fake_child_case("route_ls_broken_strict_fail", ls_files(), "rpc-error", 1,
+                    ["gate skills_route_bbj-ls FAIL BBJ_SKILLS_LIVE=1 but no verdict for new-skill/SKILL.md:%d"
+                     % line], env={"BBJ_SKILLS_LIVE": "1"})
+    fake_child_case("ls_only_bbj_pass", ls_files(), "clean", 0,
+                    ["gate skills_route_bbj-ls ok ",
+                     "gate skills_total_bbj-ls ok 1 bbj blocks: 1 pass, 0 fail; 0 should-fail blocks"])
+    fake_child_case("ls_only_bbj_fail", ls_files(), "one-error", 1,
+                    ["gate skills_bbj-ls_new-skill_SKILL.md_%d FAIL line %d, column 1: " % (line, line + 1)])
+    sf_line = ls_block_line("bbj should-fail")
+    fake_child_case("ls_only_should_fail_undecided", ls_files("bbj should-fail"), "clean", 0,
+                    ["gate skills_should-fail_new-skill_SKILL.md_%d skip undecided" % sf_line])
+    fake_child_case("ls_only_should_fail_undecided_strict", ls_files("bbj should-fail"), "clean", 1,
+                    ["gate skills_should-fail_new-skill_SKILL.md_%d FAIL undecided" % sf_line],
+                    env={"BBJ_SKILLS_LIVE": "1"})
+
+
+def local_server(get_code=405, post_code=302):
+    """(server, thread, recorded paths): a loopback server that answers every GET with get_code and
+    every POST with post_code; a 3xx reply carries a Location of /landed on the same server."""
+    paths = []
+
+    class Handler(http.server.BaseHTTPRequestHandler):
+        def log_message(self, fmt, *args):
+            pass
+
+        def answer(self, code):
+            self.send_response(code)
+            if 300 <= code < 400:
+                self.send_header("Location", "http://127.0.0.1:%d/landed" % self.server.server_address[1])
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+
+        def do_GET(self):
+            paths.append(self.path)
+            self.answer(get_code)
+
+        def do_POST(self):
+            paths.append(self.path)
+            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            self.answer(post_code)
+
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    return server, thread, paths
+
+
+def stop_local(server, thread):
+    server.shutdown()
+    server.server_close()
+    thread.join(5)
+
+
+def selftest_net_guards():
+    one = sblocks((10, "print 1"))
+
+    # skills_guard_request_shape: the hook's request, byte for byte in meaning (T-03-14)
+    def request_shape():
+        def run(url, log):
+            ls_route(url, one)
+            return log_entries(log)
+
+        entries = with_fake("clean", run)
+        posts = [e for e in entries if e["method"] == "POST"]
+        others = [(e["method"], e["path"]) for e in entries if e["method"] != "POST"]
+        want_body = {"jsonrpc": "2.0", "id": 1, "method": "tools/call",
+                     "params": {"name": "bbj_check_syntax", "arguments": {"code": "print 1" + chr(10)},
+                                "_meta": {"io.modelcontextprotocol/protocolVersion": "2026-07-28",
+                                          "io.modelcontextprotocol/clientCapabilities": {}}}}
+        want_headers = (("content-type", "application/json"), ("mcp-protocol-version", "2026-07-28"),
+                        ("mcp-method", "tools/call"), ("mcp-name", "bbj_check_syntax"))
+        ok = (len(posts) == 1 and posts[0]["path"] == "/mcp" and others == [("GET", "/mcp")]
+              and all(posts[0]["headers"].get(k) == v for k, v in want_headers)
+              and json.loads(posts[0]["body"]) == want_body)
+        gate("guard_request_shape", "ok" if ok else "FAIL",
+             "one GET probe and one POST of the hook's body and headers" if ok
+             else "posts %d, others %s, first post %s" % (len(posts), others, posts[:1]))
+    fx("guard_request_shape", request_shape)
+
+    # skills_guard_loopback: the hook's URL rule (T-03-14)
+    def loopback():
+        hosted = "https://" + "mcp.bbj" + "-ai.com/mcp"
+        refused = ["", "http://example.com/mcp", hosted, "https://127.0.0.1/mcp", "ftp://127.0.0.1/mcp",
+                   "http://user@127.0.0.1:5009/mcp", "http://127.0.0.1:5009/mcp?x=1",
+                   "http://127.0.0.1:5009/mcp#frag", "http://127.0.0.1:5009/m cp",
+                   "http://127.0.0.1:5009/a@b", "http://127.0.0.1:5009/a" + chr(92) + "b",
+                   "http://127.0.0.1:5009/mcp" + chr(10), "http://127.0.0.1" + chr(92) + "mcp",
+                   "http://127.0.0.2/mcp", "http://localhost.evil.example/mcp",
+                   "http://127.0.0.1.evil.example/mcp", "HTTP://127.0.0.1/mcp", "http://[::2]/mcp",
+                   "http://127.0.0.1:port/mcp"]
+        accepted = ["http://127.0.0.1:5009/mcp", "http://localhost:5009/mcp", "http://LOCALHOST:5009/mcp",
+                    "http://[::1]:5009/mcp", "http://127.0.0.1"]
+        wrong = [("refused", u) for u in refused if url_ok(u)] + [("accepted", u) for u in accepted
+                                                                  if not url_ok(u)]
+        gate("guard_loopback", "ok" if not wrong else "FAIL",
+             "%d refused and %d accepted forms behave" % (len(refused), len(accepted)) if not wrong
+             else "wrong: %s" % wrong)
+    fx("guard_loopback", loopback)
+
+    # skills_guard_refused_no_request: a refused URL is never connected to (T-03-14)
+    def refused_no_request():
+        def run(url, log):
+            host = url[len("http://"):]
+            forms = ["http://x@" + host, url + "?x=1"]
+            routes = [ls_route(f, one) for f in forms]
+            calls = [ls_call(f, "x") for f in forms]
+            return routes, calls, log_entries(log)
+
+        routes, calls, entries = with_fake("clean", run)
+        ok = (all(r["state"] == "missing" and "not loopback" in r["detail"] for r in routes)
+              and calls == [(None, "not loopback")] * 2 and entries == [])
+        gate("guard_refused_no_request", "ok" if ok else "FAIL",
+             "two refused forms, no request reached the server" if ok
+             else "routes %s, calls %s, requests %d" % ([r["state"] for r in routes], calls, len(entries)))
+    fx("guard_refused_no_request", refused_no_request)
+
+    # skills_guard_no_redirect: a 3xx reply is a route failure, Location is never requested (T-03-15)
+    def no_redirect():
+        server, thread, paths = local_server()
+        try:
+            route = ls_route("http://127.0.0.1:%d/mcp" % server.server_address[1], one)
+        finally:
+            stop_local(server, thread)
+        ok = route["state"] == "broken" and "/mcp" in paths and "/landed" not in paths
+        gate("guard_no_redirect", "ok" if ok else "FAIL",
+             "302 broke the route; requested paths %s" % sorted(set(paths)))
+    fx("guard_no_redirect", no_redirect)
+
+    # skills_guard_no_proxy: the environment's proxies are ignored (T-03-15); the child run sets the
+    # variables before this file is imported, which is when a default opener would read them
+    def no_proxy():
+        names = ("http_proxy", "HTTP_PROXY", "no_proxy", "NO_PROXY")
+        proxy = "http://127.0.0.1:9"
+
+        def run(url, log):
+            saved = dict((k, os.environ.get(k)) for k in names)
+            try:
+                os.environ["http_proxy"] = os.environ["HTTP_PROXY"] = proxy
+                os.environ.pop("no_proxy", None)
+                os.environ.pop("NO_PROXY", None)
+                route = ls_route(url, one)
+            finally:
+                for k, v in saved.items():
+                    if v is None:
+                        os.environ.pop(k, None)
+                    else:
+                        os.environ[k] = v
+            root = make_root(ls_files(), fixture_baseline({}))
+            rc, lines = child_run(root, env={"BBJ_LOCAL_MCP_URL": url, "http_proxy": proxy,
+                                             "HTTP_PROXY": proxy, "no_proxy": None, "NO_PROXY": None})
+            return route, lines
+
+        route, lines = with_fake("clean", run)
+        handlers = OPENER.handlers
+        ok = (route["state"] == "ok" and not route["verdicts"][0]["fail"]
+              and any(l.startswith("gate skills_route_bbj-ls ok ") for l in lines)
+              # an empty ProxyHandler has no methods, so the opener does not keep it; the point is
+              # that no handler with proxies is left
+              and not any(isinstance(h, urllib.request.ProxyHandler) and h.proxies for h in handlers)
+              and not any(type(h) is urllib.request.HTTPRedirectHandler for h in handlers)
+              and any(isinstance(h, _NoRedirect) for h in handlers))
+        gate("guard_no_proxy", "ok" if ok else "FAIL",
+             "clean call with proxy variables set, in this process and in a child run" if ok
+             else "route %s, child route line %s" % (route["state"], [l for l in lines if "route_bbj-ls" in l]))
+    fx("guard_no_proxy", no_proxy)
+
+    # skills_guard_opener_only: nothing in this file opens a connection except through OPENER
+    def opener_only():
+        banned = ("urlopen", "HTTPConnection", "HTTPSConnection", "create_connection", "socket")
+        problems = []
+        for node in ast.walk(ast.parse(read_text(THIS))):
+            if isinstance(node, ast.Attribute) and node.attr in banned:
+                problems.append("line %d: %s" % (node.lineno, node.attr))
+            if isinstance(node, ast.Name) and node.id in banned:
+                problems.append("line %d: %s" % (node.lineno, node.id))
+            if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "open"
+                    and not (isinstance(node.func.value, ast.Name) and node.func.value.id == "OPENER")):
+                problems.append("line %d: .open() not on OPENER" % node.lineno)
+        gate("guard_opener_only", "ok" if not problems else "FAIL",
+             "every connection goes through OPENER" if not problems else "; ".join(problems[:3]))
+    fx("guard_opener_only", opener_only)
+
+
+# ---------------------------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------------------------
 
@@ -1954,6 +2325,8 @@ def main():
             selftest_nocheck()
             selftest_cpl()
             selftest_routes()
+            selftest_ls()
+            selftest_net_guards()
     except Exception as e:
         print("gate skills_internal FAIL %s: %s" % (type(e).__name__, safe(e)))
         return 1
