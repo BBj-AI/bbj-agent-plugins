@@ -11,6 +11,10 @@ MCP-Protocol-Version header is missing, and 405 to a GET. Modes:
   clean       a result starting "No errors found."
   rpc-error   HTTP 400 with a JSON-RPC error
   garbage     HTTP 200 with text that is not JSON
+  is-error    a result whose text is "Internal error" and whose isError is true (plan 02-02, D-03)
+  empty       HTTP 200, application/json, an empty body (plan 02-02, D-03)
+  no-verdict  a result whose text holds neither "No errors found." nor a "line N, column M:"
+              line (plan 02-02, D-03)
   sse         text/event-stream with one "data:" line holding the one-error reply
   tools-list        tools/list answers the three bbj-ls tools (bbj_check_syntax, bbj_denum,
                     bbj_format) as compact JSON like the real server; every other request gets
@@ -57,6 +61,14 @@ def body_for(mode):
         return 400, "application/json", json.dumps(err)
     if mode == "garbage":
         return 200, "text/html", "<html>not json at all</html>"
+    if mode == "is-error":
+        reply = result_for("Internal error")
+        reply["result"]["isError"] = True
+        return 200, "application/json", gson_style(reply)
+    if mode == "empty":
+        return 200, "application/json", ""
+    if mode == "no-verdict":
+        return 200, "application/json", gson_style(result_for("Checked. " + HEADER_LINE))
     if mode in ("tools-list", "tools-list-other"):
         return 200, "application/json", gson_style(result_for("No errors found. " + HEADER_LINE))
     if mode == "sse":

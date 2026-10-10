@@ -6,9 +6,22 @@
 # same session is silent. Gates: the object's shape under dash and bash, the text, the
 # once-per-session marker in BBJ_CHECK_STATE_DIR, and that no marker reaches the real temp
 # directory. Prefix notice_.
+# Plan 02-02 (D-02 to D-05): a compiler that gives no verdict is no route too ("bbjcpl found but
+# gave no result"); and the notice never appears for a clean file, for compile errors, for a
+# route that was reached without a verdict (every curl exit but 7, an empty or junk reply, an
+# error reply), for a file the hook skips early, or in a mixed patch with compile errors.
 # Nothing here runs BBj; there is no compiler and the bbj-ls URL is a closed port.
 . "$(dirname "$0")/lib.sh"
 mkwork
+
+# plan 02-02 starts fake servers: kill them as well as removing WORK (as tests/test_tier2_fake.sh does)
+FAKE_PIDS=
+cleanup() {
+  for _p in $FAKE_PIDS; do kill "$_p" 2> /dev/null; done
+  rm -rf "$WORK"
+}
+trap cleanup EXIT
+trap 'exit 1' INT TERM HUP
 
 TMPLIST_BEFORE=$(ls -d "${TMPDIR:-/tmp}"/bbj-check-noroute-* 2> /dev/null | sort)
 
@@ -487,6 +500,201 @@ else
   gate notice_d02_rc126 FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
 fi
 unset BBJ_HOME FAKE_LOG FAKE_OUT FAKE_EXIT
+
+# ---- plan 02-02: the notice never appears for clean files, errors, failed routes, skipped files ----
+SYSPATH=/usr/bin:/bin
+ORIGPATH=$PATH
+FAKE_CURL_LOG=$WORK/curl.log
+export FAKE_CURL_LOG
+mkdir "$WORK/curlbin"
+cp "$REPO/tests/fake-bin/curl" "$WORK/curlbin/curl"
+chmod 755 "$WORK/curlbin/curl"
+CURLPATH=$WORK/curlbin:$SYSPATH
+
+# start_fake MODE: starts the fake server, sets FAKE_PID, LOGF and BBJ_LOCAL_MCP_URL
+start_fake() {
+  PORTF=$WORK/port.$1
+  LOGF=$WORK/req.$1.log
+  : > "$LOGF"
+  rm -f "$PORTF"
+  python3 -I "$REPO/tests/fake_mcp.py" --port-file "$PORTF" --log "$LOGF" --mode "$1" &
+  FAKE_PID=$!
+  FAKE_PIDS="$FAKE_PIDS $FAKE_PID"
+  _w=0
+  while [ ! -s "$PORTF" ] && [ "$_w" -lt 100 ]; do sleep 0.1; _w=$((_w + 1)); done
+  [ -s "$PORTF" ] || { gate "fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
+  BBJ_LOCAL_MCP_URL=http://127.0.0.1:$(cat "$PORTF")/mcp
+  export BBJ_LOCAL_MCP_URL
+}
+
+stop_fake() {
+  kill "$FAKE_PID" 2> /dev/null
+  wait "$FAKE_PID" 2> /dev/null
+  BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp
+  export BBJ_LOCAL_MCP_URL
+}
+
+# never NAME REQUESTS: exit 0, stdout and stderr empty, exactly one request reached the route and
+# the state directory is empty (no marker, so no notice was ever decided)
+never() {
+  _st=$(ls -A "$BBJ_CHECK_STATE_DIR")
+  if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ "$2" = 1 ] && [ -z "$_st" ]; then
+    gate "$1" ok "exit 0, silent, one request, no marker"
+  else
+    gate "$1" FAIL "exit $RC, stdout '$(head -c 80 "$WORK/stdout")', stderr '$(head -c 80 "$WORK/stderr")', requests $2, state '$_st'"
+  fi
+}
+
+# D-03: no compiler; a route that was reached through curl but gave no verdict is silent
+unset BBJ_HOME FAKE_OUT FAKE_EXIT
+BBJ_LOCAL_MCP_URL=http://127.0.0.1:5009/mcp
+export BBJ_LOCAL_MCP_URL
+for _n in 1 6 18 28 52 56 0; do
+  fresh_state
+  : > "$FAKE_CURL_LOG"
+  FAKE_CURL_EXIT=$_n
+  export FAKE_CURL_EXIT
+  PATH=$CURLPATH
+  run_check "$PAYLOAD"
+  PATH=$ORIGPATH
+  unset FAKE_CURL_EXIT
+  if [ "$_n" = 0 ]; then _gn=notice_curl_empty_reply_silent; else _gn=notice_curl_exit_${_n}_silent; fi
+  never "$_gn" "$(grep -c '^CALL$' "$FAKE_CURL_LOG")"
+done
+BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp
+export BBJ_LOCAL_MCP_URL
+
+# D-03: the fake server answers with a reply that is no verdict
+for _m in rpc-error garbage is-error empty no-verdict; do
+  fresh_state
+  start_fake "$_m"
+  run_check "$PAYLOAD"
+  never "notice_fake_$(printf '%s' "$_m" | tr - _)_silent" "$(wc -l < "$LOGF" | tr -d ' ')"
+  stop_fake
+done
+
+# HOOK-01: a clean file and a file with errors never notify and never create the marker
+fresh_state
+start_fake clean
+run_check "$PAYLOAD"
+_c1=$RC
+_c1o=$(wc -c < "$WORK/stdout")
+_c1e=$(wc -c < "$WORK/stderr")
+_c1s=$(ls -A "$BBJ_CHECK_STATE_DIR")
+stop_fake
+BBJ_HOME=$WORK/d02
+FAKE_LOG=$WORK/clean.log
+export BBJ_HOME FAKE_LOG
+run_check "$PAYLOAD"
+unset BBJ_HOME FAKE_LOG
+if [ "$_c1" = 0 ] && [ "$_c1o" -eq 0 ] && [ "$_c1e" -eq 0 ] && [ -z "$_c1s" ] \
+  && [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ -z "$(ls -A "$BBJ_CHECK_STATE_DIR")" ]; then
+  gate notice_clean_silent ok "tier-2 clean reply and a silent compiler: exit 0, silent, no marker"
+else
+  gate notice_clean_silent FAIL "tier 2: exit $_c1, stdout $_c1o, stderr $_c1e, state '$_c1s'; compiler: exit $RC"
+fi
+
+fresh_state
+start_fake one-error
+run_check "$PAYLOAD"
+_e1=$RC
+_e1o=$(wc -c < "$WORK/stdout")
+_e1e=$(head -n 1 "$WORK/stderr")
+_e1s=$(ls -A "$BBJ_CHECK_STATE_DIR")
+stop_fake
+printf '%s: error at line 10 (1): x\n' "$FILE" > "$WORK/canned2.txt"
+BBJ_HOME=$WORK/d02
+FAKE_LOG=$WORK/err.log
+FAKE_OUT=$WORK/canned2.txt
+export BBJ_HOME FAKE_LOG FAKE_OUT
+run_check "$PAYLOAD"
+unset BBJ_HOME FAKE_LOG FAKE_OUT
+if [ "$_e1" = 2 ] && [ "$_e1o" -eq 0 ] && [ -z "$_e1s" ] && [ "$_e1e" = "bbj-local reported 1 error(s) in $FILE:" ] \
+  && [ "$RC" = 2 ] && [ ! -s "$WORK/stdout" ] && [ -z "$(ls -A "$BBJ_CHECK_STATE_DIR")" ] \
+  && [ "$(head -n 1 "$WORK/stderr")" = "bbjcpl reported 1 error(s) in $FILE:" ]; then
+  gate notice_errors_no_notice ok "tier-2 and compiler errors: exit 2, stdout empty, no marker"
+else
+  gate notice_errors_no_notice FAIL "tier 2: exit $_e1, stdout $_e1o, state '$_e1s', head '$_e1e'; compiler: exit $RC"
+fi
+
+# D-05: files the hook skips early are never "no route", even with no route available
+mkdir "$WORK/skip"
+: > "$WORK/skip/README.md"
+: > "$WORK/skip/notes.txt"
+: > "$WORK/skip/config.bbx"
+: > "$WORK/skip/real.bbj"
+ln -s "$WORK/skip/real.bbj" "$WORK/skip/link.bbj"
+: > "$WORK/skip/unreadable.bbj"
+chmod 000 "$WORK/skip/unreadable.bbj"
+: > "$WORK/skip/star*.bbj"
+fresh_state
+_bad=
+_names='README.md notes.txt config.bbx link.bbj missing.bbj star*.bbj'
+if [ "$(id -u)" != 0 ]; then _names="$_names unreadable.bbj"; fi
+for _n in $_names; do
+  set -f
+  run_check "$(claude_payload Write "$WORK/skip/$_n" "$WORK/skip")"
+  set +f
+  if [ "$RC" != 0 ] || [ -s "$WORK/stdout" ] || [ -s "$WORK/stderr" ]; then _bad="$_bad [$_n: exit $RC]"; fi
+done
+chmod 644 "$WORK/skip/unreadable.bbj"
+_st=$(ls -A "$BBJ_CHECK_STATE_DIR")
+if [ -z "$_bad" ] && [ -z "$_st" ]; then
+  gate notice_early_skips_silent ok "skipped files exit 0, silent, no marker"
+else
+  gate notice_early_skips_silent FAIL "bad:$_bad state '$_st'"
+fi
+
+# D-02 with a failed route: the compiler gives no verdict and the route was reached without one
+fresh_state
+BBJ_HOME=$WORK/d02
+FAKE_LOG=$WORK/d02b.log
+FAKE_OUT=$WORK/javaerr
+export BBJ_HOME FAKE_LOG FAKE_OUT
+start_fake rpc-error
+run_check "$PAYLOAD"
+never notice_d02_failed_route_silent "$(wc -l < "$LOGF" | tr -d ' ')"
+stop_fake
+unset BBJ_HOME FAKE_LOG FAKE_OUT
+
+# D-04: mixed patches. The per-file compiler: e1.bbj has an error line, n.bbj gives no verdict
+# (a Java failure), anything else compiles cleanly.
+mkdir -p "$WORK/home3/bin"
+cat > "$WORK/home3/bin/bbjcpl" <<'FAKE'
+#!/bin/sh
+# per-file fake: e1.bbj reports one error line, n.bbj a launcher failure, anything else nothing
+for a in "$@"; do last=$a; done
+case "$last" in
+  */e1.bbj) echo "$last: error at line 10 (1): one" >&2 ;;
+  */n.bbj) echo "Error: could not find java" >&2 ;;
+esac
+exit 0
+FAKE
+chmod 755 "$WORK/home3/bin/bbjcpl"
+MPROJ=$WORK/mproj
+mkdir "$MPROJ"
+: > "$MPROJ/e1.bbj"
+: > "$MPROJ/n.bbj"
+: > "$MPROJ/clean.bbj"
+fresh_state
+BBJ_HOME=$WORK/home3 run_check "$(codex_payload "$MPROJ" "$(patch '*** Add File: e1.bbj' '*** Add File: n.bbj')")"
+if [ "$RC" = 2 ] && [ ! -s "$WORK/stdout" ] && [ -z "$(ls -A "$BBJ_CHECK_STATE_DIR")" ] \
+  && grep -Fx "bbjcpl reported 1 error(s) in $MPROJ/e1.bbj:" "$WORK/stderr" > /dev/null; then
+  gate notice_mixed_errors_exit2 ok "errors and a no-route file: exit 2, compiler block, no stdout, no marker"
+else
+  gate notice_mixed_errors_exit2 FAIL "exit $RC, stdout '$(head -c 80 "$WORK/stdout")', state '$(ls -A "$BBJ_CHECK_STATE_DIR")', stderr '$(head -n 1 "$WORK/stderr")'"
+fi
+fresh_state
+BBJ_HOME=$WORK/home3 run_check "$(codex_payload "$MPROJ" "$(patch '*** Add File: clean.bbj' '*** Add File: n.bbj')")"
+MTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
+  holds_all notice_mixed_clean_names_noroute_only "$MTEXT" "$MPROJ/n.bbj was written" 'bbjcpl found but gave no result'
+  holds_none notice_mixed_clean_not_named "$MTEXT" 'clean.bbj'
+else
+  gate notice_mixed_clean_names_noroute_only FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
+  gate notice_mixed_clean_not_named FAIL "no valid notice object"
+fi
 
 # ---- no marker in the real temp directory ----
 TMPLIST_AFTER=$(ls -d "${TMPDIR:-/tmp}"/bbj-check-noroute-* 2> /dev/null | sort)

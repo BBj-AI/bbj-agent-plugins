@@ -1,9 +1,10 @@
 #!/bin/sh
 # Fake curl for the plugin tests (plan 19-04). Appends the arguments of each call, one per
-# line, followed by a CALL separator, to $FAKE_CURL_LOG, and exits 7 (connection refused).
-# It never touches the network and never reads stdin.
+# line, followed by a CALL separator, to $FAKE_CURL_LOG. It exits 7 (connection refused) unless
+# FAKE_CURL_EXIT names another status (plan 02-02, D-03: a reached route that fails), prints
+# nothing, never touches the network and never reads stdin.
 {
   for a in "$@"; do printf '%s\n' "$a"; done
   echo CALL
 } >> "${FAKE_CURL_LOG:-/dev/null}"
-exit 7
+exit "${FAKE_CURL_EXIT:-7}"
