@@ -10,6 +10,10 @@
 # gave no result"); and the notice never appears for a clean file, for compile errors, for a
 # route that was reached without a verdict (every curl exit but 7, an empty or junk reply, an
 # error reply), for a file the hook skips early, or in a mixed patch with compile errors.
+# Fix 02-02 (deferred item D-1): the once-per-session winner is an exclusive claim file inside the
+# marker directory, not mkdir alone (uutils mkdir lets parallel calls of one path all succeed);
+# gates notice_concurrent_once (repeated rounds), notice_claim_present_silent,
+# notice_marker_without_claim, notice_claim_symlink_squat.
 # Nothing here runs BBj; there is no compiler and the bbj-ls URL is a closed port.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -399,27 +403,86 @@ if [ "$_sv_tmp_set" = set ]; then TMPDIR=$_sv_tmp; export TMPDIR; else unset TMP
 BBJ_CHECK_STATE_DIR=$_sv_state
 export BBJ_CHECK_STATE_DIR
 
-# six hooks started at once for one session: exactly one notice (mkdir is the atomic test-and-set)
-fresh_state
+# parallel hooks started at once for one session, over many rounds: exactly one notice per round.
+# The winner is an exclusive claim file made by the shell itself; mkdir alone is not atomic on
+# every coreutils (uutils 0.8.0 lets several parallel mkdir of one path succeed), so a single
+# round passing proves little and this gate repeats it. ROUNDS x PROCS hook processes.
+ROUNDS=20
+PROCS=8
 printf '%s' "$PAYLOAD" > "$WORK/payload.c"
-_pids=
-for _i in 1 2 3 4 5 6; do
-  $SHELL_UNDER_TEST "$SCRIPT" < "$WORK/payload.c" > "$WORK/cout.$_i" 2> "$WORK/cerr.$_i" &
-  _pids="$_pids $!"
-done
-for _p in $_pids; do wait "$_p"; done
-_nonempty=0
-_valid=0
-for _i in 1 2 3 4 5 6; do
-  if [ -s "$WORK/cout.$_i" ]; then
-    _nonempty=$((_nonempty + 1))
-    if notice_text "$WORK/cout.$_i" > /dev/null; then _valid=$((_valid + 1)); fi
+_badrounds=0
+_why=
+_r=0
+while [ "$_r" -lt "$ROUNDS" ]; do
+  _r=$((_r + 1))
+  fresh_state
+  _pids=
+  _i=0
+  while [ "$_i" -lt "$PROCS" ]; do
+    _i=$((_i + 1))
+    $SHELL_UNDER_TEST "$SCRIPT" < "$WORK/payload.c" > "$WORK/cout.$_i" 2> "$WORK/cerr.$_i" &
+    _pids="$_pids $!"
+  done
+  for _p in $_pids; do wait "$_p"; done
+  _nonempty=0
+  _valid=0
+  _i=0
+  while [ "$_i" -lt "$PROCS" ]; do
+    _i=$((_i + 1))
+    if [ -s "$WORK/cout.$_i" ]; then
+      _nonempty=$((_nonempty + 1))
+      if notice_text "$WORK/cout.$_i" > /dev/null; then _valid=$((_valid + 1)); fi
+    fi
+  done
+  if [ "$_nonempty" != 1 ] || [ "$_valid" != 1 ]; then
+    _badrounds=$((_badrounds + 1))
+    _why="$_why [round $_r: $_nonempty non-empty, $_valid valid]"
   fi
 done
-if [ "$_nonempty" = 1 ] && [ "$_valid" = 1 ]; then
-  gate notice_concurrent_once ok "six processes, one notice"
+if [ "$_badrounds" = 0 ]; then
+  gate notice_concurrent_once ok "$ROUNDS rounds of $PROCS processes, one notice each"
 else
-  gate notice_concurrent_once FAIL "$_nonempty non-empty outputs, $_valid valid"
+  gate notice_concurrent_once FAIL "$_badrounds of $ROUNDS rounds were not exactly one notice:$_why"
+fi
+
+# the claim file (HOOK-02, D-17): the marker directory alone does not decide
+# a claim already there: told before, silent
+fresh_state
+mkdir "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1"
+: > "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1/claim"
+run_check "$PAYLOAD"
+silent_out notice_claim_present_silent
+# a marker directory without a claim (a crash between mkdir and the claim): notice once, then silent
+fresh_state
+mkdir "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1"
+run_check "$PAYLOAD"
+CTXT=$(notice_text "$WORK/stdout")
+_nr=$?
+_c1=$RC
+run_check "$PAYLOAD"
+if [ "$_c1" = 0 ] && [ "$_nr" = 0 ] && printf '%s' "$CTXT" | grep -F 'this notice is not repeated' > /dev/null \
+  && [ -f "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1/claim" ] && [ "$RC" = 0 ] \
+  && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+  gate notice_marker_without_claim ok "marker dir without a claim: one notice with 'not repeated', then silent"
+else
+  gate notice_marker_without_claim FAIL "exit $_c1, notice_text $_nr, then exit $RC, stdout '$(head -c 80 "$WORK/stdout")'"
+fi
+# a symlink planted at the claim name is neither followed nor taken for "told": notice on both calls
+fresh_state
+mkdir "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1"
+ln -s "$WORK/claim-target" "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1/claim"
+two_notices x "$PAYLOAD"
+_dang_ok=$TWO_OK
+_dang_why=$TWO_WHY
+: > "$WORK/claim-target2"
+rm "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1/claim"
+ln -s "$WORK/claim-target2" "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1/claim"
+two_notices x "$PAYLOAD"
+if [ "$_dang_ok" = 1 ] && [ "$TWO_OK" = 1 ] && [ ! -e "$WORK/claim-target" ] && [ ! -s "$WORK/claim-target2" ] \
+  && [ -L "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1/claim" ]; then
+  gate notice_claim_symlink_squat ok "a link at the claim name (dangling, or to a file): notice on both calls, nothing written through it"
+else
+  gate notice_claim_symlink_squat FAIL "dangling: $_dang_why; to a file: $TWO_WHY"
 fi
 
 # a call that exits 2 prints no notice and keeps the session's slot (D-04)
@@ -449,7 +512,7 @@ fi
 # the header documents the marker rules and the readings this plan applies
 _head=$(awk '/^[^#]/ { exit } { print }' "$SCRIPT")
 _miss=
-for _f in 'D-16' 'D-17' 'D-18' 'D-19' 'plain mkdir' 'not repeated' '/compact' 'BBJ_CHECK_STATE_DIR'; do
+for _f in 'D-16' 'D-17' 'D-18' 'D-19' 'mkdir' 'O_EXCL' 'uutils' 'claim' 'not repeated' '/compact' 'BBJ_CHECK_STATE_DIR'; do
   printf '%s\n' "$_head" | grep -F -- "$_f" > /dev/null || _miss="$_miss [$_f]"
 done
 if [ -z "$_miss" ]; then
