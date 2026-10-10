@@ -1,0 +1,9 @@
+Both file creations failed: `apply_patch` reported “Failed to write file” for each path. No shell commands were run.
+
+## PATCH 1
+
+NONE
+
+## PATCH 2
+
+NONE
