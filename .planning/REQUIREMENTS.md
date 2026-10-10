@@ -26,7 +26,7 @@
 - [x] **HOOK-01**: `bbj-check.sh` distinguishes clean / errors / no route / route failed; a clean file never produces the notice
 - [x] **HOOK-02**: With no check route, the hook exits 0 and emits one JSON `hookSpecificOutput.additionalContext` object once per session (`mkdir`-atomic marker keyed by `session_id`, `BBJ_CHECK_STATE_DIR` test seam); the text says the file was written but not checked, how to enable `bbjcpl` (`bbj_home`) or `bbj-local`, and names the hosted check in one clause as a fallback that sends code to the server
 - [x] **HOOK-03**: `tests/test_exit_contract.sh` is amended narrowly (stdout holds exactly that JSON object in the no-route case, empty otherwise) and the silent-path tests are converted to "first call notice, then silent"
-- [ ] **HOOK-04**: Notice delivery is verified on a real Codex after `apply_patch`; if `additionalContext` does not reach the model there, Codex alone falls back to exit 2 with stderr
+- [x] **HOOK-04**: Notice delivery is verified on a real Codex after `apply_patch`; if `additionalContext` does not reach the model there, Codex alone falls back to exit 2 with stderr
 
 ### Example gate
 
@@ -98,7 +98,7 @@
 | HOOK-01 | Phase 2 | Complete |
 | HOOK-02 | Phase 2 | Complete |
 | HOOK-03 | Phase 2 | Complete |
-| HOOK-04 | Phase 2 | Pending |
+| HOOK-04 | Phase 2 | Complete |
 | GATE-01 | Phase 3 | Pending |
 | GATE-02 | Phase 3 | Pending |
 | GATE-03 | Phase 3 | Pending |
