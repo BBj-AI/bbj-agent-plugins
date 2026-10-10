@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 2
 current_phase_name: Hook no-route notice
 status: executing
-stopped_at: Phase 2 context gathered
-last_updated: "2026-10-10T08:28:33.636Z"
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-10-10T08:41:54.100Z"
 last_activity: 2026-10-10
-last_activity_desc: Phase 1 complete, transitioned to Phase 2
-state_head: bb9eb1466c446b95210697597e0b221ea6dc69d1
+last_activity_desc: Phase 2 execution started
+state_head: c27365621c11a33a86c1ab8625c2063ff7828715
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 
 ## Current Position
 
-Phase: 2 (Hook no-route notice) — READY TO EXECUTE
-Plan: Not started
+Phase: 2 (Hook no-route notice) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-10-10 — Phase 1 complete, transitioned to Phase 2
+Last activity: 2026-10-10 — Phase 2 execution started
 
 Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans)
 
@@ -65,6 +65,7 @@ Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans
 | Phase 1 P02 | 6 min | 2 tasks | 8 files |
 | Phase 1 P06 | 9 min | 3 tasks | 4 files |
 | Phase 1 P07 | 6 min | 2 tasks | 4 files |
+| Phase 2 P01 | 40 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -85,6 +86,9 @@ Recent decisions affecting current work:
 - [Phase 1]: [01-06] Probe verdict is the bbj_check_syntax name in the tools/list reply; with --with-local the probe only selects the printed line and bbj-local is registered on every outcome — LOCAL-04 predicate: registered anyway, warning on every outcome but found; the seam moves only the probe, never the registered url (D-17)
 - [Phase 1]: [01-06] curl_gate skips message-only say lines; the curl rules of the hook now hold for codex/*.sh — The installer's no-curl message holds the word curl but is not a call; a mutation run without --noproxy still fails the gate
 - [Phase 1]: [01-07] Install docs describe the no-flag found line as printed (same url twice by default) and keep bbjcpl first: preferred means over the hosted check — Quoted installer fragments are held by codex_quoted_messages_in_installer; local_not_above_bbjcpl forbids ranking bbj-local over bbjcpl on all three files
+- [Phase 2]: Plan 02-01: only curl exit 7 is no route; every other curl exit, an empty reply, a JSON-RPC error, an isError result and text with neither verdict is route failed and silent (D-01, D-03)
+- [Phase 2]: Plan 02-01: the 'not repeated' clause is printed only when this call created the marker, so tell-anyway failures and a missing session id never claim a silence that will not follow (D-11 with D-16, D-17)
+- [Phase 2]: Plan 02-01: json_body maps every byte outside printable ASCII to ? so a file name can never make the notice object invalid JSON or invalid UTF-8
 
 ### Pending Todos
 
@@ -108,6 +112,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T07:07:18.912Z
-Stopped at: Phase 2 context gathered
-Resume file: .planning/phases/02-hook-no-route-notice/02-CONTEXT.md
+Last session: 2026-10-10T08:41:54.033Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: None
