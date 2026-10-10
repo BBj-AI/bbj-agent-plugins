@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 2
 current_phase_name: Hook no-route notice
 status: executing
-stopped_at: Completed 02-01-PLAN.md
-last_updated: "2026-10-10T08:41:54.100Z"
+stopped_at: Completed 02-03-PLAN.md
+last_updated: "2026-10-10T08:45:29.372Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 2 execution started
-state_head: c27365621c11a33a86c1ab8625c2063ff7828715
+state_head: 26aa567e2ce0bbc89c6b3e8119d1557a0e5a1648
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 2 (Hook no-route notice) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 2 execution started
 
@@ -66,6 +66,7 @@ Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans
 | Phase 1 P06 | 9 min | 3 tasks | 4 files |
 | Phase 1 P07 | 6 min | 2 tasks | 4 files |
 | Phase 2 P01 | 40 min | 3 tasks | 5 files |
+| Phase 02 P03 | 15min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Recent decisions affecting current work:
 - [Phase 2]: Plan 02-01: only curl exit 7 is no route; every other curl exit, an empty reply, a JSON-RPC error, an isError result and text with neither verdict is route failed and silent (D-01, D-03)
 - [Phase 2]: Plan 02-01: the 'not repeated' clause is printed only when this call created the marker, so tell-anyway failures and a missing session id never claim a silence that will not follow (D-11 with D-16, D-17)
 - [Phase 2]: Plan 02-01: json_body maps every byte outside printable ASCII to ? so a file name can never make the notice object invalid JSON or invalid UTF-8
+- [Phase 02]: 02-03: install docs and installer wording state the no-route notice without naming the delivery channel, so it stays true if Codex uses the exit-2 fallback (D-15)
 
 ### Pending Todos
 
@@ -112,6 +114,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T08:41:54.033Z
-Stopped at: Completed 02-01-PLAN.md
+Last session: 2026-10-10T08:45:29.307Z
+Stopped at: Completed 02-03-PLAN.md
 Resume file: None

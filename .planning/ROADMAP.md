@@ -82,13 +82,13 @@ Plans:
   3. `tests/test_exit_contract.sh` asserts stdout holds exactly that JSON object in the no-route case and is empty otherwise, and the former silent-path tests read "first call notice, then silent"
   4. On a real Codex after `apply_patch`, the notice is confirmed to reach the model; if it does not, Codex alone falls back to exit 2 with stderr and the result is recorded
 
-**Plans**: 1/6 plans executed
+**Plans**: 2/6 plans executed
 
 Plans:
 **Wave 1**
 
 - [x] 02-01-PLAN.md — Hook notice on the no-compiler branch: tier-2 no route vs route failed, exact JSON object, both client texts, path caps, once-per-session marker and its edge cases; BBJ_CHECK_STATE_DIR seam; 14 silent-path gates converted (wave 1)
-- [ ] 02-03-PLAN.md — README, both install pages and the installer's Known gaps describe the notice instead of silence; need/forbid gates (wave 1)
+- [x] 02-03-PLAN.md — README, both install pages and the installer's Known gaps describe the notice instead of silence; need/forbid gates (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -174,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
-| 2. Hook no-route notice | 1/6 | In Progress | - |
+| 2. Hook no-route notice | 2/6 | In Progress | - |
 | 3. Example gate and structure lints | 0/TBD | Not started | - |
 | 4. bbj-programming makeover | 0/TBD | Not started | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
