@@ -7,7 +7,9 @@
 # Steps, each reported as a "gate NAME ok|FAIL|skip DETAIL" line:
 #   1. sh tests/run.sh   every self-contained test (fake compiler, never-execute, static,
 #                        discovery, exit contract, tier-2 fake, Codex parsing, installer,
-#                        layout, install pages, CI guards)
+#                        layout, install pages, CI guards, skill example gate (fence
+#                        grammar, structure, nocheck; its bbjcpl and bbj-ls routes skip
+#                        without BBj))
 #   2. claude plugin validate --strict on the marketplace root, plugins/bbj, plugins/bbj-local
 #   3. shellcheck -s sh over the shipped and test shell scripts
 #
