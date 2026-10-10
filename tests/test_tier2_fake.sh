@@ -256,7 +256,7 @@ accepted http://LOCALHOST:5009/mcp localhost_upper
 accepted http://127.0.0.1:5009/mcp ipv4
 
 # ---- no curl on PATH: first call notice (curl not found), then silent ----
-# mkdir is on the farm because the notice's once-per-session marker is a plain mkdir
+# mkdir is on the farm because the notice's once-per-session marker directory is made with mkdir
 mkdir "$WORK/nocurl"
 for _t in "$SHELL_UNDER_TEST" cat head tail tr sed awk grep dirname basename ls readlink mkdir; do
   _c=$(PATH=$SYSPATH command -v "$_t")
