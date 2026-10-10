@@ -82,14 +82,25 @@ export BBJ_HOME
 go; ran "$WORK/W/bin/bbjcplw" bbjcplw_only
 unset BBJ_HOME
 
-# no route at all: exit 0, no output, no compiler call
+# no route at all: the first call of a session is the no-route notice (exit 0, stderr empty,
+# no compiler call), the second call is silent (plan 02-01, D-01)
 BBJ_CHECK_DEFAULT_HOMES=
 export BBJ_CHECK_DEFAULT_HOMES
+fresh_state
 go
-if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$FAKE_LOG" ]; then
-  gate no_route_silent ok "exit 0, no output"
+_ntext=$(notice_text "$WORK/stdout")
+_nrc=$?
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$FAKE_LOG" ] && [ "$_nrc" = 0 ] \
+  && printf '%s' "$_ntext" | grep -F 'no bbjcpl found' > /dev/null \
+  && printf '%s' "$_ntext" | grep -F 'no bbj-ls answering on 127.0.0.1:9' > /dev/null; then
+  go
+  if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$FAKE_LOG" ]; then
+    gate no_route_notice_then_silent ok "first call notice, second call silent"
+  else
+    gate no_route_notice_then_silent FAIL "second call not silent: exit $RC"
+  fi
 else
-  gate no_route_silent FAIL "exit $RC"
+  gate no_route_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
 fi
 
 # an unusable compiler is no verdict: output without a compiler-format line, a crash

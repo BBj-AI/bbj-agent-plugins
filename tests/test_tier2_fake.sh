@@ -4,7 +4,8 @@
 # CheckUpstream.java sends (headers, _meta keys, the file text as arguments.code byte for
 # byte after control characters are dropped), every fake-server mode, the rule that a
 # working compiler means no request, and the loopback-only URL rule: refused URLs never reach
-# curl, accepted ones carry --noproxy '*' and --proto =http and no redirect flag.
+# curl (first call: the no-route notice, then silent; plan 02-01), accepted ones carry
+# --noproxy '*' and --proto =http and no redirect flag.
 # Nothing here runs BBj; the "compiler" is the logging fake.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -193,15 +194,28 @@ export FAKE_CURL_LOG
 CURLPATH=$WORK/curlbin:$SYSPATH
 
 refused() {
-  # refused URL: curl is never invoked, exit 0 silent
+  # refused URL: curl is never invoked; the first call of a session is the no-route notice
+  # (reason: URL refused, never the URL itself), the second call is silent (plan 02-01, D-01)
+  fresh_state
   : > "$FAKE_CURL_LOG"
   BBJ_LOCAL_MCP_URL=$1
   export BBJ_LOCAL_MCP_URL
   run_t2 "$PAYLOAD" "$CURLPATH"
-  if [ "$RC" = 0 ] && [ ! -s "$FAKE_CURL_LOG" ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
-    gate "url_refused_$2" ok "refused, curl not invoked"
+  _ntext=$(notice_text "$WORK/stdout")
+  _nrc=$?
+  printf '%s\n' "$1" > "$WORK/url.txt"
+  if [ "$RC" = 0 ] && [ ! -s "$FAKE_CURL_LOG" ] && [ ! -s "$WORK/stderr" ] && [ "$_nrc" = 0 ] \
+    && printf '%s' "$_ntext" | grep -F 'bbj-ls URL refused (not loopback)' > /dev/null \
+    && printf '%s' "$_ntext" | grep -F 'no bbjcpl found' > /dev/null \
+    && ! printf '%s' "$_ntext" | grep -F -f "$WORK/url.txt" > /dev/null; then
+    run_t2 "$PAYLOAD" "$CURLPATH"
+    if [ "$RC" = 0 ] && [ ! -s "$FAKE_CURL_LOG" ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+      gate "url_refused_$2" ok "refused, curl not invoked, first call notice, second call silent"
+    else
+      gate "url_refused_$2" FAIL "second call not silent (exit $RC)"
+    fi
   else
-    gate "url_refused_$2" FAIL "reached curl or produced output (exit $RC)"
+    gate "url_refused_$2" FAIL "reached curl or no valid notice (exit $RC, notice_text $_nrc): $(head -c 160 "$WORK/stdout")"
   fi
 }
 refused http://example.com/mcp remote_http
@@ -241,18 +255,28 @@ accepted http://[::1]:5009/mcp ipv6
 accepted http://LOCALHOST:5009/mcp localhost_upper
 accepted http://127.0.0.1:5009/mcp ipv4
 
-# ---- no curl on PATH: exit 0 silent ----
+# ---- no curl on PATH: first call notice (curl not found), then silent ----
+# mkdir is on the farm because the notice's once-per-session marker is a plain mkdir
 mkdir "$WORK/nocurl"
-for _t in "$SHELL_UNDER_TEST" cat head tail tr sed awk grep dirname basename ls readlink; do
+for _t in "$SHELL_UNDER_TEST" cat head tail tr sed awk grep dirname basename ls readlink mkdir; do
   _c=$(PATH=$SYSPATH command -v "$_t")
   [ -n "$_c" ] && ln -s "$_c" "$WORK/nocurl/$_t"
 done
 start_fake one-error
+fresh_state
 run_t2 "$PAYLOAD" "$WORK/nocurl"
-if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ]; then
-  gate no_curl_silent ok "exit 0, no output, no request"
+_ntext=$(notice_text "$WORK/stdout")
+_nrc=$?
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ] && [ "$_nrc" = 0 ] \
+  && printf '%s' "$_ntext" | grep -F 'curl not found' > /dev/null; then
+  run_t2 "$PAYLOAD" "$WORK/nocurl"
+  if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ]; then
+    gate no_curl_notice_then_silent ok "first call notice with curl not found, no request, second call silent"
+  else
+    gate no_curl_notice_then_silent FAIL "second call not silent (exit $RC)"
+  fi
 else
-  gate no_curl_silent FAIL "exit $RC"
+  gate no_curl_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
 fi
 stop_fake
 
