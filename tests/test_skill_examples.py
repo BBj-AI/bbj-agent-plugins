@@ -504,6 +504,106 @@ def run_report(root, json_path, md_path):
 
 
 # ---------------------------------------------------------------------------------------------
+# fixtures: pure, no files and no subprocess, run in CI (default root only)
+# ---------------------------------------------------------------------------------------------
+
+def fx(name, fn):
+    """Run one fixture; an exception becomes a FAIL gate so one broken fixture hides no other."""
+    try:
+        fn()
+    except Exception as e:
+        gate("fx_%s_crashed" % name, "FAIL", "%s: %s" % (type(e).__name__, e))
+
+
+def fence_text(*lines):
+    return "\n".join(lines) + "\n"
+
+
+def grammar_case(name, text, want_kinds, want_violations, want_bodies=None):
+    """Run extract + kind_of + grammar_violations on a small text and compare exactly."""
+    def run():
+        blocks = extract(lines_of(text))
+        kinds = [kind_of(b["info"])[0] for b in blocks]
+        got = [(v["line"], v["detail"]) for v in grammar_violations("fx", "f.md", blocks)]
+        want = (want_kinds, want_violations)
+        have = (kinds, got)
+        if want_bodies is not None:
+            want = want + (want_bodies,)
+            have = have + ([b["body"] for b in blocks],)
+        if have == want:
+            gate("fx_grammar_" + name, "ok", "kinds %s, %d violation(s)" % (kinds, len(got)))
+        else:
+            gate("fx_grammar_" + name, "FAIL", "want %s, got %s" % (want, have))
+    fx("grammar_" + name, run)
+
+
+def selftest_grammar():
+    f = "`" * 3
+    untagged = (1, "untagged fence")
+
+    def unknown(info):
+        return "unknown bbj attribute or missing nocheck reason: '%s'" % info
+
+    def tag(word):
+        return "tag '%s' is not bbj and not in the allowlist" % word
+
+    grammar_case("bbj_accepted", fence_text(f + "bbj", "print 1", f), ["bbj"], [])
+    grammar_case("should_fail_accepted", fence_text(f + "bbj should-fail", "print 1", f),
+                 ["should-fail"], [])
+    grammar_case("nocheck_accepted", fence_text(f + "bbj nocheck (class fragment)", "x", f),
+                 ["nocheck"], [])
+    grammar_case("nocheck_no_reason", fence_text(f + "bbj nocheck", "x", f), ["violation"],
+                 [(1, unknown("bbj nocheck"))])
+    grammar_case("nocheck_empty_reason", fence_text(f + "bbj nocheck ()", "x", f), ["violation"],
+                 [(1, unknown("bbj nocheck ()"))])
+    grammar_case("nocheck_blank_reason", fence_text(f + "bbj nocheck ( )", "x", f), ["violation"],
+                 [(1, unknown("bbj nocheck ( )"))])
+    grammar_case("unknown_attribute", fence_text(f + "bbj foo", "x", f), ["violation"],
+                 [(1, unknown("bbj foo"))])
+    grammar_case("double_space", fence_text(f + "bbj  should-fail", "x", f), ["violation"],
+                 [(1, unknown("bbj  should-fail"))])
+    grammar_case("tag_case", fence_text(f + "BBj", "x", f), ["violation"], [(1, tag("BBj"))])
+    grammar_case("tag_bbx", fence_text(f + "bbx", "x", f), ["violation"], [(1, tag("bbx"))])
+    grammar_case("tag_java", fence_text(f + "java", "x", f), ["violation"], [(1, tag("java"))])
+    grammar_case("untagged", fence_text(f, "x", f), ["violation"], [untagged])
+    grammar_case("allowlist", "".join(fence_text(f + t, "x", f) for t in NON_BBJ),
+                 ["other"] * len(NON_BBJ), [])
+    grammar_case("unclosed", fence_text(f + "bbj", "print 1"), ["bbj"],
+                 [(1, "unclosed fence (runs to the end of the file)")])
+    grammar_case("dots_in_bbj", fence_text(f + "bbj", "x = 1", "...", f), ["bbj"],
+                 [(1, "'...' placeholder in a bbj block (file line 3)")])
+    grammar_case("dots_in_should_fail", fence_text(f + "bbj should-fail", "...", "...", f),
+                 ["should-fail"], [(1, "'...' placeholder in a bbj block (file line 2)")])
+    grammar_case("dots_in_nocheck_exempt", fence_text(f + "bbj nocheck (why)", "...", f),
+                 ["nocheck"], [])
+    grammar_case("dots_in_css_ignored", fence_text(f + "css", "a { ... }", f), ["other"], [])
+    grammar_case("tilde_fence", fence_text("~~~bbj", "print 1", "~~~"), ["bbj"], [],
+                 [["print 1"]])
+    grammar_case("indented_fence",
+                 fence_text("- item", "    " + f + "bbj", "    print 1", "    " + f), ["bbj"], [],
+                 [["print 1"]])
+    grammar_case("tab_indented_fence", fence_text("\t" + f + "bbj", "\tprint 1", "\t" + f),
+                 ["bbj"], [], [["print 1"]])
+    grammar_case("four_backticks",
+                 fence_text("`" * 4 + "bbj", f, "print 1", f, "`" * 4), ["bbj"], [],
+                 [[f, "print 1", f]])
+    grammar_case("backtick_info_not_fence", fence_text(f + "foo`bar", "x"), [], [])
+    grammar_case("closer_longer", fence_text(f + "bbj", "print 1", "`" * 5), ["bbj"], [],
+                 [["print 1"]])
+    grammar_case("closer_with_text_not_closer",
+                 fence_text(f + "bbj", "print 1", f + "foo", "print 2", f), ["bbj"], [],
+                 [["print 1", f + "foo", "print 2"]])
+
+    def opener_line():
+        blocks = extract(lines_of(fence_text("a", "b", f + "bbj", "x", f)))
+        lines = [b["line"] for b in blocks]
+        gate("fx_grammar_opener_line_number", "ok" if lines == [3] else "FAIL",
+             "opener on line 3 reports %s" % lines)
+    fx("grammar_opener_line_number", opener_line)
+    grammar_case("trailing_space_info", fence_text(f + "bbj ", "print 1", f), ["bbj"], [])
+
+
+# ---------------------------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------------------------
 
@@ -516,6 +616,8 @@ def main():
             return 2
     try:
         run_gates(ROOT)
+        if SELFTEST:
+            selftest_grammar()
     except Exception as e:
         print("gate skills_internal FAIL %s: %s" % (type(e).__name__, safe(e)))
         return 1
