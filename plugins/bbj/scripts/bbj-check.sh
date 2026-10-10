@@ -51,6 +51,12 @@
 # message class and never uses the error header above (D-12). File names are reduced to
 # printable ASCII, escaped, cut to 200 bytes each, and at most 5 are named (D-10).
 #
+# A compiler that runs but gives no verdict (output without a compiler-format line, or no
+# output and exit status 126 or higher) is asked through tier 2 as well. With no tier-2 route
+# either, the file is noted as unchecked and the notice reads "bbjcpl found but gave no result"
+# instead of "no bbjcpl found" (D-02); with a tier-2 route that was reached without a verdict
+# the file stays silent (D-03).
+#
 # The once-per-session marker (HOOK-02, D-17, D-18). The notice is decided in main after every
 # file of the call, so a call that exits 2 or has nothing to report never uses up the slot.
 # Location: ${BBJ_CHECK_STATE_DIR:-${TMPDIR:-/tmp}}/bbj-check-noroute-<key>, the same on both
@@ -498,8 +504,15 @@ check_file() {
   errs=$(printf '%s\n' "$out" | grep -E ': (type check )?error')
   if [ -z "$errs" ]; then
     # Output without a compiler-format line (a launcher or Java failure) or a crashed
-    # compiler is no verdict, never "clean": same route as no compiler at all.
-    if [ -n "$out" ] || [ "$rc" -ge 126 ]; then no_tier1_route; fi
+    # compiler is no verdict, never "clean": same route as no compiler at all. When tier 2
+    # has no route either (status 1) the file went unchecked, so it counts as no route and
+    # is noted with KIND noresult (D-02); a tier-2 route that was reached without a verdict
+    # (status 2) stays silent (D-03), and a tier-2 error reply was reported by the call.
+    if [ -n "$out" ] || [ "$rc" -ge 126 ]; then
+      no_tier1_route
+      _t2=$?
+      if [ "$_t2" = 1 ]; then note_noroute noresult; fi
+    fi
     return 0
   fi
   # D-11: an unresolved use without a path ("Cannot find program") is demoted to a trailing

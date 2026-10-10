@@ -103,27 +103,37 @@ else
   gate no_route_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
 fi
 
-# an unusable compiler is no verdict: output without a compiler-format line, a crash
+# an unusable compiler is no verdict: output without a compiler-format line, a crash. With no
+# tier-2 route (the closed port) the first call of a session is the no-route notice, reading
+# "bbjcpl found but gave no result"; the second call is silent (plan 02-02, D-02, HOOK-03).
+# notice_then_silent NAME: run go twice and check exit 0, empty stderr, the notice, then silence
+notice_then_silent() {
+  fresh_state
+  go
+  _ntext=$(notice_text "$WORK/stdout")
+  _nrc=$?
+  if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nrc" = 0 ] \
+    && printf '%s' "$_ntext" | grep -F 'bbjcpl found but gave no result' > /dev/null; then
+    go
+    if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+      gate "$1" ok "first call notice, second call silent"
+    else
+      gate "$1" FAIL "second call not silent: exit $RC"
+    fi
+  else
+    gate "$1" FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
+  fi
+}
 BBJ_HOME=$WORK/A
 export BBJ_HOME
 printf 'Error: could not find java\n' > "$WORK/javaerr"
 FAKE_OUT=$WORK/javaerr
 export FAKE_OUT
-go
-if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
-  gate unusable_output_silent ok "exit 0, no output"
-else
-  gate unusable_output_silent FAIL "exit $RC"
-fi
+notice_then_silent unusable_output_notice_then_silent
 unset FAKE_OUT
 FAKE_EXIT=139
 export FAKE_EXIT
-go
-if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
-  gate crash_silent ok "exit 0, no output"
-else
-  gate crash_silent FAIL "exit $RC"
-fi
+notice_then_silent crash_notice_then_silent
 unset FAKE_EXIT
 
 # -P list: the file's directory, CLAUDE_PROJECT_DIR and the cwd, deduplicated

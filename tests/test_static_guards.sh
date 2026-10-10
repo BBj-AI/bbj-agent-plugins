@@ -100,6 +100,21 @@ for f in $SCRIPTS_GLOB; do
   fi
   curl_gate "$f" "$body"
 
+  # the hook writes stdout in exactly one place, the no-route notice (plan 02-02, HOOK-02 and
+  # HOOK-03; D-12): in the comment-stripped script exactly one line holds hookSpecificOutput (the
+  # one printf of the notice object), so a second stdout writer of the object fails the suite.
+  # Any other shipped script must have none.
+  _writers=$(printf '%s\n' "$body" | awk '/hookSpecificOutput/ { n++ } END { print n + 0 }')
+  case "$(basename "$f")" in
+    bbj-check.sh) _want=1 ;;
+    *) _want=0 ;;
+  esac
+  if [ "$_writers" = "$_want" ]; then
+    gate "static_notice_single_writer_$(basename "$f")" ok "$_writers line(s) hold hookSpecificOutput"
+  else
+    gate "static_notice_single_writer_$(basename "$f")" FAIL "$_writers line(s) hold hookSpecificOutput, want $_want"
+  fi
+
   if sh -n "$f" 2> "$WORK/syntax"; then
     gate "static_syntax_$(basename "$f")" ok "sh -n passes"
   else
