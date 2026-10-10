@@ -1,0 +1,13 @@
+dry-run of plan 02-05 (no model call)
+date: 2026-10-10T09:52:59Z
+codex_version: codex-cli 0.156.1
+installer: install-codex.sh into a scratch Codex home with the fake codex first on PATH
+installed script identical to plugins/bbj/scripts/bbj-check.sh: yes
+project hooks.json matcher/timeout: apply_patch|Edit|Write 30
+hook command: sh "<scratch>/hookwrap.sh"
+environment seams (inside the wrapper): BBJ_CHECK_DEFAULT_HOMES= (empty) BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp BBJ_CHECK_STATE_DIR=<scratch>/state; BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME unset
+--- first call (session dry1): exit 0, stderr 0 bytes, stdout:
+{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"<scratch>/proj/hello.bbj was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9. Later BBj files in this session are not checked either unless a check is enabled, and this notice is not repeated. To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or rerun install-codex.sh --with-local (BBjServices 26.03+ running on this machine). Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told. Tell the user that this file was not compile-checked and how to enable a check."}}
+--- second call (same session): exit 0, stderr 0 bytes, stdout 0 bytes:
+--- wrapper recorded 2 payload line(s)
+--- result: notice then silence
