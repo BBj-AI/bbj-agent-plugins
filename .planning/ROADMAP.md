@@ -82,7 +82,7 @@ Plans:
   3. `tests/test_exit_contract.sh` asserts stdout holds exactly that JSON object in the no-route case and is empty otherwise, and the former silent-path tests read "first call notice, then silent"
   4. On a real Codex after `apply_patch`, the notice is confirmed to reach the model; if it does not, Codex alone falls back to exit 2 with stderr and the result is recorded
 
-**Plans**: 3/6 plans executed
+**Plans**: 4/6 plans executed
 
 Plans:
 **Wave 1**
@@ -96,7 +96,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 02-04-PLAN.md — Real Claude Code capture from the local marketplace (D-14): dry run, billed run approval, evidence (wave 3, after 02-02)
+- [x] 02-04-PLAN.md — Real Claude Code capture from the local marketplace (D-14): dry run, billed run approval, evidence (wave 3, after 02-02)
 - [ ] 02-05-PLAN.md — Real Codex capture (D-13): installer-made hook in a scratch project, trust-mode decision, evidence and OUTCOME.md (wave 3, after 02-02, 02-03)
 
 **Wave 4** *(blocked on Wave 3 completion)*
@@ -174,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
-| 2. Hook no-route notice | 3/6 | In Progress | - |
+| 2. Hook no-route notice | 4/6 | In Progress | - |
 | 3. Example gate and structure lints | 0/TBD | Not started | - |
 | 4. bbj-programming makeover | 0/TBD | Not started | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |

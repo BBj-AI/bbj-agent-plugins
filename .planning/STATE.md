@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 2
 current_phase_name: Hook no-route notice
 status: executing
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-10-10T09:01:28.737Z"
+stopped_at: Completed 02-04-PLAN.md
+last_updated: "2026-10-10T09:51:11.477Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 2 execution started
-state_head: e1502883c082c9ebdb7b3239d7344fd4ca8e0228
+state_head: 15dd865301d18abe317f975f735b14708e754a23
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 2 (Hook no-route notice) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 2 execution started
 
@@ -68,6 +68,7 @@ Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans
 | Phase 2 P01 | 40 min | 3 tasks | 5 files |
 | Phase 02 P03 | 15min | 2 tasks | 5 files |
 | Phase 02 P02 | 12min | 2 tasks | 7 files |
+| Phase 2 P04 | 15min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,7 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-03: install docs and installer wording state the no-route notice without naming the delivery channel, so it stays true if Codex uses the exit-2 fallback (D-15)
 - [Phase 02]: A compiler without a verdict goes through tier 2 like no compiler: status 1 is noted noresult, status 2 (route failed) stays silent (02-02, D-02, D-03)
 - [Phase 02]: Exit contract amended only for the three notice cases; single-writer static gate counts hookSpecificOutput lines (02-02, HOOK-03)
+- [Phase 2]: 02-04: Claude Code delivers a PostToolUse hook's additionalContext to the model (real capture, local-marketplace install, mode marketplace); no Claude Code fallback needed
 
 ### Pending Todos
 
@@ -117,6 +119,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T09:01:28.671Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-10-10T09:51:11.406Z
+Stopped at: Completed 02-04-PLAN.md
 Resume file: None
