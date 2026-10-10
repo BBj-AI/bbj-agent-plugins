@@ -82,7 +82,31 @@ Plans:
   3. `tests/test_exit_contract.sh` asserts stdout holds exactly that JSON object in the no-route case and is empty otherwise, and the former silent-path tests read "first call notice, then silent"
   4. On a real Codex after `apply_patch`, the notice is confirmed to reach the model; if it does not, Codex alone falls back to exit 2 with stderr and the result is recorded
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 02-01-PLAN.md — Hook notice on the no-compiler branch: tier-2 no route vs route failed, exact JSON object, both client texts, path caps, once-per-session marker and its edge cases; BBJ_CHECK_STATE_DIR seam; 14 silent-path gates converted (wave 1)
+- [ ] 02-03-PLAN.md — README, both install pages and the installer's Known gaps describe the notice instead of silence; need/forbid gates (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 02-02-PLAN.md — D-02 compiler-without-verdict path, exit contract amended narrowly, single-writer static gate, never-notifies matrix (failed routes, clean, errors, early skips, mixed patches) (wave 2, after 02-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 02-04-PLAN.md — Real Claude Code capture from the local marketplace (D-14): dry run, billed run approval, evidence (wave 3, after 02-02)
+- [ ] 02-05-PLAN.md — Real Codex capture (D-13): installer-made hook in a scratch project, trust-mode decision, evidence and OUTCOME.md (wave 3, after 02-02, 02-03)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 02-06-PLAN.md — Apply the Codex outcome: D-15 exit-2 fallback only if not delivered (with re-run), captured payload facts in hook and tests (wave 4, after 02-05)
+
+**Cross-cutting constraints:**
+
+- Every hook run in a capture uses the seams BBJ_CHECK_DEFAULT_HOMES= and BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp (this machine has /opt/bbx and a live bbj-ls on 5009); capture scripts live under the phase directory, never in tests/
+- notice() uses only awk, sed, tr, head, printf and mkdir (the no-curl PATH farm of tests/test_tier2_fake.sh)
 
 ### Phase 3: Example gate and structure lints
 
