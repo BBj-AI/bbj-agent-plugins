@@ -1,19 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 01-repo-owned-skills-and-local-first-check-route
 source: [01-VERIFICATION.md]
 started: 2026-10-09T00:00:00Z
-updated: 2026-10-09T00:00:00Z
+updated: 2026-10-10T00:00:00Z
 ---
 
 ## Current Test
 
-number: 5
-name: Judgment-tier prohibitions
-expected: |
-  README and both install pages never present bbj-local as better or earlier than bbjcpl,
-  never imply it type-checks, and say the hosted check sends code off the machine
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -39,14 +34,14 @@ note: GitHub Actions run 37993749758 on gsd/planning-setup (commit 390aa3d): sta
 
 ### 5. Judgment-tier prohibitions
 expected: (a) 01-05 check-order text discloses hosted use (timing covered by test 2); (b) README and both install pages never present bbj-local as better or earlier than bbjcpl, never imply it type-checks, and say the hosted check sends code off the machine
-result: [pending]
+result: pass
 
 ## Summary
 
 total: 5
-passed: 4
+passed: 5
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
