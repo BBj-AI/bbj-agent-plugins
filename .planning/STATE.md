@@ -1,19 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v0.2.0
-current_phase: 2
-current_phase_name: Hook no-route notice
-status: verifying
-stopped_at: Completed 02-06-PLAN.md
-last_updated: "2026-10-10T12:12:28.950Z"
+current_phase: 3
+current_phase_name: Example gate and structure lints
+status: planning
+stopped_at: Phase 02 complete, ready to plan Phase 3
+last_updated: "2026-10-10T12:45:36.442Z"
 last_activity: 2026-10-10
-last_activity_desc: Phase 2 execution started
-state_head: 921a437685e782784ba731c915458ef7a269d088
+last_activity_desc: Phase 02 complete, transitioned to Phase 3
+state_head: 31504c508ed9cacc04d9c816a9c30e540af4f23d
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 13
   completed_plans: 13
+  percent: 33
 ---
 
 # Project State
@@ -23,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-10)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 2 — Hook no-route notice
+**Current focus:** Phase 3 — Example gate and structure lints
 
 ## Current Position
 
-Phase: 2 (Hook no-route notice) — EXECUTING
-Plan: 6 of 6
-Status: Phase complete — ready for verification
-Last activity: 2026-10-10 — Phase 2 execution started
+Phase: 3 — Example gate and structure lints
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-10 — Phase 02 complete, transitioned to Phase 3
 
-Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans)
+Progress: [███░░░░░░░] 33% (2 of 6 phases; Phase 1 7/7, Phase 2 6/6 plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 7
+- Total plans completed: 13
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -47,6 +48,7 @@ Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 7 | - | - |
+| 02 | 6 | - | - |
 
 **Recent Trend:**
 
@@ -110,7 +112,6 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 2]: Needs phase research: real-Codex payload capture; confirm `additionalContext` after `apply_patch` reaches the model, and the hook trust-hash scope
 - [Phase 3]: Decide how CI stays meaningful while the current skills are red against the gate (pending-skill list vs report-only); regenerate baseline counts (bbjcpl failures 50 vs 69; untagged fences 7 vs 135 differed between researchers)
 - [Phase 4]: Needs phase research: claim ledger, RUNTIME-claim policy (rewrite to compile-time observable or drop), primer cross-check; no `!ERROR=26` entry found in BASIS docs
 - [Phase 5]: Needs phase research: DWC DOM/CSS claims with no doc source; owner reproduction on a named DWC/BBj build is a human step
@@ -126,6 +127,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T12:12:28.879Z
-Stopped at: Completed 02-06-PLAN.md
+Last session: 2026-10-10T12:45:52Z
+Stopped at: Phase 02 complete, ready to plan Phase 3
 Resume file: None

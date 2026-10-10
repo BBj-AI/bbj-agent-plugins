@@ -30,6 +30,7 @@ and `bbj-ls`).
 - ✓ Docs and README present `bbj-local` as preferred over the hosted check (never over `bbjcpl`), with the two reasons — Phase 1
 - ✓ Installer tests cover `--with-local` and the probe in `tests/test_install_codex.sh` — Phase 1
 - ✓ Vendoring retired: `skills.lock.json`, `tests/test_skills_hash.py`, the README section and NOTICE provenance removed; "the BBjSkills" wording replaced; skills under the normal layout tests — Phase 1
+- ✓ Hook no-route notice: with no check route the hook exits 0 and emits one `additionalContext` object once per session (clean / errors / no route / route failed kept apart); delivery to the model confirmed on real Claude Code and real Codex (codex-cli 0.162.1) after `apply_patch` — Phase 2
 
 ### Active
 
@@ -41,9 +42,6 @@ and `bbj-ls`).
 - [ ] Skills point to the docs tools instead of copying reference tables (check-order block shipped in Phase 1)
 - [ ] "Built in: no USE needed" sentence lands in `bbj-programming`
 - [ ] Skill names unchanged (`/bbj:bbj-programming`, `/bbj:bbj-web-programming`)
-
-**D. Hook**
-- [ ] The hook tells the agent (once) when no check route is available, instead of exiting silently
 
 **E. Release**
 - [ ] CHANGELOG, plugin and marketplace versions at 0.2.0; full test suite green including the live `bbj-ls` gates; tagged 0.2.0
@@ -92,12 +90,12 @@ and `bbj-ls`).
 | Cut all taste from skills (no labelled suggestions) | Skills should state verified facts only | — Pending |
 | `bbj-local` URL stays fixed at 5009 | Simplest; BBjServices default | — Pending |
 | Skill-example syntax gate is local-only | CI has no BBj; keeps the check route consistent with the local-first decision | — Pending |
-| Hook notifies when no check route exists | Silent exit leaves the agent unaware it is unchecked | — Pending |
+| Hook notifies when no check route exists | Silent exit leaves the agent unaware it is unchecked | ✓ Good — Phase 2 |
 | 0.2.0 includes release cut and tag | Done means shipped | — Pending |
 | Example gate runs `bbjcpl -t` then `bbj-ls`; must pass both | `bbj-ls` is parse-only; `bbjcpl -t` catches 18+ wrong blocks it passes | — Pending |
 | Runtime-only claims rewritten to compile-time proxy or dropped | Never-execute rule | — Pending |
 | DWC DOM/CSS claims need a docs URL or owner reproduction | No doc source found for several | — Pending |
-| Hook notice: exit 0 + `additionalContext`, once per session | Exit 2 replaces the tool result on Codex | — Pending |
+| Hook notice: exit 0 + `additionalContext`, once per session | Exit 2 replaces the tool result on Codex | ✓ Good — Phase 2 (delivered on both clients; D-15 exit-2 fallback not needed) |
 | `--with-local` registers and warns when probe fails | User asked explicitly; server may be stopped | ✓ Good — Phase 1 |
 | Tag `0.2.0`; both plugins bumped; no NOTICE provenance line | Release decision | — Pending |
 | Hosted check used without asking when no local route exists, but the user is told (D-01) | Keeps agents checking code; disclosure instead of a prompt | ✓ Kept at Phase 1 UAT |
@@ -120,4 +118,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-10 after Phase 1*
+*Last updated: 2026-10-10 after Phase 2*

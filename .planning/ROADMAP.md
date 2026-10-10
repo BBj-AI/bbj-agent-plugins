@@ -23,7 +23,7 @@ gate (Phases 4-5); cut and tag 0.2.0 with the live gates green (Phase 6).
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Repo-owned skills and local-first check route** - Stop vendoring; Codex `--with-local`; one check-order text and local-first docs (completed 2026-10-10)
-- [ ] **Phase 2: Hook no-route notice** - The hook tells the agent once per session when a written file could not be checked
+- [x] **Phase 2: Hook no-route notice** - The hook tells the agent once per session when a written file could not be checked (completed 2026-10-10)
 - [ ] **Phase 3: Example gate and structure lints** - Every fenced BBj block and skill structure rule is measured; the baseline is the makeover to-do list
 - [ ] **Phase 4: bbj-programming makeover** - Check workflow first, short body, every claim sourced or reproduced, every block passes the gate
 - [ ] **Phase 5: bbj-web-programming makeover** - Short trigger-first description, DWC claims kept only with proof, taste cut, every block passes the gate
@@ -82,7 +82,7 @@ Plans:
   3. `tests/test_exit_contract.sh` asserts stdout holds exactly that JSON object in the no-route case and is empty otherwise, and the former silent-path tests read "first call notice, then silent"
   4. On a real Codex after `apply_patch`, the notice is confirmed to reach the model; if it does not, Codex alone falls back to exit 2 with stderr and the result is recorded
 
-**Plans**: 6/6 plans executed
+**Plans**: 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -174,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
-| 2. Hook no-route notice | 6/6 | In Progress | - |
+| 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 0/TBD | Not started | - |
 | 4. bbj-programming makeover | 0/TBD | Not started | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
