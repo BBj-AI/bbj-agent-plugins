@@ -13,6 +13,9 @@
 #   - every "claude plugin <subcommand>" line in the Claude page's fenced blocks names a real
 #     subcommand of the installed CLI (claude plugin <words> --help exits 0); skipped when
 #     claude is not installed.
+#   - the no-route notice wording (plan 02-03, HOOK-02): "once per session" on README, both pages and the
+#     installer, "not compile-checked" on both pages, and the old claim that the hook stays silent when
+#     no check route exists is forbidden on all four (NOROUTE_SILENCE),
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
 
 . "$(dirname "$0")/lib.sh"
@@ -51,6 +54,9 @@ check_common() {
   forbid "$1" "$2" 'subagent[^.]*not (covered|checked)' subagent_not_covered
 }
 
+# the hook now speaks when no check route exists (plan 02-03, HOOK-02): no text may say it stays silent
+NOROUTE_SILENCE='says nothing|missing compiler is silent'
+
 # the local check must never read as better than the compiler (D-13): bbjcpl also checks types
 LOCAL_ABOVE_BBJCPL='(preferred|better) (than|over) `?bbjcpl'
 
@@ -83,12 +89,15 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'preferred over the hosted check' \
     'PREFIX, classpath and config' \
     '## 3. Enable the local check' \
-    'claude plugin enable bbj-local@basis-bbj'
+    'claude plugin enable bbj-local@basis-bbj' \
+    'once per session' \
+    'not compile-checked'
   do
     need "$n" "$CLAUDE_PAGE" "$p"
   done
   check_common "$n" "$CLAUDE_PAGE"
   forbid "$n" "$CLAUDE_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$CLAUDE_PAGE" "$NOROUTE_SILENCE" noroute_silence
 
   sections=$(grep -c '^## ' "$CLAUDE_PAGE")
   if [ "$sections" -ge 5 ]; then
@@ -223,11 +232,13 @@ if [ -f "$README" ]; then
     'preferred over the hosted check' \
     'PREFIX, classpath and config' \
     '--with-local' \
-    '## Skills'
+    '## Skills' \
+    'once per session'
   do
     need "$n" "$README" "$p"
   done
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$README" "$NOROUTE_SILENCE" noroute_silence
 fi
 
 # ---- relative Markdown links resolve ----

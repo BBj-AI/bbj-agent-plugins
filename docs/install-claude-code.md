@@ -102,8 +102,10 @@ off your machine and does not use the hosted check.
    syntax only: it does not type-check, so it does not see a method that does not exist or a
    `use` target that does not resolve. Its message starts `bbj-local reported N error(s) in
    <file>:`, so you and Claude can see which route spoke.
-3. **Neither route.** If there is no compiler and no reachable `bbj-ls`, the hook does nothing and
-   says nothing.
+3. **Neither route.** If there is no compiler and no reachable `bbj-ls`, the hook tells Claude
+   once per session that the file was written but not compile-checked, and how to enable a check
+   (the `bbj_home` option or the `bbj-local` plugin). Later BBj files in that session are not
+   checked either.
 
 For code Claude hands back without writing a file, the skills give Claude its own order of check
 calls: `bbjcpl`, then `bbj_check_syntax` of `bbj-local`, and `bbj_check_syntax` of the hosted docs
