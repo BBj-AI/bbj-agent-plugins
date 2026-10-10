@@ -62,20 +62,27 @@
 # Location: ${BBJ_CHECK_STATE_DIR:-${TMPDIR:-/tmp}}/bbj-check-noroute-<key>, the same on both
 # hosts (the seam BBJ_CHECK_STATE_DIR is how the tests keep it hermetic). Key: session_id
 # reduced to [A-Za-z0-9_-] and cut to 64 bytes, byte-wise under LC_ALL=C, so "/" and "." never
-# reach the path and a UUID keeps its hyphens. The test-and-set is a plain mkdir (create or
-# fail, atomic when hooks of parallel tool calls run at once; the parents flag would always
-# succeed and defeat it). The script never creates the state directory and never writes into
-# or through the marker path. Fail toward telling (D-17): mkdir succeeds = tell; mkdir fails
-# and the name is a real directory, not a symlink = already told, silent; any other failure
-# (missing or unwritable state directory, a symlink or a file at the name) = tell, on every
-# call. D-11 wants the notice to say it is "not repeated"; this script prints that clause only
-# when this call created the marker, so on D-17's tell-anyway failures, as on D-16, the clause
-# is left out: the next call tells again and the clause would be false (D-17 does not say so;
+# reach the path and a UUID keeps its hyphens. The marker is a directory made with mkdir (the
+# parents flag would always succeed and defeat it), but mkdir alone is not an atomic test-and-set
+# on every coreutils: uutils 0.8.0 (the default mkdir on recent Ubuntu) lets several parallel
+# calls on one path all exit 0, observed. So the winner is decided by an exclusive create of a
+# claim file inside the marker, made by the shell itself in a subshell with set -C (the shell
+# opens it with O_CREAT|O_EXCL, no external tool): the one call that creates <marker>/claim
+# tells, a call that finds the claim already there is silent. A claim that is a symlink is never
+# followed and never taken for "told". The script never creates the state directory and never
+# writes into or through a marker that is not a real directory. Fail toward telling (D-17):
+# mkdir succeeds, or fails with a real directory (not a symlink) at the name, and the claim is
+# made = tell; the claim exists as a regular file = already told, silent; the claim fails for
+# any other reason (or the name is a symlink or a file, or the state directory is missing or
+# unwritable) = tell, on every call. D-11 wants the notice to say it is "not repeated"; this
+# script prints that clause only when this call made the claim, so on D-17's tell-anyway
+# failures, as on D-16, the clause is left out: the next call tells again and the clause would be false (D-17 does not say so;
 # this is the reading of D-11 with D-17 that plan 02-01 applies). D-16: no session_id, or one
 # that sanitises to nothing, tells on every no-route call, with no shared key (it would
 # outlive the session). D-19: one notice per session id, so subagents, which carry the
 # parent's id, and resumed sessions are not told again; /compact may drop the notice from the
-# context, which is accepted. Markers are empty directories left for the OS to clean.
+# context, which is accepted. Markers are directories holding one empty claim file, left for
+# the OS to clean.
 #
 # N counts the compiler lines except unresolved uses without a path ("Cannot find program"),
 # which are demoted to the trailing note and never cause exit 2 on their own (D-11). A file
@@ -151,21 +158,28 @@ json_body() {
 }
 
 # notice TOOL SID: the no-route notice (HOOK-02). Writes ONE JSON object to stdout, the only
-# stdout write of this script, and returns 0. The once-per-session marker is a plain mkdir
-# (create-or-fail, so it is the atomic test-and-set) of
+# stdout write of this script, and returns 0. The once-per-session marker is the directory
 #     ${BBJ_CHECK_STATE_DIR:-${TMPDIR:-/tmp}}/bbj-check-noroute-<key>
-# where key is SID reduced to [A-Za-z0-9_-] and cut to 64 bytes. It is created only when a
-# notice is about to print (D-17, D-18). Uses NR_N, NR_LIST, NR_COMPILER, NR_T2, NR_HOSTPORT.
+# (key is SID reduced to [A-Za-z0-9_-] and cut to 64 bytes) and the test-and-set is the
+# exclusive creation of <marker>/claim: mkdir alone is not atomic on every coreutils (uutils
+# 0.8.0 observed), the shell's own O_EXCL create (set -C, then a redirection) is. The marker
+# is made only when a notice is about to print (D-17, D-18). Uses NR_N, NR_LIST, NR_COMPILER,
+# NR_T2, NR_HOSTPORT.
 notice() {
   _key=$(printf '%s' "$2" | LC_ALL=C tr -cd 'A-Za-z0-9_-' | head -c 64)
   _fresh=0
   if [ -n "$_key" ]; then
     _m=${BBJ_CHECK_STATE_DIR:-${TMPDIR:-/tmp}}/bbj-check-noroute-$_key
-    if mkdir "$_m" 2> /dev/null; then
-      _fresh=1
-    elif [ -d "$_m" ] && [ ! -L "$_m" ]; then
-      # already told in this session: only a real directory counts, never a link or a file
-      return 0
+    # a real directory at the name, made now or earlier; a link or a file there is never used
+    if mkdir "$_m" 2> /dev/null || { [ -d "$_m" ] && [ ! -L "$_m" ]; }; then
+      if ( set -C; : > "$_m/claim" ) 2> /dev/null; then
+        # a claim that is not a regular file of ours (a shell that follows a link to a device
+        # accepts the create) is no claim: tell, without the "not repeated" clause
+        if [ -f "$_m/claim" ] && [ ! -L "$_m/claim" ]; then _fresh=1; fi
+      elif [ -f "$_m/claim" ] && [ ! -L "$_m/claim" ]; then
+        # already told in this session
+        return 0
+      fi
     fi
   fi
 
