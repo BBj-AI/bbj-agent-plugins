@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Repo-owned skills and local-first check route** - Stop vendoring; Codex `--with-local`; one check-order text and local-first docs (completed 2026-10-10)
 - [x] **Phase 2: Hook no-route notice** - The hook tells the agent once per session when a written file could not be checked (completed 2026-10-10)
-- [ ] **Phase 3: Example gate and structure lints** - Every fenced BBj block and skill structure rule is measured; the baseline is the makeover to-do list
+- [x] **Phase 3: Example gate and structure lints** - Every fenced BBj block and skill structure rule is measured; the baseline is the makeover to-do list (completed 2026-10-10)
 - [ ] **Phase 4: bbj-programming makeover** - Check workflow first, short body, every claim sourced or reproduced, every block passes the gate
 - [ ] **Phase 5: bbj-web-programming makeover** - Short trigger-first description, DWC claims kept only with proof, taste cut, every block passes the gate
 - [ ] **Phase 6: Release 0.2.0** - Versions, changelog with upgrade notes, live gates green, tag
@@ -121,24 +121,24 @@ Plans:
   4. Structure lints fail on a skill description over 1,024 characters, on any denylisted project leftover or fixed install path (`DailyDrift`, `DriftDB`, `migrateSortPrefs`, `watches!`, `cart-updated`, `/opt/basis/bin/`), and on a reference file that lacks a Sources section or a "Verified on BBj <version>" line
   5. A baseline report of the current skills against the gate (failing blocks per route, lint violations) is committed, and skills not yet reworked are listed as pending rather than silently exempt, so the suite's pass/fail stays meaningful until Phases 4-5 finish
 
-**Plans**: 4 plans
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Grammar lint vertical slice: fence extractor, D-05..D-07 grammar, pending list and ratchet (D-01..D-04), --report baseline writer, grammar/ratchet/report fixtures (wave 1)
+- [x] 03-01-PLAN.md — Grammar lint vertical slice: fence extractor, D-05..D-07 grammar, pending list and ratchet (D-01..D-04), --report baseline writer, grammar/ratchet/report fixtures (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Structure lints (description length, denylist, Sources + Verified line) and the repository-wide nocheck ratchet, with fixtures (wave 2, after 03-01)
+- [x] 03-02-PLAN.md — Structure lints (description length, denylist, Sources + Verified line) and the repository-wide nocheck ratchet, with fixtures (wave 2, after 03-01)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 03-03-PLAN.md — Live route 1: one batched bbjcpl -t -N -X call with canaries and record attribution, bbj / should-fail outcome rules, skip-unless-BBJ_SKILLS_LIVE route gate, fake-compiler guards (wave 3, after 03-02)
+- [x] 03-03-PLAN.md — Live route 1: one batched bbjcpl -t -N -X call with canaries and record attribution, bbj / should-fail outcome rules, skip-unless-BBJ_SKILLS_LIVE route gate, fake-compiler guards (wave 3, after 03-02)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 03-04-PLAN.md — Live route 2: bbj-ls over loopback with the hook's rules (no proxy, no redirect), network guard fixtures; committed baseline and 03-BASELINE.md from a two-route run on BBj 26.03; ci.sh header line (wave 4, after 03-03)
+- [x] 03-04-PLAN.md — Live route 2: bbj-ls over loopback with the hook's rules (no proxy, no redirect), network guard fixtures; committed baseline and 03-BASELINE.md from a two-route run on BBj 26.03; ci.sh header line (wave 4, after 03-03)
 
 **Cross-cutting constraints:**
 
@@ -197,7 +197,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 |-------|----------------|--------|-----------|
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
-| 3. Example gate and structure lints | 0/4 | Planned | - |
+| 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 0/TBD | Not started | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |

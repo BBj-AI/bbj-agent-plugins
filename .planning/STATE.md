@@ -1,19 +1,20 @@
 ---
 gsd_state_version: "1.0"
 milestone: v0.2.0
-current_phase: 3
-current_phase_name: Example gate and structure lints
-status: executing
-stopped_at: Phase 3 context gathered
-last_updated: "2026-10-10T15:39:58.924Z"
+current_phase: 4
+current_phase_name: bbj-programming makeover
+status: planning
+stopped_at: Phase 03 complete, ready to plan Phase 4
+last_updated: "2026-10-10T17:15:48.298Z"
 last_activity: 2026-10-10
-last_activity_desc: Phase 02 complete, transitioned to Phase 3
-state_head: b2d5cbc6b6bc83540b828475befb4fc0c6bbefc4
+last_activity_desc: Phase 03 complete, transitioned to Phase 4
+state_head: 496ea9d242a564c0e0bdc3ccbd7835aedab4e418
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 17
+  percent: 50
 ---
 
 # Project State
@@ -23,22 +24,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-10)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 3 — Example gate and structure lints
+**Current focus:** Phase 4 — bbj-programming makeover
 
 ## Current Position
 
-Phase: 3 (Example gate and structure lints) — READY TO EXECUTE
+Phase: 4 — bbj-programming makeover
 Plan: Not started
-Status: Ready to execute
-Last activity: 2026-10-10 — Phase 02 complete, transitioned to Phase 3
+Status: Ready to plan
+Last activity: 2026-10-10 — Phase 03 complete, transitioned to Phase 4
 
-Progress: [███░░░░░░░] 33% (2 of 6 phases; Phase 1 7/7, Phase 2 6/6 plans)
+Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4 plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 13
+- Total plans completed: 17
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -48,6 +49,7 @@ Progress: [███░░░░░░░] 33% (2 of 6 phases; Phase 1 7/7, Phas
 |-------|-------|-------|----------|
 | 1 | 7 | - | - |
 | 02 | 6 | - | - |
+| 03 | 4 | - | - |
 
 **Recent Trend:**
 
@@ -105,13 +107,15 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-06: D-15 not applied, codex_delivered yes; OUTCOME.md records d15_fallback not-needed (paraphrase caveat) and rerun not-needed; no billed re-run
 - [Phase 02]: 02-06: codex_payload fixture follows the captured Codex key order (codex-cli 0.162.1, plan 02-05)
 
+- [Phase 3]: Skills listed as pending with ratcheted per-check counts (D-01..D-04); baseline on BBj 26.03: bbj-programming bbjcpl 44 / bbj-ls 36 / grammar 11 / structure 17, bbj-web-programming 25 / 15 / 5 / 8; nocheck 0
+- [Phase 3]: UAT accepted D-08 amendment (bbj-ls-only should-fail is undecided), D-13 CI exemption (missing live routes skip under CI=true) and IN-03 (broken route skip unless BBJ_SKILLS_LIVE=1)
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
 
-- [Phase 3]: Decide how CI stays meaningful while the current skills are red against the gate (pending-skill list vs report-only); regenerate baseline counts (bbjcpl failures 50 vs 69; untagged fences 7 vs 135 differed between researchers)
 - [Phase 4]: Needs phase research: claim ledger, RUNTIME-claim policy (rewrite to compile-time observable or drop), primer cross-check; no `!ERROR=26` entry found in BASIS docs
 - [Phase 5]: Needs phase research: DWC DOM/CSS claims with no doc source; owner reproduction on a named DWC/BBj build is a human step
 - [Phase 6]: Tag form `0.2.0`; Codex upgrade traps (`--force`, `/hooks` re-approval) must reach CHANGELOG and installer output
@@ -126,6 +130,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T12:48:03.159Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-example-gate-and-structure-lints/03-CONTEXT.md
+Last session: 2026-10-10T17:20:00Z
+Stopped at: Phase 3 complete, ready to plan Phase 4
+Resume file: None

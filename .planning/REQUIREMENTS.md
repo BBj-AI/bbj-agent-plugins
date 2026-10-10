@@ -30,12 +30,12 @@
 
 ### Example gate
 
-- [ ] **GATE-01**: Fence grammar enforced: `bbj` must pass; `bbj should-fail` must fail on at least one route; `bbj nocheck (reason)` is skipped and needs a reason; non-BBj languages are ignored; untagged fences, unknown attributes, unclosed fences and `...` placeholders in `bbj` blocks fail the lint
-- [ ] **GATE-02**: The lint (extraction and grammar) runs in CI without BBj
-- [ ] **GATE-03**: The live check runs `bbjcpl -t -N -X` batched over all blocks, then `bbj-ls`; a `bbj` block must pass every available route; it skips without BBj, and `BBJ_SKILLS_LIVE=1` turns a missing route into a failure
-- [ ] **GATE-04**: The count of `bbj nocheck` blocks is ratcheted: the gate fails if it grows above the recorded number
-- [ ] **GATE-05**: Structure lints: skill description ≤ 1,024 characters; a denylist of project leftovers (`DailyDrift`, `DriftDB`, `migrateSortPrefs`, `watches!`, `cart-updated`, fixed install paths like `/opt/basis/bin/`); each reference file ends with a Sources section and a "Verified on BBj <version>" line
-- [ ] **GATE-06**: A baseline report of the current skills against the gate is committed and serves as the makeover to-do list
+- [x] **GATE-01**: Fence grammar enforced: `bbj` must pass; `bbj should-fail` must fail on at least one route; `bbj nocheck (reason)` is skipped and needs a reason; non-BBj languages are ignored; untagged fences, unknown attributes, unclosed fences and `...` placeholders in `bbj` blocks fail the lint
+- [x] **GATE-02**: The lint (extraction and grammar) runs in CI without BBj
+- [x] **GATE-03**: The live check runs `bbjcpl -t -N -X` batched over all blocks, then `bbj-ls`; a `bbj` block must pass every available route; it skips without BBj, and `BBJ_SKILLS_LIVE=1` turns a missing route into a failure
+- [x] **GATE-04**: The count of `bbj nocheck` blocks is ratcheted: the gate fails if it grows above the recorded number
+- [x] **GATE-05**: Structure lints: skill description ≤ 1,024 characters; a denylist of project leftovers (`DailyDrift`, `DriftDB`, `migrateSortPrefs`, `watches!`, `cart-updated`, fixed install paths like `/opt/basis/bin/`); each reference file ends with a Sources section and a "Verified on BBj <version>" line
+- [x] **GATE-06**: A baseline report of the current skills against the gate is committed and serves as the makeover to-do list
 
 ### bbj-programming makeover
 
@@ -99,12 +99,12 @@
 | HOOK-02 | Phase 2 | Complete |
 | HOOK-03 | Phase 2 | Complete |
 | HOOK-04 | Phase 2 | Complete |
-| GATE-01 | Phase 3 | Pending |
-| GATE-02 | Phase 3 | Pending |
-| GATE-03 | Phase 3 | Pending |
-| GATE-04 | Phase 3 | Pending |
-| GATE-05 | Phase 3 | Pending |
-| GATE-06 | Phase 3 | Pending |
+| GATE-01 | Phase 3 | Complete |
+| GATE-02 | Phase 3 | Complete |
+| GATE-03 | Phase 3 | Complete |
+| GATE-04 | Phase 3 | Complete |
+| GATE-05 | Phase 3 | Complete |
+| GATE-06 | Phase 3 | Complete |
 | PROG-01 | Phase 4 | Pending |
 | PROG-02 | Phase 4 | Pending |
 | PROG-03 | Phase 4 | Pending |

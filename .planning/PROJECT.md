@@ -31,13 +31,14 @@ and `bbj-ls`).
 - ✓ Installer tests cover `--with-local` and the probe in `tests/test_install_codex.sh` — Phase 1
 - ✓ Vendoring retired: `skills.lock.json`, `tests/test_skills_hash.py`, the README section and NOTICE provenance removed; "the BBjSkills" wording replaced; skills under the normal layout tests — Phase 1
 - ✓ Hook no-route notice: with no check route the hook exits 0 and emits one `additionalContext` object once per session (clean / errors / no route / route failed kept apart); delivery to the model confirmed on real Claude Code and real Codex (codex-cli 0.162.1) after `apply_patch` — Phase 2
+- ✓ Skill example gate `tests/test_skill_examples.py`: fence grammar (`bbj`, `bbj should-fail`, `bbj nocheck (reason)`), structure lints (description ≤ 1,024, denylist, Sources + Verified line), `nocheck` ratchet at 0; the lint runs in CI without BBj, the live check runs `bbjcpl -t -N -X` then loopback `bbj-ls` and skips without BBj (`BBJ_SKILLS_LIVE=1` makes a missing or broken route a FAIL) — Phase 3
+- ✓ Baseline committed (`tests/skills_baseline.json`, `03-BASELINE.md`, BBj 26.03): both skills listed as pending (Phase 4, Phase 5) with per-check counts, so the suite stays green and any rise fails — Phase 3
 
 ### Active
 
 **C. Skills makeover (`bbj-programming`, `bbj-web-programming` and their references)**
 - [ ] Every claim is either in the BBj docs (URL cited) or reproduced on a real BBj (version noted); taste is cut entirely
 - [ ] Every BBj code block passes `bbj_check_syntax` on local `bbj-ls`
-- [ ] A test extracts every fenced BBj block and checks it when `bbj-ls` or `bbjcpl` is present (local-only gate, like `BBJ_LS_LIVE`); CI checks the extraction only
 - [ ] Neutral example names; no project leftovers, no fixed install paths
 - [ ] Skills point to the docs tools instead of copying reference tables (check-order block shipped in Phase 1)
 - [ ] "Built in: no USE needed" sentence lands in `bbj-programming`
@@ -89,16 +90,19 @@ and `bbj-ls`).
 | Local `bbj-ls` preferred over hosted check | Code stays local; checked against the installation's own config | ✓ Good — Phase 1 |
 | Cut all taste from skills (no labelled suggestions) | Skills should state verified facts only | — Pending |
 | `bbj-local` URL stays fixed at 5009 | Simplest; BBjServices default | — Pending |
-| Skill-example syntax gate is local-only | CI has no BBj; keeps the check route consistent with the local-first decision | — Pending |
+| Skill-example syntax gate is local-only | CI has no BBj; keeps the check route consistent with the local-first decision | ✓ Good — Phase 3 (D-13: missing live routes stay skip under CI=true; Phase 6 runs BBJ_SKILLS_LIVE=1 locally) |
 | Hook notifies when no check route exists | Silent exit leaves the agent unaware it is unchecked | ✓ Good — Phase 2 |
 | 0.2.0 includes release cut and tag | Done means shipped | — Pending |
-| Example gate runs `bbjcpl -t` then `bbj-ls`; must pass both | `bbj-ls` is parse-only; `bbjcpl -t` catches 18+ wrong blocks it passes | — Pending |
+| Example gate runs `bbjcpl -t` then `bbj-ls`; must pass both | `bbj-ls` is parse-only; `bbjcpl -t` catches 18+ wrong blocks it passes | ✓ Good — Phase 3 (baseline: bbjcpl 44/25, bbj-ls 36/15 failing blocks) |
 | Runtime-only claims rewritten to compile-time proxy or dropped | Never-execute rule | — Pending |
 | DWC DOM/CSS claims need a docs URL or owner reproduction | No doc source found for several | — Pending |
 | Hook notice: exit 0 + `additionalContext`, once per session | Exit 2 replaces the tool result on Codex | ✓ Good — Phase 2 (delivered on both clients; D-15 exit-2 fallback not needed) |
 | `--with-local` registers and warns when probe fails | User asked explicitly; server may be stopped | ✓ Good — Phase 1 |
 | Tag `0.2.0`; both plugins bumped; no NOTICE provenance line | Release decision | — Pending |
 | Hosted check used without asking when no local route exists, but the user is told (D-01) | Keeps agents checking code; disclosure instead of a prompt | ✓ Kept at Phase 1 UAT |
+| Pending skills with ratcheted counts instead of report-only CI (D-01..D-04) | Suite pass/fail stays meaningful while the skills are red | ✓ Good — Phase 3 |
+| A `bbj should-fail` block no route fails, with only `bbj-ls` present, is undecided: skip, FAIL under BBJ_SKILLS_LIVE=1, not counted (D-08 amendment) | `bbj-ls` is parse-only and cannot show a type error | ✓ Accepted at Phase 3 UAT |
+| A present but broken live route (failed canary pair) is skip unless BBJ_SKILLS_LIVE=1 (IN-03) | Same rule as a missing route; the release gate runs live | ✓ Accepted at Phase 3 UAT |
 
 ## Evolution
 
@@ -118,4 +122,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-10 after Phase 2*
+*Last updated: 2026-10-10 after Phase 3*
