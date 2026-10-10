@@ -36,6 +36,7 @@ Environment variables named here for the plans that use them: BBJ_TEST_HOME (the
 
 Nothing here runs BBj code.
 """
+import atexit
 import datetime
 import json
 import os
@@ -603,6 +604,241 @@ def selftest_grammar():
     grammar_case("trailing_space_info", fence_text(f + "bbj ", "print 1", f), ["bbj"], [])
 
 
+TEMP_DIRS = []
+
+
+def cleanup_temp():
+    for path in TEMP_DIRS:
+        shutil.rmtree(path, ignore_errors=True)
+
+
+atexit.register(cleanup_temp)
+
+
+def clean_skill_md(name):
+    """A SKILL.md with frontmatter name and description and no violation of any check."""
+    return fence_text("---", "name: %s" % name, "description: Fixture skill %s." % name, "---", "",
+                      "# %s" % name)
+
+
+def dirty_skill_md(name):
+    """clean_skill_md plus one untagged fence (one grammar violation)."""
+    f = "`" * 3
+    return clean_skill_md(name) + fence_text("", f, "print 1", f)
+
+
+def fixture_baseline(counts):
+    """A complete baseline: counts maps skill -> {check: n}; every key of CHECKS defaults to 0."""
+    pending = {}
+    for skill in sorted(counts):
+        pending[skill] = {"phase": KNOWN_PENDING[skill],
+                          "counts": dict((c, counts[skill].get(c, 0)) for c in CHECKS)}
+    return {"bbj_version": "unknown", "pending": pending}
+
+
+def make_root(files, baseline):
+    """A temp root holding the given relative paths; baseline is a dict, a raw string or None."""
+    root = tempfile.mkdtemp(prefix="skillfx-")
+    TEMP_DIRS.append(root)
+    for rel, text in files.items():
+        path = os.path.join(root, *rel.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(text)
+    if baseline is not None:
+        path = os.path.join(root, *BASELINE_REL.split("/"))
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "w", encoding="utf-8", newline="\n") as f:
+            f.write(baseline if isinstance(baseline, str) else json.dumps(baseline, indent=2))
+    return root
+
+
+def child_run(root, env=None, args=None):
+    """Run this file on a temp root in a hermetic environment: (return code, its 'gate ' lines)."""
+    child_env = dict(os.environ)
+    for key in ("CI", "BBJ_SKILLS_LIVE"):
+        child_env.pop(key, None)
+    child_env["BBJ_TEST_HOME"] = os.path.join(root, "no-bbj-home")
+    child_env["BBJ_LOCAL_MCP_URL"] = "http://127.0.0.1:9/mcp"
+    for key, value in (env or {}).items():
+        if value is None:
+            child_env.pop(key, None)
+        else:
+            child_env[key] = value
+    try:
+        done = subprocess.run([sys.executable, "-I", THIS] + (args or []) + [root],
+                              stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT, timeout=60, env=child_env,
+                              encoding="utf-8", errors="replace")
+    except subprocess.TimeoutExpired:
+        return 124, []
+    return done.returncode, [l for l in done.stdout.split("\n") if l.startswith("gate ")]
+
+
+def two_skill_files(dirty=()):
+    """The two known skills as clean fixtures; the names in dirty get one untagged fence."""
+    files = {}
+    for name in ("bbj-programming", "bbj-web-programming"):
+        text = dirty_skill_md(name) if name in dirty else clean_skill_md(name)
+        files["%s/%s/SKILL.md" % (SKILLS_REL, name)] = text
+    return files
+
+
+def fence_line(text):
+    """The opener line of the first fence of a fixture text."""
+    return extract(lines_of(text))[0]["line"]
+
+
+def child_case(name, files, baseline, want_rc, wants, forbids=(), args=None):
+    """One child run: the return code, the child gate lines that must be there (by prefix) and
+    those that must not. Child output is never echoed with a leading 'gate ' (run.sh counts it)."""
+    def run():
+        root = make_root(files, baseline)
+        rc, lines = child_run(root, args=args)
+        missing = [w for w in wants if not any(l.startswith(w) for l in lines)]
+        present = [l for l in lines if any(l.startswith(p) for p in forbids)]
+        if want_rc == 0:
+            present += [l for l in lines if l.split(" ")[2:3] == ["FAIL"]]
+        if rc == want_rc and not missing and not present:
+            gate("fx_%s" % name, "ok", "rc %d, %d child gate line(s)" % (rc, len(lines)))
+        else:
+            quote = (present or lines or ["no gate line"])[0]
+            gate("fx_%s" % name, "FAIL", "want rc %d got %d; missing %s; first line: %s"
+                 % (want_rc, rc, missing[:1], quote))
+    fx(name, run)
+
+
+def selftest_ratchet():
+    def entry(phase, **counts):
+        return {"phase": phase, "counts": dict((c, counts.get(c, 0)) for c in CHECKS)}
+
+    first = CHECKS[0]
+
+    def unit(name, got, want_status, want_in_detail):
+        ok = got[0] == want_status and want_in_detail in got[1]
+        gate("fx_" + name, "ok" if ok else "FAIL", "status=%s detail=%r" % (got[0], got[1]))
+
+    unit("ratchet_equal", decide(first, 3, entry(4, **{first: 3})), "ok", "pending (Phase 4): 3 (baseline 3)")
+    unit("ratchet_lower", decide(first, 2, entry(4, **{first: 3})), "ok", "lower the baseline")
+    unit("ratchet_higher", decide(first, 4, entry(4, **{first: 3})), "FAIL", "4 > baseline 3")
+    unit("ratchet_zero_enforced", decide(first, 1, entry(4)), "FAIL", "1 > baseline 0")
+    unit("ratchet_not_pending_clean", decide(first, 0, None), "ok", "0 violations")
+    unit("ratchet_not_pending_dirty", decide(first, 2, None), "FAIL", "2 violation(s)")
+
+    def all_zero_unit():
+        zero = dict((c, 0) for c in CHECKS)
+        everything = dict((c, True) for c in CHECKS)
+        no_first = dict(everything)
+        no_first[first] = False
+        raised = entry(4, **{first: 3})
+        got = (all_zero(zero, everything, raised), all_zero(zero, no_first, raised),
+               all_zero(zero, no_first, entry(4)))
+        gate("fx_pending_all_zero_unit", "ok" if got == (True, False, True) else "FAIL",
+             "measured zero, unmeasured baseline 3, unmeasured baseline 0: %s" % (got,))
+    fx("pending_all_zero_unit", all_zero_unit)
+
+    line = fence_line(dirty_skill_md("bbj-programming"))
+    one = fixture_baseline({"bbj-programming": {"grammar": 1}})
+    skip_prefix = "gate skills_grammar_bbj-programming_SKILL.md_%d skip pending (Phase 4)" % line
+    child_case("pending_skip_e2e", two_skill_files(("bbj-programming",)), one, 0,
+               [skip_prefix, "gate skills_ratchet_bbj-programming_grammar ok"])
+    child_case("pending_rise_fails", two_skill_files(("bbj-programming",)),
+               fixture_baseline({"bbj-programming": {"grammar": 0}}), 1,
+               ["gate skills_ratchet_bbj-programming_grammar FAIL"])
+    child_case("pending_all_zero_fails", two_skill_files(),
+               fixture_baseline({"bbj-programming": {}}), 1,
+               ["gate skills_pending_bbj-programming FAIL remove from pending"])
+    files = two_skill_files(("bbj-programming",))
+    files["%s/new-skill/SKILL.md" % SKILLS_REL] = dirty_skill_md("new-skill")
+    child_case("pending_new_skill_enforced", files, one, 1,
+               ["gate skills_grammar_new-skill_SKILL.md_%d FAIL" % fence_line(dirty_skill_md("new-skill"))])
+    unknown = fixture_baseline({"bbj-programming": {"grammar": 1}})
+    unknown["pending"]["new-skill"] = dict(unknown["pending"]["bbj-programming"])
+    child_case("pending_unknown_key", two_skill_files(("bbj-programming",)), unknown, 1,
+               ["gate skills_pending_keys FAIL"])
+    missing_dir = fixture_baseline({"bbj-programming": {"grammar": 1}, "bbj-web-programming": {}})
+    only_one = {"%s/bbj-programming/SKILL.md" % SKILLS_REL: dirty_skill_md("bbj-programming")}
+    child_case("pending_missing_dir", only_one, missing_dir, 1, ["gate skills_pending_keys FAIL"])
+    wrong_phase = fixture_baseline({"bbj-programming": {"grammar": 1}})
+    wrong_phase["pending"]["bbj-programming"]["phase"] = 5
+    child_case("pending_phase_mismatch", two_skill_files(("bbj-programming",)), wrong_phase, 1,
+               ["gate skills_pending_keys FAIL"])
+    child_case("baseline_missing", two_skill_files(), None, 1, ["gate skills_baseline FAIL"])
+    child_case("baseline_malformed", two_skill_files(), "{not json", 1, ["gate skills_baseline FAIL"])
+    string_count = fixture_baseline({"bbj-programming": {"grammar": 1}})
+    string_count["pending"]["bbj-programming"]["counts"][first] = "1"
+    child_case("baseline_string_count", two_skill_files(("bbj-programming",)), string_count, 1,
+               ["gate skills_baseline FAIL"])
+    bool_count = fixture_baseline({"bbj-programming": {"grammar": 1}})
+    bool_count["pending"]["bbj-programming"]["counts"][first] = True
+    child_case("baseline_bool_count", two_skill_files(("bbj-programming",)), bool_count, 1,
+               ["gate skills_baseline FAIL"])
+    child_case("cli_root_runs_no_fixtures", two_skill_files(), fixture_baseline({}), 0,
+               ["gate skills_baseline ok"], forbids=["gate skills_fx_"])
+    child_case("cli_usage_error", two_skill_files(), fixture_baseline({}), 2, [],
+               args=["--bogus"])
+
+
+def selftest_report():
+    meta = {"bbj_version": "unknown", "routes": [], "date": "2026-01-01"}
+    known = ["bbj-programming", "bbj-web-programming"]
+    one = violation("bbj-programming", "grammar", "references/x.md", 3, "untagged fence")
+    both = [one, violation("bbj-web-programming", "grammar", "SKILL.md", 9, "untagged fence")]
+    measured = dict((c, True) for c in CHECKS)
+
+    def pending_of(violations, old, skills=known):
+        return sorted(json.loads(build_report(skills, violations, measured, meta, old)[0])["pending"])
+
+    def check(name, got, want):
+        gate("fx_" + name, "ok" if got == want else "FAIL", "want %s, got %s" % (want, got))
+
+    def first_baseline():
+        check("report_first_baseline", pending_of(both, None), known)
+    fx("report_first_baseline", first_baseline)
+
+    def never_readd():
+        check("report_never_readd", pending_of(both, {"bbj-programming"}), ["bbj-programming"])
+    fx("report_never_readd", never_readd)
+
+    def drops_all_zero():
+        check("report_drops_all_zero", pending_of([one], None), ["bbj-programming"])
+    fx("report_drops_all_zero", drops_all_zero)
+
+    def deterministic():
+        a = build_report(known, both, measured, meta, None)[0]
+        b = build_report(known, list(reversed(both)), measured, meta, None)[0]
+        ok = (a == b and a.endswith("}\n") and not a.endswith("\n\n")
+              and a == json.dumps(json.loads(a), indent=2, sort_keys=True, ensure_ascii=True) + "\n")
+        check("report_deterministic", ok, True)
+    fx("report_deterministic", deterministic)
+
+    def md_lines():
+        md = build_report(known, [one], measured, meta, None)[1].split("\n")
+        ok = "## bbj-programming (pending, Phase 4)" in md and "- `references/x.md:3` untagged fence" in md
+        check("report_md_lines", ok, True)
+    fx("report_md_lines", md_lines)
+
+    def clean_skill():
+        md = build_report(known, [one], measured, meta, None)[1].split("\n")
+        at = md.index("## bbj-web-programming (not pending)")
+        check("report_clean_skill", [l for l in md[at + 1:] if l][:1], ["no violations"])
+    fx("report_clean_skill", clean_skill)
+
+    def atomic():
+        root = make_root({"target.txt": "old"}, None)
+        path = os.path.join(root, "target.txt")
+        write_atomic(path, "new")
+        with open(path, encoding="utf-8") as f:
+            text = f.read()
+        check("report_atomic", (text, os.listdir(root)), ("new", ["target.txt"]))
+    fx("report_atomic", atomic)
+
+    def old_names_only():
+        root = make_root({}, {"pending": {"bbj-programming": {"phase": 4}}})
+        check("report_old_names_only", old_pending_names(root), {"bbj-programming"})
+    fx("report_old_names_only", old_names_only)
+
+
 # ---------------------------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------------------------
@@ -618,6 +854,8 @@ def main():
         run_gates(ROOT)
         if SELFTEST:
             selftest_grammar()
+            selftest_ratchet()
+            selftest_report()
     except Exception as e:
         print("gate skills_internal FAIL %s: %s" % (type(e).__name__, safe(e)))
         return 1
