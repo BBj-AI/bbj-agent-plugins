@@ -10,9 +10,12 @@
 #   mkwork              creates WORK (a temp dir) and removes it on exit
 #   claude_payload TOOL FILE CWD    prints a Claude Code PostToolUse payload in the verified
 #                                   key order, with JSON-escaped values
-#   codex_payload CWD PATCH_TEXT    prints a Codex PostToolUse payload for apply_patch (shape from
-#                                   the Codex hooks documentation, not yet captured on a Codex
-#                                   machine: tool_input.command holds the patch text)
+#   codex_payload CWD PATCH_TEXT    prints a Codex PostToolUse payload for apply_patch in the
+#                                   top-level key order captured from Codex CLI codex-cli 0.162.1
+#                                   (plan 02-05, evidence/codex/payload.jsonl): tool_input.command
+#                                   holds the patch text, transcript_path is null, tool_response is
+#                                   a plain string; turn_id, model, permission_mode and tool_use_id
+#                                   carry synthetic values
 #   run_check PAYLOAD   runs the hook script with PAYLOAD on stdin; sets RC, and the files
 #                       $WORK/stdout and $WORK/stderr (SHELL_UNDER_TEST, default sh)
 #   fresh_state         points BBJ_CHECK_STATE_DIR at a new empty directory (phase 2, plan 02-01),
@@ -125,10 +128,10 @@ claude_payload() {
 }
 
 codex_payload() {
-  # codex_payload CWD PATCH_TEXT
+  # codex_payload CWD PATCH_TEXT  (key order as captured from Codex CLI codex-cli 0.162.1, plan 02-05)
   _cwd=$(json_escape "$1")
   _patch=$(json_escape "$2")
-  printf '%s' '{"session_id":"'"$(json_escape "${SESSION_ID:-s1}")"'","transcript_path":"/tmp/t.jsonl","cwd":"'"$_cwd"'","hook_event_name":"PostToolUse","tool_name":"apply_patch","tool_input":{"command":"'"$_patch"'"},"tool_response":"Success"}'
+  printf '%s' '{"session_id":"'"$(json_escape "${SESSION_ID:-s1}")"'","turn_id":"t1","transcript_path":null,"cwd":"'"$_cwd"'","hook_event_name":"PostToolUse","model":"m1","permission_mode":"bypassPermissions","tool_name":"apply_patch","tool_input":{"command":"'"$_patch"'"},"tool_response":"Exit code: 0\nWall time: 0 seconds\nOutput:\nSuccess. Updated the following files:\n","tool_use_id":"u1"}'
 }
 
 run_check() {

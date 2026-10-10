@@ -1,7 +1,8 @@
 #!/bin/sh
 # tests/test_codex_patch.sh -- plan 19-05 Task 1 (PLUG-04, D-15): the Codex apply_patch
-# branch of the check script. The payload shape is synthetic (documentation-derived, MEDIUM,
-# not yet captured on a Codex machine). Parsing assertions use a fake compiler and its argv
+# branch of the check script. The payload (codex_payload in tests/lib.sh) follows the top-level
+# key order captured from Codex CLI codex-cli 0.162.1 (plan 02-05); the raw payloads below
+# also cover other orders. Parsing assertions use a fake compiler and its argv
 # log; when a real compiler exists one end-to-end gate also runs it (bbjcpl -t -N -X,
 # compile-only). Nothing here runs BBj.
 . "$(dirname "$0")/lib.sh"

@@ -95,8 +95,11 @@
 # a path with a ".." segment or an absolute path outside cwd is skipped silently; the same
 # path is checked once). One block per failing file, one bbj_lookup line after the last
 # block, exit 2. The whole payload is read, so headers past the first 8192 bytes count. The
-# Codex payload shape is documentation-derived (MEDIUM) and stays unverified until it is
-# captured on a machine with Codex.
+# Codex payload was captured with Codex CLI codex-cli 0.162.1 (plan 02-05); top-level keys in
+# that capture: session_id, turn_id, transcript_path, cwd, hook_event_name, model,
+# permission_mode, tool_name, tool_input, tool_response, tool_use_id (transcript_path null,
+# tool_response a plain string, the "*** Add File: " path absolute); session_id before
+# tool_input, read with jget pre and, failing that, jget all.
 #
 # A path that is itself a symlink is skipped silently (a link to another file must not make
 # the hook read or send that file); the same applies to every path a patch names.
@@ -643,8 +646,8 @@ main() {
     exit 2
   fi
   # no check route for a file of this call (D-04: only when no file failed): the once-per-session
-  # notice. The session id sits before tool_input on Claude Code; Codex key order is not yet
-  # captured, so fall back to a search of the whole input (as for tool_name above).
+  # notice. The session id sits before tool_input on Claude Code and, in the plan 02-05 capture,
+  # on Codex too; a search of the whole input stays as the fallback (as for tool_name above).
   if [ "$NR_N" -gt 0 ]; then
     sid=$(printf '%s' "$hd" | jget pre session_id)
     [ -n "$sid" ] || sid=$(printf '%s' "$input" | jget all session_id)
