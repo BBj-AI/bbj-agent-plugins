@@ -38,7 +38,9 @@ Release notes and what each version was tested against: [CHANGELOG.md](CHANGELOG
 After every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file the hook compiles the file
 with `bbjcpl -t -N -X`, which checks syntax and types only. It never runs BBj code and never
 sends code off the machine. A compile error comes back to the agent (exit code 2) with the
-compiler's own lines; a clean file, a non-BBj file or a missing compiler is silent.
+compiler's own lines; a clean file or a non-BBj file is silent. When no check route exists (no
+compiler and no running `bbj-ls`), the hook tells the agent once per session that the file was
+written but not compile-checked, and how to enable a check.
 
 ## Skills
 
