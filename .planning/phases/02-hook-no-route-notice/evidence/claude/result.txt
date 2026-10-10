@@ -1,0 +1,9 @@
+Both files were created. The first write triggered a hook notice saying hello.bbj was not compile-checked and explaining how to enable a check. The second write produced no hook message.
+
+## WRITE 1
+
+> PostToolUse:Write hook additional context: <scratch>/hello.bbj was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9. Later BBj files in this session are not checked either unless a check is enabled, and this notice is not repeated. To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or enable the bbj-local@basis-bbj plugin (BBjServices 26.03+ running on this machine). Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told. Tell the user that this file was not compile-checked and how to enable a check.
+
+## WRITE 2
+
+NONE

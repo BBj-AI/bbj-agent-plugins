@@ -1,0 +1,8 @@
+ls -la of the scratch state directory:
+  total 12
+  drwxr-xr-x 3 coder coder 4096 Oct 10 09:48 .
+  drwx------ 4 coder coder 4096 Oct 10 09:48 ..
+  drwxr-xr-x 2 coder coder 4096 Oct 10 09:48 bbj-check-noroute-e7b4c4d6-3a6c-445f-b192-0404a4b185c2
+bbj files in the scratch project:
+  ./hello.bbj
+  ./second.bbj

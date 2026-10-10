@@ -1,5 +1,5 @@
 dry-run of plan 02-04 (no model call)
-date: 2026-10-10T09:48:05Z
+date: 2026-10-10T09:48:28Z
 mode: marketplace
 plugin root: ~/.claude-shared/dot-claude/plugins/cache/basis-bbj/bbj/0.1.0
 cached script identical to plugins/bbj/scripts/bbj-check.sh: yes
