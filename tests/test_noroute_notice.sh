@@ -251,6 +251,200 @@ else
   gate notice_no_pwned FAIL "a command in a file name ran"
 fi
 
+# ---- once per session under missing ids, squatted or unwritable state, concurrency, a failing call
+# (plan 02-01 Task 3: D-16, D-17, D-18, D-19, D-04) ----
+
+# two_notices NAME PAYLOAD: two calls, both print a notice and neither claims "not repeated";
+# sets TWO_OK=1 when so, else TWO_WHY
+two_notices() {
+  TWO_OK=1
+  TWO_WHY=
+  for _c in 1 2; do
+    run_check "$2"
+    _t=$(notice_text "$WORK/stdout")
+    _nr=$?
+    if [ "$RC" != 0 ] || [ -s "$WORK/stderr" ] || [ "$_nr" != 0 ]; then
+      TWO_OK=0
+      TWO_WHY="$TWO_WHY call $_c: exit $RC, notice_text $_nr;"
+    elif printf '%s' "$_t" | grep -F 'not repeated' > /dev/null; then
+      TWO_OK=0
+      TWO_WHY="$TWO_WHY call $_c claims not repeated;"
+    fi
+  done
+}
+
+# a payload without a session_id member
+fresh_state
+NOSID_PAYLOAD=$(printf '%s' "$PAYLOAD" | sed 's/"session_id":"s1",//')
+case "$NOSID_PAYLOAD" in *session_id*) gate notice_no_session_fixture FAIL "session_id still present" ;; esac
+two_notices x "$NOSID_PAYLOAD"
+if [ "$TWO_OK" = 1 ] && [ -z "$(ls -A "$BBJ_CHECK_STATE_DIR")" ]; then
+  gate notice_no_session_every_call ok "no session_id: notice on both calls, no 'not repeated', state dir empty"
+else
+  gate notice_no_session_every_call FAIL "$TWO_WHY state dir: $(ls -A "$BBJ_CHECK_STATE_DIR")"
+fi
+
+# an id that sanitises to nothing
+fresh_state
+_before=$(ls -A "$WORK")
+SESSION_ID='../..'
+two_notices x "$(claude_payload Write "$FILE" "$WORK/proj")"
+SESSION_ID=s1
+if [ "$TWO_OK" = 1 ] && [ -z "$(ls -A "$BBJ_CHECK_STATE_DIR")" ] && [ "$(ls -A "$WORK")" = "$_before" ]; then
+  gate notice_empty_key_every_call ok "id ../.. gives a notice every call and creates nothing"
+else
+  gate notice_empty_key_every_call FAIL "$TWO_WHY state dir: $(ls -A "$BBJ_CHECK_STATE_DIR")"
+fi
+
+# key rules: only [A-Za-z0-9_-], at most 64 bytes, a UUID keeps its hyphens
+key_case() {
+  # key_case NAME SESSION-ID EXPECTED-ENTRY
+  fresh_state
+  _before=$(ls -A "$WORK")
+  SESSION_ID=$2
+  run_check "$(claude_payload Write "$FILE" "$WORK/proj")"
+  SESSION_ID=s1
+  _entries=$(ls -A "$BBJ_CHECK_STATE_DIR")
+  if [ "$_entries" = "$3" ] && [ "$(ls -A "$WORK")" = "$_before" ]; then
+    gate "$1" ok "marker $3"
+  else
+    gate "$1" FAIL "state dir holds: $_entries (want $3)"
+  fi
+}
+key_case notice_key_sanitised 'a/../b c$d.e' bbj-check-noroute-abcde
+_x100=$(awk 'BEGIN { for (i = 0; i < 100; i++) printf "x" }')
+_x64=$(awk 'BEGIN { for (i = 0; i < 64; i++) printf "x" }')
+key_case notice_key_max_64 "$_x100" "bbj-check-noroute-$_x64"
+key_case notice_uuid_key_intact 0198c0de-7a3b-4c2d-9e8f-123456789abc bbj-check-noroute-0198c0de-7a3b-4c2d-9e8f-123456789abc
+
+# a symlink and a regular file squatting on the marker name: nothing is written through them,
+# the notice repeats and never claims otherwise (D-17)
+fresh_state
+mkdir "$WORK/elsewhere"
+ln -s "$WORK/elsewhere" "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1"
+two_notices x "$PAYLOAD"
+if [ "$TWO_OK" = 1 ] && [ -z "$(ls -A "$WORK/elsewhere")" ]; then
+  gate notice_symlink_squat ok "a link at the marker name: notice on both calls, nothing written through it"
+else
+  gate notice_symlink_squat FAIL "$TWO_WHY elsewhere holds: $(ls -A "$WORK/elsewhere")"
+fi
+fresh_state
+: > "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1"
+two_notices x "$PAYLOAD"
+if [ "$TWO_OK" = 1 ] && [ -f "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1" ] && [ ! -s "$BBJ_CHECK_STATE_DIR/bbj-check-noroute-s1" ]; then
+  gate notice_file_squat ok "a file at the marker name: notice on both calls, file untouched"
+else
+  gate notice_file_squat FAIL "$TWO_WHY"
+fi
+
+# an unwritable state directory (skipped as root, which writes anyway)
+fresh_state
+chmod 555 "$BBJ_CHECK_STATE_DIR"
+if ( : > "$BBJ_CHECK_STATE_DIR/probe" ) 2> /dev/null; then
+  rm -f "$BBJ_CHECK_STATE_DIR/probe"
+  gate notice_unwritable_state skip "the state dir is still writable (running as root)"
+else
+  two_notices x "$PAYLOAD"
+  if [ "$TWO_OK" = 1 ]; then
+    gate notice_unwritable_state ok "state dir mode 555: notice on both calls"
+  else
+    gate notice_unwritable_state FAIL "$TWO_WHY"
+  fi
+fi
+chmod 755 "$BBJ_CHECK_STATE_DIR"
+
+# a missing state directory is never created
+BBJ_CHECK_STATE_DIR=$WORK/nostate
+export BBJ_CHECK_STATE_DIR
+two_notices x "$PAYLOAD"
+if [ "$TWO_OK" = 1 ] && [ ! -e "$WORK/nostate" ]; then
+  gate notice_missing_state ok "absent state dir: notice on both calls, dir not created"
+else
+  gate notice_missing_state FAIL "$TWO_WHY"
+fi
+
+# without BBJ_CHECK_STATE_DIR the marker goes to TMPDIR (D-18)
+_sv_state=$BBJ_CHECK_STATE_DIR
+_sv_tmp_set=${TMPDIR+set}
+_sv_tmp=$TMPDIR
+mkdir "$WORK/tmpd"
+unset BBJ_CHECK_STATE_DIR
+TMPDIR=$WORK/tmpd
+export TMPDIR
+run_check "$PAYLOAD"
+notice_text "$WORK/stdout" > /dev/null
+_nr=$?
+_first_rc=$RC
+run_check "$PAYLOAD"
+if [ "$_first_rc" = 0 ] && [ "$_nr" = 0 ] && [ -d "$WORK/tmpd/bbj-check-noroute-s1" ] \
+  && [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+  gate notice_tmpdir_fallback ok "marker in TMPDIR, second call silent"
+else
+  gate notice_tmpdir_fallback FAIL "notice_text $_nr, tmpd holds: $(ls -A "$WORK/tmpd")"
+fi
+if [ "$_sv_tmp_set" = set ]; then TMPDIR=$_sv_tmp; export TMPDIR; else unset TMPDIR; fi
+BBJ_CHECK_STATE_DIR=$_sv_state
+export BBJ_CHECK_STATE_DIR
+
+# six hooks started at once for one session: exactly one notice (mkdir is the atomic test-and-set)
+fresh_state
+printf '%s' "$PAYLOAD" > "$WORK/payload.c"
+_pids=
+for _i in 1 2 3 4 5 6; do
+  $SHELL_UNDER_TEST "$SCRIPT" < "$WORK/payload.c" > "$WORK/cout.$_i" 2> "$WORK/cerr.$_i" &
+  _pids="$_pids $!"
+done
+for _p in $_pids; do wait "$_p"; done
+_nonempty=0
+_valid=0
+for _i in 1 2 3 4 5 6; do
+  if [ -s "$WORK/cout.$_i" ]; then
+    _nonempty=$((_nonempty + 1))
+    if notice_text "$WORK/cout.$_i" > /dev/null; then _valid=$((_valid + 1)); fi
+  fi
+done
+if [ "$_nonempty" = 1 ] && [ "$_valid" = 1 ]; then
+  gate notice_concurrent_once ok "six processes, one notice"
+else
+  gate notice_concurrent_once FAIL "$_nonempty non-empty outputs, $_valid valid"
+fi
+
+# a call that exits 2 prints no notice and keeps the session's slot (D-04)
+fresh_state
+mkdir -p "$WORK/home/bin"
+cp "$REPO/tests/fake-bin/bbjcpl" "$WORK/home/bin/bbjcpl"
+chmod 755 "$WORK/home/bin/bbjcpl"
+printf '%s: error at line 10 (1): x\n' "$FILE" > "$WORK/canned.txt"
+BBJ_HOME=$WORK/home
+FAKE_LOG=$WORK/calls.log
+FAKE_OUT=$WORK/canned.txt
+export BBJ_HOME FAKE_LOG FAKE_OUT
+run_check "$PAYLOAD"
+_rc2=$RC
+_out2=$(wc -c < "$WORK/stdout")
+_state2=$(ls -A "$BBJ_CHECK_STATE_DIR")
+unset BBJ_HOME FAKE_LOG FAKE_OUT
+run_check "$PAYLOAD"
+notice_text "$WORK/stdout" > /dev/null
+_nr=$?
+if [ "$_rc2" = 2 ] && [ "$_out2" -eq 0 ] && [ -z "$_state2" ] && [ "$RC" = 0 ] && [ "$_nr" = 0 ]; then
+  gate notice_exit2_keeps_slot ok "exit 2 printed no notice and left the marker alone; the next call notified"
+else
+  gate notice_exit2_keeps_slot FAIL "exit $_rc2, stdout $_out2 bytes, state '$_state2'; then exit $RC, notice_text $_nr"
+fi
+
+# the header documents the marker rules and the readings this plan applies
+_head=$(awk '/^[^#]/ { exit } { print }' "$SCRIPT")
+_miss=
+for _f in 'D-16' 'D-17' 'D-18' 'D-19' 'plain mkdir' 'not repeated' '/compact' 'BBJ_CHECK_STATE_DIR'; do
+  printf '%s\n' "$_head" | grep -F -- "$_f" > /dev/null || _miss="$_miss [$_f]"
+done
+if [ -z "$_miss" ]; then
+  gate notice_header_marker_rules ok "the header names the marker rules"
+else
+  gate notice_header_marker_rules FAIL "the header lacks:$_miss"
+fi
+
 # ---- no marker in the real temp directory ----
 TMPLIST_AFTER=$(ls -d "${TMPDIR:-/tmp}"/bbj-check-noroute-* 2> /dev/null | sort)
 if [ "$TMPLIST_BEFORE" = "$TMPLIST_AFTER" ]; then
