@@ -1,15 +1,18 @@
 {
   "bbj_version": "unknown",
+  "nocheck": 0,
   "pending": {
     "bbj-programming": {
       "counts": {
-        "grammar": 11
+        "grammar": 11,
+        "structure": 17
       },
       "phase": 4
     },
     "bbj-web-programming": {
       "counts": {
-        "grammar": 5
+        "grammar": 5,
+        "structure": 8
       },
       "phase": 5
     }

@@ -5,7 +5,18 @@ a BBj block is tagged bbj, bbj should-fail or bbj nocheck (reason); an untagged,
 fence and a '...' placeholder in a checked block are violations), the pending list and its ratchet
 (D-01..D-04: a pending skill prints its violations as skip gates and may only get better; any other
 skill is fully enforced), and the report mode that writes the baseline (D-19, D-20). Later plans add
-the structure lints, the live routes and the nocheck ratchet to this file and to this text.
+the live routes to this file and to this text.
+
+Structure lints and the nocheck ratchet (GATE-04, GATE-05; D-15..D-18) are one more check, "structure",
+that goes through the same per-violation gates, ratchet and pending rule as the grammar:
+the SKILL.md description (frontmatter value after YAML unfolding, in characters) is at most 1,024
+(D-16); six project strings never occur in any file of a skill directory (D-17, the strings live in
+this file only, assembled from pieces); the last ## section of every references/<name>.md is
+"## Sources" and holds a "Verified on BBj <version>" line (D-18); a symlink in a skill directory and a
+skill directory without SKILL.md are violations. One repository-wide number, "nocheck" in the baseline,
+caps the count of bbj nocheck (reason) blocks over all skills, pending or not (D-15). To add such a
+block: add it, run --report, and commit the raised "nocheck" number; that baseline diff is the review
+point, and a count equal to the baseline is ok, a lower one asks to lower the baseline.
 
 Command lines, run with python3 -I (stdlib only, no local module can shadow the stdlib):
     python3 -I tests/test_skill_examples.py [ROOT]
@@ -82,7 +93,12 @@ NON_BBJ = ("css", "html", "js", "json", "bash", "sh", "text", "xml")
 OPEN_RE = re.compile(r"^([ \t]*)(`{3,}|~{3,})(.*)$")
 CLOSE_RE = re.compile(r"^[ \t]*(`{3,}|~{3,})[ \t]*$")
 NOCHECK_RE = re.compile(r"^bbj nocheck \((.*\S.*)\)$")
-CHECKS = ("grammar",)
+CHECKS = ("grammar", "structure")
+DESC_LIMIT = 1024
+# the six strings of D-17, assembled from pieces so that no scan of this file can match them
+DENYLIST = ("Daily" + "Drift", "Drift" + "DB", "migrate" + "SortPrefs", "watches" + "!",
+            "cart" + "-updated", "/opt/basis" + "/bin/")
+VERIFIED_RE = re.compile(r"^[ \t]*(?:[-*] )?Verified on BBj [0-9]+(?:\.[0-9]+)+")
 
 failed = False
 
@@ -237,6 +253,145 @@ def grammar_violations(skill, rel, blocks):
 
 
 # ---------------------------------------------------------------------------------------------
+# structure lints (D-16, D-17, D-18)
+# ---------------------------------------------------------------------------------------------
+
+def description_of(lines):
+    """(value, line number, error) of the SKILL.md frontmatter description (D-16).
+
+    The value is the scalar after YAML unfolding: double-quoted through json.loads, single-quoted
+    with '' as one quote, a plain or quoted scalar folded across indented continuation lines, a '>'
+    folded or '|' literal block scalar. Every form the lint cannot decode, and a missing or empty
+    value, is an error and never a guessed length; the value is None then."""
+    if not lines or lines[0].rstrip() != "---":
+        return None, 1, "no frontmatter"
+    end = None
+    for n in range(1, len(lines)):
+        if lines[n].rstrip() == "---":
+            end = n
+            break
+    if end is None:
+        return None, 1, "frontmatter not closed"
+    front = lines[1:end]
+    for n, text in enumerate(front):
+        if not text.startswith("description:"):
+            continue
+        key_line = n + 2
+        rest = text[len("description:"):].strip()
+        follow = []
+        for nxt in front[n + 1:]:
+            if nxt.strip() == "" or nxt[:1] in (" ", "\t"):
+                follow.append(nxt)
+            else:
+                break
+        if rest[:1] in (">", "|"):
+            if rest[0] == "|":
+                value = "\n".join(nxt.strip() for nxt in follow)
+            else:
+                value = ""
+                for nxt in follow:
+                    part = nxt.strip()
+                    if part == "":
+                        value += "\n"
+                    else:
+                        value += (" " if value and not value.endswith("\n") else "") + part
+            value = value.rstrip("\n")
+        else:
+            value = " ".join([rest] + [f.strip() for f in follow if f.strip()]).strip()
+            if value[:1] == '"':
+                try:
+                    value = json.loads(value)
+                except (ValueError, RecursionError):
+                    return None, key_line, ("description is a double-quoted scalar the lint "
+                                            "cannot decode")
+                if not isinstance(value, str):
+                    return None, key_line, ("description is a double-quoted scalar the lint "
+                                            "cannot decode")
+            elif value[:1] == "'":
+                if len(value) < 2 or not value.endswith("'"):
+                    return None, key_line, "description is a single-quoted scalar that is not closed"
+                value = value[1:-1].replace("''", "'")
+        if value.strip() == "":
+            return None, key_line, "description is empty"
+        return value, key_line, ""
+    return None, 1, "no description"
+
+
+def fenced_lines(blocks):
+    """The 1-based file lines covered by fences: opener through closer, or to the end of the file
+    for an unclosed block (its body then runs to the last line)."""
+    covered = set()
+    for b in blocks:
+        last = b["line"] + len(b["body"]) + (1 if b["closed"] else 0)
+        covered.update(range(b["line"], last + 1))
+    return covered
+
+
+def all_regular_files(skill_dir):
+    """Sorted relative paths of every regular, non-symlink file of a skill directory (any extension)."""
+    out = []
+    for here, dirnames, filenames in os.walk(skill_dir, followlinks=False):
+        for name in filenames:
+            path = os.path.join(here, name)
+            if not os.path.islink(path) and os.path.isfile(path):
+                out.append(os.path.relpath(path, skill_dir).replace(os.sep, "/"))
+    return sorted(out)
+
+
+def sources_problem(lines, blocks):
+    """(line, detail) of the D-18 violation of one reference file, or None when it is fine."""
+    covered = fenced_lines(blocks)
+    headings = [(n + 1, text[3:].strip()) for n, text in enumerate(lines)
+                if text.startswith("## ") and (n + 1) not in covered]
+    if not headings:
+        return 1, "no ## section; the file must end with a ## Sources section"
+    at, title = headings[-1]
+    if title != "Sources":
+        return at, "last ## section is '%s', not '## Sources'" % title
+    for n in range(at, len(lines)):
+        if (n + 1) not in covered and VERIFIED_RE.match(lines[n]):
+            return None
+    return at, "## Sources has no 'Verified on BBj <version>' line"
+
+
+def structure_violations(skill, skill_dir, texts, blocks_by_file, symlinks):
+    """The structure violations (check 'structure') of one skill directory.
+
+    texts maps the relative path of each readable *.md file to its text; blocks_by_file maps it to
+    its extracted fences; symlinks are the relative paths of the symlinks met (never opened)."""
+    out = []
+    skill_md = os.path.join(skill_dir, "SKILL.md")
+    if not os.path.isfile(skill_md) or os.path.islink(skill_md):
+        out.append(violation(skill, "structure", "SKILL.md", 1, "no SKILL.md"))
+    elif "SKILL.md" in texts:
+        value, at, error = description_of(lines_of(texts["SKILL.md"]))
+        if error:
+            out.append(violation(skill, "structure", "SKILL.md", at, "description: " + error))
+        elif len(value) > DESC_LIMIT:
+            out.append(violation(skill, "structure", "SKILL.md", at,
+                                 "description is %d characters (limit %d)" % (len(value), DESC_LIMIT)))
+    for rel in all_regular_files(skill_dir):
+        try:
+            with open(os.path.join(skill_dir, rel), "rb") as f:
+                text = f.read().decode("utf-8", errors="replace")
+        except OSError:
+            continue
+        for n, line in enumerate(lines_of(text)):
+            for word in DENYLIST:
+                if word in line:
+                    out.append(violation(skill, "structure", rel, n + 1, "denylisted '%s'" % word))
+    for rel in sorted(texts):
+        parts = rel.split("/")
+        if len(parts) == 2 and parts[0] == "references" and rel.endswith(".md"):
+            found = sources_problem(lines_of(texts[rel]), blocks_by_file[rel])
+            if found:
+                out.append(violation(skill, "structure", rel, found[0], found[1]))
+    for rel in symlinks:
+        out.append(violation(skill, "structure", rel, 1, "symlink not followed"))
+    return out
+
+
+# ---------------------------------------------------------------------------------------------
 # the baseline, pending and ratchet (D-01..D-04)
 # ---------------------------------------------------------------------------------------------
 
@@ -258,6 +413,8 @@ def load_baseline(root):
     pending = data.get("pending")
     if not isinstance(pending, dict):
         return None, "'pending' is not an object"
+    if not is_count(data.get("nocheck")):
+        return None, "'nocheck' is missing or not a non-negative integer"
     for name in sorted(pending):
         entry = pending[name]
         if not isinstance(entry, dict):
@@ -321,15 +478,25 @@ def scan_tree(root):
     for name in skill_dirs(root):
         base = os.path.join(root, SKILLS_REL, name)
         files, links = skill_files(base)
-        found, unreadable = [], []
+        found, unreadable, texts, blocks = [], [], {}, {}
         for rel in files:
             text = read_text(os.path.join(base, rel))
             if text is None:
                 unreadable.append(rel)
                 continue
-            found.extend(grammar_violations(name, rel, extract(lines_of(text))))
-        skills[name] = {"violations": found, "unreadable": unreadable, "links": links}
+            texts[rel] = text
+            blocks[rel] = extract(lines_of(text))
+            found.extend(grammar_violations(name, rel, blocks[rel]))
+        found.extend(structure_violations(name, base, texts, blocks, links))
+        skills[name] = {"violations": found, "unreadable": unreadable, "links": links,
+                        "blocks": blocks}
     return skills
+
+
+def nocheck_count(tree):
+    """The number of bbj nocheck (reason) blocks over every skill, pending or not (D-15)."""
+    return sum(1 for name in tree for blocks in tree[name]["blocks"].values()
+               for b in blocks if kind_of(b["info"])[0] == "nocheck")
 
 
 def counts_of(violations, skill):
@@ -351,6 +518,16 @@ def run_gates(root):
         gate("pending_keys", "FAIL", "; ".join(problems))
     else:
         gate("pending_keys", "ok", "pending: %s" % (", ".join(sorted(valid)) or "none"))
+    used = nocheck_count(skills)
+    if error:
+        gate("nocheck_count", "FAIL", "no valid baseline")
+    elif used > data["nocheck"]:
+        gate("nocheck_count", "FAIL", "%d bbj nocheck block(s) > baseline %d" % (used, data["nocheck"]))
+    elif used < data["nocheck"]:
+        gate("nocheck_count", "ok", "%d bbj nocheck block(s) < baseline %d; lower the baseline "
+             "with --report" % (used, data["nocheck"]))
+    else:
+        gate("nocheck_count", "ok", "%d bbj nocheck block(s) (baseline %d)" % (used, data["nocheck"]))
     measured = dict((c, True) for c in CHECKS)
     for name in sorted(skills):
         info = skills[name]
@@ -407,7 +584,7 @@ def render_md(skills, violations, pending, meta):
     out = ["# Skill example gate: baseline report", "",
            "Generated by python3 -I tests/test_skill_examples.py --report on %s. BBj version: %s. "
            "Live routes: %s." % (meta["date"], meta["bbj_version"], ", ".join(meta["routes"]) or "none"),
-           "",
+           "", "bbj nocheck blocks (repository): %d" % meta["nocheck"], "",
            "The quoted error text is for orientation only: compiler message text can vary between "
            "runs, and the gate compares verdicts and counts only.", ""]
     for name in sorted(skills):
@@ -450,7 +627,7 @@ def build_report(skills, violations, measured, meta, old_pending):
         if not any(counts.values()):
             continue
         pending[name] = {"phase": KNOWN_PENDING[name], "counts": counts}
-    data = {"bbj_version": meta["bbj_version"], "pending": pending}
+    data = {"bbj_version": meta["bbj_version"], "nocheck": meta["nocheck"], "pending": pending}
     json_text = json.dumps(data, indent=2, sort_keys=True, ensure_ascii=True) + "\n"
     return json_text, render_md(skills, violations, pending, meta)
 
@@ -489,7 +666,8 @@ def run_report(root, json_path, md_path):
     skills = scan_tree(root)
     violations = [v for name in sorted(skills) for v in skills[name]["violations"]]
     measured = dict((c, True) for c in CHECKS)
-    meta = {"bbj_version": "unknown", "routes": [], "date": datetime.date.today().isoformat()}
+    meta = {"bbj_version": "unknown", "routes": [], "date": datetime.date.today().isoformat(),
+            "nocheck": nocheck_count(skills)}
     json_text, md_text = build_report(sorted(skills), violations, measured, meta, old)
     try:
         write_atomic(json_path, json_text)
@@ -501,6 +679,7 @@ def run_report(root, json_path, md_path):
     for name in sorted(skills):
         counts = counts_of(violations, name)
         print("counts %s %s" % (safe(name), " ".join("%s=%d" % (c, counts[c]) for c in CHECKS)))
+    print("nocheck %d" % meta["nocheck"])
     return 0
 
 
@@ -627,13 +806,13 @@ def dirty_skill_md(name):
     return clean_skill_md(name) + fence_text("", f, "print 1", f)
 
 
-def fixture_baseline(counts):
+def fixture_baseline(counts, nocheck=0):
     """A complete baseline: counts maps skill -> {check: n}; every key of CHECKS defaults to 0."""
     pending = {}
     for skill in sorted(counts):
         pending[skill] = {"phase": KNOWN_PENDING[skill],
                           "counts": dict((c, counts[skill].get(c, 0)) for c in CHECKS)}
-    return {"bbj_version": "unknown", "pending": pending}
+    return {"bbj_version": "unknown", "nocheck": nocheck, "pending": pending}
 
 
 def make_root(files, baseline):
@@ -780,7 +959,7 @@ def selftest_ratchet():
 
 
 def selftest_report():
-    meta = {"bbj_version": "unknown", "routes": [], "date": "2026-01-01"}
+    meta = {"bbj_version": "unknown", "routes": [], "date": "2026-01-01", "nocheck": 0}
     known = ["bbj-programming", "bbj-web-programming"]
     one = violation("bbj-programming", "grammar", "references/x.md", 3, "untagged fence")
     both = [one, violation("bbj-web-programming", "grammar", "SKILL.md", 9, "untagged fence")]
