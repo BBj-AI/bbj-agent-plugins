@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v0.2.0
 current_phase: 2
 current_phase_name: Hook no-route notice
-status: executing
-stopped_at: Completed 02-05-PLAN.md
-last_updated: "2026-10-10T12:04:07.274Z"
+status: verifying
+stopped_at: Completed 02-06-PLAN.md
+last_updated: "2026-10-10T12:12:28.950Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 2 execution started
-state_head: f9f2deba5aa7662ad7d1712226a1f62fc7b61711
+state_head: 921a437685e782784ba731c915458ef7a269d088
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 
 Phase: 2 (Hook no-route notice) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-10 — Phase 2 execution started
 
 Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans)
@@ -70,6 +70,7 @@ Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans
 | Phase 02 P02 | 12min | 2 tasks | 7 files |
 | Phase 2 P04 | 15min | 3 tasks | 6 files |
 | Phase 02 P05 | 130min | 3 tasks | 14 files |
+| Phase 02 P06 | 7min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,8 @@ Recent decisions affecting current work:
 - [Phase 02]: 02-05: Codex delivers PostToolUse additionalContext to the model after apply_patch (codex_delivered yes, codex-cli 0.162.1); D-15 exit-2 fallback not needed
 - [Phase 02]: 02-05: run 2 used hooks-approval with -s danger-full-access in the scratch project (user decision; bwrap cannot create user namespaces here)
 - [Phase 02]: 02-05: the model paraphrased the notice (refuses to quote hidden developer context verbatim); accepted as delivery because PATCH 1 carries the Codex-only BBJ_HOME/bbjcpl enable step
+- [Phase 02]: 02-06: D-15 not applied, codex_delivered yes; OUTCOME.md records d15_fallback not-needed (paraphrase caveat) and rerun not-needed; no billed re-run
+- [Phase 02]: 02-06: codex_payload fixture follows the captured Codex key order (codex-cli 0.162.1, plan 02-05)
 
 ### Pending Todos
 
@@ -123,6 +126,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T12:04:07.213Z
-Stopped at: Completed 02-05-PLAN.md
+Last session: 2026-10-10T12:12:28.879Z
+Stopped at: Completed 02-06-PLAN.md
 Resume file: None

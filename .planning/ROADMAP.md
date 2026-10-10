@@ -82,7 +82,7 @@ Plans:
   3. `tests/test_exit_contract.sh` asserts stdout holds exactly that JSON object in the no-route case and is empty otherwise, and the former silent-path tests read "first call notice, then silent"
   4. On a real Codex after `apply_patch`, the notice is confirmed to reach the model; if it does not, Codex alone falls back to exit 2 with stderr and the result is recorded
 
-**Plans**: 5/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 **Wave 1**
@@ -101,7 +101,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 02-06-PLAN.md — Apply the Codex outcome: D-15 exit-2 fallback only if not delivered (with re-run), captured payload facts in hook and tests (wave 4, after 02-05)
+- [x] 02-06-PLAN.md — Apply the Codex outcome: D-15 exit-2 fallback only if not delivered (with re-run), captured payload facts in hook and tests (wave 4, after 02-05)
 
 **Cross-cutting constraints:**
 
@@ -174,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
-| 2. Hook no-route notice | 5/6 | In Progress | - |
+| 2. Hook no-route notice | 6/6 | In Progress | - |
 | 3. Example gate and structure lints | 0/TBD | Not started | - |
 | 4. bbj-programming makeover | 0/TBD | Not started | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
