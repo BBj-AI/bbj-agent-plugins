@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 2
 current_phase_name: Hook no-route notice
 status: executing
-stopped_at: Completed 02-03-PLAN.md
-last_updated: "2026-10-10T08:45:29.372Z"
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-10-10T09:01:28.737Z"
 last_activity: 2026-10-10
 last_activity_desc: Phase 2 execution started
-state_head: 26aa567e2ce0bbc89c6b3e8119d1557a0e5a1648
+state_head: e1502883c082c9ebdb7b3239d7344fd4ca8e0228
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 2 (Hook no-route notice) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-10-10 — Phase 2 execution started
 
@@ -67,6 +67,7 @@ Progress: [██░░░░░░░░] 17% (1 of 6 phases; Phase 1 7/7 plans
 | Phase 1 P07 | 6 min | 2 tasks | 4 files |
 | Phase 2 P01 | 40 min | 3 tasks | 5 files |
 | Phase 02 P03 | 15min | 2 tasks | 5 files |
+| Phase 02 P02 | 12min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,8 @@ Recent decisions affecting current work:
 - [Phase 2]: Plan 02-01: the 'not repeated' clause is printed only when this call created the marker, so tell-anyway failures and a missing session id never claim a silence that will not follow (D-11 with D-16, D-17)
 - [Phase 2]: Plan 02-01: json_body maps every byte outside printable ASCII to ? so a file name can never make the notice object invalid JSON or invalid UTF-8
 - [Phase 02]: 02-03: install docs and installer wording state the no-route notice without naming the delivery channel, so it stays true if Codex uses the exit-2 fallback (D-15)
+- [Phase 02]: A compiler without a verdict goes through tier 2 like no compiler: status 1 is noted noresult, status 2 (route failed) stays silent (02-02, D-02, D-03)
+- [Phase 02]: Exit contract amended only for the three notice cases; single-writer static gate counts hookSpecificOutput lines (02-02, HOOK-03)
 
 ### Pending Todos
 
@@ -103,6 +106,7 @@ None yet.
 - [Phase 4]: Needs phase research: claim ledger, RUNTIME-claim policy (rewrite to compile-time observable or drop), primer cross-check; no `!ERROR=26` entry found in BASIS docs
 - [Phase 5]: Needs phase research: DWC DOM/CSS claims with no doc source; owner reproduction on a named DWC/BBj build is a human step
 - [Phase 6]: Tag form `0.2.0`; Codex upgrade traps (`--force`, `/hooks` re-approval) must reach CHANGELOG and installer output
+- Phase 2 D-1: notice_concurrent_once is flaky where mkdir is uutils coreutils 0.8.0 (non-atomic under concurrency); see .planning/phases/02-hook-no-route-notice/deferred-items.md
 
 ## Deferred Items
 
@@ -114,6 +118,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-10T08:45:29.307Z
-Stopped at: Completed 02-03-PLAN.md
+Last session: 2026-10-10T09:01:28.671Z
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
