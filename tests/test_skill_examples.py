@@ -191,6 +191,18 @@ def skill_dirs(root):
                   if os.path.isdir(os.path.join(base, n)) and not os.path.islink(os.path.join(base, n)))
 
 
+def skill_links(root):
+    """Sorted names of the symlinks directly under root/SKILLS_REL (WR-01).
+
+    skill_dirs() never follows them, so each one would escape every lint; run_gates reports it."""
+    base = os.path.join(root, SKILLS_REL)
+    try:
+        names = os.listdir(base)
+    except OSError:
+        return []
+    return sorted(n for n in names if os.path.islink(os.path.join(base, n)))
+
+
 def skill_files(skill_dir):
     """(sorted regular *.md files, sorted symlinks met), relative with '/' separators.
 
@@ -900,6 +912,11 @@ def run_gates(root):
         pending = data["pending"]
         gate("baseline", "ok", "%d pending skill(s)" % len(pending))
     skills = scan_tree(root)
+    # a symlinked skill directory is never followed (project convention), so it is reported here
+    # instead of vanishing: otherwise it would escape every lint (WR-01)
+    for name in skill_links(root):
+        gate(gate_name("structure", name), "FAIL",
+             "%s/%s is a symlink (not followed); make it a real directory" % (SKILLS_REL, name))
     valid, problems = check_pending_keys(pending, set(skills))
     if problems:
         gate("pending_keys", "FAIL", "; ".join(problems))
@@ -1582,6 +1599,24 @@ def selftest_structure():
         gate("fx_structure_symlink_violation", "ok" if got == want else "FAIL",
              "want %s, got %s" % (want, got))
     fx("structure_symlink_violation", symlink_case)
+
+    # a symlinked skill directory is reported, not silently skipped (WR-01)
+    def linked_skill_dir():
+        outside = make_root({"SKILL.md": dirty_skill_md("linked")}, None)
+        root = make_root(two_skill_files(), fixture_baseline({}))
+        link = os.path.join(root, *(SKILLS_REL + "/linked").split("/"))
+        try:
+            os.symlink(outside, link)
+        except (AttributeError, NotImplementedError, OSError) as e:
+            gate("fx_structure_linked_skill_dir", "skip", "os.symlink is not available: %s" % e)
+            return
+        rc, lines = child_run(root)
+        want = "gate skills_structure_linked FAIL"
+        ok = rc == 1 and any(l.startswith(want) for l in lines)
+        gate("fx_structure_linked_skill_dir", "ok" if ok else "FAIL",
+             "status=%s: rc %d, wanted a failing line starting %r among %d line(s)"
+             % ("ok" if ok else "FAIL", rc, want, len(lines)))
+    fx("structure_linked_skill_dir", linked_skill_dir)
 
     struct_case("no_skill_md", {"references/x.md": sources_ok}, [("SKILL.md", 1, "no SKILL.md")])
 
