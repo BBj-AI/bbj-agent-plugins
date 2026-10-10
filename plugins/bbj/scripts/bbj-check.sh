@@ -1,12 +1,16 @@
 #!/bin/sh
 # bbj-check.sh -- compile-only BBj check for the Claude Code PostToolUse hook
-# (plan 19-01, PLUG-01; decisions D-11 and D-12 of phase 19).
+# (plan 19-01, PLUG-01; decisions D-11 and D-12 of phase 19). Phase 2 (plans 02-01 and 02-02,
+# HOOK-01 to HOOK-04; decisions D-01 to D-19 of phase 2) adds the no-route notice below.
 #
 # Reads the hook JSON on stdin. For a Write or Edit of a .bbj, .src or .bbx file it
 # compiles the file with the BBj compiler (bbjcpl or bbjcplw, always with -N: a
 # compile-only check) and hands the compiler's error lines back to the model:
 #
-#   exit 0, no output at all   clean file, any other file, missing file, no BBj found
+#   exit 0, no output at all   clean file, any other file, missing file, a route that was
+#                              reached but gave no verdict (route failed, D-03)
+#   exit 0, one JSON object on stdout: no check route; the no-route notice, once per
+#                              session (see below)
 #   exit 2, feedback on stderr the compiler reported errors (D-12 grammar):
 #                                bbjcpl reported N error(s) in <file>:
 #                                <compiler lines, verbatim, at most 40>
@@ -24,7 +28,28 @@
 # parses only: it reports syntax errors, not type errors (the tiers disagree), so its
 # header names the route:
 #                                bbj-local reported N error(s) in <file>:
-# With neither a compiler nor a reachable loopback server the hook exits 0, silently.
+# The outcome of tier 2 is one of four (D-01, D-03):
+#   curl exit 7 (connection refused)           no route: the notice
+#   curl 0, "No errors found."                 clean, silent
+#   curl 0, "line N, column M:" error lines    errors, exit 2 as above
+#   curl 0 with an empty reply, a JSON-RPC error, an isError result, or text with neither
+#   verdict; and every other curl exit (28 timeout, 52 empty reply, 56 reset, 18 short
+#   body, 1 not HTTP, 6 unresolved host and the rest)
+#                                              route failed, silent
+# Only exit 7 is no route: a reachable but slow or broken bbj-ls must never be reported as
+# absent. No curl on PATH and a URL the loopback check refuses are no route as well (D-01).
+#
+# The no-route notice (HOOK-02): when a BBj file of the call had no check route (no compiler
+# found, and tier 2 is no route) and no file of the call had compiler errors (D-04), the script
+# exits 0 and writes ONE line to stdout, the only stdout write of the script:
+#     {"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"<text>"}}
+# The text names the files that were written but not compile-checked, the reasons (D-09),
+# that later BBj files of the session are not checked either, how to enable a check (two
+# texts, by tool_name: D-06), the hosted check as the agent's fallback with its disclosure
+# (D-08: it sends the code to a server, so the user must be told; the hook itself never calls
+# it and the text names no address), and asks the agent to tell the user (D-07). It is its own
+# message class and never uses the error header above (D-12). File names are reduced to
+# printable ASCII, escaped, cut to 200 bytes each, and at most 5 are named (D-10).
 #
 # N counts the compiler lines except unresolved uses without a path ("Cannot find program"),
 # which are demoted to the trailing note and never cause exit 2 on their own (D-11). A file
@@ -43,8 +68,8 @@
 # A path that is itself a symlink is skipped silently (a link to another file must not make
 # the hook read or send that file); the same applies to every path a patch names.
 #
-# stdout stays empty and the exit code is only ever 0 or 2. There is deliberately no
-# "set -e": every failure path ends in an explicit "exit 0".
+# stdout is written in exactly one case, the no-route notice, and the exit code is only ever
+# 0 or 2. There is deliberately no "set -e": every failure path ends in an explicit "exit 0".
 #
 # This script never runs BBj and never evaluates, sources or interpolates file content
 # into a command; the file name reaches the compiler as one quoted absolute argument.
@@ -59,11 +84,13 @@
 # (/c/bbx /Applications/bbx /usr/local/bbx /opt/bbx). CLAUDE_PROJECT_DIR (workspace root)
 # is added to -P. BBJ_CHECK_DEFAULT_HOMES is a test seam: unset = the built-in default
 # homes, set = a colon-separated replacement list, empty = none. With no usable compiler
-# the script exits 0 silently. The launcher bbjcpl finds its BBj home from its own path, so
-# a symlink to it breaks: symlinks are resolved and the real path is called.
+# the script asks tier 2, and without a tier-2 route it writes the no-route notice. The
+# launcher bbjcpl finds its BBj home from its own path, so a symlink to it breaks: symlinks
+# are resolved and the real path is called. BBJ_CHECK_STATE_DIR (default ${TMPDIR:-/tmp}) is
+# the directory of the notice's once-per-session marker, a test seam (D-18).
 # With Git for Windows (cygpath on PATH) paths are converted: the compiler and -P get
 # Windows paths and the -P list is joined with ";".
-# Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname.
+# Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname, tr, mkdir.
 
 # report ROUTE ERRS [K]: writes the D-12 feedback block for the error lines ERRS to stderr
 # (header naming ROUTE, at most 40 lines, an overflow line, a "Not counted" line when K > 0
@@ -80,19 +107,90 @@ report() {
   FAILED=1
 }
 
+# note_noroute KIND: records that the current file had no check route (KIND none = no compiler
+# was found; KIND noresult = a compiler gave no verdict, plan 02-02). Uses the globals file, nl.
+# NR_COMPILER keeps the first KIND of the call. main decides about the notice after all files.
+note_noroute() {
+  NR_N=$((NR_N + 1))
+  NR_LIST=$NR_LIST$file$nl
+  [ -n "$NR_COMPILER" ] || NR_COMPILER=$1
+}
+
+# json_body: stdin (one line) to the inside of a JSON string. Every byte outside printable
+# ASCII becomes one "?" (a Latin-1 or control byte would make the object invalid UTF-8 or
+# invalid JSON and the host would drop the whole notice), then backslash and double quote are
+# escaped, in that order.
+json_body() {
+  LC_ALL=C sed -e 's/[^ -~]/?/g' -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+
+# notice TOOL SID: the no-route notice (HOOK-02). Writes ONE JSON object to stdout, the only
+# stdout write of this script, and returns 0. The once-per-session marker is a plain mkdir
+# (create-or-fail, so it is the atomic test-and-set) of
+#     ${BBJ_CHECK_STATE_DIR:-${TMPDIR:-/tmp}}/bbj-check-noroute-<key>
+# where key is SID reduced to [A-Za-z0-9_-] and cut to 64 bytes. It is created only when a
+# notice is about to print (D-17, D-18). Uses NR_N, NR_LIST, NR_COMPILER, NR_T2, NR_HOSTPORT.
+notice() {
+  _key=$(printf '%s' "$2" | LC_ALL=C tr -cd 'A-Za-z0-9_-' | head -c 64)
+  _fresh=0
+  if [ -n "$_key" ]; then
+    _m=${BBJ_CHECK_STATE_DIR:-${TMPDIR:-/tmp}}/bbj-check-noroute-$_key
+    if mkdir "$_m" 2> /dev/null; then
+      _fresh=1
+    elif [ -d "$_m" ] && [ ! -L "$_m" ]; then
+      # already told in this session: only a real directory counts, never a link or a file
+      return 0
+    fi
+  fi
+
+  case "$NR_COMPILER" in
+    noresult) _why1='bbjcpl found but gave no result' ;;
+    none) _why1='no bbjcpl found' ;;
+    *) _why1='no bbjcpl found' ;;
+  esac
+  case "$NR_T2" in
+    refused) _why2="no bbj-ls answering on $NR_HOSTPORT" ;;
+    nocurl) _why2='curl not found' ;;
+    badurl) _why2='bbj-ls URL refused (not loopback)' ;;
+    *) _why2='no bbj-ls answering' ;;
+  esac
+  _files=$(printf '%s' "$NR_LIST" | LC_ALL=C awk 'length($0) { printf "%s%s", sep, $0; sep = ", " }')
+  _later='Later BBj files in this session are not checked either unless a check is enabled'
+  if [ "$_fresh" = 1 ]; then _later="$_later, and this notice is not repeated"; fi
+  _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or enable the bbj-local@basis-bbj plugin (BBjServices 26.03+ running on this machine).'
+  _txt="$_files was written but not compile-checked: $_why1; $_why2. $_later. $_how"
+  _txt="$_txt Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
+  _txt="$_txt Tell the user that this file was not compile-checked and how to enable a check."
+  # user data (file names) only ever goes in the printf arguments, never in the format
+  printf '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' \
+    "$(printf '%s' "$_txt" | json_body)"
+  return 0
+}
+
 # Where to go when no BBj compiler can be used for the file: tier 2, the loopback bbj-local
-# check (D-14). Every failure path ends in "return 0" (no route, no verdict).
+# check (D-14). Returns 0 when a verdict was reached (clean, or report ran), 1 when there is no
+# route (NR_T2 says why: refused = nothing answers on the port, nocurl, badurl; NR_HOSTPORT holds
+# the authority of the URL), 2 when a route was reached but gave no verdict. Every path ends in
+# an explicit return.
 no_tier1_route() {
   _url=${BBJ_LOCAL_MCP_URL:-http://127.0.0.1:5009/mcp}
   # loopback only: plain http to 127.0.0.1, localhost or [::1], an optional port and path;
   # no whitespace, backslash, userinfo (@), query (?) or fragment (#). A refused URL is
   # never handed to curl.
   case "$_url" in
-    *[[:space:]]*|*@*|*'?'*|*'#'*|*'\'*) return 0 ;;
+    *[[:space:]]*|*@*|*'?'*|*'#'*|*'\'*) NR_T2=badurl; return 1 ;;
   esac
   _ok=$(printf '%s' "$_url" | sed -nE 's#^http://(\[::1\]|127\.0\.0\.1|[Ll][Oo][Cc][Aa][Ll][Hh][Oo][Ss][Tt])(:[0-9]+)?(/[^ ]*)?$#ok#p')
-  [ "$_ok" = ok ] || return 0
-  command -v curl > /dev/null 2>&1 || return 0
+  [ "$_ok" = ok ] || { NR_T2=badurl; return 1; }
+  command -v curl > /dev/null 2>&1 || { NR_T2=nocurl; return 1; }
+  # the authority of the validated URL, with ":80" when it names no port (a "[::1]" has colons
+  # but no port)
+  NR_HOSTPORT=$(printf '%s' "$_url" | sed -E 's#^http://([^/]*).*$#\1#')
+  case "$NR_HOSTPORT" in
+    *\]) NR_HOSTPORT=$NR_HOSTPORT:80 ;;
+    *:[0-9]*) ;;
+    *) NR_HOSTPORT=$NR_HOSTPORT:80 ;;
+  esac
 
   # the file text as a JSON string: control characters other than tab, LF and CR dropped;
   # backslash, double quote, tab and CR escaped; every line followed by \n
@@ -104,21 +202,26 @@ no_tier1_route() {
   _body='{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"bbj_check_syntax","arguments":{"code":"'"$_code"'"},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}'
 
   _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout 1 -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
-  [ "$?" = 0 ] && [ -n "$_reply" ] || return 0
+  _rc=$?
+  # curl exit 7 (connection refused) is the only "nothing answers" outcome; every other failure
+  # or an empty reply reached something and is a route that gave no verdict (see the header)
+  if [ "$_rc" = 7 ]; then NR_T2=refused; return 1; fi
+  { [ "$_rc" = 0 ] && [ -n "$_reply" ]; } || return 2
 
   # a text/event-stream reply: the payload of the last data: line
   if printf '%s\n' "$_reply" | grep '^data:' > /dev/null; then
     _reply=$(printf '%s\n' "$_reply" | tr -d '\r' | sed -n 's/^data:[[:space:]]*//p' | tail -n 1)
   fi
   # a JSON-RPC error or an isError result is no verdict
-  if printf '%s' "$_reply" | grep -E '"error"[[:space:]]*:|"isError"[[:space:]]*:[[:space:]]*true' > /dev/null; then return 0; fi
+  if printf '%s' "$_reply" | grep -E '"error"[[:space:]]*:|"isError"[[:space:]]*:[[:space:]]*true' > /dev/null; then return 2; fi
   _text=$(printf '%s' "$_reply" | LC_ALL=C awk -v region=all -v key=text -v uni=1 "$JGET_AWK")
   case "$_text" in
     "No errors found."*) return 0 ;;
   esac
   _errs=$(printf '%s\n' "$_text" | grep -E '^line [0-9]+, column [0-9]+:')
-  [ -n "$_errs" ] || return 0
+  [ -n "$_errs" ] || return 2
   report bbj-local "$_errs"
+  return 0
 }
 
 # jget REGION KEY: reads JSON text on stdin and prints the unescaped value of the first
@@ -318,6 +421,8 @@ check_file() {
 
   if ! discover; then
     no_tier1_route
+    _t2=$?
+    if [ "$_t2" = 1 ]; then note_noroute none; fi
     return 0
   fi
 
@@ -447,6 +552,11 @@ main() {
   input=$(cat)
   hd=$(printf '%s' "$input" | head -c 8192)
   FAILED=0
+  NR_N=0
+  NR_LIST=
+  NR_COMPILER=
+  NR_T2=
+  NR_HOSTPORT=
   WIN=0
   if command -v cygpath > /dev/null 2>&1; then WIN=1; fi
   tool=$(printf '%s' "$hd" | jget pre tool_name)
@@ -468,6 +578,14 @@ main() {
   if [ "$FAILED" = 1 ]; then
     printf 'bbj_lookup gives exact syntax for a named symbol.\n' >&2
     exit 2
+  fi
+  # no check route for a file of this call (D-04: only when no file failed): the once-per-session
+  # notice. The session id sits before tool_input on Claude Code; Codex key order is not yet
+  # captured, so fall back to a search of the whole input (as for tool_name above).
+  if [ "$NR_N" -gt 0 ]; then
+    sid=$(printf '%s' "$hd" | jget pre session_id)
+    [ -n "$sid" ] || sid=$(printf '%s' "$input" | jget all session_id)
+    notice "$tool" "$sid"
   fi
   exit 0
 }
