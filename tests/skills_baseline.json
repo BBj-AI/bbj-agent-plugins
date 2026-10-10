@@ -1,0 +1,17 @@
+{
+  "bbj_version": "unknown",
+  "pending": {
+    "bbj-programming": {
+      "counts": {
+        "grammar": 11
+      },
+      "phase": 4
+    },
+    "bbj-web-programming": {
+      "counts": {
+        "grammar": 5
+      },
+      "phase": 5
+    }
+  }
+}
