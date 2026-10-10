@@ -51,6 +51,26 @@
 # message class and never uses the error header above (D-12). File names are reduced to
 # printable ASCII, escaped, cut to 200 bytes each, and at most 5 are named (D-10).
 #
+# The once-per-session marker (HOOK-02, D-17, D-18). The notice is decided in main after every
+# file of the call, so a call that exits 2 or has nothing to report never uses up the slot.
+# Location: ${BBJ_CHECK_STATE_DIR:-${TMPDIR:-/tmp}}/bbj-check-noroute-<key>, the same on both
+# hosts (the seam BBJ_CHECK_STATE_DIR is how the tests keep it hermetic). Key: session_id
+# reduced to [A-Za-z0-9_-] and cut to 64 bytes, byte-wise under LC_ALL=C, so "/" and "." never
+# reach the path and a UUID keeps its hyphens. The test-and-set is a plain mkdir (create or
+# fail, atomic when hooks of parallel tool calls run at once; the parents flag would always
+# succeed and defeat it). The script never creates the state directory and never writes into
+# or through the marker path. Fail toward telling (D-17): mkdir succeeds = tell; mkdir fails
+# and the name is a real directory, not a symlink = already told, silent; any other failure
+# (missing or unwritable state directory, a symlink or a file at the name) = tell, on every
+# call. D-11 wants the notice to say it is "not repeated"; this script prints that clause only
+# when this call created the marker, so on D-17's tell-anyway failures, as on D-16, the clause
+# is left out: the next call tells again and the clause would be false (D-17 does not say so;
+# this is the reading of D-11 with D-17 that plan 02-01 applies). D-16: no session_id, or one
+# that sanitises to nothing, tells on every no-route call, with no shared key (it would
+# outlive the session). D-19: one notice per session id, so subagents, which carry the
+# parent's id, and resumed sessions are not told again; /compact may drop the notice from the
+# context, which is accepted. Markers are empty directories left for the OS to clean.
+#
 # N counts the compiler lines except unresolved uses without a path ("Cannot find program"),
 # which are demoted to the trailing note and never cause exit 2 on their own (D-11). A file
 # whose basename matches config*.bbx is configuration and is not checked (owner decision).
