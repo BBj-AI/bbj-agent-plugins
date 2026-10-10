@@ -1018,6 +1018,203 @@ def selftest_report():
     fx("report_old_names_only", old_names_only)
 
 
+STRUCT_SKILL = "bbj-programming"
+
+
+def skill_rel(rel):
+    return "%s/%s/%s" % (SKILLS_REL, STRUCT_SKILL, rel)
+
+
+def front_text(*front):
+    """A SKILL.md text with the given frontmatter lines between the two --- lines."""
+    return fence_text("---", "name: x", *(list(front) + ["---", "", "# x"]))
+
+
+def structure_of(files):
+    """(root, [(file, line, detail)]): the structure violations of one fixture skill directory.
+
+    files maps a path relative to the skill directory to its text."""
+    root = make_root(dict((skill_rel(rel), text) for rel, text in files.items()), None)
+    found = scan_tree(root)[STRUCT_SKILL]["violations"]
+    return root, [(v["file"], v["line"], v["detail"]) for v in found if v["check"] == "structure"]
+
+
+def struct_case(name, files, want):
+    """One gate: the structure violations of a fixture skill directory equal want exactly."""
+    def run():
+        got = structure_of(files)[1]
+        gate("fx_structure_" + name, "ok" if got == want else "FAIL", "want %s, got %s" % (want, got))
+    fx("structure_" + name, run)
+
+
+def selftest_structure():
+    clean = clean_skill_md(STRUCT_SKILL)
+    f = "`" * 3
+    sources_ok = fence_text("# T", "", "body", "", "## Sources", "", "Verified on BBj 26.03")
+
+    def ref(text):
+        return {"SKILL.md": clean, "references/x.md": text}
+
+    # description (D-16, T-03-05)
+    quote = chr(34)
+    backslash = chr(92)
+    struct_case("desc_limit_1024_ok", {"SKILL.md": front_text(
+        "description: " + quote + "a" * 1023 + backslash + quote + quote)}, [])
+    struct_case("desc_limit_1025_fail", {"SKILL.md": front_text(
+        "description: " + quote + "a" * 1024 + backslash + quote + quote)},
+        [("SKILL.md", 3, "description is 1025 characters (limit 1024)")])
+
+    def desc_value(name, front, want):
+        def run():
+            value, at, error = description_of(lines_of(front_text(*front)))
+            ok = (value, error) == (want, "")
+            gate("fx_structure_" + name, "ok" if ok else "FAIL",
+                 "want %d chars, got %d chars error %r" % (len(want), len(value or ""), error)
+                 if len(want) > 60 else "want %r, got %r error %r" % (want, value, error))
+        fx("structure_" + name, run)
+
+    apostrophe = "'"
+    desc_value("desc_single_quoted", ["description: " + apostrophe + "a" * 1023 + apostrophe * 3],
+               "a" * 1023 + apostrophe)
+    struct_case("desc_single_quoted_len", {"SKILL.md": front_text(
+        "description: " + apostrophe + "a" * 1023 + apostrophe * 3)}, [])
+    desc_value("desc_plain_multiline", ["description: one", "  two", "   three", "license: MIT"],
+               "one two three")
+    desc_value("desc_folded", ["description: >", "  one", "  two", "", "  three", "license: MIT"],
+               "one two" + chr(10) + "three")
+    desc_value("desc_literal", ["description: |", "  one", "  two", "license: MIT"],
+               "one" + chr(10) + "two")
+    struct_case("desc_no_frontmatter", {"SKILL.md": "# x" + chr(10)},
+                [("SKILL.md", 1, "description: no frontmatter")])
+    struct_case("desc_unclosed_frontmatter", {"SKILL.md": fence_text("---", "name: x", "description: y")},
+                [("SKILL.md", 1, "description: frontmatter not closed")])
+    struct_case("desc_missing", {"SKILL.md": front_text("license: MIT")},
+                [("SKILL.md", 1, "description: no description")])
+    struct_case("desc_empty", {"SKILL.md": front_text("description:", "license: MIT")},
+                [("SKILL.md", 3, "description: description is empty")])
+    struct_case("desc_undecodable", {"SKILL.md": front_text(
+        "description: " + quote + "bad " + backslash + "x41 escape" + quote)},
+        [("SKILL.md", 3, "description: description is a double-quoted scalar the lint cannot decode")])
+    wide = "a" * 1022 + chr(0xe9) + chr(0x2014)
+    struct_case("desc_code_points", {"SKILL.md": front_text("description: " + wide)}, [])
+
+    # denylist (D-17, T-03-07)
+    def deny(word):
+        return "denylisted '%s'" % word
+
+    first = len(lines_of(clean)) - 1
+    all_six = clean + "".join(w + chr(10) for w in DENYLIST)
+    struct_case("denylist_all_six", {"SKILL.md": all_six},
+                [("SKILL.md", first + 1 + n, deny(w)) for n, w in enumerate(DENYLIST)])
+    struct_case("denylist_two_on_one_line",
+                {"SKILL.md": clean + DENYLIST[0] + " and " + DENYLIST[1] + chr(10)},
+                [("SKILL.md", first + 1, deny(DENYLIST[0])), ("SKILL.md", first + 1, deny(DENYLIST[1]))])
+    other_case = "".join(w.upper() + " " + w.swapcase() + chr(10) for w in DENYLIST)
+    struct_case("denylist_case_sensitive", {"SKILL.md": clean + other_case}, [])
+    struct_case("denylist_inside_fence",
+                {"SKILL.md": clean + fence_text("", f + "bbj", "print " + DENYLIST[3], f)},
+                [("SKILL.md", first + 3, deny(DENYLIST[3]))])
+    struct_case("denylist_non_md_file", {"SKILL.md": clean, "notes.txt": DENYLIST[5] + chr(10)},
+                [("notes.txt", 1, deny(DENYLIST[5]))])
+
+    # Sources (D-18)
+    struct_case("sources_ok", ref(sources_ok), [])
+    struct_case("sources_ok_bullet", ref(fence_text("## Sources", "", "- Verified on BBj 26.03 (bbjcpl)")), [])
+    struct_case("sources_ok_h3_after", ref(fence_text(
+        "## Sources", "", "Verified on BBj 26.03", "", "### Detail", "", "text")), [])
+    struct_case("sources_no_heading", ref(fence_text("# T", "", "text")),
+                [("references/x.md", 1, "no ## section; the file must end with a ## Sources section")])
+    struct_case("sources_not_last", ref(fence_text("## Sources", "Verified on BBj 26.03", "## Other")),
+                [("references/x.md", 3, "last ## section is 'Other', not '## Sources'")])
+    no_line = "## Sources has no 'Verified on BBj <version>' line"
+    struct_case("sources_no_verified", ref(fence_text("## Sources", "", "see the docs")),
+                [("references/x.md", 1, no_line)])
+    struct_case("sources_no_version", ref(fence_text("## Sources", "", "Verified on BBj")),
+                [("references/x.md", 1, no_line)])
+    struct_case("sources_verified_before_heading",
+                ref(fence_text("Verified on BBj 26.03", "", "## Sources", "", "see the docs")),
+                [("references/x.md", 3, no_line)])
+    struct_case("sources_heading_in_fence",
+                ref(fence_text("## Other", "", f + "text", "## Sources", "Verified on BBj 26.03", f)),
+                [("references/x.md", 1, "last ## section is 'Other', not '## Sources'")])
+    struct_case("sources_verified_in_fence",
+                ref(fence_text("## Sources", "", f + "text", "Verified on BBj 26.03", f)),
+                [("references/x.md", 1, no_line)])
+    struct_case("sources_nested_path_exempt",
+                {"SKILL.md": clean, "references/sub/y.md": fence_text("# T", "", "text")}, [])
+    struct_case("sources_skill_md_exempt",
+                {"SKILL.md": clean + fence_text("", "## Other", "", "no sources here")}, [])
+
+    # symlink, missing SKILL.md, unreadable file (T-03-06)
+    def symlink_case():
+        outside = make_root({"outside.txt": DENYLIST[0] + chr(10)}, None)
+        root = make_root({skill_rel("SKILL.md"): clean}, None)
+        link = os.path.join(root, *skill_rel("link.txt").split("/"))
+        try:
+            os.symlink(os.path.join(outside, "outside.txt"), link)
+        except (AttributeError, NotImplementedError, OSError) as e:
+            gate("fx_structure_symlink_violation", "skip", "os.symlink is not available: %s" % e)
+            return
+        got = [(v["file"], v["line"], v["detail"])
+               for v in scan_tree(root)[STRUCT_SKILL]["violations"] if v["check"] == "structure"]
+        want = [("link.txt", 1, "symlink not followed")]
+        gate("fx_structure_symlink_violation", "ok" if got == want else "FAIL",
+             "want %s, got %s" % (want, got))
+    fx("structure_symlink_violation", symlink_case)
+
+    struct_case("no_skill_md", {"references/x.md": sources_ok}, [("SKILL.md", 1, "no SKILL.md")])
+
+    def unreadable():
+        files = two_skill_files(("bbj-programming",))
+        root = make_root(files, fixture_baseline({"bbj-programming": {"grammar": 1}}))
+        bad = os.path.join(root, *(SKILLS_REL + "/bbj-programming/references/bad.md").split("/"))
+        os.makedirs(os.path.dirname(bad), exist_ok=True)
+        with open(bad, "wb") as out:
+            out.write(b"## Sources" + bytes([255]) + b"\n")
+        rc, lines = child_run(root)
+        want = "gate skills_read_bbj-programming_references_bad.md "
+        ok = rc == 1 and any(l.startswith(want) and l[len(want):].startswith("FAIL") for l in lines)
+        gate("fx_structure_unreadable_fails", "ok" if ok else "FAIL",
+             "rc %d, wanted a failing gate line starting %r among %d line(s)" % (rc, want, len(lines)))
+    fx("structure_unreadable_fails", unreadable)
+
+    long_desc = front_text("description: " + "a" * 1025)
+    zero = two_skill_files()
+    zero["%s/bbj-programming/SKILL.md" % SKILLS_REL] = long_desc
+    child_case("structure_zero_enforced", zero, fixture_baseline({"bbj-programming": {}}), 1,
+               ["gate skills_ratchet_bbj-programming_structure FAIL"])
+
+
+def selftest_nocheck():
+    f = "`" * 3
+    nocheck_fence = fence_text("", f + "bbj nocheck (fragment)", "x", f)
+    text = dirty_skill_md("bbj-programming") + nocheck_fence
+    mark = extract(lines_of(text))[1]["line"]
+    files = two_skill_files()
+    files["%s/bbj-programming/SKILL.md" % SKILLS_REL] = text
+    one = {"bbj-programming": {"grammar": 1}}
+    child_case("nocheck_above_fails", files, fixture_baseline(one, nocheck=0), 1,
+               ["gate skills_nocheck_count FAIL 1 bbj nocheck block(s) > baseline 0"])
+    child_case("nocheck_equal_ok", files, fixture_baseline(one, nocheck=1), 0,
+               ["gate skills_nocheck_count ok 1 bbj nocheck block(s) (baseline 1)"])
+    child_case("nocheck_lower_ok", files, fixture_baseline(one, nocheck=2), 0,
+               ["gate skills_nocheck_count ok 1 bbj nocheck block(s) < baseline 2; lower the baseline"])
+    child_case("nocheck_not_counted_as_violation", files, fixture_baseline(one, nocheck=1), 0,
+               ["gate skills_ratchet_bbj-programming_grammar ok"],
+               forbids=["gate skills_grammar_bbj-programming_SKILL.md_%d " % mark])
+    bad = two_skill_files()
+    bad["%s/bbj-programming/SKILL.md" % SKILLS_REL] = (
+        clean_skill_md("bbj-programming") + fence_text("", f + "bbj nocheck ()", "x", f))
+    bad_line = extract(lines_of(bad["%s/bbj-programming/SKILL.md" % SKILLS_REL]))[0]["line"]
+    child_case("nocheck_bad_reason_is_grammar", bad, fixture_baseline(one, nocheck=0), 0,
+               ["gate skills_grammar_bbj-programming_SKILL.md_%d skip pending (Phase 4)" % bad_line,
+                "gate skills_nocheck_count ok 0 bbj nocheck block(s) (baseline 0)"])
+    missing = fixture_baseline({})
+    del missing["nocheck"]
+    child_case("baseline_missing_nocheck", two_skill_files(), missing, 1,
+               ["gate skills_baseline FAIL", "gate skills_nocheck_count FAIL no valid baseline"])
+
+
 # ---------------------------------------------------------------------------------------------
 # main
 # ---------------------------------------------------------------------------------------------
@@ -1035,6 +1232,8 @@ def main():
             selftest_grammar()
             selftest_ratchet()
             selftest_report()
+            selftest_structure()
+            selftest_nocheck()
     except Exception as e:
         print("gate skills_internal FAIL %s: %s" % (type(e).__name__, safe(e)))
         return 1
