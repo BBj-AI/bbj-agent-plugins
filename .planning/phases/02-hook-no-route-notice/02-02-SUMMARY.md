@@ -150,7 +150,15 @@ Task 1 RED: `notice_d02_reason`, `notice_d02_not_no_bbjcpl`, `notice_d02_second_
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Post-plan fix (user decision, between waves 2 and 3)
+
+**1. [Rule 1 - Bug] The once-per-session test-and-set was not atomic on uutils `mkdir`**
+- **Found during:** this plan (flaky `notice_concurrent_once`, deferred item D-1); fixed after the plan, by the user's decision "mkdir + noclobber claim".
+- **Issue:** `mkdir` here is uutils coreutils 0.8.0, which lets several parallel calls on one path exit 0 (8 of 100 rounds with 8 parallel calls), so two concurrent no-route calls could both notify.
+- **Fix:** the marker stays the directory `bbj-check-noroute-<key>` (D-16/D-17 rules unchanged); the winner is an exclusive create of `<marker>/claim` by the shell itself (`( set -C; : > "$_m/claim" )`, O_CREAT|O_EXCL, no new tool). Claim made = notify (with "not repeated"); claim exists as a regular file = silent; any other claim failure, a symlink or file at the marker name, or a missing or unwritable state dir = notify without "not repeated". A symlink at `claim` is never followed or taken for "told"; a successful create that is not a regular file of ours (bash follows a link to /dev/null) is re-checked and treated as no claim. An exit-2 call still never takes the slot. Header comment updated with the reason.
+- **Tests:** `notice_concurrent_once` now runs 20 rounds of 8 parallel hooks and requires exactly one notice per round; new gates `notice_claim_present_silent`, `notice_marker_without_claim`, `notice_claim_symlink_squat`; `notice_header_marker_rules` wants `mkdir`, `O_EXCL`, `uutils`, `claim`. Mutations: the hook with the claim step removed (mkdir only) failed the concurrency gate in 9 of 10 runs (about 3 of 20 rounds per run) and also `notice_marker_without_claim` and `notice_claim_symlink_squat`; the claim written with `>` without `set -C` failed `notice_claim_present_silent`, `notice_claim_symlink_squat`, `notice_concurrent_once` and the second-call-silent gates.
+- **Files modified:** `plugins/bbj/scripts/bbj-check.sh`, `tests/test_noroute_notice.sh`, `tests/test_tier2_fake.sh` (comment).
+- **Commits:** `ee1c92e` (test), `38dfd83` (fix).
 
 Notes that are not deviations:
 
@@ -160,7 +168,8 @@ Notes that are not deviations:
 
 ## Issues Encountered
 
-- **Pre-existing flaky gate, not fixed (see `deferred-items.md`, D-1):** `notice_concurrent_once` (plan 02-01) fails in about 15 to 20 percent of runs on this machine, also on the tree before this plan (7 failures in 40 runs). Cause measured: `mkdir` is uutils coreutils 0.8.0, which lets several of six parallel `mkdir` calls on the same path exit 0; GNU `mkdir` showed no double winner in 200 rounds. Full-suite runs of this plan: `ok=522 fail=0 skip=2` twice and one run with exactly this one gate failing (`ok=521 fail=1`). The plan's last verification ("`sh tests/run.sh` ends with fail=0") therefore passes on a rerun but not on every run here. A decision on the marker primitive is needed (plan 02-01 chose plain `mkdir`); it is outside this plan's files.
+- **Resolved after the plan (see the post-plan fix under Deviations and `deferred-items.md`, D-1):** the flaky gate described next is fixed by the claim file.
+- **Pre-existing flaky gate (was D-1):** `notice_concurrent_once` (plan 02-01) fails in about 15 to 20 percent of runs on this machine, also on the tree before this plan (7 failures in 40 runs). Cause measured: `mkdir` is uutils coreutils 0.8.0, which lets several of six parallel `mkdir` calls on the same path exit 0; GNU `mkdir` showed no double winner in 200 rounds. Full-suite runs of this plan: `ok=522 fail=0 skip=2` twice and one run with exactly this one gate failing (`ok=521 fail=1`). The plan's last verification ("`sh tests/run.sh` ends with fail=0") therefore passes on a rerun but not on every run here. A decision on the marker primitive is needed (plan 02-01 chose plain `mkdir`); it is outside this plan's files.
 
 ## Known Stubs
 

@@ -106,7 +106,6 @@ None yet.
 - [Phase 4]: Needs phase research: claim ledger, RUNTIME-claim policy (rewrite to compile-time observable or drop), primer cross-check; no `!ERROR=26` entry found in BASIS docs
 - [Phase 5]: Needs phase research: DWC DOM/CSS claims with no doc source; owner reproduction on a named DWC/BBj build is a human step
 - [Phase 6]: Tag form `0.2.0`; Codex upgrade traps (`--force`, `/hooks` re-approval) must reach CHANGELOG and installer output
-- Phase 2 D-1: notice_concurrent_once is flaky where mkdir is uutils coreutils 0.8.0 (non-atomic under concurrency); see .planning/phases/02-hook-no-route-notice/deferred-items.md
 
 ## Deferred Items
 
