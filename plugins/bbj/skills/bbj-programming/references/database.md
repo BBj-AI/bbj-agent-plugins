@@ -53,8 +53,11 @@ https://documentation.basis.cloud/BASISHelp/WebHelp/commands/sqlfetch_function.h
 https://documentation.basis.cloud/BASISHelp/WebHelp/commands/sqltmpl_function.htm,
 https://documentation.basis.cloud/BASISHelp/WebHelp/commands/sqlclose_verb.htm
 
-The URL, the table `t` and the column `col` in the block are placeholders; replace them with your own. The How-To
-sample passes the user and password as `SQLOPEN(chan, MODE="USER=youruser,PWD=yourpwd") url$`.
+The URL, the table `t` and the column `col` in the block are placeholders; replace them with your own. For a JDBC
+URL the How-To sample passes the credentials as `SQLOPEN(chan, MODE="USER=youruser,PWD=yourpwd") url$`; the
+SQLOPEN page documents the MODE options `UID=string` and `PWD=string` for a data source and shows
+`mode="UID=me,PWD=you"`. The pages give no rule for choosing between `USER=` and `UID=`; follow the page that
+matches your kind of data source.
 
 ```bbj
 chan = sqlunt
