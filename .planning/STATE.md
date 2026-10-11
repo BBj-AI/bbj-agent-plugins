@@ -2,18 +2,18 @@
 gsd_state_version: "1.0"
 milestone: v0.2.0
 current_phase: 04
-current_phase_name: bbj-programming-makeover
+current_phase_name: bbj-programming makeover
 status: executing
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-10-11T11:23:27.102Z"
+stopped_at: Completed 04-07-PLAN.md
+last_updated: "2026-10-11T11:34:23.864Z"
 last_activity: 2026-10-11
-last_activity_desc: Phase 4 execution started
-state_head: 3541d0162a2c4f9416aff4d54439504f546ddec6
+last_activity_desc: Phase 04 execution started
+state_head: 02ba8a85c6a8b29c326ef0c7280970a4bd5b220e
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -23,14 +23,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-10)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 4 — bbj-programming makeover
+**Current focus:** Phase 04 — bbj-programming makeover
 
 ## Current Position
 
-Phase: 04 (bbj-programming-makeover) — READY TO EXECUTE
-Plan: 6 of 6
+Phase: 04 (bbj-programming makeover) — EXECUTING
+Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-10-11 — Phase 4 execution started
+Last activity: 2026-10-11 — Phase 04 execution started
 
 Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4 plans)
 
@@ -79,6 +79,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 04 P04 | 9 min | 2 tasks | 1 files |
 | Phase 4 P05 | 25 min | 3 tasks | 6 files |
 | Phase 04 P06 | 10 min | 2 tasks | 5 files |
+| Phase 04 P07 | 9 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,7 @@ Recent decisions affecting current work:
 - [Phase 4]: 04-05: ledger count C=3 selects the D-14 default branch; callback-performance.md keeps its name and the web skill link is untouched
 - [Phase 4]: 04-05: running.md states the OWNER-confirmed bbj -tIO stdout fact plainly; the PRO/5 IO page is a supporting citation only
 - [Phase 04]: 04-06: database.md states LIMIT (first, count) only as SQL_LIMIT.htm does and leaves clause position to the SQL Grammar page
+- [Phase 04]: 04-07: section-2 heading of SKILL.md renamed to 'Rules for writing BBj'; L117 reclassified RUNTIME (rewrite); no OWNER granted; setModal stated by route, not as absent
 
 ### Pending Todos
 
@@ -135,6 +137,7 @@ None yet.
 - [Phase 4]: Needs phase research: claim ledger, RUNTIME-claim policy (rewrite to compile-time observable or drop), primer cross-check; no `!ERROR=26` entry found in BASIS docs
 - [Phase 5]: Needs phase research: DWC DOM/CSS claims with no doc source; owner reproduction on a named DWC/BBj build is a human step
 - [Phase 6]: Tag form `0.2.0`; Codex upgrade traps (`--force`, `/hooks` re-approval) must reach CHANGELOG and installer output
+- 04-07 open deviation: live tests/run.sh view failed real_home_untouched on first run (local Codex daemon writes under ~/.codex); rerun passed; see 04-07-SUMMARY.md
 
 ## Deferred Items
 
@@ -146,6 +149,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T09:17:59.178Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-10-11T11:34:23.742Z
+Stopped at: Completed 04-07-PLAN.md
 Resume file: None
