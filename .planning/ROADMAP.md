@@ -158,7 +158,7 @@ Plans:
   4. Known wrong claims are corrected (`LIMIT` is documented, the `str()` mask example, "parse stdout" of `bbjcpl`, `HashMap`/`ArrayList` need `USE`); all taste (`PRECISION 16`, `Utils` class, `q`/`k`/`wi` naming, size-guard rule) and project leftovers are gone; launcher facts remain only where verified and framed as applying when the user asks to run a program
   5. Every `bbj` block in the skill and its references passes the live gate on both routes, the structure lints pass, and the skill is still invoked as `/bbj:bbj-programming`
 
-**Plans**: 6/6 plans executed
+**Plans**: 6/7 plans executed
 
 Plans:
 **Wave 1**
@@ -181,6 +181,10 @@ Plans:
 **Wave 5** *(blocked on Wave 4 completion)*
 
 - [x] 04-06-PLAN.md — database.md (LIMIT documented), java-interop.md and reserved-words.md deleted, bbj-programming off the pending list via --report in the same commit, full suite green (wave 5, after 04-05)
+
+**Wave 6** *(gap closure, blocked on Wave 5 completion)*
+
+- [ ] 04-07-PLAN.md — Gap closure from 04-VERIFICATION.md: SKILL.md provenance intro and two lines, sysgui.md Dialog flag as documented and the clickable-image rule, database.md getJDBCConnection(url) and scoped SQL functions, running.md END/STOP condition and honest footer; ledger rows L117 and L089 (plus L076, L088, L093, L138) aligned (wave 6, gap_closure)
 
 **Cross-cutting constraints:**
 
@@ -226,6 +230,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
-| 4. bbj-programming makeover | 6/6 | In Progress | - |
+| 4. bbj-programming makeover | 6/7 | In Progress | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |
