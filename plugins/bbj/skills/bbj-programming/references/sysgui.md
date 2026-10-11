@@ -21,6 +21,8 @@ win! = sysGui!.addWindow(10, 10, 300, 200, "Demo")
 win!.setModal(1)
 ```
 
+The Dialog and Invisible flags together (this example makes no claim about modality):
+
 ```bbj
 declare auto BBjSysGui sysGui!
 declare auto BBjTopLevelWindow win!
