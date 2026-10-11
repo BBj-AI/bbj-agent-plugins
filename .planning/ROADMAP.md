@@ -208,7 +208,7 @@ Plans:
   3. The `injectStyle` `top` claim states the documented meaning (the top-level window)
   4. Every `bbj` block in the skill and its references passes the live gate, the structure lints pass, and the skill is still invoked as `/bbj:bbj-web-programming`
 
-**Plans**: 3/10 plans executed
+**Plans**: 4/10 plans executed
 
 Plans:
 **Wave 1**
@@ -225,7 +225,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 05-04-PLAN.md — 05-OWNER-CHECKLIST.md, owner-repros/*.bbj compiled on both routes (never run by Claude), checklist_check.py (wave 4, after 05-03)
+- [x] 05-04-PLAN.md — 05-OWNER-CHECKLIST.md, owner-repros/*.bbj compiled on both routes (never run by Claude), checklist_check.py (wave 4, after 05-03)
 
 **Wave 5** *(blocked on Wave 4 completion; not autonomous)*
 
@@ -277,5 +277,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
-| 5. bbj-web-programming makeover | 3/10 | In Progress | - |
+| 5. bbj-web-programming makeover | 4/10 | In Progress | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |

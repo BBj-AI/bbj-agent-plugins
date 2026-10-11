@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 5
 current_phase_name: bbj-web-programming makeover
 status: executing
-stopped_at: Completed 05-03-PLAN.md
-last_updated: "2026-10-11T20:43:45.489Z"
+stopped_at: Completed 05-04-PLAN.md
+last_updated: "2026-10-11T20:50:15.073Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 5 execution started
-state_head: 9fc64eb3d20b373b43de7670a062bf0392f5bece
+state_head: e3ba740a6e0c96b7261fe8879800382cac62a006
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 35
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 5 (bbj-web-programming makeover) — EXECUTING
-Plan: 4 of 10
+Plan: 5 of 10
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 5 execution started
 
@@ -85,6 +85,7 @@ Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phas
 | Phase 5 P01 | 6 min | 2 tasks | 24 files |
 | Phase 5 P02 | 20 min | 3 tasks | 2 files |
 | Phase 5 P03 | 45 min | 3 tasks | 1 files |
+| Phase 5 P04 | 40 min | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -139,6 +140,8 @@ Recent decisions affecting current work:
 - [Phase 5]: 05-02: focus-ring outline mechanism dropped (docs say gap-ring shadow); padding rule rewritten in the docs' words into references/styling.md
 - [Phase 5]: 05-03: ledger covers all eight skill files in 242 rows; Destinations SKILL.md, references/styling.md, form-validation.md, running-dwc-apps.md, shoelace.md; Deleted in plan 05-10: color-chooser.md, responsive-layout.md, shadow-dom-styling.md, themes.md
 - [Phase 5]: 05-03: ThinClient sentence dropped (the Thin Client command-line page does not state it); client-validation 'DWC only' dropped (GUI client documented); owner checklist O1-O11 triaged, no OWNER row
+- [Phase 5]: 05-04: O6 owner item asks both the overflow clipping and the documented padding, in the docs' term focus ring (no outline or box-shadow); ledger O6 line aligned
+- [Phase 5]: 05-04: owner repros are compiled only (run.py covers ../owner-repros); o08 uses err= branches because try/catch does not compile in main code
 
 ### Pending Todos
 
@@ -161,6 +164,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T20:43:45.359Z
-Stopped at: Completed 05-03-PLAN.md
+Last session: 2026-10-11T20:50:14.945Z
+Stopped at: Completed 05-04-PLAN.md
 Resume file: None
