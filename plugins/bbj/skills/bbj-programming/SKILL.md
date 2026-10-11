@@ -150,3 +150,4 @@ print shown$
 - `references/sysgui.md`: window flags and the Dialog flag, insertItems, clickable images, MSGBOX pointers.
 - `references/database.md`: JDBC, SQL verbs, LIMIT (first, count).
 - `references/callback-performance.md`: form validation. accept unlocks the window, accept(1) fires the button push, there is no reject method.
+- `references/running.md`: command-line options and RELEASE versus END. Read it only when the user asks to run a program.
