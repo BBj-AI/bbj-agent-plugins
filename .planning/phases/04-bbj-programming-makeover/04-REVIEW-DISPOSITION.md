@@ -5,23 +5,23 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Clickable-image example dereferences `getOriginalControl()` without a guard, and the cited pages do not say what it returns for a click on the window itself"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "SKILL.md states \"there is no reject method\" flatly, on the evidence the plan rejected for `setModal`"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`-P<dir1:dir2>` is given with a colon separator only; the bbjcpl page says semicolons on Windows"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The SQL-verb credential form `MODE=\"USER=...\"` contradicts the SQLOPEN page the same section cites"
   - id: WR-05
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Both JDBC examples pair `select 1` with `getString(\"COL\")` and never close the connection"
   - id: WR-06
     severity: warning
@@ -41,7 +41,7 @@ findings:
     title: "The Dialog-flag block follows the `setModal` should-fail block with no lead-in"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Remote-database use of `getJDBCConnection(url)` is advertised, but the user/password/mode overloads are not mentioned"
   - id: IN-04
     severity: info
@@ -49,7 +49,7 @@ findings:
     title: "The REM page cited for the semicolon rule does not state it"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "\"The project owner\" is a planning term inside text shipped to end users"
   - id: IN-06
     severity: info
@@ -57,35 +57,35 @@ findings:
     title: "The sign-character list cites the PRO/5 numeric output page"
   - id: IN-07
     severity: info
-    disposition: open
+    disposition: fixed
     title: "\"A program that is run from a shell for the user ends with `RELEASE`\" is an instruction no cited page states"
   - id: WR-08
     severity: warning
     disposition: open
     title: "SQL-verb example uses unmarked placeholders that read as a working program"
-open: 9
+open: 1
 total: 15
-recorded: 2026-10-11T12:09:58.058Z
+recorded: 2026-10-11T12:10:11.503Z
 ---
 
 # Phase 04: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
-| WR-05 | warning | open | - |
+| WR-01 | warning | fixed | 04-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 04-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 04-REVIEW-FIX.md |
+| WR-04 | warning | fixed | 04-REVIEW-FIX.md |
+| WR-05 | warning | fixed | 04-REVIEW-FIX.md |
 | WR-06 | warning | fixed | 04-REVIEW-FIX.md |
 | WR-07 | warning | fixed | 04-REVIEW-FIX.md |
 | IN-01 | info | fixed | 04-REVIEW-FIX.md |
 | IN-02 | info | fixed | 04-REVIEW-FIX.md |
-| IN-03 | info | open | - |
+| IN-03 | info | fixed | 04-REVIEW-FIX.md |
 | IN-04 | info | fixed | 04-REVIEW-FIX.md |
-| IN-05 | info | open | - |
+| IN-05 | info | fixed | 04-REVIEW-FIX.md |
 | IN-06 | info | fixed | 04-REVIEW-FIX.md |
-| IN-07 | info | open | - |
+| IN-07 | info | fixed | 04-REVIEW-FIX.md |
 | WR-08 | warning | open | - (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
