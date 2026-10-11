@@ -1,0 +1,12 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+win!.addButton("Browse")
+win!.addEditBox("")
+win!.addStaticText("x")
+win!.addTree()
+win!.addGrid()
+win!.addListButton("")
+win!.addCEdit("", $0102$)
+win!.addToolButton("x")

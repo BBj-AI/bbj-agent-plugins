@@ -1,0 +1,7 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+declare auto BBjChildWindow panel!
+panel! = win!.addChildWindow("", $00108800$, sysgui!.getAvailableContext())
+panel!.addOuterStyle("frame")

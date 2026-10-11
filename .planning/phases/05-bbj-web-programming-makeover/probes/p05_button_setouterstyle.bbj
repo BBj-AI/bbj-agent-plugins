@@ -1,0 +1,7 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+declare auto BBjButton b!
+b! = win!.addButton("Save")
+b!.setOuterStyle("opacity", "0")

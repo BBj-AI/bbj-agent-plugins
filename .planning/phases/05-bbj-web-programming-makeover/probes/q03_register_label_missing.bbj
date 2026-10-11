@@ -1,0 +1,5 @@
+use com.basis.api.admin.BBjAdminFactory
+
+username$ = "user"
+password$ = "password"
+admin! = BBjAdminFactory.getBBjAdmin(username$, password$, err=login_failed)

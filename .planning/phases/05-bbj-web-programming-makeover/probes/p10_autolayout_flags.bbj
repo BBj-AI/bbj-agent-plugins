@@ -1,0 +1,11 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+declare auto BBjChildWindow panel!
+declare auto BBjChildWindow group!
+declare auto BBjEditBox name!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow(sysgui!.getAvailableContext(), "My App", $00101093$)
+panel! = win!.addChildWindow("", $00108800$, sysgui!.getAvailableContext())
+group! = win!.addChildWindow("Address", $00109000$, sysgui!.getAvailableContext())
+name! = panel!.addEditBox("")
+name!.setAttribute("label", "First Name")

@@ -9,3 +9,79 @@ bbj-ls: clean
 == p02_slot_order_reversed.bbj
 bbjcpl: p02_slot_order_reversed.bbj: type check error [No match for method com.basis.bbj.proxies.sysgui.BBjWebComponent.setSlot(com.basis.bbj.proxies.sysgui.BBjWebComponent, BBjString)] at line 90 (9): card!.setSlot(badge!, "footer")
 bbj-ls: clean
+
+== p03_childwin_setouterstyle.bbj
+bbjcpl: p03_childwin_setouterstyle.bbj: type check error [No match for method com.basis.bbj.proxies.sysgui.BBjChildWindow.setOuterStyle(BBjString, BBjString)] at line 70 (7): panel!.setOuterStyle("opacity", "0")
+bbj-ls: clean
+
+== p04_childwin_addouterstyle.bbj
+bbjcpl: p04_childwin_addouterstyle.bbj: type check error [No match for method com.basis.bbj.proxies.sysgui.BBjChildWindow.addOuterStyle(BBjString)] at line 70 (7): panel!.addOuterStyle("frame")
+bbj-ls: clean
+
+== p05_button_setouterstyle.bbj
+bbjcpl: p05_button_setouterstyle.bbj: type check error [No match for method com.basis.bbj.proxies.sysgui.BBjButton.setOuterStyle(BBjString, BBjString)] at line 70 (7): b!.setOuterStyle("opacity", "0")
+bbj-ls: clean
+
+== p06_toplevel_outer.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p07_getattribute_undeclared.bbj
+bbjcpl: p07_getattribute_undeclared.bbj: type check error [Cannot assign <undeclared> to BBjString] at line 10 (1): themeName$ = button!.getAttribute("theme")
+bbj-ls: clean
+
+== p08_attributes_declared.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p09_injectstyle_int_top.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p10_autolayout_flags.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p11_themes.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p12_client_validation.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p13_inject_module_url.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p14_colorchooser.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p15_noncoord_overloads.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p16_webcomp_basics.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p17_getproperty_to_string.bbj
+bbjcpl: p17_getproperty_to_string.bbj: type check error [Cannot assign java.lang.Object to BBjString] at line 70 (7): themeName$ = button!.getProperty("theme")
+bbj-ls: clean
+
+== q01_webcomp_callback.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== q02_panel_style.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== q03_register_label_missing.bbj
+bbjcpl: q03_register_label_missing.bbj: error: label LOGIN_FAILED used but not defined at line 50 (5): admin! = BBjAdminFactory.getBBjAdmin(username$, password$, err=login_failed)
+bbj-ls: line 5, column 1: [UndefinedLabelError] label LOGIN_FAILED used but not defined
+
+== q04_register_dwc.bbj
+bbjcpl: clean
+bbj-ls: clean

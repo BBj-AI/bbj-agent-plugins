@@ -1,0 +1,8 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+win!.addClass("login")
+win!.addOuterStyle("login-frame")
+win!.setOuterStyle("opacity", "0")
+win!.setPanelStyle("display", "grid")

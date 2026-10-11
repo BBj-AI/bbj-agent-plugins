@@ -1,0 +1,7 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+declare auto BBjButton button!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+button! = win!.addButton("Save")
+themeName$ = button!.getProperty("theme")

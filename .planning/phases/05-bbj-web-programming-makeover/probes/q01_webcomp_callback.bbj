@@ -1,0 +1,15 @@
+class public Demo
+    field private BBjWebComponent el!
+
+    method public Demo(BBjTopLevelWindow win!)
+        #el! = win!.addWebComponent("sl-rating")
+        declare auto BBjWebEventOptions options!
+        options! = #el!.newEventOptions()
+        options!.addItem("value", "event.target.value")
+        #el!.setCallback("sl-change", #this!, "onChange", options!)
+    methodend
+
+    method public void onChange(BBjWebEvent event!)
+        val! = str(event!.getEventMap().get("value"))
+    methodend
+classend

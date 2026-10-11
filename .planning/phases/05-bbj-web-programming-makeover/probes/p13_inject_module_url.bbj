@@ -1,0 +1,4 @@
+declare auto BBjWebManager web!
+web! = BBjAPI().getWebManager()
+web!.injectScriptUrl("/files/lib/shoelace/shoelace.js", 1, "type=module")
+web!.injectLinkUrl("/files/app.css", 1, "rel=stylesheet")

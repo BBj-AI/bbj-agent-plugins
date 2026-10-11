@@ -1,0 +1,14 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+declare auto BBjWebComponent card!
+declare auto BBjWebComponent icon!
+declare auto BBjButton copy!
+card! = win!.addWebComponent("sl-card")
+icon! = win!.addWebComponent("sl-icon")
+icon!.setAttribute("name", "copy")
+card!.setSlot(icon!)
+copy! = win!.addButton("Copy")
+copy!.setSlot("prefix", icon!)
+card!.setHtml("Automatic")

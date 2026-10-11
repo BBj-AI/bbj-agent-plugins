@@ -1,0 +1,18 @@
+use com.basis.api.admin.BBjAdminFactory
+use com.basis.api.admin.BBjAdminBase
+use com.basis.api.admin.BBjAdminAppDeploymentConfiguration
+use com.basis.api.admin.BBjAdminAppDeploymentApplication
+
+declare auto BBjAdminBase admin!
+declare auto BBjAdminAppDeploymentConfiguration config!
+declare auto BBjAdminAppDeploymentApplication app!
+
+admin! = BBjAdminFactory.getBBjAdmin("user", "password")
+config! = admin!.getRemoteConfiguration()
+app! = config!.createApplication()
+app!.setString(app!.NAME, "MyApp")
+app!.setString(app!.PROGRAM, "/abs/path/MyApp.bbj")
+app!.setBoolean(app!.DWC_ENABLED, 1)
+app!.commit()
+url$ = app!.getDwcUrl(0)
+release

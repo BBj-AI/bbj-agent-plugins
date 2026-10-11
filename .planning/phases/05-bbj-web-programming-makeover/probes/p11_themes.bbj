@@ -1,0 +1,5 @@
+declare auto BBjWebManager web!
+web! = BBjAPI().getWebManager()
+web!.setDarkTheme("dark")
+web!.setLightTheme("light")
+web!.setTheme("system")
