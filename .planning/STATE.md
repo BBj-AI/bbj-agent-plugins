@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 4
 current_phase_name: bbj-programming makeover
 status: executing
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-10-11T08:52:54.942Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-10-11T09:00:10.878Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 4 execution started
-state_head: c9266039b679acdf1bc79f0c33c5b05692cedf03
+state_head: dbeed656d56de6602ec9c1b005cae5b7115da7fa
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 23
-  completed_plans: 20
+  completed_plans: 21
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 4 (bbj-programming makeover) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 4 execution started
 
@@ -76,6 +76,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 04 P01 | 8 min | 2 tasks | 77 files |
 | Phase 04 P02 | 16 min | 3 tasks | 4 files |
 | Phase 4 P03 | 30 min | 3 tasks | 4 files |
+| Phase 04 P04 | 9 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -117,6 +118,8 @@ Recent decisions affecting current work:
 - [Phase 4]: 04-03: Built in line keeps the pinned prefix and appends the scope; one line identical in SKILL.md and codex/AGENTS-snippet.md
 - [Phase 4]: 04-03: str() sign trap ships unhedged as OWNER row L031 with one passing block and no should-fail block
 - [Phase 4]: 04-03: SKILL.md body stops at 148 lines so the 04-05 running.md pointer fits within 150
+- [Phase 04]: 04-04: sign-trap printed output left for the docs owners to fill from a real run; the proposal states only the owner-confirmed fact (L031)
+- [Phase 04]: 04-04: proposal quotes checked against the raw page files fetched 2026-10-11; the docs-server 'RETURN TYPE: String' line is reported as server rendering, not page text
 
 ### Pending Todos
 
@@ -138,6 +141,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T08:52:54.836Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-10-11T09:00:10.768Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None

@@ -39,7 +39,7 @@
 
 ### bbj-programming makeover
 
-- [ ] **PROG-01**: A claim ledger classifies every claim in the skill and its references as DOC (URL, with a quoted sentence where the page is not explicit), COMPILE (`bbjcpl`/`bbj-ls` output with BBj version) or RUNTIME; RUNTIME claims are rewritten to their compile-time observable or dropped
+- [x] **PROG-01**: A claim ledger classifies every claim in the skill and its references as DOC (URL, with a quoted sentence where the page is not explicit), COMPILE (`bbjcpl`/`bbj-ls` output with BBj version) or RUNTIME; RUNTIME claims are rewritten to their compile-time observable or dropped
 - [x] **PROG-02**: SKILL.md puts the check workflow first, has a body of about 150 lines or fewer, and points to the docs tools and `bbj://primer` instead of copying reference tables
 - [x] **PROG-03**: The skill keeps only rules the primer lacks (plus the REM/`;` rule the hook enforces), including: bare method calls (`v!.get(0)`, `#foo()`) are valid statements but a bare function-style call `name(args)` is not; "Built in: no USE needed" scoped to BBj classes and `java.lang`; the `bbjcpl -t -N -X` output quirks on 26.03
 - [ ] **PROG-04**: Known wrong claims are corrected (`LIMIT` is documented, `str()` mask example, "parse stdout" of `bbjcpl`, `HashMap`/`ArrayList` without `USE`); all taste (`PRECISION 16`, `Utils` class, `q`/`k`/`wi` naming, size-guard rule, etc.) and project leftovers are cut
@@ -105,7 +105,7 @@
 | GATE-04 | Phase 3 | Complete |
 | GATE-05 | Phase 3 | Complete |
 | GATE-06 | Phase 3 | Complete |
-| PROG-01 | Phase 4 | Pending |
+| PROG-01 | Phase 4 | Complete |
 | PROG-02 | Phase 4 | Complete |
 | PROG-03 | Phase 4 | Complete |
 | PROG-04 | Phase 4 | Pending |
