@@ -24,10 +24,11 @@ bbj -q -WD<working directory> -t<terminal alias> -c<configuration file> <program
   system" (https://documentation.basis.cloud/BASISHelp/WebHelp/commands/release_verb.htm).
   In BBj it also rolls back all uncommitted transactions
   (https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/release_verb_bbj.htm).
-- `END` and `STOP` place the interpreter in "console mode", so it stays open
+- When not in a public program, `END` and `STOP` place PRO/5 in "console mode"
   (https://documentation.basis.cloud/BASISHelp/WebHelp/commands/end_verb.htm).
 
-A program that is run from a shell for the user ends with `RELEASE`.
+A program that is run from a shell for the user ends with `RELEASE`. `RELEASE` rolls back uncommitted transactions,
+so commit first.
 
 ## Output into a shell
 
@@ -42,4 +43,6 @@ PRO/5 page https://documentation.basis.cloud/BASISHelp/WebHelp/sysadmin/config/u
 - https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/release_verb_bbj.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/commands/end_verb.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/sysadmin/config/unix/terminals_under_unix.htm
-- Verified on BBj 26.03 against the documentation pages listed; nothing was run
+- Checked against the documentation pages listed: the command-line options, `RELEASE`, `END` and `STOP`, and the IO
+  device; nothing was run.
+- Verified on BBj 26.03 by the project owner: `bbj -tIO` sends `print` output to stdout.

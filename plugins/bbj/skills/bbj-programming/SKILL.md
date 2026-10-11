@@ -15,15 +15,15 @@ A hook checks the BBj files you write or edit. This order is for code you hand b
 
 # BBj programming
 
-This skill holds only the rules that `bbj://primer` and the documentation do not state. Read the
-primer before you write BBj; this file adds what it lacks, each rule checked with `bbjcpl` and `bbj-ls`
-on BBj 26.03.
+Read `bbj://primer` before you write BBj; this file adds to it. Most rules here were reproduced with
+`bbjcpl` and `bbj-ls` on BBj 26.03. The others cite the documentation page that states them, except the
+`str()` sign rule, which the project owner confirmed on BBj 26.03.
 
 ## Reading bbjcpl output (BBj 26.03)
 
 Page: https://documentation.basis.cloud/BASISHelp/WebHelp/util/bbjcpl_bbj_compiler.htm
 
-- Every message goes to stderr and stdout stays empty. A clean file prints nothing, so any stderr line is a finding.
+- Every message goes to stderr and stdout stays empty. A clean file prints nothing; with `-t -N -X` and no `-W`, any stderr line is a finding.
 - The exit status is 0 with or without errors. Never branch on it.
 - A syntax error is `<file>: error at line N (M): <line>`; a type error is `<file>: type check error [<message>] at line N (M): <line>`. N is the BBj line number (an unnumbered file is numbered by 10); the number in parentheses is the line in the file, so go to M.
 - `-W` adds `type check warning [Undeclared variable: ...]` lines. They are information, not failures.
@@ -31,7 +31,7 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/util/bbjcpl_bbj_compil
 - An unresolved `USE ::file.bbj::Class` is `Cannot find program file.bbj for type: Class`; pass `-P<dir1:dir2>` or `-c<config.bbx>` (not both) so the file is found.
 - Neither `bbjcpl` nor `bbj-ls` validates an event constant: `BBjListBox.ON_LIST_SELECT` passes both. Read the control's Events table in the documentation.
 
-## Rules the primer does not state
+## Rules for writing BBj
 
 A comment on the same line as a statement is its own `rem` statement and needs a `;` before it
 (https://documentation.basis.cloud/BASISHelp/WebHelp/commands/rem_verb.htm). The hook rejects the other form.
@@ -140,7 +140,7 @@ print shown$
 
 ## Look it up instead
 
-- Read `bbj://primer` before writing BBj. It covers the ternary and IFF, a FOR loop running once, NUM versus INT, DECLARE AUTO with classes only, reserved words, the default precision and the verbs that reset it, and STR() returning a plain string.
+- Read `bbj://primer` before writing BBj. It covers the ternary and IFF, a FOR loop running once, NUM versus INT, DECLARE AUTO with classes only, reserved words, and the default precision and the verbs that reset it.
 - `bbj_lookup` for exact syntax: STR() mask characters, MSGBOX constants, bbjcpl options.
 - `bbj_reserved_word` before you name a variable; `bbj_examples` for verified code (collections, JDBC, SysGui).
 - `bbj_search` for everything else, `bbj_fetch_page` for a whole page. Cite the URL of every page you rely on.
