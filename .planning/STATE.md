@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 04
 current_phase_name: bbj-programming makeover
 status: executing
-stopped_at: Completed 04-07-PLAN.md
-last_updated: "2026-10-11T11:34:23.864Z"
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-10-11T15:29:42.963Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 04 execution started
-state_head: 02ba8a85c6a8b29c326ef0c7280970a4bd5b220e
+state_head: 9f8170588316c6ed5c9efe643c4f9b11969b967c
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 24
-  completed_plans: 24
+  total_plans: 25
+  completed_plans: 25
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 04 (bbj-programming makeover) — EXECUTING
-Plan: 2 of 7
+Plan: 2 of 8
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 04 execution started
 
@@ -80,6 +80,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 4 P05 | 25 min | 3 tasks | 6 files |
 | Phase 04 P06 | 10 min | 2 tasks | 5 files |
 | Phase 04 P07 | 9 min | 3 tasks | 6 files |
+| Phase 04 P08 | 5 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -127,6 +128,8 @@ Recent decisions affecting current work:
 - [Phase 4]: 04-05: running.md states the OWNER-confirmed bbj -tIO stdout fact plainly; the PRO/5 IO page is a supporting citation only
 - [Phase 04]: 04-06: database.md states LIMIT (first, count) only as SQL_LIMIT.htm does and leaves clause position to the SQL Grammar page
 - [Phase 04]: 04-07: section-2 heading of SKILL.md renamed to 'Rules for writing BBj'; L117 reclassified RUNTIME (rewrite); no OWNER granted; setModal stated by route, not as absent
+- [Phase 04]: Plan 04-08: D-24 shipped word for word (an existing window without the Dialog flag cannot be brought in front of an open Dialog-flag window), marked as skill-maintainer-confirmed; nothing about windows created later
+- [Phase 04]: Plan 04-08: L119 is DOC with verdict drop; both pages exist but the claim goes beyond the isModal return-value sentence
 
 ### Pending Todos
 
@@ -149,6 +152,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T11:34:23.742Z
-Stopped at: Completed 04-07-PLAN.md
+Last session: 2026-10-11T15:29:37.560Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None
