@@ -208,7 +208,46 @@ Plans:
   3. The `injectStyle` `top` claim states the documented meaning (the top-level window)
   4. Every `bbj` block in the skill and its references passes the live gate, the structure lints pass, and the skill is still invoked as `/bbj:bbj-web-programming`
 
-**Plans**: TBD
+**Plans**: 10 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 05-01-PLAN.md — Compile evidence: probes/run.py adapted from Phase 4 (no reserved-word tier), about 20 probes (setSlot order, outer styles on BBjChildWindow/BBjButton, attributes, inject top, Automatic Layout, themes, validation, web components, registration), OUTPUT.txt, README (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 05-02-PLAN.md — Ledger part 1: ledger_check.py (three DOC hosts D-16/D-16a, owner checklist marking, static-triage gate D-16b), 05-LEDGER.md header with the DWC pin, every rule of SKILL.md classified; injectStyle top row first (wave 2, after 05-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 05-03-PLAN.md — Ledger part 2: the seven references, New rules, owner checklist triage O1-O11 (D-06), Totals with Destinations and Deleted lines (D-09) (wave 3, after 05-02)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 05-04-PLAN.md — 05-OWNER-CHECKLIST.md, owner-repros/*.bbj compiled on both routes (never run by Claude), checklist_check.py (wave 4, after 05-03)
+
+**Wave 5** *(blocked on Wave 4 completion; not autonomous)*
+
+- [ ] 05-05-PLAN.md — Owner session: trace_check.py and a recording rehearsal, the blocking-human checkpoint (D-07), outcomes recorded as D-19+ OWNER-confirmed bullets, OWNER rows and recomputed destinations (wave 5, after 05-04)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 05-06-PLAN.md — SKILL.md rewrite: trigger-first description, check-order block, documented injectStyle top meaning, two should-fail traps, pointers, index (wave 6, after 05-05)
+- [ ] 05-07-PLAN.md — references/styling.md: themes, overrides, component attributes, shadow parts, focus ring in the docs' words (wave 6, after 05-05)
+- [ ] 05-08-PLAN.md — running-dwc-apps.md, form-validation.md, shoelace.md rewritten to their documented BBj facts (wave 6, after 05-05)
+- [ ] 05-09-PLAN.md — 05-DOCS-PROPOSAL.md for the BASIS docs owners: top wording, DOM structure, OWNER claims, conflicts, dropped candidates (wave 6, after 05-05)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 05-10-PLAN.md — Finish: delete the folded references and regenerate the baseline in one commit (skill leaves pending), phase-wide scans, full suite live and CI views (wave 7, after 05-06, 05-07, 05-08, 05-09)
+
+**Cross-cutting constraints:**
+
+- D-07 order: ledger (05-02, 05-03) then the blocking owner checkpoint (05-05, gate blocking-human) then the rewrite (05-06 to 05-08); no shipped file changes before 05-05 is recorded
+- Probes and owner repros are compile-only (bbjcpl -t -N -X, loopback bbj-ls); Claude never runs BBj; no skill code goes to the hosted check
+- tests/skills_baseline.json is written only by --report in 05-10, in the same commit as the reference deletions; earlier plans only lower counts (ratchet ok) and never bring them all to 0
+- The check-order block bytes in SKILL.md never change (tests/test_check_order.py); the Phase 4 skill is not edited
 
 ### Phase 6: Release 0.2.0
 
@@ -235,5 +274,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
-| 5. bbj-web-programming makeover | 0/TBD | Not started | - |
+| 5. bbj-web-programming makeover | 0/10 | Planned | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |
