@@ -28,7 +28,7 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/util/bbjcpl_bbj_compil
 - A syntax error is `<file>: error at line N (M): <line>`; a type error is `<file>: type check error [<message>] at line N (M): <line>`. N is the BBj line number (an unnumbered file is numbered by 10); the number in parentheses is the line in the file, so go to M.
 - `-W` adds `type check warning [Undeclared variable: ...]` lines. They are information, not failures.
 - Always pass `-N -X` when you only check: `-N` writes no output file, `-X` keeps the source extension. `-t -N -X` is the documented check-only combination.
-- An unresolved `USE ::file.bbj::Class` is `Cannot find program file.bbj for type: Class`; pass `-P<dir1:dir2>` or `-c<config.bbx>` (not both) so the file is found.
+- An unresolved `USE ::file.bbj::Class` is `Cannot find program file.bbj for type: Class`; pass `-P<dir1:dir2>` (directories separated by colons on UNIX-like systems, by semicolons on Windows) or `-c<config.bbx>` (not both) so the file is found.
 - Neither `bbjcpl` nor `bbj-ls` validates an event constant: `BBjListBox.ON_LIST_SELECT` passes both. Read the control's Events table in the documentation.
 
 ## Rules for writing BBj
