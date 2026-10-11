@@ -1,0 +1,3 @@
+declare BBjVector v!
+v! = BBjAPI().makeVector()
+doSomething(v!.get(0))

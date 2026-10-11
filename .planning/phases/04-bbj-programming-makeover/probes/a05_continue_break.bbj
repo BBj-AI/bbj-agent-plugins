@@ -1,0 +1,9 @@
+declare java.util.ArrayList list!
+declare java.util.Iterator it!
+list! = new java.util.ArrayList()
+it! = list!.iterator()
+while (it!.hasNext())
+    item! = it!.next()
+    if item! = null() then continue
+    break
+wend

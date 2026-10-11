@@ -1,0 +1,11 @@
+chan = sqlunt
+sqlopen(chan) "jdbc:basis:localhost?DATABASE=Demo"
+sqlprep(chan) "select * from t"
+sqlexec(chan)
+dim rec$:sqltmpl(chan)
+while 1
+    rec$ = sqlfetch(chan, err=finished)
+    print rec.col$
+wend
+finished:
+sqlclose(chan)

@@ -1,0 +1,2 @@
+declare auto BBjString x!
+BBjAPI().postCustomEvent("evt", x!)

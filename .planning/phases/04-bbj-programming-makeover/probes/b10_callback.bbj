@@ -1,0 +1,8 @@
+class public Demo
+    method public void onPush(BBjButtonPushEvent event!)
+    methodend
+
+    method public void wire(BBjButton btn!)
+        btn!.setCallback(BBjAPI.ON_BUTTON_PUSH, #this!, "onPush")
+    methodend
+classend

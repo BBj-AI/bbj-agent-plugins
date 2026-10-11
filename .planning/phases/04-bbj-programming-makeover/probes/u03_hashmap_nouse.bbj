@@ -1,0 +1,2 @@
+declare HashMap h!
+h! = new HashMap()

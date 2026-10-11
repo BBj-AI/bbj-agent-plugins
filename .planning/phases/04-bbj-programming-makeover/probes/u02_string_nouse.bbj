@@ -1,0 +1,5 @@
+declare String s!
+declare Integer i!
+s! = "a"
+x = Math.random()
+System.gc()

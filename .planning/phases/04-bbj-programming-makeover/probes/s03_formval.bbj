@@ -1,0 +1,5 @@
+class public Demo
+    method public void onValidate(BBjFormValidationEvent event!)
+        event!.accept(1)
+    methodend
+classend

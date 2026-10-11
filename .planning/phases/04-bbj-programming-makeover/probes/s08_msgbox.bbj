@@ -1,0 +1,3 @@
+flags = BBjSysGui.MSGBOX_BUTTONS_YES_NO + BBjSysGui.MSGBOX_ICON_QUESTION
+answer = msgbox("Delete this record?", flags, "Confirm")
+if answer = BBjSysGui.MSGBOX_RETURN_YES then print "yes"

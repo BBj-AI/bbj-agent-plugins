@@ -1,0 +1,3 @@
+n = 5
+s! = cast(BBjString, str(n:"-##0.00"))
+x! = s!.trim()

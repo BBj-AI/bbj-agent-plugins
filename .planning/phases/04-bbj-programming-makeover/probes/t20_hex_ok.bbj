@@ -1,0 +1,4 @@
+declare auto BBjSysGui sysGui!
+declare auto BBjTopLevelWindow win!
+sysGui! = BBjAPI().openSysGui("X0")
+win! = sysGui!.addWindow(10, 10, 300, 200, "Demo", $00108800$)

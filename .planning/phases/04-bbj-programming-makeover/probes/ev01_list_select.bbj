@@ -1,0 +1,15 @@
+class public Demo
+    field private BBjListBox lb!
+
+    method public Demo()
+        declare auto BBjSysGui sysGui!
+        declare auto BBjTopLevelWindow win!
+        sysGui! = BBjAPI().openSysGui("X0")
+        win! = sysGui!.addWindow(10, 10, 300, 200, "Demo")
+        #lb! = win!.addListBox(101, 10, 10, 100, 100, "")
+        #lb!.setCallback(BBjListBox.ON_LIST_SELECT, #this!, "onSelect")
+    methodend
+
+    method public void onSelect(BBjListSelectEvent event!)
+    methodend
+classend

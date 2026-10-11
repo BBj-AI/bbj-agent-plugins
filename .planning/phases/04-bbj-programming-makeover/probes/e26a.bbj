@@ -1,0 +1,7 @@
+class public Demo
+    field private BBjString theme!
+
+    method public void setup()
+        #theme! = dwcTheme!
+    methodend
+classend

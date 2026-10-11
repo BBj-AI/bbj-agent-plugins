@@ -1,0 +1,11 @@
+declare auto BBjSysGui sysGui!
+declare auto BBjTopLevelWindow win!
+sysGui! = BBjAPI().openSysGui("X0")
+win! = sysGui!.addWindow(10, 10, 300, 200, "Demo")
+declare auto BBjListButton lb!
+declare auto BBjVector items!
+lb! = win!.addListButton(101, 10, 10, 100, 20, "")
+items! = BBjAPI().makeVector()
+items!.addItem("a")
+lb!.insertItems(0, items!)
+lb!.insertItems(0, "x" + $0a$ + "y")

@@ -1,0 +1,8 @@
+class public Demo
+    method public void show(BBjString text!)
+    methodend
+
+    method public void run()
+        #show(x!)
+    methodend
+classend

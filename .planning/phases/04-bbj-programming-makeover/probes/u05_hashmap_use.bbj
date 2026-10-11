@@ -1,0 +1,4 @@
+use java.util.HashMap
+
+declare HashMap h!
+h! = new HashMap()

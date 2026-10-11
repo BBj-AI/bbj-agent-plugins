@@ -1,0 +1,4 @@
+use java.lang.String
+
+declare String s!
+s! = "a"

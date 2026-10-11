@@ -1,0 +1,2 @@
+declare java.util.HashMap h!
+h! = new java.util.HashMap()

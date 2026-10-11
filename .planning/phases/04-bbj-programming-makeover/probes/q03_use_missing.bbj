@@ -1,0 +1,3 @@
+use ::missing.bbj::Foo
+
+f! = new Foo()

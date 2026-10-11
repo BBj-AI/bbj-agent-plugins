@@ -1,0 +1,7 @@
+class public Demo
+    field private BBjListButton lb!
+
+    method public void build()
+        #lb! = fg!.addListButton(101, 10, 10, 100, 20, "")
+    methodend
+classend

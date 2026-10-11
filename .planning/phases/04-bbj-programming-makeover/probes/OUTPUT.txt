@@ -1,6 +1,182 @@
 # probes/OUTPUT.txt -- written by python3 -I probes/run.py (plan 04-01, D-03); compile only, nothing was run
 BBj version: 26.03 (bbj-ls structuredContent.bbjVersion)
 bbjcpl -t -N -X, one batched call: exit status 0, stdout 0 bytes
+bbjcpl -t -N -X -W, one batched call: exit status 0, stdout 0 bytes
+
+== a01_undecl_arg_user.bbj
+bbjcpl: a01_undecl_arg_user.bbj: type check error [No match for method ::a01_undecl_arg_user.bbj::Demo.show(<undeclared>)] at line 60 (6):         #show(x!)
+bbj-ls: clean
+
+== a02_undecl_arg_api.bbj
+bbjcpl: a02_undecl_arg_api.bbj: type check error [No match for method com.basis.bbj.proxies.BBjAPI.postCustomEvent(BBjString, <undeclared>)] at line 10 (1): BBjAPI().postCustomEvent("evt", x!)
+bbj-ls: clean
+
+== a03_declared_arg_api.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== a05_continue_break.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== b01_bare_str.bbj
+bbjcpl: b01_bare_str.bbj: error at line 20 (2): str(rate:"+##0.0#")
+bbj-ls: line 2, column 1: [SyntaxError] syntax error
+
+== b02_bare_cvs.bbj
+bbjcpl: b02_bare_cvs.bbj: error at line 20 (2): cvs(a$, 3)
+bbj-ls: line 2, column 1: [SyntaxError] syntax error
+
+== b04_bare_api_chain.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== b06_bare_static.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== b07_bare_user_fn.bbj
+bbjcpl: b07_bare_user_fn.bbj: error at line 20 (2): fnTwice(3)
+bbj-ls: line 2, column 1: [SyntaxError] syntax error
+
+== b08_class_bare_nohash.bbj
+bbjcpl: b08_class_bare_nohash.bbj: error at line 60 (6):         foo()
+bbj-ls: line 6, column 1: [SyntaxError] syntax error
+
+== b09_minimal_entry.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== b10_callback.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== b11_paths.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== b12_nullsafe.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== d01_jdbc.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== d02_sqlverbs.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== d03_jdbc_undecl.bbj
+bbjcpl: d03_jdbc_undecl.bbj: type check error [Cannot assign <undeclared> to BBjNumber; Cannot assign <undeclared> to BBjNumber] at line 60 (6): while (rs!.next())
+bbj-ls: clean
+
+== e26a.bbj
+bbjcpl: e26a.bbj: type check error [Incompatible assignment from <undeclared> to BBjString] at line 50 (5):         #theme! = dwcTheme!
+bbj-ls: clean
+
+== e26b.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== e26c.bbj
+bbjcpl: e26c.bbj: type check error [Cannot assign <undeclared> to BBjNumber] at line 50 (5):         #total = t!
+bbj-ls: clean
+
+== e26d.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== e26e.bbj
+bbjcpl: e26e.bbj: type check error [Method expected return type java.util.HashMap, got <undeclared>] at line 80 (8):         methodret config!
+bbj-ls: clean
+
+== e26f.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== e26g.bbj
+bbjcpl: e26g.bbj: type check error [Incompatible assignment from <undeclared> to com.basis.bbj.proxies.sysgui.BBjListButton] at line 50 (5):         #lb! = fg!.addListButton(101, 10, 10, 100, 20, "")
+bbj-ls: clean
+
+== e26h.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== ev01_list_select.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== i01_imgclick.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== i02_listchange.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== q01_numbered.bbj
+bbjcpl: q01_numbered.bbj: error at line 20 (2): y = 2 rem bad
+bbj-ls: line 2, column 1: [SyntaxError] syntax error
+
+== q02_unnumbered.bbj
+bbjcpl: q02_unnumbered.bbj: error at line 40 (4): d = 4 rem bad
+bbj-ls: line 4, column 1: [SyntaxError] syntax error
+
+== q03_use_missing.bbj
+bbjcpl: q03_use_missing.bbj: type check error [Cannot find program missing.bbj for type: Foo] at line 10 (1): use ::missing.bbj::Foo
+bbjcpl: q03_use_missing.bbj: type check error [Cannot find program missing.bbj for type: Foo] at line 30 (3): f! = new Foo()
+bbj-ls: clean
+
+== q04_undeclared_w.bbj
+bbjcpl: clean
+bbjcpl -W: q04_undeclared_w.bbj: type check warning [Undeclared variable: raw!] at line 10 (1): raw! = null()
+bbjcpl -W: q04_undeclared_w.bbj: type check warning [Undeclared variable: raw!; Undeclared variable: raw2!] at line 20 (2): raw2! = raw!
+bbj-ls: clean
+
+== s01_setmodal.bbj
+bbjcpl: s01_setmodal.bbj: type check error [No match for method com.basis.bbj.proxies.sysgui.BBjTopLevelWindow.setModal(BBjInt)] at line 50 (5): win!.setModal(1)
+bbj-ls: clean
+
+== s02_dialogflag.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== s03_formval.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== s04_formval_reject.bbj
+bbjcpl: s04_formval_reject.bbj: type check error [No match for method com.basis.bbj.proxies.event.BBjFormValidationEvent.reject(BBjInt)] at line 30 (3):         event!.reject(0)
+bbj-ls: clean
+
+== s05_listbutton.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== s06_mouse.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== s07_imgctrl_mousedown.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== s08_msgbox.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== s09_bad_const.bbj
+bbjcpl: s09_bad_const.bbj: type check error [No such field: com.basis.bbj.proxies.BBjSysGui.MSGBOX_NOSUCH_CONSTANT] at line 10 (1): flags = BBjSysGui.MSGBOX_NOSUCH_CONSTANT
+bbj-ls: clean
+
+== t01_ternary.bbj
+bbjcpl: t01_ternary.bbj: error at line 20 (2): r! = age > 18 ? "a" : "b"
+bbj-ls: line 2, column 1: [SyntaxError] syntax error
+
+== t02_iff.bbj
+bbjcpl: clean
+bbj-ls: clean
 
 == t03_rem_bad.bbj
 bbjcpl: t03_rem_bad.bbj: error at line 10 (1): interval = 0 rem Manual
@@ -9,3 +185,125 @@ bbj-ls: line 1, column 1: [SyntaxError] syntax error
 == t04_rem_ok.bbj
 bbjcpl: clean
 bbj-ls: clean
+
+== t05_label_rem.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t06_bare_fn_call.bbj
+bbjcpl: t06_bare_fn_call.bbj: error at line 30 (3): doSomething(v!.get(0))
+bbj-ls: line 3, column 1: [SyntaxError] syntax error
+
+== t07_bare_method.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t08_bare_hash_method.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t09_quote_ok.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t10_quote_bad.bbj
+bbjcpl: t10_quote_bad.bbj: error at line 10 (1): print "say \"hi\""
+bbj-ls: line 1, column 1: [SyntaxError] syntax error
+
+== t11_fi_name.bbj
+bbjcpl: t11_fi_name.bbj: error at line 10 (1): fi = 3
+bbj-ls: line 1, column 1: [SyntaxError] syntax error
+
+== t12_str_trim.bbj
+bbjcpl: t12_str_trim.bbj: error at line 20 (2): ? str(n:"-##0.00").trim()
+bbj-ls: line 2, column 1: [SyntaxError] syntax error
+
+== t13_cvs.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t14_cast.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t15_declare_auto_iface.bbj
+bbjcpl: t15_declare_auto_iface.bbj: error at line 10 (1): declare auto java.util.List l!
+bbj-ls: line 1, column 1: [SyntaxError] syntax error
+
+== t16_declare_iface.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t17_int_str.bbj
+bbjcpl: t17_int_str.bbj: error at line 10 (1): n = int("42")
+bbj-ls: line 1, column 1: [SyntaxError] Invalid function parameters
+
+== t18_num_str.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t19_hex_quoted.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t20_hex_ok.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t21_str_sign.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== t22_int_strvar.bbj
+bbjcpl: t22_int_strvar.bbj: error at line 20 (2): n = int(a$)
+bbj-ls: line 2, column 1: [SyntaxError] Invalid function parameters
+
+== t23_int_objvar.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== u01_bbjclass_nouse.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== u02_string_nouse.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== u03_hashmap_nouse.bbj
+bbjcpl: u03_hashmap_nouse.bbj: type check error [No type named HashMap visible in this scope] at line 10 (1): declare HashMap h!
+bbjcpl: u03_hashmap_nouse.bbj: type check error [No type named HashMap visible in this scope] at line 20 (2): h! = new HashMap()
+bbj-ls: clean
+
+== u04_arraylist_nouse.bbj
+bbjcpl: u04_arraylist_nouse.bbj: type check error [No type named ArrayList visible in this scope] at line 10 (1): declare ArrayList l!
+bbjcpl: u04_arraylist_nouse.bbj: type check error [No type named ArrayList visible in this scope] at line 20 (2): l! = new ArrayList()
+bbj-ls: clean
+
+== u05_hashmap_use.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== u06_use_bbjwindow.bbj
+bbjcpl: u06_use_bbjwindow.bbj: error at line 10 (1): use BBjWindow
+bbj-ls: line 1, column 1: [SyntaxError] syntax error
+
+== u07_use_bbjwindow_full.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== u08_fullname_hashmap.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== u11_use_lang_string.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== rw (331 words x 3 forms, generated from rw-words.txt)
+rw bbjcpl numeric 56: all argc begin callback case chn csoff cson ctl day dread dsz else endif err exitto fi fnend fnerr for from gosub goto if iol iolist let list load new on opts pfx process_events psz read_resource remove_callback restore rev seterr setesc sqlchn sqlunt ssn swend switch sys table tbl then tim unt until wend where while
+rw bbjcpl string 2: fnend fnerr
+rw bbjcpl object 2: fnend fnerr
+rw bbj-ls numeric 56: all argc begin callback case chn csoff cson ctl day dread dsz else endif err exitto fi fnend fnerr for from gosub goto if iol iolist let list load new on opts pfx process_events psz read_resource remove_callback restore rev seterr setesc sqlchn sqlunt ssn swend switch sys table tbl then tim unt until wend where while
+rw bbj-ls string 2: fnend fnerr
+rw bbj-ls object 2: fnend fnerr

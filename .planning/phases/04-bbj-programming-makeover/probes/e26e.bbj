@@ -1,0 +1,10 @@
+use java.util.HashMap
+
+class public Demo
+    field private HashMap cfg!
+
+    method private HashMap build()
+        config! = new HashMap()
+        methodret config!
+    methodend
+classend

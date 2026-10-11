@@ -1,0 +1,8 @@
+class public Demo
+    field private BBjNumber total
+
+    method public void setup()
+        declare auto BBjNumber t!
+        #total = t!
+    methodend
+classend

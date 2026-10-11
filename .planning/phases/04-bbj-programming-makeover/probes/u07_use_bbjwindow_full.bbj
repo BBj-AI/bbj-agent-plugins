@@ -1,0 +1,3 @@
+use com.basis.bbj.proxies.sysgui.BBjWindow
+
+declare BBjWindow w!

@@ -1,0 +1,2 @@
+here$ = dsk("") + dir("")
+home$ = System.getProperty("basis.BBjHome")

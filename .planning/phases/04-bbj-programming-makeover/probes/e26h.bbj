@@ -1,0 +1,8 @@
+class public Demo
+    field private BBjListButton lb!
+
+    method public void build()
+        declare auto BBjChildWindow fg!
+        #lb! = fg!.addListButton(101, 10, 10, 100, 20, "")
+    methodend
+classend

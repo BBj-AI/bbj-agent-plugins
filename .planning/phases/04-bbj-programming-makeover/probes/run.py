@@ -49,6 +49,10 @@ LS_LINE_RE = re.compile(r"^line ([0-9]+), column ([0-9]+):(.*)$")
 VERSION_RE = re.compile(r"[0-9A-Za-z.-]{1,20}")
 NAME_RE = re.compile(r"^[a-z0-9_]+\.bbj$")
 USAGE = "usage: python3 -I probes/run.py [--check]\n"
+RW_PATH = os.path.join(HERE, "rw-words.txt")
+RW_WORD_RE = re.compile(r"^[a-z_0-9]+$")
+# reserved-word forms (D-13): file name prefix, source line template, name shown in OUTPUT.txt
+RW_FORMS = (("n", "%s = 1", "numeric"), ("s", '%s$ = "x"', "string"), ("o", "%s! = 1", "object"))
 HEADER = ("# probes/OUTPUT.txt -- written by python3 -I probes/run.py (plan 04-01, D-03); "
           "compile only, nothing was run")
 
@@ -217,6 +221,19 @@ def ls_check(code):
     return verdict, lines, version, ""
 
 
+def rw_words():
+    """(words, problem): the lines of rw-words.txt, each one [a-z_0-9]+ (D-13)."""
+    try:
+        with open(RW_PATH, "r", encoding="utf-8") as f:
+            words = [l.rstrip("\n") for l in f.read().split("\n") if l.strip()]
+    except OSError as e:
+        return None, "cannot read rw-words.txt: %s" % safe(e)
+    for w in words:
+        if not RW_WORD_RE.match(w):
+            return None, "rw-words.txt holds a line that is not [a-z_0-9]+: %s" % safe(w)
+    return words, ""
+
+
 def read_text(path):
     with open(path, "rb") as f:
         return f.read().decode("utf-8", errors="replace")
@@ -231,7 +248,17 @@ def collect(cpl, names, tmpdir):
         f.write(CANARY_GOOD)
     with open(os.path.join(tmpdir, "canary_bad.bbj"), "w", encoding="utf-8", newline="\n") as f:
         f.write(CANARY_BAD)
-    everything = names + ["canary_good.bbj", "canary_bad.bbj"]
+    words, problem = rw_words()
+    if words is None:
+        return None, problem
+    rwfiles = {}
+    for w in words:
+        for prefix, template, form in RW_FORMS:
+            rwname = "%s_%s.bbj" % (prefix, w)
+            with open(os.path.join(tmpdir, rwname), "w", encoding="utf-8", newline="\n") as f:
+                f.write(template % w + "\n")
+            rwfiles[rwname] = (w, form)
+    everything = names + sorted(rwfiles) + ["canary_good.bbj", "canary_bad.bbj"]
     rc, nout, records, stray, err = compile_batch(cpl, [], tmpdir, everything)
     if err:
         return None, err
@@ -257,6 +284,16 @@ def collect(cpl, names, tmpdir):
         verdicts[n] = lines
         if version is None and ver is not None:
             version = ver
+    failing = {}
+    for rwname in sorted(rwfiles):
+        w, form = rwfiles[rwname]
+        if rwname in records:
+            failing.setdefault(("bbjcpl", form), []).append(w)
+        verdict, lines, ver, err = ls_check(read_text(os.path.join(tmpdir, rwname)))
+        if verdict == "noverdict":
+            return None, "bbj-ls gave no verdict for %s%s" % (rwname, (": " + err) if err else "")
+        if verdict == "errors":
+            failing.setdefault(("bbj-ls", form), []).append(w)
     out = [HEADER,
            "BBj version: %s (bbj-ls structuredContent.bbjVersion)" % (version or "unknown"),
            "bbjcpl %s, one batched call: exit status %s, stdout %d bytes"
@@ -285,6 +322,12 @@ def collect(cpl, names, tmpdir):
                 out.append("bbj-ls: %s" % safe(line))
         else:
             out.append("bbj-ls: clean")
+    out.append("")
+    out.append("== rw (%d words x 3 forms, generated from rw-words.txt)" % len(words))
+    for route in ("bbjcpl", "bbj-ls"):
+        for prefix, template, form in RW_FORMS:
+            bad = sorted(failing.get((route, form), []))
+            out.append(("rw %s %s %d: %s" % (route, form, len(bad), " ".join(bad))).rstrip())
     return out, ""
 
 

@@ -1,0 +1,10 @@
+class public Demo
+    method public void tag(BBjImageCtrl img!)
+        img!.setUserData("a")
+    methodend
+
+    method public void onImageClick(BBjMouseDownEvent event!)
+        declare auto BBjControl ctrl!
+        ctrl! = event!.getOriginalControl()
+    methodend
+classend

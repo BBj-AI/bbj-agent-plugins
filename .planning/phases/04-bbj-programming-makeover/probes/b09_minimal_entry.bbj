@@ -1,0 +1,17 @@
+class public Demo
+    field private BBjTopLevelWindow winMain!
+
+    method public Demo()
+        declare auto BBjSysGui sysGui!
+        sysGui! = BBjAPI().openSysGui("X0")
+        #winMain! = sysGui!.addWindow(10, 10, 300, 200, "Demo")
+    methodend
+
+    method public void run()
+        #winMain!.setVisible(1)
+        process_events ; rem last call in the entry point
+    methodend
+classend
+
+app! = new Demo()
+app!.run()

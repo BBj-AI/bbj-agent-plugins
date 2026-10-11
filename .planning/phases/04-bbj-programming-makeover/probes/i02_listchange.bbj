@@ -1,0 +1,8 @@
+class public Demo
+    method public void onChange(BBjListChangeEvent event!)
+        declare auto BBjNumber index!
+        declare auto BBjString text!
+        index! = event!.getSelectedIndex()
+        text! = event!.getSelectedItem()
+    methodend
+classend

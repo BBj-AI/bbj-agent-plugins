@@ -1,0 +1,3 @@
+declare BBjWindow w!
+declare BBjVector v!
+declare BBjTopLevelWindow t!

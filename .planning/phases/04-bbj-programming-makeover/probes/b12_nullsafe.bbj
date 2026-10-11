@@ -1,0 +1,3 @@
+declare BBjVector v!
+v! = null()
+if v! <> null() then v!.clear()

@@ -1,0 +1,14 @@
+class public Demo
+    field private BBjTopLevelWindow win!
+
+    method public Demo()
+        declare auto BBjSysGui sysGui!
+        sysGui! = BBjAPI().openSysGui("X0")
+        #win! = sysGui!.addWindow(10, 10, 300, 200, "Demo")
+        #win!.setReportAllMouseEvents(1)
+        #win!.setCallback(BBjAPI.ON_MOUSE_DOWN, #this!, "onMouseDown")
+    methodend
+
+    method public void onMouseDown(BBjMouseDownEvent event!)
+    methodend
+classend

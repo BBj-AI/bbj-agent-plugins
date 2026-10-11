@@ -1,0 +1,2 @@
+declare ArrayList l!
+l! = new ArrayList()

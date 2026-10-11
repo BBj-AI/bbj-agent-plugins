@@ -1,0 +1,11 @@
+declare java.sql.Connection conn!
+declare java.sql.Statement stmt!
+declare java.sql.ResultSet rs!
+conn! = BBjAPI().getJDBCConnection("MyDatasource")
+stmt! = conn!.createStatement()
+rs! = stmt!.executeQuery("select 1")
+while (rs!.next())
+    val! = rs!.getString("COL")
+wend
+rs!.close()
+stmt!.close()

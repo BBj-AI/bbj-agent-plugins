@@ -1,0 +1,8 @@
+class public Demo
+    method public void foo()
+    methodend
+
+    method public void run()
+        foo()
+    methodend
+classend

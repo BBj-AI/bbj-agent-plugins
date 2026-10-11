@@ -1,0 +1,4 @@
+declare BBjVector v!
+v! = BBjAPI().makeVector()
+v!.addItem("a")
+v!.get(0)
