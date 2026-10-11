@@ -32,9 +32,15 @@ so commit first.
 
 ## Output into a shell
 
-`bbj -tIO` sends the output of `print` to stdout (the IO device). The IO device is described on the
-PRO/5 page https://documentation.basis.cloud/BASISHelp/WebHelp/sysadmin/config/unix/terminals_under_unix.htm:
-"Opening and reading the "IO" device is a direct attachment to your stdin and stdout handles."
+`bbj -tIO` sends the output of `print` to stdout (the IO device). The IO device is described in the PRO/5-specific
+section of https://documentation.basis.cloud/BASISHelp/WebHelp/sysadmin/config/unix/terminals_under_unix.htm:
+"Opening and reading the "IO" device is a direct attachment to your stdin and stdout handles." That section is about
+PRO/5; the BBj-specific section of the page says only that in BBj "realname is ignored, and the terminal on which
+BBj is invoked is used as the device to which the terminal alias is opened". That `bbj -tIO` works in BBj is
+the result in the Sources footer, not a statement of the page.
+
+The IO device "is not a terminal and will not translate mnemonics sent to it". Print plain text to it; mnemonics
+cause what the page calls "garbage on the screen" or `!ERROR=41`.
 
 ## Sources
 
