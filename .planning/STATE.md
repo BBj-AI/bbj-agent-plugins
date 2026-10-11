@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 5
 current_phase_name: bbj-web-programming makeover
 status: executing
-stopped_at: Completed 05-02-PLAN.md
-last_updated: "2026-10-11T20:26:13.540Z"
+stopped_at: Completed 05-03-PLAN.md
+last_updated: "2026-10-11T20:43:45.489Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 5 execution started
-state_head: 2e74cf7092b845e018c41ce51bb5884dd16fba7f
+state_head: 9fc64eb3d20b373b43de7670a062bf0392f5bece
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 35
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 5 (bbj-web-programming makeover) — EXECUTING
-Plan: 3 of 10
+Plan: 4 of 10
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 5 execution started
 
@@ -84,6 +84,7 @@ Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phas
 | Phase 04 P08 | 5 min | 2 tasks | 4 files |
 | Phase 5 P01 | 6 min | 2 tasks | 24 files |
 | Phase 5 P02 | 20 min | 3 tasks | 2 files |
+| Phase 5 P03 | 45 min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,8 @@ Recent decisions affecting current work:
 - [Phase 5]: 05-01: p08 assigns getProperty to an object variable; the string assignment is kept as probe p17 because bbjcpl -t rejects it
 - [Phase 5]: 05-02: ledger header pins DWC 26 (v26 design system) with BBj 26.03 build 10-01-2026_1321; SKILL.md ledgered in 88 rows, no OWNER row; owner checklist O1-O9 and O11 marked as RUNTIME drop
 - [Phase 5]: 05-02: focus-ring outline mechanism dropped (docs say gap-ring shadow); padding rule rewritten in the docs' words into references/styling.md
+- [Phase 5]: 05-03: ledger covers all eight skill files in 242 rows; Destinations SKILL.md, references/styling.md, form-validation.md, running-dwc-apps.md, shoelace.md; Deleted in plan 05-10: color-chooser.md, responsive-layout.md, shadow-dom-styling.md, themes.md
+- [Phase 5]: 05-03: ThinClient sentence dropped (the Thin Client command-line page does not state it); client-validation 'DWC only' dropped (GUI client documented); owner checklist O1-O11 triaged, no OWNER row
 
 ### Pending Todos
 
@@ -158,6 +161,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T20:26:13.413Z
-Stopped at: Completed 05-02-PLAN.md
+Last session: 2026-10-11T20:43:45.359Z
+Stopped at: Completed 05-03-PLAN.md
 Resume file: None

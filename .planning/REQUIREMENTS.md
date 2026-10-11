@@ -49,7 +49,7 @@
 ### bbj-web-programming makeover
 
 - [x] **WEB-01**: The same claim ledger covers the skill and its references; DWC DOM/CSS claims (DOM structure, `addOuterStyle`, focus-ring padding rule) survive only with a docs URL or an owner reproduction recorded with the DWC/BBj build
-- [ ] **WEB-02**: The description is ≤ 1,024 characters with the triggers first; the body is short and references trimmed; all taste is cut (GSAP, Swiper, Tabler Icons, Google Fonts/Inter/Playfair Display, the 420px card grid, etc.)
+- [x] **WEB-02**: The description is ≤ 1,024 characters with the triggers first; the body is short and references trimmed; all taste is cut (GSAP, Swiper, Tabler Icons, Google Fonts/Inter/Playfair Display, the 420px card grid, etc.)
 - [x] **WEB-03**: The `injectStyle` `top` claim is corrected to the documented meaning; every `bbj` block passes the gate; the skill name `/bbj:bbj-web-programming` is unchanged
 
 ### Release
@@ -112,7 +112,7 @@
 | PROG-05 | Phase 4 | Complete |
 | PROG-06 | Phase 4 | Complete |
 | WEB-01 | Phase 5 | Complete |
-| WEB-02 | Phase 5 | Pending |
+| WEB-02 | Phase 5 | Complete |
 | WEB-03 | Phase 5 | Complete |
 | REL-01 | Phase 6 | Pending |
 | REL-02 | Phase 6 | Pending |
