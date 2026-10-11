@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 5
 current_phase_name: bbj-web-programming makeover
 status: executing
-stopped_at: Phase 5 context gathered
-last_updated: "2026-10-11T20:08:03.525Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-10-11T20:12:55.528Z"
 last_activity: 2026-10-11
-last_activity_desc: Phase 04 complete, transitioned to Phase 5
-state_head: f09b8b1fe0c9976d73c4443830031ec7d76cb757
+last_activity_desc: Phase 5 execution started
+state_head: dfdaf97f35c0a398ced6387343af3409ea1c9b53
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 35
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 
 ## Current Position
 
-Phase: 5 (bbj-web-programming makeover) — READY TO EXECUTE
-Plan: Not started
+Phase: 5 (bbj-web-programming makeover) — EXECUTING
+Plan: 2 of 10
 Status: Ready to execute
-Last activity: 2026-10-11 — Phase 04 complete, transitioned to Phase 5
+Last activity: 2026-10-11 — Phase 5 execution started
 
 Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4, Phase 4 8/8 plans)
 
@@ -82,6 +82,7 @@ Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phas
 | Phase 04 P06 | 10 min | 2 tasks | 5 files |
 | Phase 04 P07 | 9 min | 3 tasks | 6 files |
 | Phase 04 P08 | 5 min | 2 tasks | 4 files |
+| Phase 5 P01 | 6 min | 2 tasks | 24 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-07: section-2 heading of SKILL.md renamed to 'Rules for writing BBj'; L117 reclassified RUNTIME (rewrite); no OWNER granted; setModal stated by route, not as absent
 - [Phase 04]: Plan 04-08: D-24 shipped word for word (an existing window without the Dialog flag cannot be brought in front of an open Dialog-flag window), marked as skill-maintainer-confirmed; nothing about windows created later
 - [Phase 04]: Plan 04-08: L119 is DOC with verdict drop; both pages exist but the claim goes beyond the isModal return-value sentence
+- [Phase 5]: 05-01: p08 assigns getProperty to an object variable; the string assignment is kept as probe p17 because bbjcpl -t rejects it
 
 ### Pending Todos
 
@@ -153,6 +155,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T18:59:25.605Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-bbj-web-programming-makeover/05-CONTEXT.md
+Last session: 2026-10-11T20:12:55.403Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None

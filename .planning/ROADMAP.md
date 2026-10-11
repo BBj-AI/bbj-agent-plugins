@@ -208,12 +208,12 @@ Plans:
   3. The `injectStyle` `top` claim states the documented meaning (the top-level window)
   4. Every `bbj` block in the skill and its references passes the live gate, the structure lints pass, and the skill is still invoked as `/bbj:bbj-web-programming`
 
-**Plans**: 10 plans
+**Plans**: 1/10 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 05-01-PLAN.md — Compile evidence: probes/run.py adapted from Phase 4 (no reserved-word tier), about 20 probes (setSlot order, outer styles on BBjChildWindow/BBjButton, attributes, inject top, Automatic Layout, themes, validation, web components, registration), OUTPUT.txt, README (wave 1)
+- [x] 05-01-PLAN.md — Compile evidence: probes/run.py adapted from Phase 4 (no reserved-word tier), about 20 probes (setSlot order, outer styles on BBjChildWindow/BBjButton, attributes, inject top, Automatic Layout, themes, validation, web components, registration), OUTPUT.txt, README (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -277,5 +277,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
-| 5. bbj-web-programming makeover | 0/10 | Planned | - |
+| 5. bbj-web-programming makeover | 1/10 | In Progress | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |
