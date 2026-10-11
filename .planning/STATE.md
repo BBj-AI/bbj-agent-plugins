@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 5
 current_phase_name: bbj-web-programming makeover
 status: executing
-stopped_at: Completed 05-01-PLAN.md
-last_updated: "2026-10-11T20:12:55.528Z"
+stopped_at: Completed 05-02-PLAN.md
+last_updated: "2026-10-11T20:26:13.540Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 5 execution started
-state_head: dfdaf97f35c0a398ced6387343af3409ea1c9b53
+state_head: 2e74cf7092b845e018c41ce51bb5884dd16fba7f
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 35
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 5 (bbj-web-programming makeover) — EXECUTING
-Plan: 2 of 10
+Plan: 3 of 10
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 5 execution started
 
@@ -83,6 +83,7 @@ Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phas
 | Phase 04 P07 | 9 min | 3 tasks | 6 files |
 | Phase 04 P08 | 5 min | 2 tasks | 4 files |
 | Phase 5 P01 | 6 min | 2 tasks | 24 files |
+| Phase 5 P02 | 20 min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -133,6 +134,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Plan 04-08: D-24 shipped word for word (an existing window without the Dialog flag cannot be brought in front of an open Dialog-flag window), marked as skill-maintainer-confirmed; nothing about windows created later
 - [Phase 04]: Plan 04-08: L119 is DOC with verdict drop; both pages exist but the claim goes beyond the isModal return-value sentence
 - [Phase 5]: 05-01: p08 assigns getProperty to an object variable; the string assignment is kept as probe p17 because bbjcpl -t rejects it
+- [Phase 5]: 05-02: ledger header pins DWC 26 (v26 design system) with BBj 26.03 build 10-01-2026_1321; SKILL.md ledgered in 88 rows, no OWNER row; owner checklist O1-O9 and O11 marked as RUNTIME drop
+- [Phase 5]: 05-02: focus-ring outline mechanism dropped (docs say gap-ring shadow); padding rule rewritten in the docs' words into references/styling.md
 
 ### Pending Todos
 
@@ -155,6 +158,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T20:12:55.403Z
-Stopped at: Completed 05-01-PLAN.md
+Last session: 2026-10-11T20:26:13.413Z
+Stopped at: Completed 05-02-PLAN.md
 Resume file: None
