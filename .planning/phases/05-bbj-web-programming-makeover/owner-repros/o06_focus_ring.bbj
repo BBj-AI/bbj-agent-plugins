@@ -1,0 +1,34 @@
+rem Owner repro for checklist item O6 (plan 05-04). Register as a DWC app, press Tab and look at the rings.
+rem It only shows one window and injects one constant stylesheet. It writes nothing and calls no other host.
+declare auto BBjSysGui sysgui!
+declare auto BBjWebManager web!
+declare auto BBjTopLevelWindow win!
+declare auto BBjChildWindow clipped!
+declare auto BBjChildWindow padded!
+declare auto BBjEditBox clippedBox!
+declare auto BBjEditBox paddedBox!
+
+sysgui! = BBjAPI().openSysGui("X0")
+web! = BBjAPI().getWebManager()
+
+rem both classes hide overflow; the second adds the padding of the item claim
+css$ = ".p5-clip { overflow: hidden; } .p5-clip-pad { overflow: hidden; padding: calc(var(--dwc-focus-ring-width) + var(--dwc-focus-ring-gap)); }"
+web!.injectStyle(css$, 1, "id=p5-o06-css")
+
+win! = sysgui!.addWindow("O6 focus ring", $00100083$)
+win!.setPanelStyle("display", "flex"); rem the two child windows sit side by side
+win!.setPanelStyle("gap", "24px")
+win!.setPanelStyle("padding", "24px")
+
+clipped! = win!.addChildWindow("", $00108800$, sysgui!.getAvailableContext())
+clipped!.addClass("p5-clip")
+clippedBox! = clipped!.addEditBox("")
+clippedBox!.setText("overflow hidden, no padding")
+
+padded! = win!.addChildWindow("", $00108800$, sysgui!.getAvailableContext())
+padded!.addClass("p5-clip-pad")
+paddedBox! = padded!.addEditBox("")
+paddedBox!.setText("overflow hidden, with padding")
+
+process_events
+release

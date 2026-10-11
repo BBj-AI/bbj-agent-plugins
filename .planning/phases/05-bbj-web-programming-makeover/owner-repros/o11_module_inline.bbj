@@ -1,0 +1,18 @@
+rem Owner repro for checklist item O11, inline half (plan 05-04). Register as a DWC app, read the page title and the console.
+rem It only shows one window and injects one constant script text. It writes nothing and calls no other host.
+declare auto BBjSysGui sysgui!
+declare auto BBjWebManager web!
+declare auto BBjTopLevelWindow win!
+
+sysgui! = BBjAPI().openSysGui("X0")
+web! = BBjAPI().getWebManager()
+
+rem the text of o11/main.js, an ES module with a relative import of ./dep.js
+js$ = "import { depValue } from './dep.js'; document.title = 'p5-o11-loaded-' + depValue;"
+web!.injectScript(js$, 1, "type=module")
+
+win! = sysgui!.addWindow("O11 module injected inline", $00100083$)
+win!.addStaticText("Page title and console: see the checklist item O11")
+
+process_events
+release

@@ -1,0 +1,17 @@
+rem Owner repro for checklist item O11, URL half (plan 05-04). Copy owner-repros/o11/main.js and dep.js to htdocs/o11/ first.
+rem It only shows one window and loads one script by its relative URL. It writes nothing and calls no other host.
+declare auto BBjSysGui sysgui!
+declare auto BBjWebManager web!
+declare auto BBjTopLevelWindow win!
+
+sysgui! = BBjAPI().openSysGui("X0")
+web! = BBjAPI().getWebManager()
+
+rem the same module, served from the htdocs directory of the BBj home
+web!.injectScriptUrl("/files/o11/main.js", 1, "type=module")
+
+win! = sysgui!.addWindow("O11 module loaded by URL", $00100083$)
+win!.addStaticText("Page title and console: see the checklist item O11")
+
+process_events
+release

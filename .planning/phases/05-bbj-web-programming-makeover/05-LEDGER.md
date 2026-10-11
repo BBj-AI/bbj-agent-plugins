@@ -365,7 +365,7 @@ with the same claim and the same row ids.
 - O3: BBj sets width and height on dwc-frame as inline styles, so a stylesheet rule for them needs !important. Rows: L031. If confirmed: keep (SKILL.md).
 - O4: The controls of a top-level window are children of dwc-window-content, and a BBjChildWindow renders as dwc-panel whose controls are its direct children. Rows: L022. If confirmed: keep (SKILL.md).
 - O5: The HTML of a BBjListBox item is inside the control's shadow root, so a page selector does not reach it while an inline style attribute does. Rows: L038. If confirmed: keep (references/styling.md).
-- O6: An ancestor with overflow hidden or overflow auto clips the focus ring of a control. Rows: L071. If confirmed: keep (references/styling.md).
+- O6: An ancestor with overflow hidden or overflow auto clips the focus ring of a control, and padding of calc(var(--dwc-focus-ring-width) + var(--dwc-focus-ring-gap)) on that ancestor avoids it. Rows: L071. If confirmed: keep (references/styling.md).
 - O7: HTML text in a control must start with <html> or it shows as literal text. Rows: L005. If confirmed: keep (SKILL.md).
 - O8: getX(), getY(), getWidth() and getHeight() return null on an Automatic Layout window. Rows: L032. If confirmed: keep (SKILL.md).
 - O9: A BBjColorChooser shows no caption for setAttribute("label", ...). Rows: L013. If confirmed: keep (SKILL.md).

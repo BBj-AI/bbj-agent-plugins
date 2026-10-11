@@ -1,0 +1,22 @@
+rem Owner repro for checklist item O5 (plan 05-04). Register as a DWC app and look at the list box.
+rem It only shows one window and injects one constant stylesheet. It writes nothing and calls no other host.
+declare auto BBjSysGui sysgui!
+declare auto BBjWebManager web!
+declare auto BBjTopLevelWindow win!
+declare auto BBjListBox list!
+
+sysgui! = BBjAPI().openSysGui("X0")
+web! = BBjAPI().getWebManager()
+
+rem the first rule colours a class red, the second colours a bare tag blue
+css$ = ".p5-item { color: red; } em { color: blue; }"
+web!.injectStyle(css$, 1, "id=p5-o05-css")
+
+win! = sysgui!.addWindow("O5 list box items", $00100083$)
+list! = win!.addListBox("")
+list!.addItem("<html><span class='p5-item'>Item 1: HTML with a class</span></html>")
+list!.addItem("<html><em>Item 2: HTML with a bare tag</em></html>")
+list!.addItem("<html><span style='color: green'>Item 3: HTML with an inline style</span></html>")
+
+process_events
+release

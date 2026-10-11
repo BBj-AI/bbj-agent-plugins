@@ -89,3 +89,31 @@ bbj-ls: clean
 == owner-repros/o01_window_dom.bbj
 bbjcpl: clean
 bbj-ls: clean
+
+== owner-repros/o05_listbox_shadow.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== owner-repros/o06_focus_ring.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== owner-repros/o07_html_text.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== owner-repros/o08_autolayout_geometry.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== owner-repros/o09_colorchooser.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== owner-repros/o11_module_inline.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== owner-repros/o11_module_url.bbj
+bbjcpl: clean
+bbj-ls: clean

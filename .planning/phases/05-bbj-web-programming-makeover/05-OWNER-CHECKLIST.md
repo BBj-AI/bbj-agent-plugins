@@ -82,3 +82,87 @@ DWC build:
 BBj build: 
 granted sentence: 
 note: 
+
+### O5. Where the HTML of a list box item renders
+
+claim: The HTML of a BBjListBox item is inside the control's shadow root, so a page selector does not reach it while an inline style attribute does.
+ledger: L038
+repro: owner-repros/o05_listbox_shadow.bbj
+look for: On screen: the program injects `.p5-item { color: red; }` and `em { color: blue; }`. Which items are coloured? Expected for the claim: item 1 (class) and item 2 (bare tag) keep the default colour, item 3 (inline style) is green. Elements panel: find the item HTML under `#shadow-root` of the list box element; confirm only if the three items are inside the shadow root.
+result: 
+DWC build: 
+BBj build: 
+granted sentence: 
+note: 
+
+### O6. Focus ring clipped by an overflow ancestor
+
+claim: An ancestor with overflow hidden or overflow auto clips the focus ring of a control, and padding of calc(var(--dwc-focus-ring-width) + var(--dwc-focus-ring-gap)) on that ancestor avoids it.
+ledger: L071
+repro: owner-repros/o06_focus_ring.bbj
+look for: Click the page background, then press Tab until the left edit box has the focus, then the right one. Is the focus ring cut off at the edge of the left child window (overflow hidden, no padding) and whole around the right one (overflow hidden, padding calc(var(--dwc-focus-ring-width) + var(--dwc-focus-ring-gap)))? Confirm both halves only if the left ring is cut and the right is whole; if both are whole or both are cut, reject.
+result: 
+DWC build: 
+BBj build: 
+granted sentence: 
+note: 
+
+### O7. HTML text needs the html tag
+
+claim: HTML text in a control must start with <html> or it shows as literal text.
+ledger: L005
+repro: owner-repros/o07_html_text.bbj
+look for: On screen: the first static text is `<html><b>bold</b></html>`, the second `<b>bold</b>`. Confirm only if the first shows the word in bold and the second shows the characters `<b>bold</b>` as literal text.
+result: 
+DWC build: 
+BBj build: 
+granted sentence: 
+note: 
+
+### O8. Geometry of an Automatic Layout window
+
+claim: getX(), getY(), getWidth() and getHeight() return null on an Automatic Layout window.
+ledger: L032
+repro: owner-repros/o08_autolayout_geometry.bbj
+look for: On screen: four lines, one per call. Confirm only if all four read `: null`. A number or an error text on any line means reject; write the four lines into `note:`.
+result: 
+DWC build: 
+BBj build: 
+granted sentence: 
+note: 
+
+### O9. Caption of a colour chooser
+
+claim: A BBjColorChooser shows no caption for setAttribute("label", ...).
+ledger: L013
+repro: owner-repros/o09_colorchooser.bbj
+look for: On screen: the colour chooser and the edit box below it both got the attribute label=Primary. Does the text Primary appear next to the colour chooser (the edit box shows it, for comparison)? Elements panel: does the dwc-color-chooser element carry a label attribute, and is a rendered caption inside or beside it? Confirm only if no caption is shown for the chooser.
+result: 
+DWC build: 
+BBj build: 
+granted sentence: 
+note: 
+
+### O10. Scale of saturation and lightness
+
+claim: getClientProperty("saturation") and getClientProperty("lightness") of a BBjColorChooser return a fraction from 0 to 1.0.
+ledger: L097
+repro: owner-repros/o09_colorchooser.bbj
+look for: Open the chooser, pick a colour with clearly non-zero saturation and lightness, and read the text under the edit box: `saturation <a>, lightness <b>`. Confirm only if both numbers lie between 0 and 1.0 (for example 0.89). Numbers between 0 and 100 mean reject; write the numbers into `note:`.
+result: 
+DWC build: 
+BBj build: 
+granted sentence: 
+note: 
+
+### O11. Inline versus URL injection of an ES module
+
+claim: An ES module injected inline with injectScript() cannot load its relative imports, while the same module loaded with injectScriptUrl(url, top, "type=module") can.
+ledger: L061
+repro: owner-repros/o11_module_inline.bbj, owner-repros/o11_module_url.bbj
+look for: Run each program on its own (first copy o11/main.js and o11/dep.js to `<BBjHome>/htdocs/o11/`). Console panel and the page title of the tab: with o11_module_inline the title stays unchanged and the console reports the import of ./dep.js failing; with o11_module_url the title reads `p5-o11-loaded-dep-ok` and the console has no error. Confirm only if both programs behave so.
+result: 
+DWC build: 
+BBj build: 
+granted sentence: 
+note: 

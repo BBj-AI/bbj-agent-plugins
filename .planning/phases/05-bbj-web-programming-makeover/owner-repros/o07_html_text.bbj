@@ -1,0 +1,15 @@
+rem Owner repro for checklist item O7 (plan 05-04). Register as a DWC app and read the two texts.
+rem It only shows one window with two static texts. It writes nothing and calls no other host.
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+declare auto BBjStaticText withTag!
+declare auto BBjStaticText withoutTag!
+
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("O7 HTML text", $00100083$)
+
+withTag! = win!.addStaticText("<html><b>bold</b></html>"); rem starts with the html tag
+withoutTag! = win!.addStaticText("<b>bold</b>"); rem no html tag at the start
+
+process_events
+release

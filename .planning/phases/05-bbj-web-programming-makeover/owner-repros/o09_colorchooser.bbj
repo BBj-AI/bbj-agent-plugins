@@ -1,0 +1,32 @@
+rem Owner repro for checklist items O9 and O10 (plan 05-04). Register as a DWC app, pick a colour and read the text.
+rem It only shows one window and its own values. It writes nothing and calls no other host.
+declare auto O09Demo demo!
+demo! = new O09Demo()
+process_events
+release
+
+class public O09Demo
+    field private BBjStaticText shown!
+
+    method public O09Demo()
+        declare auto BBjSysGui sysgui!
+        declare auto BBjTopLevelWindow win!
+        declare auto BBjColorChooser chooser!
+        declare auto BBjEditBox edit!
+        sysgui! = BBjAPI().openSysGui("X0")
+        win! = sysgui!.addWindow("O9 and O10 colour chooser", $00100083$)
+        chooser! = win!.addColorChooser()
+        chooser!.setAttribute("label", "Primary"); rem O9: a caption next to the chooser?
+        chooser!.putClientProperty("components", "hue, saturation, lightness")
+        chooser!.setCallback(BBjColorChooser.ON_COLORCHOOSER_CHANGE, #this!, "onColorChange")
+        edit! = win!.addEditBox("")
+        edit!.setAttribute("label", "Primary"); rem O9: the same attribute on an edit box, for comparison
+        #shown! = win!.addStaticText("pick a colour")
+    methodend
+
+    method public void onColorChange(BBjColorChooserChangeEvent event!)
+        declare auto BBjColorChooser control!
+        control! = event!.getControl()
+        #shown!.setText("saturation " + str(control!.getClientProperty("saturation")) + ", lightness " + str(control!.getClientProperty("lightness")))
+    methodend
+classend

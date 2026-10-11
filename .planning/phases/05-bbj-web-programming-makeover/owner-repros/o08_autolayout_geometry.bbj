@@ -1,0 +1,45 @@
+rem Owner repro for checklist item O8 (plan 05-04). Register as a DWC app and read the four values.
+rem It only shows one Automatic Layout window and reads its own geometry. It writes nothing and calls no other host.
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+declare auto BBjStaticText xText!
+declare auto BBjStaticText yText!
+declare auto BBjStaticText widthText!
+declare auto BBjStaticText heightText!
+
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("O8 geometry", $00100083$); rem Automatic Layout flag $00100000$ included
+
+xText! = win!.addStaticText("getX: not read")
+yText! = win!.addStaticText("getY: not read")
+widthText! = win!.addStaticText("getWidth: not read")
+heightText! = win!.addStaticText("getHeight: not read")
+
+rem each value is shown as text; null is shown as the word null, an error as its number and message
+v! = win!.getX(err=xFail)
+if v! = null() then xText!.setText("getX: null") else xText!.setText("getX: " + str(v!))
+goto xDone
+xFail:
+xText!.setText("getX error " + str(err) + ": " + errmes(-1))
+xDone:
+v! = win!.getY(err=yFail)
+if v! = null() then yText!.setText("getY: null") else yText!.setText("getY: " + str(v!))
+goto yDone
+yFail:
+yText!.setText("getY error " + str(err) + ": " + errmes(-1))
+yDone:
+v! = win!.getWidth(err=wFail)
+if v! = null() then widthText!.setText("getWidth: null") else widthText!.setText("getWidth: " + str(v!))
+goto wDone
+wFail:
+widthText!.setText("getWidth error " + str(err) + ": " + errmes(-1))
+wDone:
+v! = win!.getHeight(err=hFail)
+if v! = null() then heightText!.setText("getHeight: null") else heightText!.setText("getHeight: " + str(v!))
+goto hDone
+hFail:
+heightText!.setText("getHeight error " + str(err) + ": " + errmes(-1))
+hDone:
+
+process_events
+release
