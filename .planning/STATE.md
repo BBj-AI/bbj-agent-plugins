@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 4
 current_phase_name: bbj-programming makeover
 status: executing
-stopped_at: Phase 4 context gathered
-last_updated: "2026-10-11T08:16:46.467Z"
-last_activity: 2026-10-10
-last_activity_desc: Phase 03 complete, transitioned to Phase 4
-state_head: 947e557579de13836fa6491acd1c676a1fcb6845
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-10-11T08:24:40.051Z"
+last_activity: 2026-10-11
+last_activity_desc: Phase 4 execution started
+state_head: edd3b8f4bdcc04337c7d559cfa998fcf06004072
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 23
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -27,10 +27,10 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 
 ## Current Position
 
-Phase: 4 (bbj-programming makeover) — READY TO EXECUTE
-Plan: Not started
+Phase: 4 (bbj-programming makeover) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-10-10 — Phase 03 complete, transitioned to Phase 4
+Last activity: 2026-10-11 — Phase 4 execution started
 
 Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4 plans)
 
@@ -73,6 +73,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 2 P04 | 15min | 3 tasks | 6 files |
 | Phase 02 P05 | 130min | 3 tasks | 14 files |
 | Phase 02 P06 | 7min | 3 tasks | 5 files |
+| Phase 04 P01 | 8 min | 2 tasks | 77 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,8 @@ Recent decisions affecting current work:
 
 - [Phase 3]: Skills listed as pending with ratcheted per-check counts (D-01..D-04); baseline on BBj 26.03: bbj-programming bbjcpl 44 / bbj-ls 36 / grammar 11 / structure 17, bbj-web-programming 25 / 15 / 5 / 8; nocheck 0
 - [Phase 3]: UAT accepted D-08 amendment (bbj-ls-only should-fail is undecided), D-13 CI exemption (missing live routes skip under CI=true) and IN-03 (broken route skip unless BBJ_SKILLS_LIVE=1)
+- [Phase 04]: [04-01] Probe records are normalized (temp dir removed everywhere, type check messages sorted) and reserved-word files are generated, only the failing words per route and form are committed
+- [Phase 04]: [04-01] int() of a string primitive fails to compile on both routes (t17, t22) while int() of an object variable compiles (t23); RESEARCH t17 'clean' was not reproduced
 
 ### Pending Todos
 
@@ -129,6 +132,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T06:48:14.375Z
-Stopped at: Phase 4 context gathered
-Resume file: .planning/phases/04-bbj-programming-makeover/04-CONTEXT.md
+Last session: 2026-10-11T08:24:39.955Z
+Stopped at: Completed 04-01-PLAN.md
+Resume file: None
