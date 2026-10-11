@@ -9,7 +9,9 @@ https://documentation.basis.cloud/BASISHelp/WebHelp/em/database/EM_DB_JDBC_How-T
 `BBjAPI().getJDBCConnection(url)` returns a `java.sql.Connection`
 (https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjapi/bbjapi_getjdbcconnection.htm). The `url`
 is "The name of a BBj database on the server, or the JDBC connection URL used to connect to a remote or third party
-database"; a BBj database name must match "the name defined in the Enterprise Manager, including case". The blocks
+database"; a BBj database name must match "the name defined in the Enterprise Manager, including case". The page also
+lists overloads that take `mode` (a list of properties such as `USER=myusername,PWD=mypass`), `props`, or `user` and
+`password` (the last two from BBj 16.00). The blocks
 use `ChileCompany`, the database of the page's own example; pass the name of your database. The query
 `select 1` and the column name `COL` are placeholders: `select 1` returns one unnamed column, so replace both with a
 query and a column of your own table. The Java sample of the How-To page closes the result
@@ -90,7 +92,8 @@ clause in a query see the SQL Grammar page linked from it.
 ## SQL functions
 
 For a BBj database, these pages list the string, numeric and time-and-date functions "supported by the
-BASIS DBMS"; for a third-party database reached through a JDBC URL, use that database's own functions:
+BASIS DBMS". For a third-party database reached through a JDBC URL these pages do not apply; use that database's
+own documentation (general advice, not stated on these pages):
 
 - https://documentation.basis.cloud/BASISHelp/WebHelp/b3odbc/SQL/bbjds_string_functions.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/b3odbc/SQL/bbjds_numeric_functions.htm
