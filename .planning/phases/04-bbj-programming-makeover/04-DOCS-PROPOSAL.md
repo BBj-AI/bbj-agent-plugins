@@ -351,9 +351,11 @@ runtime error." It does not say which types `DECLARE AUTO` accepts.
   Question for the owners of the `addWindow` page: please confirm whether a top-level window has a `setModal()` method
   and, if it has none, whether the page should say so; the evidence above is that `bbjcpl -t` rejects
   `setModal(BBjInt)` and `bbj-ls` accepts it.
-  Please also state whether the Dialog flag (`$00080000$`, "Sets the window to behave as a dialog") makes a
-  window modal; the page also lists the flags `$02000000$` MDI Desktop Modal and `$40000000$` MDI Group Modal
-  (ledger L117, rewritten in plan 04-07).
+  The WINDOW mnemonic page (https://documentation.basis.cloud/BASISHelp/WebHelp/mnemonic/sysgui/window_mnemonic_create_sysgui_window_bbj.htm)
+  names "the dialog behavior flag ($00080000$), that creates a modal dialog", and the `isModal()` example creates its
+  modal window with `$00080083$`. Suggested wording for the Dialog entry of the `addWindow` page:
+  "$00080000$ Dialog : Sets the window to behave as a modal dialog." (ledger L117, restored to DOC in plan 04-08;
+  the owner-confirmed rule for windows without the Dialog flag that already existed is L151, in the owner-confirmed section).
 - L150, a misspelled `MSGBOX` constant. Page:
   https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/msgbox_function_bbj.htm
   lists the constants (for example `MSGBOX_BUTTONS_YES_NO`) and does not say that the compiler
@@ -386,11 +388,11 @@ Says today: "valid Indicates whether the form is accepted (1) or rejected (0)." 
 
 ## Owner-confirmed behaviour the documentation does not state (D-23)
 
-Two behaviours were confirmed by the project owner on a real BBj, because no page states them and no
-compile check can show them. Both ship in the rewritten skill as plain facts. Both are listed here as
-amendments for the documentation owners. Confirmer, date and version for both: confirmed by Stephan
-Wald, 2026-10-11, BBj 26.03 (the version as stated in the owner context). This repository never ran
-either one.
+Three behaviours were confirmed by the project owner on a real BBj, because no page read states them and
+no compile check can show them. All three ship in the rewritten skill as verified rules (D-21). All three
+are listed here as amendments for the documentation owners. Confirmer, date and version for all three:
+confirmed by Stephan Wald, 2026-10-11, BBj 26.03 (the version as stated in the owner context). This
+repository never ran any of them.
 
 ### L031, the numeric-mask sign trap
 
@@ -422,6 +424,25 @@ Suggested wording (one sentence, gap G7), in the `t<terminal alias>` row:
 
 > The alias `IO` attaches the session to standard input and output; with `-tIO` the output of
 > `PRINT` goes to stdout.
+
+### L151, a window without the Dialog flag that already existed cannot be brought in front of a Dialog-flag window
+
+Confirmed by Stephan Wald, 2026-10-11, BBj 26.03: while a window created with the Dialog flag
+(`$00080000$`) is open, a window without the Dialog flag that already existed cannot be brought in front
+of it (ledger id L151; granted in decision D-24).
+
+Pages to amend:
+https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjsysgui/bbjsysgui_addwindow.htm (the Dialog entry) and
+https://documentation.basis.cloud/BASISHelp/WebHelp/mnemonic/sysgui/window_mnemonic_create_sysgui_window_bbj.htm (the notes for top level windows).
+
+Says today: the `addWindow` page "$00080000$ Dialog : Sets the window to behave as a dialog."; the WINDOW
+mnemonic page "Windows created with the dialog behavior flag ($00080000$), that creates a modal dialog, will
+not have an icon in the Start Bar in Windows."
+
+Suggested wording, after the WINDOW mnemonic sentence:
+
+> While a window created with this flag is open, a window without this flag that already existed cannot be
+> brought in front of it.
 
 ## Rules dropped for lack of a source (candidates to confirm)
 
@@ -496,7 +517,6 @@ plugin can then take it back with a URL. The `-tIO` fact is not in this list: it
 | L056 | without `-N`, bbjcpl writes a large binary into the working directory | the page documents `-N` and the output files, not their size; the one observation (193 bytes) was in a scratch directory and is not a committed probe |
 | L065, L137 | the runtime error text for an event constant a control does not support (`!ERROR=17`, "Callback ... is not valid for ...Facade") | the programs compile clean on both routes (`probes/ev01_list_select.bbj`, `probes/s07_imgctrl_mousedown.bbj`); no page states the text |
 | L009 | the runtime wording "Cannot assign <undeclared> ... to BBjString myField!" | the `_error_26` page does not contain it; only the compile wording is observable |
-| L119 | `BBjTopLevelWindow::isModal()` only reports the Dialog flag; `DIALOGBEHAVIOR` in an `.arc` resource | not on the `addWindow` page and not probed |
 | L135 | the CSS property `--dwc-color-primary-h` re-tunes the message box theme hue | no page was cited; CSS tokens belong to the web skill |
 
 ## Notes for the primer and the docs server
@@ -541,5 +561,5 @@ and of the documentation server. None is a request to edit a BASIS documentation
 
 Entries per section: STR() chapter 5 (S1 to S5); rules kept on compile evidence 21 (the 18 ledger ids
 L010 L011 L012 L014 L015 L016 L018 L060 L064 L086 L118 L143 L144 L145 L146 L148 L149 L150, plus the
-related L006, L101 and L147, in 7 page groups); owner-confirmed behaviour 2 (L031, L072); dropped
-rules 5 groups and 6 smaller rows; notes for the primer and the docs server 3.
+related L006, L101 and L147, in 7 page groups); owner-confirmed behaviour 3 (L031, L072, L151); dropped
+rules 5 groups and 5 smaller rows; notes for the primer and the docs server 3.
