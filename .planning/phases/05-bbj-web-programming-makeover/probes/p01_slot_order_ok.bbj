@@ -1,0 +1,9 @@
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+declare auto BBjWebComponent card!
+declare auto BBjWebComponent badge!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+card! = win!.addWebComponent("sl-card")
+badge! = win!.addWebComponent("sl-badge")
+card!.setSlot("footer", badge!)

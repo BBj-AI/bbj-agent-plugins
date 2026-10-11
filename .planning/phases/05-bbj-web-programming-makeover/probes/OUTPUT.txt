@@ -1,0 +1,11 @@
+# probes/OUTPUT.txt -- written by python3 -I probes/run.py (plan 05-01, D-01); compile only, nothing was run
+BBj version: 26.03 (bbj-ls structuredContent.bbjVersion)
+bbjcpl -t -N -X, one batched call: exit status 0, stdout 0 bytes
+
+== p01_slot_order_ok.bbj
+bbjcpl: clean
+bbj-ls: clean
+
+== p02_slot_order_reversed.bbj
+bbjcpl: p02_slot_order_reversed.bbj: type check error [No match for method com.basis.bbj.proxies.sysgui.BBjWebComponent.setSlot(com.basis.bbj.proxies.sysgui.BBjWebComponent, BBjString)] at line 90 (9): card!.setSlot(badge!, "footer")
+bbj-ls: clean
