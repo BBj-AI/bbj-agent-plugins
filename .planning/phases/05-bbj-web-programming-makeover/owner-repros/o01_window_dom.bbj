@@ -1,0 +1,35 @@
+rem Owner repro for checklist items O1 to O4 (plan 05-04). Register as a DWC app and look at the DOM.
+rem It only shows windows and injects one constant stylesheet. It writes nothing and calls no other host.
+declare auto BBjSysGui sysgui!
+declare auto BBjWebManager web!
+declare auto BBjTopLevelWindow win!
+declare auto BBjTopLevelWindow win2!
+declare auto BBjChildWindow panel!
+declare auto BBjButton ownButton!
+declare auto BBjButton panelButton!
+declare auto BBjButton secondButton!
+
+sysgui! = BBjAPI().openSysGui("X0")
+web! = BBjAPI().getWebManager()
+
+rem O2: the first rule is for the window with the class p5-frame, the second for p5-frame2
+css$ = ".p5-frame { top: 120px; left: 120px; } .p5-frame2 { margin: 0 auto; }"
+web!.injectStyle(css$, 1, "id=p5-o01-css")
+
+rem the first window, Automatic Layout flag $00100000$ included, not invisible
+win! = sysgui!.addWindow("O1 to O4 first window", $00100083$)
+win!.addClass("p5-center"); rem O1: which element carries this class
+win!.addOuterStyle("p5-frame"); rem O1: which element carries this class
+ownButton! = win!.addButton("Button on the window"); rem O4: its parent element
+panel! = win!.addChildWindow("", $00108800$, sysgui!.getAvailableContext())
+panel!.addClass("p5-panel")
+panelButton! = panel!.addButton("Button in the child window"); rem O4: its parent element
+
+rem the second window, for the margin rule of O2
+win2! = sysgui!.addWindow("O2 second window", $00100083$)
+win2!.addClass("p5-center2")
+win2!.addOuterStyle("p5-frame2")
+secondButton! = win2!.addButton("Button on the second window")
+
+process_events
+release

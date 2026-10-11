@@ -1,4 +1,5 @@
-"""probes/run.py -- plan 05-01, WEB-01; decisions D-01, D-03, D-18: the compile-only probe runner.
+"""probes/run.py -- plan 05-01 and 05-04, WEB-01; decisions D-01, D-03, D-05, D-18: the compile-only
+probe runner.
 
 Compiles every probe file of this directory (one minimal BBj program per file, name of lowercase
 letters, digits and '_', ending .bbj) and records what the two local checks say about it, so that
@@ -21,6 +22,12 @@ compiler's records name that directory, which is removed from every line before 
 The only program this script starts is the compiler, with -t -N -X; the only network peer is the
 loopback bbj-ls (no proxy, no redirect). The hosted check and the hosted docs server are never
 contacted. BBj code is never run; probe text is data, never part of a command.
+
+Plan 05-04 adds the owner repro programs: when the directory ../owner-repros (next to probes/)
+exists, its *.bbj files (same name rule, no collision with a probe name, subdirectories not read)
+are compiled in the same batched call, posted to the loopback bbj-ls like probes, and recorded after
+the probes in sections headed "== owner-repros/<name>.bbj". They are run only by the project owner,
+never by Claude; --check covers them.
 """
 import http.client
 import json
@@ -35,6 +42,8 @@ import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUTPUT_PATH = os.path.join(HERE, "OUTPUT.txt")
+OWNER_DIR = os.path.join(os.path.dirname(HERE), "owner-repros")
+OWNER_PREFIX = "owner-repros/"
 # -N is compile only: no output file, nothing runs (the same constant as tests/test_skill_examples.py)
 CPL_ARGS = ["-t", "-N", "-X"]
 CPL_TIMEOUT = 300
@@ -98,6 +107,23 @@ def probe_names():
     for n in names:
         if not NAME_RE.match(n):
             sys.stderr.write("probe name %s does not match [a-z0-9_]+.bbj\n" % safe(n))
+            return None
+    return names
+
+
+def owner_names(probes):
+    """Sorted file names of OWNER_DIR (none when the directory is absent); None when a name does not
+    match NAME_RE or collides with a probe name or a canary (exit 2). Subdirectories are not read."""
+    if not os.path.isdir(OWNER_DIR):
+        return []
+    names = sorted(n for n in os.listdir(OWNER_DIR)
+                   if n.endswith(".bbj") and os.path.isfile(os.path.join(OWNER_DIR, n)))
+    for n in names:
+        if not NAME_RE.match(n):
+            sys.stderr.write("owner repro name %s does not match [a-z0-9_]+.bbj\n" % safe(n))
+            return None
+        if n in probes or n in ("canary_good.bbj", "canary_bad.bbj"):
+            sys.stderr.write("owner repro name %s collides with a probe or canary\n" % safe(n))
             return None
     return names
 
@@ -222,11 +248,15 @@ def read_text(path):
         return f.read().decode("utf-8", errors="replace")
 
 
-def collect(cpl, names, tmpdir):
+def collect(cpl, probes, owner, tmpdir):
     """(output lines, problem): everything one run records, or (None, problem) when a check of the
-    evidence itself fails. The canary result is printed as a gate line."""
+    evidence itself fails. The canary result is printed as a gate line. Probes come from HERE, owner
+    repros from OWNER_DIR; both are compiled in the same batch."""
+    names = probes + owner
+    source = dict((n, os.path.join(HERE, n)) for n in probes)
+    source.update((n, os.path.join(OWNER_DIR, n)) for n in owner)
     for n in names:
-        shutil.copyfile(os.path.join(HERE, n), os.path.join(tmpdir, n))
+        shutil.copyfile(source[n], os.path.join(tmpdir, n))
     with open(os.path.join(tmpdir, "canary_good.bbj"), "w", encoding="utf-8", newline="\n") as f:
         f.write(CANARY_GOOD)
     with open(os.path.join(tmpdir, "canary_bad.bbj"), "w", encoding="utf-8", newline="\n") as f:
@@ -251,7 +281,7 @@ def collect(cpl, names, tmpdir):
             return None, "unattributed compiler line (-W): %s" % safe(wstray[0])[:200]
     verdicts, version = {}, None
     for n in names:
-        verdict, lines, ver, err = ls_check(read_text(os.path.join(HERE, n)))
+        verdict, lines, ver, err = ls_check(read_text(source[n]))
         if verdict == "noverdict":
             return None, "bbj-ls gave no verdict for %s%s" % (n, (": " + err) if err else "")
         verdicts[n] = lines
@@ -266,7 +296,7 @@ def collect(cpl, names, tmpdir):
                    % (" ".join(CPL_ARGS), wrc, wnout))
     for n in names:
         out.append("")
-        out.append("== %s" % n)
+        out.append("== %s%s" % (OWNER_PREFIX if n in owner else "", n))
         mine = records.get(n)
         if mine:
             for rec in mine:
@@ -288,11 +318,11 @@ def collect(cpl, names, tmpdir):
     return out, ""
 
 
-def render(cpl, names):
+def render(cpl, probes, owner):
     """(lines, problem): collect() inside a fresh temporary directory that is always removed."""
     tmpdir = tempfile.mkdtemp(prefix="bbjprobe")
     try:
-        return collect(cpl, names, tmpdir)
+        return collect(cpl, probes, owner, tmpdir)
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
 
@@ -325,13 +355,16 @@ def main(argv):
     names = probe_names()
     if names is None:
         return 2
-    lines, problem = render(cpl, names)
+    owner = owner_names(names)
+    if owner is None:
+        return 2
+    lines, problem = render(cpl, names, owner)
     if lines is None:
         sys.stderr.write("%s\n" % problem)
         return 1
     if not check:
         write_output(lines)
-        print("gate probes_written ok %d probes" % len(names))
+        print("gate probes_written ok %d probes" % (len(names) + len(owner)))
         return 0
     try:
         with open(OUTPUT_PATH, "r", encoding="utf-8", newline="") as f:
@@ -348,7 +381,7 @@ def main(argv):
             print("gate probes_reproduce FAIL line %d: expected %s got %s"
                   % (k + 1, safe(a)[:160], safe(b)[:160]))
             return 1
-    print("gate probes_reproduce ok %d probes" % len(names))
+    print("gate probes_reproduce ok %d probes" % (len(names) + len(owner)))
     return 0
 
 

@@ -85,3 +85,7 @@ bbj-ls: line 5, column 1: [UndefinedLabelError] label LOGIN_FAILED used but not 
 == q04_register_dwc.bbj
 bbjcpl: clean
 bbj-ls: clean
+
+== owner-repros/o01_window_dom.bbj
+bbjcpl: clean
+bbj-ls: clean
