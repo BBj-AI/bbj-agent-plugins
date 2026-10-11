@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 4
 current_phase_name: bbj-programming makeover
 status: executing
-stopped_at: Completed 04-01-PLAN.md
-last_updated: "2026-10-11T08:24:40.051Z"
+stopped_at: Completed 04-02-PLAN.md
+last_updated: "2026-10-11T08:42:36.347Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 4 execution started
-state_head: edd3b8f4bdcc04337c7d559cfa998fcf06004072
+state_head: 7826a85f860635fc772484a06f4f3717d4dc3776
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 23
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 4 (bbj-programming makeover) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 4 execution started
 
@@ -74,6 +74,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 02 P05 | 130min | 3 tasks | 14 files |
 | Phase 02 P06 | 7min | 3 tasks | 5 files |
 | Phase 04 P01 | 8 min | 2 tasks | 77 files |
+| Phase 04 P02 | 16 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,7 @@ Recent decisions affecting current work:
 - [Phase 3]: UAT accepted D-08 amendment (bbj-ls-only should-fail is undecided), D-13 CI exemption (missing live routes skip under CI=true) and IN-03 (broken route skip unless BBJ_SKILLS_LIVE=1)
 - [Phase 04]: [04-01] Probe records are normalized (temp dir removed everywhere, type check messages sorted) and reserved-word files are generated, only the failing words per route and form are committed
 - [Phase 04]: [04-01] int() of a string primitive fails to compile on both routes (t17, t22) while int() of an object variable compiles (t23); RESEARCH t17 'clean' was not reproduced
+- [Phase 04]: 04-02: exactly two OWNER ledger rows (L031 str() sign trap, L072 bbj -tIO stdout), both granted by D-22; callback-performance.md keeps three rules, java-interop.md and reserved-words.md none (ledger totals 150 rows)
 
 ### Pending Todos
 
@@ -132,6 +134,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T08:24:39.955Z
-Stopped at: Completed 04-01-PLAN.md
+Last session: 2026-10-11T08:42:36.237Z
+Stopped at: Completed 04-02-PLAN.md
 Resume file: None

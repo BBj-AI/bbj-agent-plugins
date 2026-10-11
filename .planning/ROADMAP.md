@@ -158,7 +158,7 @@ Plans:
   4. Known wrong claims are corrected (`LIMIT` is documented, the `str()` mask example, "parse stdout" of `bbjcpl`, `HashMap`/`ArrayList` need `USE`); all taste (`PRECISION 16`, `Utils` class, `q`/`k`/`wi` naming, size-guard rule) and project leftovers are gone; launcher facts remain only where verified and framed as applying when the user asks to run a program
   5. Every `bbj` block in the skill and its references passes the live gate on both routes, the structure lints pass, and the skill is still invoked as `/bbj:bbj-programming`
 
-**Plans**: 1/6 plans executed
+**Plans**: 2/6 plans executed
 
 Plans:
 **Wave 1**
@@ -167,7 +167,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 04-02-PLAN.md — Claim ledger 04-LEDGER.md (one row per rule: class, evidence, primer, verdict, route) and ledger_check.py (wave 2, after 04-01)
+- [x] 04-02-PLAN.md — Claim ledger 04-LEDGER.md (one row per rule: class, evidence, primer, verdict, route) and ledger_check.py (wave 2, after 04-01)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -226,6 +226,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
-| 4. bbj-programming makeover | 1/6 | In Progress | - |
+| 4. bbj-programming makeover | 2/6 | In Progress | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |
