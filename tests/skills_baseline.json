@@ -4,11 +4,11 @@
   "pending": {
     "bbj-programming": {
       "counts": {
-        "bbj-ls": 36,
-        "bbjcpl": 44,
-        "grammar": 11,
+        "bbj-ls": 15,
+        "bbjcpl": 20,
+        "grammar": 10,
         "should-fail": 0,
-        "structure": 17
+        "structure": 5
       },
       "phase": 4
     },
