@@ -1,9 +1,9 @@
 ---
-status: diagnosed
+status: complete
 phase: 04-bbj-programming-makeover
-source: [04-VERIFICATION.md]
+source: [04-VERIFICATION.md, 04-08-SUMMARY.md]
 started: 2026-10-11T11:49:02Z
-updated: 2026-10-11T12:59:46Z
+updated: 2026-10-11T17:52:05.336Z
 ---
 
 ## Current Test
@@ -27,10 +27,23 @@ severity: major
 expected: Owner accepts that tests/test_install_codex.sh (Phase 1 code, untouched by Phase 4) races a local Codex app-server daemon writing under ~/.codex, and decides whether to harden the gate in a later phase
 result: pass
 
+### 4. Re-test the Dialog flag wording after gap closure 04-08 (re-run of test 2)
+expected: sysgui.md lines 12-22 state that the Dialog flag ($00080000$) makes the window modal, citing the WINDOW mnemonic page with the isModal() and getActiveContext() examples as support; no sentence disclaims modality; the front rule reads "While a Dialog-flag window is open, a window without the Dialog flag that already existed cannot be brought in front of it.", is marked as maintainer-confirmed on BBj 26.03, and says nothing about windows created later
+result: pass
+
+### 5. Dispose of review warning WR-01 and info items IN-01, IN-02
+expected: Each of WR-01 (SKILL.md:133-138, `@` and `&` listed next to the sign characters before "Put one in every mask"), IN-01 and IN-02 (sysgui.md wording) has a disposition (fixed, skipped, deferred) with a reason in 04-REVIEW-DISPOSITION.md, and the stale WR-08 row is set to fixed. Verifier recommends fixing WR-01 and IN-02 before 0.2.0
+result: pass
+note: "At pass time 04-REVIEW-DISPOSITION.md still lists WR-01, IN-01, IN-02 and WR-08 as open"
+
+### 6. Accept or reject the flagged prohibitions of plan 04-08
+expected: Owner confirms no shipped sentence says anything about windows created after the Dialog-flag window, or about focus or the active window, or widens the owner rule; no shipped sentence claims a fact beyond its page or D-24
+result: pass
+
 ## Summary
 
-total: 3
-passed: 2
+total: 6
+passed: 5
 issues: 1
 pending: 0
 skipped: 0
@@ -40,7 +53,9 @@ blocked: 0
 
 - gap_id: G-04-2
   truth: "sysgui.md describes the Dialog window-creation flag correctly"
-  status: failed
+  status: resolved
+  resolved_by: 04-08-PLAN.md
+  resolved_at: 2026-10-11
   reason: "User reported: the \"Dialog\" window creation flag makes the window modal (IOW no other windows can come to front that have no \"modal\" flag\", unless created later)"
   severity: major
   test: 2
