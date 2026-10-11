@@ -10,39 +10,29 @@ The quoted error text is for orientation only: compiler message text can vary be
 
 | check | count |
 | --- | --- |
-| grammar | 10 |
-| structure | 5 |
-| bbjcpl | 20 |
-| bbj-ls | 15 |
+| grammar | 6 |
+| structure | 3 |
+| bbjcpl | 8 |
+| bbj-ls | 6 |
 | should-fail | 0 |
 
-### grammar (10)
+### grammar (6)
 
-- `references/callback-performance.md:47` '...' placeholder in a bbj block (file line 56)
 - `references/reserved-words.md:30` untagged fence
 - `references/reserved-words.md:46` untagged fence
 - `references/reserved-words.md:55` untagged fence
 - `references/reserved-words.md:75` untagged fence
 - `references/reserved-words.md:88` untagged fence
 - `references/reserved-words.md:93` untagged fence
-- `references/sysgui.md:27` '...' placeholder in a bbj block (file line 29)
-- `references/sysgui.md:107` '...' placeholder in a bbj block (file line 110)
-- `references/sysgui.md:179` '...' placeholder in a bbj block (file line 212)
 
-### structure (5)
+### structure (3)
 
-- `references/callback-performance.md:67` last ## section is 'Summary: which pattern to use', not '## Sources'
 - `references/database.md:64` last ## section is 'Limiting result rows ? use TOP, not LIMIT', not '## Sources'
 - `references/java-interop.md:50` last ## section is 'HashMap / TreeMap patterns', not '## Sources'
 - `references/reserved-words.md:97` last ## section is 'Safe short names', not '## Sources'
-- `references/sysgui.md:1` no ## section; the file must end with a ## Sources section
 
-### bbjcpl (20)
+### bbjcpl (8)
 
-- `references/callback-performance.md:8` line 10: error at line 20 (2): method public void onSearchModify(BBjEditModifyEvent event!)
-- `references/callback-performance.md:20` line 21: error at line 10 (1): method public void onIsBaseChange(BBjCheckChangeEvent event!)
-- `references/callback-performance.md:29` line 34: error at line 50 (5): method public void onWatchHChange(BBjEditModifyEvent event!)
-- `references/callback-performance.md:47` line 52: error at line 50 (5): method public void onSave(BBjFormValidationEvent event!)
 - `references/database.md:6` line 7: error at line 10 (1): conn! = BBjAPI().getJDBCConnection("MyDatasource")   REM registered BBj datasource name
 - `references/java-interop.md:10` line 11: type check error [No match for method java.util.Arrays.asList(<undeclared>); Ambiguous signatures join(java.lang.CharSequence, java.lang.Iterable)
 - `references/java-interop.md:19` line 20: error at line 10 (1): options! = java.lang.String.join($0a$, myHashMap!.keySet())    REM keys
@@ -51,32 +41,15 @@ The quoted error text is for orientation only: compiler message text can vary be
 - `references/java-interop.md:53` line 54: error at line 10 (1): method public BBjString getMruForListButton(LinkedHashMap mru!)
 - `references/java-interop.md:62` line 63: error at line 10 (1): method private Object getLastMapKey(Map map!)
 - `references/java-interop.md:71` line 75: error at line 40 (4): treeMap! = new TreeMap()                            REM sorted by natural key order
-- `references/sysgui.md:6` line 7: error at line 10 (1): method private void build(BBjChildWindow parentWin!)
-- `references/sysgui.md:16` line 17: error at line 10 (1): panel!  = win!.addChildWindow("", $00108800$, sysGui!.getAvailableContext())   REM fresh call
-- `references/sysgui.md:21` line 22: type check error [Cannot find #this! reference] at line 10 (1): #winLogin! = sysGui!.addWindow(sysGui!.getAvailableContext(), "Login", $00180013$)
-- `references/sysgui.md:27` line 28: error at line 10 (1): #winDialog! = sysGui!.addWindow(sysGui!.getAvailableContext(), "Add User", $00180013$)  REM includes $10$
-- `references/sysgui.md:58` line 59: type check error [Cannot find #this! reference] at line 10 (1): #lstStyle! = win!.addListButton(java.lang.String.join($0A$, cast(Iterable, filterItems!)))
-- `references/sysgui.md:76` line 78: error at line 20 (2): method private void selectStyle(BBjString value!)
-- `references/sysgui.md:90` line 92: error at line 20 (2): method private void selectStyle(BBjString value!)
-- `references/sysgui.md:179` line 197: type check error [No match for method com.basis.bbj.proxies.sysgui.BBjChildWindow.addImageCtrl(java.lang.Object)] at line 180 (18):                 img! = #winImagePanel!.addImageCtrl(images
 
-### bbj-ls (15)
+### bbj-ls (6)
 
-- `references/callback-performance.md:8` line 10, column 1: [ClassError] class definition error on this line
-- `references/callback-performance.md:20` line 21, column 1: [ClassError] class definition error on this line
-- `references/callback-performance.md:29` line 34, column 1: [ClassError] class definition error on this line
-- `references/callback-performance.md:47` line 52, column 1: [ClassError] class definition error on this line
 - `references/database.md:6` line 7, column 1: [SyntaxError] syntax error
 - `references/java-interop.md:19` line 20, column 1: [SyntaxError] syntax error
 - `references/java-interop.md:33` line 34, column 1: [ClassError] class definition error on this line
 - `references/java-interop.md:53` line 54, column 1: [ClassError] class definition error on this line
 - `references/java-interop.md:62` line 63, column 1: [ClassError] class definition error on this line
 - `references/java-interop.md:71` line 75, column 1: [SyntaxError] syntax error
-- `references/sysgui.md:6` line 7, column 1: [ClassError] class definition error on this line
-- `references/sysgui.md:16` line 17, column 1: [SyntaxError] syntax error
-- `references/sysgui.md:27` line 28, column 1: [SyntaxError] syntax error
-- `references/sysgui.md:76` line 78, column 1: [ClassError] class definition error on this line
-- `references/sysgui.md:90` line 92, column 1: [ClassError] class definition error on this line
 
 ## bbj-web-programming (pending, Phase 5)
 
