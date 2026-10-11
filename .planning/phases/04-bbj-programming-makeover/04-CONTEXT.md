@@ -113,6 +113,28 @@ own ratchet.
 - **D-23:** Every OWNER claim also goes into `04-DOCS-PROPOSAL.md` as a docs gap for the BASIS
   owners to amend. The proposal is the "laundry list" of doc amendments the user keeps separately.
 
+### Owner confirmation (UAT follow-up, gap G-04-2, 2026-10-11)
+- **D-24:** One more claim is OWNER-confirmed (2026-10-11, BBj 26.03): while a window created with the
+  Dialog flag (`$00080000$`) is open, a window that is not modal cannot come to the front unless it was
+  created after the Dialog-flag window.
+  - Source: the project owner, Stephan Wald, in UAT test 2 of `04-UAT.md` (his words:
+    `the "Dialog" window creation flag makes the window modal (IOW no other windows can come to front that have no "modal" flag", unless created later)`),
+    then confirmed explicitly in the gap-planning session of 2026-10-11 that this ships as an
+    OWNER-confirmed fact, D-21/D-22/D-23 pattern, version BBj 26.03 (as for D-22). "Windows ... that
+    have no "modal" flag" is rendered as "a window that is not modal"; nothing beyond his words is granted.
+  - Scope: only the front-ordering rule and its exception are OWNER. That the Dialog flag creates a modal
+    window is DOC and is cited as such:
+    https://documentation.basis.cloud/BASISHelp/WebHelp/mnemonic/sysgui/window_mnemonic_create_sysgui_window_bbj.htm
+    ("the dialog behavior flag ($00080000$), that creates a modal dialog"), supported by the examples of
+    the `isModal()` and `getActiveContext()` pages.
+  - Wording: the exception must not say or suggest that a later window takes focus or becomes the active
+    window; the `getActiveContext()` example expects the Dialog-flag window to stay the active context
+    after a later window is created ("Should print 2 (the modal window)").
+  - It ships in `references/sysgui.md` marked as "the rule the skill maintainer confirmed on BBj 26.03;
+    the documentation does not state it" (the str() rule's wording, commit ea9bf42), gets an OWNER row in
+    `04-LEDGER.md`, and goes into `04-DOCS-PROPOSAL.md` (D-23). The plan 04-07 prohibition on modal
+    wording in `references/sysgui.md` held only "while no page and no owner grant says so"; both now do.
+
 ### Claude's Discretion
 - Plan split and order (ledger first is implied, since the rewrite depends on its verdicts).
 - Probe file layout and naming under the phase directory.
