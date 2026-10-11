@@ -6,9 +6,10 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjFormValid
   window from user changes. This method must be called to unlock the window."
 - `accept(1)` accepts the form and then fires the button push event: "If the form is accepted, BBj fires a
   BBjButtonPushEvent. If the form is rejected, this event is not fired."
-- There is no `reject` method. `accept(0)` rejects: "valid Indicates whether the form is accepted (1) or
-  rejected (0)." `bbjcpl -t` reports `No match for method ...BBjFormValidationEvent.reject(BBjInt)`;
-  `bbj-ls` passes it.
+- The documented way to reject is `accept(0)`: "valid Indicates whether the form is accepted (1) or
+  rejected (0)." `bbjcpl -t` rejects `event!.reject(0)` and reports
+  `No match for method ...BBjFormValidationEvent.reject(BBjInt)`; `bbj-ls` passes it. That is the result of one
+  call on one route, not a statement about the class.
 
 ```bbj should-fail
 class public Demo
