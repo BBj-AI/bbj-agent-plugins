@@ -130,8 +130,10 @@ class public Demo
 classend
 ```
 
-A numeric mask with no sign character loses the minus sign of a negative value. The sign characters
-are `-`, `+`, `(` and `)`, `CR` and `DR` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Language_Concepts/numeric_output.htm).
+A numeric mask with no sign character loses the minus sign of a negative value. That is the rule the skill
+maintainer confirmed on BBj 26.03; the documentation does not state it. The Numeric Output page lists the sign
+characters `-`, `+`, `(` and `)`, `CR` and `DR` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Language_Concepts/numeric_output.htm);
+its BBj-specific page adds the mask characters `@` and `&` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/BBj_Enhancements/numeric_output_bbj.htm).
 Put one in every mask that can format a negative value. For every other mask character use
 `bbj_lookup` on STR() or https://documentation.basis.cloud/BASISHelp/WebHelp/commands/str_function.htm.
 
