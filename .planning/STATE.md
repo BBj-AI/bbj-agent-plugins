@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 4
 current_phase_name: bbj-programming makeover
 status: executing
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-10-11T08:42:36.347Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-10-11T08:52:54.942Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 4 execution started
-state_head: 7826a85f860635fc772484a06f4f3717d4dc3776
+state_head: c9266039b679acdf1bc79f0c33c5b05692cedf03
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 23
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 4 (bbj-programming makeover) — EXECUTING
-Plan: 3 of 6
+Plan: 4 of 6
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 4 execution started
 
@@ -75,6 +75,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 02 P06 | 7min | 3 tasks | 5 files |
 | Phase 04 P01 | 8 min | 2 tasks | 77 files |
 | Phase 04 P02 | 16 min | 3 tasks | 4 files |
+| Phase 4 P03 | 30 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Recent decisions affecting current work:
 - [Phase 04]: [04-01] Probe records are normalized (temp dir removed everywhere, type check messages sorted) and reserved-word files are generated, only the failing words per route and form are committed
 - [Phase 04]: [04-01] int() of a string primitive fails to compile on both routes (t17, t22) while int() of an object variable compiles (t23); RESEARCH t17 'clean' was not reproduced
 - [Phase 04]: 04-02: exactly two OWNER ledger rows (L031 str() sign trap, L072 bbj -tIO stdout), both granted by D-22; callback-performance.md keeps three rules, java-interop.md and reserved-words.md none (ledger totals 150 rows)
+- [Phase 4]: 04-03: Built in line keeps the pinned prefix and appends the scope; one line identical in SKILL.md and codex/AGENTS-snippet.md
+- [Phase 4]: 04-03: str() sign trap ships unhedged as OWNER row L031 with one passing block and no should-fail block
+- [Phase 4]: 04-03: SKILL.md body stops at 148 lines so the 04-05 running.md pointer fits within 150
 
 ### Pending Todos
 
@@ -134,6 +138,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T08:42:36.237Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-10-11T08:52:54.836Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
