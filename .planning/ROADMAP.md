@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Repo-owned skills and local-first check route** - Stop vendoring; Codex `--with-local`; one check-order text and local-first docs (completed 2026-10-10)
 - [x] **Phase 2: Hook no-route notice** - The hook tells the agent once per session when a written file could not be checked (completed 2026-10-10)
 - [x] **Phase 3: Example gate and structure lints** - Every fenced BBj block and skill structure rule is measured; the baseline is the makeover to-do list (completed 2026-10-10)
-- [ ] **Phase 4: bbj-programming makeover** - Check workflow first, short body, every claim sourced or reproduced, every block passes the gate
+- [x] **Phase 4: bbj-programming makeover** - Check workflow first, short body, every claim sourced or reproduced, every block passes the gate (completed 2026-10-11)
 - [ ] **Phase 5: bbj-web-programming makeover** - Short trigger-first description, DWC claims kept only with proof, taste cut, every block passes the gate
 - [ ] **Phase 6: Release 0.2.0** - Versions, changelog with upgrade notes, live gates green, tag
 
@@ -158,7 +158,7 @@ Plans:
   4. Known wrong claims are corrected (`LIMIT` is documented, the `str()` mask example, "parse stdout" of `bbjcpl`, `HashMap`/`ArrayList` need `USE`); all taste (`PRECISION 16`, `Utils` class, `q`/`k`/`wi` naming, size-guard rule) and project leftovers are gone; launcher facts remain only where verified and framed as applying when the user asks to run a program
   5. Every `bbj` block in the skill and its references passes the live gate on both routes, the structure lints pass, and the skill is still invoked as `/bbj:bbj-programming`
 
-**Plans**: 8/8 plans executed
+**Plans**: 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -234,6 +234,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
-| 4. bbj-programming makeover | 8/8 | In Progress | - |
+| 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |

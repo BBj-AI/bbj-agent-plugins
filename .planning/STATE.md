@@ -1,44 +1,45 @@
 ---
 gsd_state_version: "1.0"
 milestone: v0.2.0
-current_phase: 04
-current_phase_name: bbj-programming makeover
-status: executing
-stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-10-11T15:29:42.963Z"
+current_phase: 5
+current_phase_name: bbj-web-programming makeover
+status: planning
+stopped_at: Phase 04 complete, ready to plan Phase 5
+last_updated: "2026-10-11T17:52:27.754Z"
 last_activity: 2026-10-11
-last_activity_desc: Phase 04 execution started
-state_head: 9f8170588316c6ed5c9efe643c4f9b11969b967c
+last_activity_desc: Phase 04 complete, transitioned to Phase 5
+state_head: 32a4dd109db7f0cc64fb371665fdc248a147222e
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 25
   completed_plans: 25
+  percent: 67
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-10)
+See: .planning/PROJECT.md (updated 2026-10-11)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 04 — bbj-programming makeover
+**Current focus:** Phase 5 — bbj-web-programming makeover
 
 ## Current Position
 
-Phase: 04 (bbj-programming makeover) — EXECUTING
-Plan: 2 of 8
-Status: Ready to execute
-Last activity: 2026-10-11 — Phase 04 execution started
+Phase: 5 — bbj-web-programming makeover
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-11 — Phase 04 complete, transitioned to Phase 5
 
-Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4 plans)
+Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4, Phase 4 8/8 plans)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 17
+- Total plans completed: 25
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -49,6 +50,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | 1 | 7 | - | - |
 | 02 | 6 | - | - |
 | 03 | 4 | - | - |
+| 04 | 8 | - | - |
 
 **Recent Trend:**
 
@@ -137,10 +139,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 4]: Needs phase research: claim ledger, RUNTIME-claim policy (rewrite to compile-time observable or drop), primer cross-check; no `!ERROR=26` entry found in BASIS docs
 - [Phase 5]: Needs phase research: DWC DOM/CSS claims with no doc source; owner reproduction on a named DWC/BBj build is a human step
 - [Phase 6]: Tag form `0.2.0`; Codex upgrade traps (`--force`, `/hooks` re-approval) must reach CHANGELOG and installer output
-- 04-07 open deviation: live tests/run.sh view failed real_home_untouched on first run (local Codex daemon writes under ~/.codex); rerun passed; see 04-07-SUMMARY.md
+- [Phase 4]: real_home_untouched in tests/test_install_codex.sh races a local Codex daemon writing under ~/.codex; owner accepted it as an environmental flake at UAT (test 3); hardening the gate is open for a later phase
+- [Phase 4]: 04-REVIEW-DISPOSITION.md still lists WR-01 (SKILL.md `@`/`&` next to the sign characters), IN-01, IN-02 as open and WR-08 as stale; owner passed UAT test 5 without recording dispositions — settle before the Phase 6 release
 
 ## Deferred Items
 
@@ -152,6 +154,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T15:29:37.560Z
-Stopped at: Completed 04-08-PLAN.md
+Last session: 2026-10-11T17:55:00Z
+Stopped at: Phase 04 complete, ready to plan Phase 5
 Resume file: None

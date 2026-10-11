@@ -33,6 +33,7 @@ and `bbj-ls`).
 - ✓ Hook no-route notice: with no check route the hook exits 0 and emits one `additionalContext` object once per session (clean / errors / no route / route failed kept apart); delivery to the model confirmed on real Claude Code and real Codex (codex-cli 0.162.1) after `apply_patch` — Phase 2
 - ✓ Skill example gate `tests/test_skill_examples.py`: fence grammar (`bbj`, `bbj should-fail`, `bbj nocheck (reason)`), structure lints (description ≤ 1,024, denylist, Sources + Verified line), `nocheck` ratchet at 0; the lint runs in CI without BBj, the live check runs `bbjcpl -t -N -X` then loopback `bbj-ls` and skips without BBj (`BBJ_SKILLS_LIVE=1` makes a missing or broken route a FAIL) — Phase 3
 - ✓ Baseline committed (`tests/skills_baseline.json`, `03-BASELINE.md`, BBj 26.03): both skills listed as pending (Phase 4, Phase 5) with per-check counts, so the suite stays green and any rise fails — Phase 3
+- ✓ `bbj-programming` makeover: claim ledger (151 rows: DOC, COMPILE, RUNTIME, OWNER) with every claim cited, compile-reproduced on BBj 26.03 or dropped; SKILL.md check workflow first and short; known wrong claims, taste and project leftovers cut; every `bbj` block passes `bbjcpl -t` and `bbj-ls`; skill name unchanged (PROG-01..06) — Phase 4
 
 ### Active
 
@@ -88,13 +89,13 @@ and `bbj-ls`).
 |----------|-----------|---------|
 | This repo hosts the skills; BBjSkills no longer upstream | Skills need a makeover, not a re-sync | ✓ Good — Phase 1 |
 | Local `bbj-ls` preferred over hosted check | Code stays local; checked against the installation's own config | ✓ Good — Phase 1 |
-| Cut all taste from skills (no labelled suggestions) | Skills should state verified facts only | — Pending |
+| Cut all taste from skills (no labelled suggestions) | Skills should state verified facts only | ✓ Good for `bbj-programming` — Phase 4; `bbj-web-programming` in Phase 5 |
 | `bbj-local` URL stays fixed at 5009 | Simplest; BBjServices default | — Pending |
 | Skill-example syntax gate is local-only | CI has no BBj; keeps the check route consistent with the local-first decision | ✓ Good — Phase 3 (D-13: missing live routes stay skip under CI=true; Phase 6 runs BBJ_SKILLS_LIVE=1 locally) |
 | Hook notifies when no check route exists | Silent exit leaves the agent unaware it is unchecked | ✓ Good — Phase 2 |
 | 0.2.0 includes release cut and tag | Done means shipped | — Pending |
 | Example gate runs `bbjcpl -t` then `bbj-ls`; must pass both | `bbj-ls` is parse-only; `bbjcpl -t` catches 18+ wrong blocks it passes | ✓ Good — Phase 3 (baseline: bbjcpl 44/25, bbj-ls 36/15 failing blocks) |
-| Runtime-only claims rewritten to compile-time proxy or dropped | Never-execute rule | — Pending |
+| Runtime-only claims rewritten to compile-time proxy or dropped | Never-execute rule | ✓ Good — Phase 4 (ledger RUNTIME rows rewritten or dropped) |
 | DWC DOM/CSS claims need a docs URL or owner reproduction | No doc source found for several | — Pending |
 | Hook notice: exit 0 + `additionalContext`, once per session | Exit 2 replaces the tool result on Codex | ✓ Good — Phase 2 (delivered on both clients; D-15 exit-2 fallback not needed) |
 | `--with-local` registers and warns when probe fails | User asked explicitly; server may be stopped | ✓ Good — Phase 1 |
@@ -103,6 +104,7 @@ and `bbj-ls`).
 | Pending skills with ratcheted counts instead of report-only CI (D-01..D-04) | Suite pass/fail stays meaningful while the skills are red | ✓ Good — Phase 3 |
 | A `bbj should-fail` block no route fails, with only `bbj-ls` present, is undecided: skip, FAIL under BBJ_SKILLS_LIVE=1, not counted (D-08 amendment) | `bbj-ls` is parse-only and cannot show a type error | ✓ Accepted at Phase 3 UAT |
 | A present but broken live route (failed canary pair) is skip unless BBJ_SKILLS_LIVE=1 (IN-03) | Same rule as a missing route; the release gate runs live | ✓ Accepted at Phase 3 UAT |
+| A rule no page states ships only when the skill maintainer confirmed it on BBj 26.03, worded as such (OWNER ledger class; `str()` sign rule, `bbj -tIO`, Dialog-flag front rule D-24) | Owner knowledge is real but must be marked, never passed off as documented | ✓ Accepted at Phase 4 UAT |
 
 ## Evolution
 
@@ -122,4 +124,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-10 after Phase 3*
+*Last updated: 2026-10-11 after Phase 4*
