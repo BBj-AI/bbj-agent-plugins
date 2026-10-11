@@ -1,0 +1,11 @@
+# probes/OUTPUT.txt -- written by python3 -I probes/run.py (plan 04-01, D-03); compile only, nothing was run
+BBj version: 26.03 (bbj-ls structuredContent.bbjVersion)
+bbjcpl -t -N -X, one batched call: exit status 0, stdout 0 bytes
+
+== t03_rem_bad.bbj
+bbjcpl: t03_rem_bad.bbj: error at line 10 (1): interval = 0 rem Manual
+bbj-ls: line 1, column 1: [SyntaxError] syntax error
+
+== t04_rem_ok.bbj
+bbjcpl: clean
+bbj-ls: clean
