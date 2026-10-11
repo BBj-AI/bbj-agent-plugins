@@ -40,7 +40,7 @@ block of the skill through `bbjcpl` and `bbj-ls`; all pass. No BBj was run.
 
 ## Fixed Issues
 
-### WR-01: Clickable-image example dereferences `getOriginalControl()` without a guard
+### WR-01: Clickable-image example dereferences `getOriginalControl()` without a guard, and the cited pages do not say what it returns for a click on the window itself
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/references/sysgui.md`
 **Commit:** 9ced0c4
@@ -49,7 +49,7 @@ block of the skill through `bbjcpl` and `bbj-ls`; all pass. No BBj was run.
 does not say what it returns for a click on the window itself. Status: fixed (the null test is the form used in the
 web skill; it compiles with `bbjcpl -t`; the run-time behaviour is not tested, BBj is never run).
 
-### WR-02: SKILL.md states "there is no reject method" flatly
+### WR-02: SKILL.md states "there is no reject method" flatly, on the evidence the plan rejected for `setModal`
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/SKILL.md`, `plugins/bbj/skills/bbj-programming/references/callback-performance.md`
 **Commit:** d73f18c
@@ -57,20 +57,20 @@ web skill; it compiles with `bbjcpl -t`; the run-time behaviour is not tested, B
 `bbjcpl -t` rejects `event!.reject(0)` (one call, one route). The SKILL.md index entry reads "accept(0) rejects;
 `reject(0)` fails `bbjcpl -t`".
 
-### WR-03: `-P<dir1:dir2>` is given with a colon separator only
+### WR-03: `-P<dir1:dir2>` is given with a colon separator only; the bbjcpl page says semicolons on Windows
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/SKILL.md`
 **Commit:** 2666673
 **Applied fix:** The line states colons on UNIX-like systems and semicolons on Windows, as the bbjcpl page does.
 
-### WR-04: SQL-verb credential form contradicts the SQLOPEN page
+### WR-04: The SQL-verb credential form `MODE="USER=..."` contradicts the SQLOPEN page the same section cites
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/references/database.md`
 **Commit:** 34483c8
 **Applied fix:** The sentence gives both forms with their sources (How-To: `USER=`/`PWD=` for a JDBC URL; SQLOPEN
 page: `UID=`/`PWD=`, example `mode="UID=me,PWD=you"`) and says the pages give no rule for choosing between them.
 
-### WR-05: JDBC examples pair `select 1` with `getString("COL")` and never close the connection
+### WR-05: Both JDBC examples pair `select 1` with `getString("COL")` and never close the connection
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/references/database.md`, `.planning/phases/04-bbj-programming-makeover/04-LEDGER.md`
 **Commit:** 36d1fca
@@ -110,7 +110,7 @@ run-time claim.
 **Applied fix:** One sentence precedes the block: "The Dialog and Invisible flags together (this example makes no
 claim about modality)."
 
-### IN-03: `getJDBCConnection(url)` overloads not mentioned; SQL-function advice uncited
+### IN-03: Remote-database use of `getJDBCConnection(url)` is advertised, but the user/password/mode overloads are not mentioned
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/references/database.md`, `.planning/phases/04-bbj-programming-makeover/04-LEDGER.md`
 **Commit:** 718b6e0
@@ -125,7 +125,7 @@ the advice to use its own documentation as general, not stated on the pages. Led
 **Applied fix:** The text quotes what the page says ("In compound statements, REM may only be the last verb") and
 says the `;` and the label exception were reproduced with `bbjcpl` on BBj 26.03.
 
-### IN-05: "The project owner" is a planning term inside shipped text
+### IN-05: "The project owner" is a planning term inside text shipped to end users
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/SKILL.md`, `plugins/bbj/skills/bbj-programming/references/running.md`
 **Commit:** 310185d, follow-up e525ff8
@@ -142,7 +142,7 @@ maintainer".
 that the documentation does not state it; the Numeric Output page lists the sign characters; its BBj-specific page
 (`numeric_output_bbj.htm`) adds only `@` and `&`. Both pages were read in the local documentation copy.
 
-### IN-07: "A program that is run from a shell ... ends with `RELEASE`" is an instruction no page states
+### IN-07: "A program that is run from a shell for the user ends with `RELEASE`" is an instruction no cited page states
 
 **Files modified:** `plugins/bbj/skills/bbj-programming/references/running.md`
 **Commit:** e82475c
