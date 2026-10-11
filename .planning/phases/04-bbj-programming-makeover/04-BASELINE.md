@@ -6,50 +6,9 @@ bbj nocheck blocks (repository): 0
 
 The quoted error text is for orientation only: compiler message text can vary between runs, and the gate compares verdicts and counts only.
 
-## bbj-programming (pending, Phase 4)
+## bbj-programming (not pending)
 
-| check | count |
-| --- | --- |
-| grammar | 6 |
-| structure | 3 |
-| bbjcpl | 8 |
-| bbj-ls | 6 |
-| should-fail | 0 |
-
-### grammar (6)
-
-- `references/reserved-words.md:30` untagged fence
-- `references/reserved-words.md:46` untagged fence
-- `references/reserved-words.md:55` untagged fence
-- `references/reserved-words.md:75` untagged fence
-- `references/reserved-words.md:88` untagged fence
-- `references/reserved-words.md:93` untagged fence
-
-### structure (3)
-
-- `references/database.md:64` last ## section is 'Limiting result rows ? use TOP, not LIMIT', not '## Sources'
-- `references/java-interop.md:50` last ## section is 'HashMap / TreeMap patterns', not '## Sources'
-- `references/reserved-words.md:97` last ## section is 'Safe short names', not '## Sources'
-
-### bbjcpl (8)
-
-- `references/database.md:6` line 7: error at line 10 (1): conn! = BBjAPI().getJDBCConnection("MyDatasource")   REM registered BBj datasource name
-- `references/java-interop.md:10` line 11: type check error [No match for method java.util.Arrays.asList(<undeclared>); Ambiguous signatures join(java.lang.CharSequence, java.lang.Iterable)
-- `references/java-interop.md:19` line 20: error at line 10 (1): options! = java.lang.String.join($0a$, myHashMap!.keySet())    REM keys
-- `references/java-interop.md:33` line 34: error at line 10 (1): method protected BBjString getBBjVectorAsString(BBjVector vector!)
-- `references/java-interop.md:40` line 43: type check error [No match for method java.util.Arrays.asList(<undeclared>)] at line 30 (3): colorVector!.addAll(java.util.Arrays.asList(p_colorString!.split(",")))
-- `references/java-interop.md:53` line 54: error at line 10 (1): method public BBjString getMruForListButton(LinkedHashMap mru!)
-- `references/java-interop.md:62` line 63: error at line 10 (1): method private Object getLastMapKey(Map map!)
-- `references/java-interop.md:71` line 75: error at line 40 (4): treeMap! = new TreeMap()                            REM sorted by natural key order
-
-### bbj-ls (6)
-
-- `references/database.md:6` line 7, column 1: [SyntaxError] syntax error
-- `references/java-interop.md:19` line 20, column 1: [SyntaxError] syntax error
-- `references/java-interop.md:33` line 34, column 1: [ClassError] class definition error on this line
-- `references/java-interop.md:53` line 54, column 1: [ClassError] class definition error on this line
-- `references/java-interop.md:62` line 63, column 1: [ClassError] class definition error on this line
-- `references/java-interop.md:71` line 75, column 1: [SyntaxError] syntax error
+no violations
 
 ## bbj-web-programming (pending, Phase 5)
 

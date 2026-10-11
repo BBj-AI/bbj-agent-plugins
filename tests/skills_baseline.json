@@ -2,16 +2,6 @@
   "bbj_version": "26.03",
   "nocheck": 0,
   "pending": {
-    "bbj-programming": {
-      "counts": {
-        "bbj-ls": 6,
-        "bbjcpl": 8,
-        "grammar": 6,
-        "should-fail": 0,
-        "structure": 3
-      },
-      "phase": 4
-    },
     "bbj-web-programming": {
       "counts": {
         "bbj-ls": 15,
