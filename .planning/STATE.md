@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 4
 current_phase_name: bbj-programming makeover
 status: executing
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-10-11T09:00:10.878Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-10-11T09:11:25.884Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 4 execution started
-state_head: dbeed656d56de6602ec9c1b005cae5b7115da7fa
+state_head: 55b325fecba9c26f19dbc9182d0a4b08d83c9cea
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 23
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 ## Current Position
 
 Phase: 4 (bbj-programming makeover) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 4 execution started
 
@@ -77,6 +77,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 04 P02 | 16 min | 3 tasks | 4 files |
 | Phase 4 P03 | 30 min | 3 tasks | 4 files |
 | Phase 04 P04 | 9 min | 2 tasks | 1 files |
+| Phase 4 P05 | 25 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ Recent decisions affecting current work:
 - [Phase 4]: 04-03: SKILL.md body stops at 148 lines so the 04-05 running.md pointer fits within 150
 - [Phase 04]: 04-04: sign-trap printed output left for the docs owners to fill from a real run; the proposal states only the owner-confirmed fact (L031)
 - [Phase 04]: 04-04: proposal quotes checked against the raw page files fetched 2026-10-11; the docs-server 'RETURN TYPE: String' line is reported as server rendering, not page text
+- [Phase 4]: 04-05: ledger count C=3 selects the D-14 default branch; callback-performance.md keeps its name and the web skill link is untouched
+- [Phase 4]: 04-05: running.md states the OWNER-confirmed bbj -tIO stdout fact plainly; the PRO/5 IO page is a supporting citation only
 
 ### Pending Todos
 
@@ -141,6 +144,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T09:00:10.768Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-10-11T09:11:25.770Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
