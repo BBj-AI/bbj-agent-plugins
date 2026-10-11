@@ -233,14 +233,17 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 05-06-PLAN.md — SKILL.md rewrite: trigger-first description, check-order block, documented injectStyle top meaning, two should-fail traps, pointers, index (wave 6, after 05-05)
 - [ ] 05-07-PLAN.md — references/styling.md: themes, overrides, component attributes, shadow parts, focus ring in the docs' words (wave 6, after 05-05)
 - [ ] 05-08-PLAN.md — running-dwc-apps.md, form-validation.md, shoelace.md rewritten to their documented BBj facts (wave 6, after 05-05)
 - [ ] 05-09-PLAN.md — 05-DOCS-PROPOSAL.md for the BASIS docs owners: top wording, DOM structure, OWNER claims, conflicts, dropped candidates (wave 6, after 05-05)
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 05-10-PLAN.md — Finish: delete the folded references and regenerate the baseline in one commit (skill leaves pending), phase-wide scans, full suite live and CI views (wave 7, after 05-06, 05-07, 05-08, 05-09)
+- [ ] 05-06-PLAN.md — SKILL.md rewrite: trigger-first description, check-order block, documented injectStyle top meaning, two should-fail traps, pointers, index of the references 05-07 and 05-08 wrote (wave 7, after 05-05, 05-07, 05-08)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 05-10-PLAN.md — Finish: delete the folded references and regenerate the baseline in one commit (skill leaves pending), phase-wide scans, full suite live and CI views (wave 8, after 05-06, 05-07, 05-08, 05-09)
 
 **Cross-cutting constraints:**
 
