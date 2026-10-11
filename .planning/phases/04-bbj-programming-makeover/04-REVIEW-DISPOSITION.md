@@ -5,8 +5,16 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Clickable-image example dereferences `getOriginalControl()` without a guard, and the cited pages do not say what it returns for a click on the window itself"
+    disposition: open
+    title: "\"Put one in every mask\" can be read as `@` or `&` being a sign character"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "The `getActiveContext()` citation leaves out the later-created window in the same example"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "\"For a modal window, pass the Dialog flag\" has no scope for top-level versus MDI windows"
   - id: WR-02
     severity: warning
     disposition: fixed
@@ -31,14 +39,6 @@ findings:
     severity: warning
     disposition: fixed
     title: "\"At run time the same defect is !ERROR=26\" goes beyond the cited page"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "Command-line synopsis is tagged `bash` but is not valid shell"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "The Dialog-flag block follows the `setModal` should-fail block with no lead-in"
   - id: IN-03
     severity: info
     disposition: fixed
@@ -63,29 +63,29 @@ findings:
     severity: warning
     disposition: open
     title: "SQL-verb example uses unmarked placeholders that read as a working program"
-open: 1
+open: 4
 total: 15
-recorded: 2026-10-11T12:10:11.503Z
+recorded: 2026-10-11T15:34:24.763Z
 ---
 
 # Phase 04: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 04-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 04-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 04-REVIEW-FIX.md |
-| WR-04 | warning | fixed | 04-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 04-REVIEW-FIX.md |
-| WR-06 | warning | fixed | 04-REVIEW-FIX.md |
-| WR-07 | warning | fixed | 04-REVIEW-FIX.md |
-| IN-01 | info | fixed | 04-REVIEW-FIX.md |
-| IN-02 | info | fixed | 04-REVIEW-FIX.md |
-| IN-03 | info | fixed | 04-REVIEW-FIX.md |
-| IN-04 | info | fixed | 04-REVIEW-FIX.md |
-| IN-05 | info | fixed | 04-REVIEW-FIX.md |
-| IN-06 | info | fixed | 04-REVIEW-FIX.md |
-| IN-07 | info | fixed | 04-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| WR-02 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| WR-04 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| WR-05 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| WR-06 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| WR-07 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| IN-03 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| IN-04 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| IN-05 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| IN-06 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
+| IN-07 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
 | WR-08 | warning | open | - (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
