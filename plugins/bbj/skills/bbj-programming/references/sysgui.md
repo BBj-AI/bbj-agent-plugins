@@ -54,10 +54,11 @@ window". Without it, "low-level mouse events are only reported when the user cli
 certain selected controls (static text, image, group box)"
 (https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setReportAllMouseEvents.htm).
 An image therefore reports its clicks without the call; call it only when other controls must report mouse events
-too. Register `ON_MOUSE_DOWN` on the window. In the callback, `getOriginalControl()` returns the control that
-originated the event; "As always, getControl returns the window"
+too. Register `ON_MOUSE_DOWN` on the window. In the callback, for a click on a control that passes mouse events to
+the window, `getOriginalControl()` "returns that control"; "As always, getControl returns the window"
 (https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjMouseEvent/BBjMouseEvent_getOriginalControl.htm).
-The example compares it with the image.
+The page does not say what `getOriginalControl()` returns for a click on the window itself, so the example tests
+the result for `null()` before it calls `getID()`. The example compares the control with the image.
 
 ```bbj
 class public Demo
@@ -74,8 +75,10 @@ class public Demo
     method public void onMouseDown(BBjMouseDownEvent event!)
         declare auto BBjControl ctrl!
         ctrl! = event!.getOriginalControl()
-        if ctrl!.getID() = #img!.getID() then
-            #win!.setTitle("Image clicked")
+        if ctrl! <> null() then
+            if ctrl!.getID() = #img!.getID() then
+                #win!.setTitle("Image clicked")
+            endif
         endif
     methodend
 classend
