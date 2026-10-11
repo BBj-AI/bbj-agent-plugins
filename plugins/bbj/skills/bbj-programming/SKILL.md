@@ -33,8 +33,10 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/util/bbjcpl_bbj_compil
 
 ## Rules for writing BBj
 
-A comment on the same line as a statement is its own `rem` statement and needs a `;` before it
-(https://documentation.basis.cloud/BASISHelp/WebHelp/commands/rem_verb.htm). The hook rejects the other form.
+A comment on the same line as a statement is its own `rem` statement and needs a `;` before it. The REM page
+(https://documentation.basis.cloud/BASISHelp/WebHelp/commands/rem_verb.htm) says "In compound statements, REM may
+only be the last verb"; the `;` and the label exception below were reproduced with `bbjcpl` on BBj 26.03. The hook
+rejects the other form.
 
 ```bbj should-fail
 interval = 0 rem Manual
