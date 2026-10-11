@@ -14,7 +14,7 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/usr/BBj_Components/BBj
 - `-t<terminal alias>` "The alias of a terminal specified in the configuration file."
 - `-c<configuration file>` "Name of the configuration file on the remote machine to use."
 
-```bash
+```text
 bbj -q -WD<working directory> -t<terminal alias> -c<configuration file> <program> - <arglist>
 ```
 
