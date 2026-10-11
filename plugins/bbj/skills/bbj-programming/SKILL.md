@@ -13,7 +13,6 @@ description: "Write, review, check, or fix BBj code (.bbj, .src and .bbx files) 
 A hook checks the BBj files you write or edit. This order is for code you hand back without writing it to a file: answers, and code from earlier turns.
 <!-- bbj-check-order:end -->
 
-
 # BBj programming
 
 This skill holds only the rules that `bbj://primer` and the documentation do not state. Read the
@@ -47,14 +46,104 @@ interval = 0 ; rem Manual
 
 A label is the exception: it takes `rem` with no `;`, as in `start: rem label`.
 
+A function-style call is not a statement. An object method call is: `v!.get(0)`, `#foo()` and
+`BBjAPI().makeVector()` stand alone. A class method called as `foo()` (write `#foo()`), `str(x:"##0")`,
+`cvs(a$,3)` or a `def fn` call alone on a line is a syntax error on both routes; assign the result.
+
+```bbj should-fail
+class public Demo
+    method public void foo()
+    methodend
+
+    method public void run()
+        foo()
+    methodend
+classend
+```
+
+```bbj
+class public Demo
+    method public void foo()
+    methodend
+
+    method public void run()
+        declare auto BBjVector v!
+        v! = BBjAPI().makeVector()
+        v!.addItem("a")
+        v!.get(0)
+        #foo()
+    methodend
+classend
+```
+
+Built in: no USE needed. That holds for BBj classes (`BBjWindow`, `BBjVector`) and the `java.lang` classes (`String`, `Integer`); any other Java class needs `USE java.util.HashMap` or its full name `java.util.HashMap`, and a class from a BBj source file needs `USE ::file.bbj::ClassName`.
+Only `bbjcpl` catches a missing USE (`No type named HashMap visible in this scope`); `bbj-ls` passes it.
+
+```bbj should-fail
+declare HashMap h!
+h! = new HashMap()
+```
+
+```bbj
+use java.util.HashMap
+
+declare HashMap h!
+h! = new HashMap()
+```
+
+A value held in an undeclared variable fails the type check when it is assigned to a declared field,
+returned from a method with a declared return type, or passed to a method of a declared object. The
+messages are `Incompatible assignment from <undeclared> to X`, `Cannot assign <undeclared> to BBjNumber`,
+`Method expected return type X, got <undeclared>` (reported at the `methodret` line) and
+`No match for method ...(<undeclared>)`. They are errors to fix, never noise. At run time the same
+defect is !ERROR=26 (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Errors/_error_26.htm).
+Declare the variable with `declare auto <Type> x!` before the assignment; for a string or a number
+convert with `str()` or `num()` at the assignment.
+
+```bbj should-fail
+use java.util.HashMap
+
+class public Demo
+    field private HashMap cfg!
+
+    method private HashMap build()
+        config! = new HashMap()
+        methodret config!
+    methodend
+classend
+```
+
+```bbj
+use java.util.HashMap
+
+class public Demo
+    field private HashMap cfg!
+
+    method private HashMap build()
+        declare auto HashMap config!
+        config! = new HashMap()
+        methodret config!
+    methodend
+classend
+```
+
+A numeric mask with no sign character loses the minus sign of a negative value. The sign characters
+are `-`, `+`, `(` and `)`, `CR` and `DR` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Language_Concepts/numeric_output.htm).
+Put one in every mask that can format a negative value. For every other mask character use
+`bbj_lookup` on STR() or https://documentation.basis.cloud/BASISHelp/WebHelp/commands/str_function.htm.
+
+```bbj
+rate = -1.5
+shown$ = str(rate:"-##0.00")
+print shown$
+```
+
 ## Look it up instead
 
 - Read `bbj://primer` before writing BBj. It covers the ternary and IFF, a FOR loop running once, NUM versus INT, DECLARE AUTO with classes only, reserved words, the default precision and the verbs that reset it, and STR() returning a plain string.
 - `bbj_lookup` for exact syntax: STR() mask characters, MSGBOX constants, bbjcpl options.
-- `bbj_reserved_word` before you name a variable.
-- `bbj_examples` for verified code: collections, JDBC, SysGui.
-- `bbj_search` for everything else, `bbj_fetch_page` for a whole page.
-- Cite the URL of every page you rely on.
+- `bbj_reserved_word` before you name a variable; `bbj_examples` for verified code (collections, JDBC, SysGui).
+- `bbj_search` for everything else, `bbj_fetch_page` for a whole page. Cite the URL of every page you rely on.
 
 ## References
 

@@ -18,7 +18,7 @@ Style: PRO/5-style syntax is valid BBj and is answered fully. The modern Java-ob
 (`a!`, BBjAPI, `PROCESS_EVENTS`, DWC) is preferred for new code. Say in every answer which
 style it uses.
 
-Built in: no USE needed. USE is only for Java classes (`USE java.util.HashMap`) and classes from BBj source files (`USE ::file.bbj::ClassName`).
+Built in: no USE needed. That holds for BBj classes (`BBjWindow`, `BBjVector`) and the `java.lang` classes (`String`, `Integer`); any other Java class needs `USE java.util.HashMap` or its full name `java.util.HashMap`, and a class from a BBj source file needs `USE ::file.bbj::ClassName`.
 
 <!-- bbj-check-order:begin -->
 **Check BBj code before you hand it back.** Use the first route that exists:
