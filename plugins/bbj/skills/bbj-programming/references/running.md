@@ -27,8 +27,9 @@ bbj -q -WD<working directory> -t<terminal alias> -c<configuration file> <program
 - When not in a public program, `END` and `STOP` place PRO/5 in "console mode"
   (https://documentation.basis.cloud/BASISHelp/WebHelp/commands/end_verb.htm).
 
-A program that is run from a shell for the user ends with `RELEASE`. `RELEASE` rolls back uncommitted transactions,
-so commit first.
+The pages do not say how a program run from a shell must end. As advice, not a documented rule: end such a program
+with `RELEASE`, which "returns control to the host operating system", rather than with `END` or `STOP`, which put
+PRO/5 in console mode. `RELEASE` rolls back uncommitted transactions, so commit first.
 
 ## Output into a shell
 
