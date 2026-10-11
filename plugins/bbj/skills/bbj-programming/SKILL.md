@@ -95,8 +95,9 @@ A value held in an undeclared variable fails the type check when it is assigned 
 returned from a method with a declared return type, or passed to a method of a declared object. The
 messages are `Incompatible assignment from <undeclared> to X`, `Cannot assign <undeclared> to BBjNumber`,
 `Method expected return type X, got <undeclared>` (reported at the `methodret` line) and
-`No match for method ...(<undeclared>)`. They are errors to fix, never noise. At run time the same
-defect is !ERROR=26 (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Errors/_error_26.htm).
+`No match for method ...(<undeclared>)`. They are errors to fix, never noise. The `!ERROR=26` page lists the
+same defect (a dynamically resolved object assigned to a statically resolved variable) as a cause of that error
+(https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Errors/_error_26.htm).
 Declare the variable with `declare auto <Type> x!` before the assignment; for a string or a number
 convert with `str()` or `num()` at the assignment.
 
