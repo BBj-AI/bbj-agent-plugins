@@ -10,9 +10,12 @@ https://documentation.basis.cloud/BASISHelp/WebHelp/em/database/EM_DB_JDBC_How-T
 (https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjapi/bbjapi_getjdbcconnection.htm). The `url`
 is "The name of a BBj database on the server, or the JDBC connection URL used to connect to a remote or third party
 database"; a BBj database name must match "the name defined in the Enterprise Manager, including case". The blocks
-use `ChileCompany`, the database of the page's own example; pass the name of your database. Declare the
-`java.sql` types of the connection, the statement and the result set. An undeclared `rs!` in the `while` condition
-fails `bbjcpl -t` with `Cannot assign <undeclared> to BBjNumber`; `bbj-ls` passes it.
+use `ChileCompany`, the database of the page's own example; pass the name of your database. The query
+`select 1` and the column name `COL` are placeholders: `select 1` returns one unnamed column, so replace both with a
+query and a column of your own table. The Java sample of the How-To page closes the result
+set, the statement and the connection, so the blocks do the same. Declare the `java.sql` types of the connection,
+the statement and the result set. An undeclared `rs!` in the `while` condition fails `bbjcpl -t` with
+`Cannot assign <undeclared> to BBjNumber`; `bbj-ls` passes it.
 
 ```bbj should-fail
 declare java.sql.Connection conn!
@@ -25,6 +28,7 @@ while (rs!.next())
 wend
 rs!.close()
 stmt!.close()
+conn!.close()
 ```
 
 ```bbj
@@ -39,6 +43,7 @@ while (rs!.next())
 wend
 rs!.close()
 stmt!.close()
+conn!.close()
 ```
 
 ## SQL verbs
