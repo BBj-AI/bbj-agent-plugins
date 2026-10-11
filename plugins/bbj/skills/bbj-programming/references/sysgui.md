@@ -9,8 +9,20 @@ An undeclared window or control assigned to a typed field is covered by the unde
 - `$00000010$` Invisible: "Sets the window to be initially invisible."
 - `$00080000$` Dialog: "Sets the window to behave as a dialog." The flags add up: `$00080010$` is a dialog that starts invisible.
 
-The page also lists the flags `$02000000$` MDI Desktop Modal ("within an MDI desktop") and `$40000000$` MDI Group Modal
-("within an MDI group"). `bbjcpl -t` rejects `win!.setModal(1)` on a top-level window: it reports
+For a modal window, pass the Dialog flag. The WINDOW mnemonic page, in its notes "for top level windows in BBj", names
+"the dialog behavior flag ($00080000$), that creates a modal dialog"
+(https://documentation.basis.cloud/BASISHelp/WebHelp/mnemonic/sysgui/window_mnemonic_create_sysgui_window_bbj.htm).
+The `isModal()` example creates its modal window with `addWindow(X,Y,WIDTH,HEIGHT,"Modal",$00080083$)`
+(https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow_ismodal.htm),
+and the `getActiveContext()` example creates the window of context 2 with `$80002$`, which includes the Dialog flag,
+and expects `getActiveContext()` to return 2 ("Should print 2 (the modal window)",
+https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjsysgui/bbjsysgui_getactivecontext.htm).
+
+While a Dialog-flag window is open, a window without the Dialog flag that already existed cannot be brought in front of
+it. That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
+
+The `addWindow` page also lists the flags `$02000000$` MDI Desktop Modal ("within an MDI desktop") and `$40000000$` MDI
+Group Modal ("within an MDI group"). `bbjcpl -t` rejects `win!.setModal(1)` on a top-level window: it reports
 `No match for method ...BBjTopLevelWindow.setModal(BBjInt)`. `bbj-ls`, which checks syntax only, accepts the call.
 
 ```bbj should-fail
@@ -21,7 +33,7 @@ win! = sysGui!.addWindow(10, 10, 300, 200, "Demo")
 win!.setModal(1)
 ```
 
-The Dialog and Invisible flags together (this example makes no claim about modality):
+A modal dialog that starts invisible, with the Dialog and Invisible flags:
 
 ```bbj
 declare auto BBjSysGui sysGui!
@@ -96,8 +108,13 @@ https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/msgbox
 ## Sources
 
 - https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjsysgui/bbjsysgui_addwindow.htm
+- https://documentation.basis.cloud/BASISHelp/WebHelp/mnemonic/sysgui/window_mnemonic_create_sysgui_window_bbj.htm
+- https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow_ismodal.htm
+- https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjsysgui/bbjsysgui_getactivecontext.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjlistbutton/bbjlistbutton_insertitems.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setReportAllMouseEvents.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjMouseEvent/BBjMouseEvent_getOriginalControl.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/msgbox_function_bbj.htm
 - Verified on BBj 26.03 (bbjcpl -t -N -X and bbj-ls; probes s01, s02, s05, s06, s07, i01, s09)
+- Verified on BBj 26.03 by the skill maintainer: while a Dialog-flag window is open, a window without the Dialog flag that already
+  existed cannot be brought in front of it.
