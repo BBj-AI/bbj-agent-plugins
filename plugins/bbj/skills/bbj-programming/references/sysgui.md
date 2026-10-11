@@ -9,8 +9,9 @@ An undeclared window or control assigned to a typed field is covered by the unde
 - `$00000010$` Invisible: "Sets the window to be initially invisible."
 - `$00080000$` Dialog: "Sets the window to behave as a dialog." The flags add up: `$00080010$` is a dialog that starts invisible.
 
-A top-level window has no `setModal` method. `bbjcpl -t` reports `No match for method ...BBjTopLevelWindow.setModal(BBjInt)`;
-`bbj-ls` passes it. Pass the Dialog flag when the window is created.
+The page also lists the flags `$02000000$` MDI Desktop Modal ("within an MDI desktop") and `$40000000$` MDI Group Modal
+("within an MDI group"). `bbjcpl -t` rejects `win!.setModal(1)` on a top-level window: it reports
+`No match for method ...BBjTopLevelWindow.setModal(BBjInt)`. `bbj-ls`, which checks syntax only, accepts the call.
 
 ```bbj should-fail
 declare auto BBjSysGui sysGui!
@@ -48,27 +49,34 @@ lb!.insertItems(0, "x" + $0a$ + "y")
 
 ## Clickable images
 
-By default "low-level mouse events are only reported when the user clicks directly on the window, or on
+`setReportAllMouseEvents(1)` has all controls "report low-level mouse events (mouse down, mouse up, etc.) to the
+window". Without it, "low-level mouse events are only reported when the user clicks directly on the window, or on
 certain selected controls (static text, image, group box)"
 (https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setReportAllMouseEvents.htm).
-Call `setReportAllMouseEvents(1)` on the window and register `ON_MOUSE_DOWN` on the window. In the callback,
-`getOriginalControl()` returns the control that was clicked; "As always, getControl returns the window"
+An image therefore reports its clicks without the call; call it only when other controls must report mouse events
+too. Register `ON_MOUSE_DOWN` on the window. In the callback, `getOriginalControl()` returns the control that
+originated the event; "As always, getControl returns the window"
 (https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjMouseEvent/BBjMouseEvent_getOriginalControl.htm).
+The example compares it with the image.
 
 ```bbj
 class public Demo
     field private BBjTopLevelWindow win!
+    field private BBjImageCtrl img!
     method public Demo()
         declare auto BBjSysGui sysGui!
         sysGui! = BBjAPI().openSysGui("X0")
         #win! = sysGui!.addWindow(10, 10, 300, 200, "Demo")
-        #win!.setReportAllMouseEvents(1)
-        #win!.setCallback(BBjAPI.ON_MOUSE_DOWN, #this!, "onImageClick")
+        #img! = #win!.addImageCtrl(101, 10, 10, 100, 100, "")
+        #win!.setCallback(BBjAPI.ON_MOUSE_DOWN, #this!, "onMouseDown")
     methodend
 
-    method public void onImageClick(BBjMouseDownEvent event!)
+    method public void onMouseDown(BBjMouseDownEvent event!)
         declare auto BBjControl ctrl!
         ctrl! = event!.getOriginalControl()
+        if ctrl!.getID() = #img!.getID() then
+            #win!.setTitle("Image clicked")
+        endif
     methodend
 classend
 ```
@@ -87,4 +95,4 @@ https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/msgbox
 - https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjwindow/BBjWindow_setReportAllMouseEvents.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjMouseEvent/BBjMouseEvent_getOriginalControl.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/msgbox_function_bbj.htm
-- Verified on BBj 26.03 (bbjcpl -t -N -X and bbj-ls; probes s01, s02, s05, s06, i01, s09)
+- Verified on BBj 26.03 (bbjcpl -t -N -X and bbj-ls; probes s01, s02, s05, s06, s07, i01, s09)

@@ -342,13 +342,18 @@ runtime error." It does not say which types `DECLARE AUTO` accepts.
 
 ### SysGui: modality, MSGBOX constants and event constants
 
-- L118, there is no `setModal()`. Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjsysgui/bbjsysgui_addwindow.htm
-  says "$00080000$ Dialog : Sets the window to behave as a dialog." and does not mention a method.
+- L118, `setModal()` on a top-level window. Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjsysgui/bbjsysgui_addwindow.htm
+  says "$00080000$ Dialog : Sets the window to behave as a dialog."
   `probes/s01_setmodal.bbj` (`win!.setModal(1)`): `type check error [No match for method
   com.basis.bbj.proxies.sysgui.BBjTopLevelWindow.setModal(BBjInt)] at line 50 (5): win!.setModal(1)`,
   bbj-ls clean; `probes/s02_dialogflag.bbj` (`addWindow(10, 10, 300, 200, "Demo", $00080010$)`,
-  Dialog plus Invisible): clean on both routes. Suggested wording on the `addWindow` page: "Modality
-  is set with the Dialog flag at creation; there is no `setModal()` method."
+  Dialog plus Invisible): clean on both routes.
+  Question for the owners of the `addWindow` page: please confirm whether a top-level window has a `setModal()` method
+  and, if it has none, whether the page should say so; the evidence above is that `bbjcpl -t` rejects
+  `setModal(BBjInt)` and `bbj-ls` accepts it.
+  Please also state whether the Dialog flag (`$00080000$`, "Sets the window to behave as a dialog") makes a
+  window modal; the page also lists the flags `$02000000$` MDI Desktop Modal and `$40000000$` MDI Group Modal
+  (ledger L117, rewritten in plan 04-07).
 - L150, a misspelled `MSGBOX` constant. Page:
   https://documentation.basis.cloud/BASISHelp/WebHelp/commands/bbj-commands/msgbox_function_bbj.htm
   lists the constants (for example `MSGBOX_BUTTONS_YES_NO`) and does not say that the compiler
