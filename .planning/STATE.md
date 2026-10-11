@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v0.2.0
 current_phase: 4
 current_phase_name: bbj-programming makeover
-status: executing
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-10-11T09:11:25.884Z"
+status: verifying
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-10-11T09:17:59.285Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 4 execution started
-state_head: 55b325fecba9c26f19dbc9182d0a4b08d83c9cea
+state_head: f9c7d0cd6ca65f871dd4d94f95fec4f06f78060d
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 23
-  completed_plans: 22
+  completed_plans: 23
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-10)
 
 Phase: 4 (bbj-programming makeover) — EXECUTING
 Plan: 6 of 6
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-11 — Phase 4 execution started
 
 Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4 plans)
@@ -78,6 +78,7 @@ Progress: [█████░░░░░] 50% (3 of 6 phases; Phase 1 7/7, Phas
 | Phase 4 P03 | 30 min | 3 tasks | 4 files |
 | Phase 04 P04 | 9 min | 2 tasks | 1 files |
 | Phase 4 P05 | 25 min | 3 tasks | 6 files |
+| Phase 04 P06 | 10 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,7 @@ Recent decisions affecting current work:
 - [Phase 04]: 04-04: proposal quotes checked against the raw page files fetched 2026-10-11; the docs-server 'RETURN TYPE: String' line is reported as server rendering, not page text
 - [Phase 4]: 04-05: ledger count C=3 selects the D-14 default branch; callback-performance.md keeps its name and the web skill link is untouched
 - [Phase 4]: 04-05: running.md states the OWNER-confirmed bbj -tIO stdout fact plainly; the PRO/5 IO page is a supporting citation only
+- [Phase 04]: 04-06: database.md states LIMIT (first, count) only as SQL_LIMIT.htm does and leaves clause position to the SQL Grammar page
 
 ### Pending Todos
 
@@ -144,6 +146,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-11T09:11:25.770Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-10-11T09:17:59.178Z
+Stopped at: Completed 04-06-PLAN.md
 Resume file: None
