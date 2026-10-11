@@ -91,3 +91,11 @@
 ## Deferred Ideas
 
 - `--dwc-*` token-name lint (v2 maintenance).
+
+## Post-research follow-up (2026-10-11)
+
+| Question | Choice |
+|----------|--------|
+| dwc.style/docs as DOC evidence? | Yes, DOC source (D-16a) |
+| Focus-ring mechanism (docs say "shadow", D-15 said "outline") | Use the docs' wording "focus ring", no mechanism claim (D-15 amended) |
+| Shipped dwc-ui.css / client JS read statically | Triage only (D-16b) |

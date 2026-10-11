@@ -106,13 +106,15 @@ and every `bbj` block passes both live routes. At the end `bbj-web-programming` 
   A fact inside a pattern survives only as a stated fact with evidence. The named taste (GSAP,
   Swiper, Tabler Icons, Google Fonts/Inter/Playfair Display, the 420px card grid) is cut, as
   required.
-- **D-15:** The focus-ring rule (WEB-01) is stated as an observable fact only:
-  - DWC draws focus as an outline outside the border box;
-  - an `overflow: hidden/auto` ancestor clips it;
+- **D-15:** The focus-ring rule (WEB-01) is stated as an observable fact in the docs' wording
+  (amended 2026-10-11 after research):
+  - DWC draws a "focus ring", as the docs name it. The skill makes no claim about whether it is
+    built from `outline` or `box-shadow`;
+  - an `overflow: hidden/auto` ancestor clips it (owner checklist);
   - padding of `calc(var(--dwc-focus-ring-width) + var(--dwc-focus-ring-gap))` avoids the clipping.
 
-  The token names come from DWC docs (D-16) and the clipping from the owner checklist. The
-  "accessibility bug, not cosmetic" framing and the color-token listing are dropped.
+  The token names come from DWC docs (D-16). The "accessibility bug, not cosmetic" framing and the
+  color-token listing are dropped.
 
 ### Evidence for CSS/JS (WEB-01)
 - **D-16:** These sources count as DOC evidence for DWC CSS facts (`--dwc-*` token names, `::part`
@@ -121,6 +123,11 @@ and every `bbj` block passes both live routes. At the end `bbj-web-programming` 
   - the DWC component and token documentation of webforJ (docs.webforj.com, or the webforj MCP
     `styles_list_tokens` / `styles_get_component` catalog), with the URL and the DWC version that
     matches BBj 26.03 recorded in the ledger.
+- **D-16a:** (added 2026-10-11 after research) BASIS's DWC guides at `dwc.style/docs` count as DOC
+  evidence under D-16, with the URL and the DWC version recorded.
+- **D-16b:** (added 2026-10-11 after research) Reading the shipped `dwc-ui.css` and client JS
+  statically is triage only. It is used to choose and word checklist items and never ships a claim
+  by itself. The evidence classes stay DOC / COMPILE / OWNER.
 - **D-17:** Non-`bbj` blocks (css, js, html) are kept to a minimum. A block stays only where it
   carries a surviving fact, and every token, selector and attribute in it traces to a ledger row.
   No new lint is added, so the gate scope stays as Phase 3 set it.
