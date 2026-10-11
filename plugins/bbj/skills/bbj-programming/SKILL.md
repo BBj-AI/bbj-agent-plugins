@@ -16,8 +16,8 @@ A hook checks the BBj files you write or edit. This order is for code you hand b
 # BBj programming
 
 Read `bbj://primer` before you write BBj; this file adds to it. Most rules here were reproduced with
-`bbjcpl` and `bbj-ls` on BBj 26.03. The others cite the documentation page that states them, except the
-`str()` sign rule, which the skill maintainer confirmed on BBj 26.03.
+`bbjcpl` and `bbj-ls` on BBj 26.03. The others cite the documentation page that states them, except rules that
+say the skill maintainer confirmed them on BBj 26.03, such as the `str()` sign rule.
 
 ## Reading bbjcpl output (BBj 26.03)
 
@@ -152,7 +152,7 @@ print shown$
 
 ## References
 
-- `references/sysgui.md`: window flags and the Dialog flag, insertItems, clickable images, MSGBOX pointers.
+- `references/sysgui.md`: window flags and the modal Dialog flag, insertItems, clickable images, MSGBOX pointers.
 - `references/database.md`: JDBC, SQL verbs, LIMIT (first, count).
 - `references/callback-performance.md`: form validation. accept unlocks the window, accept(1) fires the button push, accept(0) rejects; `reject(0)` fails `bbjcpl -t`.
 - `references/running.md`: command-line options and RELEASE versus END. Read it only when the user asks to run a program.
