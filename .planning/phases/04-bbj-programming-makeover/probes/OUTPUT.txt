@@ -103,6 +103,10 @@ bbj-ls: clean
 bbjcpl: clean
 bbj-ls: clean
 
+== e26i.bbj
+bbjcpl: clean
+bbj-ls: clean
+
 == ev01_list_select.bbj
 bbjcpl: clean
 bbj-ls: clean
