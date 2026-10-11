@@ -17,7 +17,7 @@ A hook checks the BBj files you write or edit. This order is for code you hand b
 
 Read `bbj://primer` before you write BBj; this file adds to it. Most rules here were reproduced with
 `bbjcpl` and `bbj-ls` on BBj 26.03. The others cite the documentation page that states them, except the
-`str()` sign rule, which the project owner confirmed on BBj 26.03.
+`str()` sign rule, which the skill maintainer confirmed on BBj 26.03.
 
 ## Reading bbjcpl output (BBj 26.03)
 

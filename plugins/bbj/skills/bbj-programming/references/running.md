@@ -51,4 +51,4 @@ cause what the page calls "garbage on the screen" or `!ERROR=41`.
 - https://documentation.basis.cloud/BASISHelp/WebHelp/sysadmin/config/unix/terminals_under_unix.htm
 - Checked against the documentation pages listed: the command-line options, `RELEASE`, `END` and `STOP`, and the IO
   device; nothing was run.
-- Verified on BBj 26.03 by the project owner: `bbj -tIO` sends `print` output to stdout.
+- Confirmed on BBj 26.03 by the skill maintainer: `bbj -tIO` sends `print` output to stdout.
