@@ -1,20 +1,23 @@
 # Database access: JDBC and SQL verbs
 
 A BBj program queries a database through the object-based JDBC API or through the language-level SQL verbs. The
-EM JDBC How-To page has ready-to-use Java and BBj code examples for both:
+EM JDBC How-To page has a Java sample for JDBC and a BBj sample for the SQL verbs:
 https://documentation.basis.cloud/BASISHelp/WebHelp/em/database/EM_DB_JDBC_How-To.htm
 
 ## JDBC
 
-`BBjAPI().getJDBCConnection(name)` returns a `java.sql.Connection`
-(https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjapi/bbjapi_getjdbcconnection.htm). Declare the
+`BBjAPI().getJDBCConnection(url)` returns a `java.sql.Connection`
+(https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjapi/bbjapi_getjdbcconnection.htm). The `url`
+is "The name of a BBj database on the server, or the JDBC connection URL used to connect to a remote or third party
+database"; a BBj database name must match "the name defined in the Enterprise Manager, including case". The blocks
+use `ChileCompany`, the database of the page's own example; pass the name of your database. Declare the
 `java.sql` types of the connection, the statement and the result set. An undeclared `rs!` in the `while` condition
 fails `bbjcpl -t` with `Cannot assign <undeclared> to BBjNumber`; `bbj-ls` passes it.
 
 ```bbj should-fail
 declare java.sql.Connection conn!
 declare java.sql.Statement stmt!
-conn! = BBjAPI().getJDBCConnection("MyDatasource")
+conn! = BBjAPI().getJDBCConnection("ChileCompany")
 stmt! = conn!.createStatement()
 rs! = stmt!.executeQuery("select 1")
 while (rs!.next())
@@ -28,7 +31,7 @@ stmt!.close()
 declare java.sql.Connection conn!
 declare java.sql.Statement stmt!
 declare java.sql.ResultSet rs!
-conn! = BBjAPI().getJDBCConnection("MyDatasource")
+conn! = BBjAPI().getJDBCConnection("ChileCompany")
 stmt! = conn!.createStatement()
 rs! = stmt!.executeQuery("select 1")
 while (rs!.next())
@@ -49,6 +52,9 @@ https://documentation.basis.cloud/BASISHelp/WebHelp/commands/sqlexec_verb.htm,
 https://documentation.basis.cloud/BASISHelp/WebHelp/commands/sqlfetch_function.htm,
 https://documentation.basis.cloud/BASISHelp/WebHelp/commands/sqltmpl_function.htm,
 https://documentation.basis.cloud/BASISHelp/WebHelp/commands/sqlclose_verb.htm
+
+The URL, the table `t` and the column `col` in the block are placeholders; replace them with your own. The How-To
+sample passes the user and password as `SQLOPEN(chan, MODE="USER=youruser,PWD=yourpwd") url$`.
 
 ```bbj
 chan = sqlunt
@@ -75,8 +81,8 @@ clause in a query see the SQL Grammar page linked from it.
 
 ## SQL functions
 
-The string, numeric and time-and-date functions of the BBj SQL grammar are listed on the official pages. Use
-them, and only the functions they list:
+For a BBj database, these pages list the string, numeric and time-and-date functions "supported by the
+BASIS DBMS"; for a third-party database reached through a JDBC URL, use that database's own functions:
 
 - https://documentation.basis.cloud/BASISHelp/WebHelp/b3odbc/SQL/bbjds_string_functions.htm
 - https://documentation.basis.cloud/BASISHelp/WebHelp/b3odbc/SQL/bbjds_numeric_functions.htm
