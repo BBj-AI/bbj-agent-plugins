@@ -158,7 +158,35 @@ Plans:
   4. Known wrong claims are corrected (`LIMIT` is documented, the `str()` mask example, "parse stdout" of `bbjcpl`, `HashMap`/`ArrayList` need `USE`); all taste (`PRECISION 16`, `Utils` class, `q`/`k`/`wi` naming, size-guard rule) and project leftovers are gone; launcher facts remain only where verified and framed as applying when the user asks to run a program
   5. Every `bbj` block in the skill and its references passes the live gate on both routes, the structure lints pass, and the skill is still invoked as `/bbj:bbj-programming`
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 04-01-PLAN.md — Compile evidence: probes/run.py (batched bbjcpl -t -N -X, loopback bbj-ls, canaries, --check), about 70 probes, reserved-word re-proof, OUTPUT.txt, dry-run recipe (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 04-02-PLAN.md — Claim ledger 04-LEDGER.md (one row per rule: class, evidence, primer, verdict, route) and ledger_check.py (wave 2, after 04-01)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 04-03-PLAN.md — SKILL.md rewrite: check block first, bbjcpl output, primer-gap rules with should-fail pairs, pointers, index; scoped Built in line shared with the Codex snippet; ratchet lowered (wave 3, after 04-02)
+- [ ] 04-04-PLAN.md — 04-DOCS-PROPOSAL.md for the BASIS docs owners, STR() chapter first, then every COMPILE-only gap and the dropped rules (wave 3, after 04-02)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 04-05-PLAN.md — references/running.md (launcher facts with URLs, when the user asks), sysgui.md and callback-performance.md reduced to ledger survivors; ratchet lowered (wave 4, after 04-03)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 04-06-PLAN.md — database.md (LIMIT documented), java-interop.md and reserved-words.md deleted, bbj-programming off the pending list via --report in the same commit, full suite green (wave 5, after 04-05)
+
+**Cross-cutting constraints:**
+
+- Probes and gate runs are compile-only (bbjcpl -t -N -X, bbj-ls on 127.0.0.1:5009); nothing runs BBj and no skill code goes to the hosted check
+- Every intermediate commit keeps the full suite green: bbj-programming counts only fall, bbj-web-programming counts stay 15 / 25 / 5 / 0 / 8; tests/skills_baseline.json is written only by --report
+- The check-order block bytes in SKILL.md never change (tests/test_check_order.py)
 
 ### Phase 5: bbj-web-programming makeover
 
@@ -198,6 +226,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 1. Repo-owned skills and local-first check route | 7/7 | Complete    | 2026-10-10 |
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
-| 4. bbj-programming makeover | 0/TBD | Not started | - |
+| 4. bbj-programming makeover | 0/6 | Not started | - |
 | 5. bbj-web-programming makeover | 0/TBD | Not started | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |

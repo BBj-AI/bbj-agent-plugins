@@ -100,6 +100,19 @@ own ratchet.
   `.bbj` files, and `bbjcpl` output. Symptoms are listed only for topics that survived the ledger.
   It stays at 1,024 characters or fewer (already linted).
 
+### Owner confirmation (plan-check follow-up, 2026-10-11)
+- **D-21:** A fourth evidence class, OWNER, is added to the ledger (D-02). It covers a claim the
+  project owner (Stephan Wald) has confirmed on a real BBj when no docs page states it and no compile
+  probe can show it. An OWNER row records who confirmed it, the date and the BBj version. An OWNER claim
+  ships as verified. Only the user can grant OWNER; the executor never assigns it alone.
+- **D-22:** Two claims are OWNER-confirmed (2026-10-11):
+  - the `str()` numeric-mask sign trap: a numeric mask with no sign character loses the minus.
+    This settles the D-15 vs D-04 conflict, and the trap ships as a verified rule.
+  - `bbj -tIO` sends `print` output to stdout (the IO device). It ships in `references/running.md`
+    as a plain fact, not hedged.
+- **D-23:** Every OWNER claim also goes into `04-DOCS-PROPOSAL.md` as a docs gap for the BASIS
+  owners to amend. The proposal is the "laundry list" of doc amendments the user keeps separately.
+
 ### Claude's Discretion
 - Plan split and order (ledger first is implied, since the rewrite depends on its verdicts).
 - Probe file layout and naming under the phase directory.
