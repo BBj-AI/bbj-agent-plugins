@@ -1,101 +1,59 @@
-# Form validation — server-side vs. client-side (DWC)
+# Form validation in the DWC
 
-**Server-side:** when the user submits (clicking a `BBjButton`), data goes to BBj and you validate it by listening for `BBjFormValidationEvent`. At that point BBj has already locked the top-level window (all input disabled) — the program must call `accept(0)` or `accept(1)` on the event (or on the `BBjButton`) to unlock it. Forgetting this call is a real gotcha: the UI stays frozen (see **bbj-programming** → `references/callback-performance.md` for the `ON_FORM_VALIDATION`/`event!.accept(1)` freeze trap).
+Page: https://dwc.style/docs/#/dwc/guide/form-validation
+Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjinterfaces/IF_ClientValidation/Interface_ClientValidation.htm
+Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjinterfaces/IF_ClientValidation/Interface_ClientValidation_setClientValidationFunction.htm
+Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjFormValidationEvent/bbjformvalidationevent_accept.htm
 
-**Client-side (DWC only, BBj 22.10+, via the `ClientValidation` interface):** feedback appears inline or as a popover under the control as the user types, entirely in the browser, before anything is sent to BBj. **Never trust client-validated data on the server** — a malicious user can alter the network request even when the client-side form validates cleanly, so re-check on the BBj side regardless.
+- The window stays locked until the callback calls `accept()`. BBjFormValidationEvent.accept: "When BBj fires a
+  BBjFormValidationEvent, it also locks the top level window from user changes. This method must be called to
+  unlock the window." accept(1), accept(0) and the missing reject method: see
+  bbj-programming/references/callback-performance.md.
+- Client-side validation needs BBj 22.10 or higher. The form validation guide: "Client-side validation is
+  supported in BBj 22.10 and higher through the" ClientValidation interface. The controls that implement it
+  are listed on the Interface_ClientValidation page under "Implementing Classes".
+- Built-in validation wins over JavaScript validation. The guide: "Built-in validation has a higher priority
+  than Javascript validation. In other words if a control is using both built-in and javascript validation the
+  built-in validation will always be used."
+- Never trust client-validated data. The guide: "Never trust data passed to your server from the client. Even
+  if your form is validating correctly and preventing malformed input on the client-side, a malicious user can
+  still alter the network request." and "the data is sent to BBj where you can check the validated data again."
+- A JavaScript validation is set with `setClientValidationFunction(javascript!)` or with the `validator`
+  attribute, `setAttribute("validator", "Expression")`. setClientValidationFunction: "The code must return a
+  boolean value to indicate whether the value is considered to be valid." The guide says the same for the
+  expression.
+- The `return` insertion rule. Interface_ClientValidation: "If the function does not contain the word
+  "return", BBj will insert "return " at the start." and "If the function contains multiple lines of JavaScript
+  code separated by ";", it must explicitly specify a return statement." The guide: "If the expression has
+  many lines, then you will need to provide the ; at the end of each line and also provide the return
+  statement."
+- The variables available to the function are `value`, `text` and `control` (setClientValidationFunction: "The
+  variables available to the client validation function are value, text, and control."). What `value` and
+  `text` hold for each control class is in the guide, section "Text & value".
+- Attributes set on the closest BBjWindow apply to the controls inside it. The guide: "It is also possible to
+  set theses attributes on the closest BBjWindow instead of setting them per control. The attribute name in
+  this case must be prefixed with data-".
+- The built-in attributes of each control, the value and text of each control class, and the customization
+  attributes are tables in the guide and are not copied here.
 
-Client-side validation comes in two flavors, and **built-in validation always wins when a control has both**:
-- **Built-in** — no JavaScript, just validation attributes on the control.
-- **JavaScript** — a boolean expression/function you supply.
-
-Controls supporting client-side validation (all support JS validation; some also have built-in rules): `BBjCEdit`, `BBjCheckBox`, `BBjEditBox`, `BBjEditBoxSpinner`, `BBjInputD`, `BBjInputDSpinner`, `BBjInputE`, `BBjInputESpinner`, `BBjInputN`, `BBjInputNSpinner`, `BBjListBox`, `BBjListButton`, `BBjListEdit`, `BBjRadioButton`.
-
-## Built-in validation attributes by control
-
-| Control | Attributes |
-|---|---|
-| `BBjEditBox` | `required`, `minlength`/`maxlength`, `min`/`max` (numeric input types), `type` (number/email/etc.), `pattern` (regex) |
-| `BBjInputD` | `required`, `pattern` (applied to the masked *string* value, not the julian number), `min`/`max` (julian date) |
-| `BBjInputT` | `required`, `pattern` (applied to the masked string), `min`/`max` (0–24) |
-| `BBjInputE` | `required`, `pattern` (applied to the masked value) |
-| `BBjInputN` | `required`, `min`/`max` |
-| `BBjRadioButton` | `required` — only one button in a same-named group can be selected at a time |
-| `BBjCheckBox` | `required` — must be checked before submit |
-| `BBjCEdit` | `required`, `minlength` |
-
-## JavaScript validation
-
-Set the expression with `setClientValidationFunction(javascript!)` (or the equivalent `validator` attribute: `control!.setAttribute("validator", "Expression")`). The expression must evaluate to a boolean:
-- No `return` in the expression → BBj wraps it in `return ...;` for you.
-- Contains `return` → treated as a multi-line function body; you supply `;` on each line and the `return` yourself.
-
-Expression parameters available: `value` (alias `x`, control-specific — see table below), `text` (text representation of the current value), `control` (the client component instance).
-
-| Control | `value` | `text` |
-|---|---|---|
-| `BBjCEdit` | Text | Text |
-| `BBjCheckBox` | Boolean | `'1'` checked / `'0'` not |
-| `BBjRadioButton` | Boolean | `'1'` checked / `'0'` not |
-| `BBjEditBox`, `BBjEditBoxSpinner` | Text | Text |
-| `BBjInputD`, `BBjInputDSpinner` | Date | Date string as typed |
-| `BBjInputT`, `BBjInputTSpinner` | Number | Text |
-| `BBjInputE`, `BBjInputESpinner` | Text | Text |
-| `BBjInputN`, `BBjInputNSpinner` | Number | Number as text |
-| `BBjListBox` | Array of selected item(s) | Selected item text(s), `\n`-joined |
-| `BBjListEdit` | Text | Text |
-| `BBjListButton` | Selected item text | Selected item text |
+A JavaScript expression and a built-in attribute on one control, and a `data-` attribute on the window:
 
 ```bbj
-REM Valid when the value is present
-control!.setClientValidationFunction("value")
-
-REM Valid when the value is exactly 8 characters
-control!.setClientValidationFunction("value.length == 8")
-
-REM Valid when value is an array containing "item-1" — needs an explicit return (multi-statement)
-control!.setClientValidationFunction("return Array.isArray(value) && value.indexOf('item-1') > -1;")
-
-REM Valid when the value is all digits
-control!.setClientValidationFunction("/^\d+$/.test(value)")
+declare auto BBjSysGui sysgui!
+declare auto BBjTopLevelWindow win!
+sysgui! = BBjAPI().openSysGui("X0")
+win! = sysgui!.addWindow("t", $00100083$)
+win!.setAttribute("data-validation-style", "inline")
+declare auto BBjEditBox code!
+code! = win!.addEditBox("")
+code!.setClientValidationFunction("value.length == 8")
+code!.setAttribute("required", "true")
 ```
 
-## Customizing validation behavior, placement, style, and message
+## Sources
 
-A set of attributes per control (or set once on the closest `BBjWindow`/prefixed with `data-` to apply to every control inside it, e.g. `window!.setAttribute("data-validation-style", "inline")`):
-
-| Attribute | Description | Type | Default |
-|---|---|---|---|
-| `auto-validate` | Validate on every change | boolean | `true` |
-| `auto-validate-on-load` | Validate on first load | boolean | `false` |
-| `auto-was-validated` | Auto-flip the `valid` property once the control becomes valid | boolean | `false` |
-| `invalid-message` | Error message shown when invalid | string | `` |
-| `validation-icon` | Icon for the validation message — URL, data URL, `ICON_NAME`, or `POOL_NAME:ICON_NAME` | string | `'bbj:info'` |
-| `validation-popover-distance` | Offset (px) away from the control | number | `6` |
-| `validation-popover-skidding` | Offset (px) along the control | number | `0` |
-| `validation-popover-placement` | `top`/`bottom`/`left`/`right` (+ `-start`/`-end`) | string | `'bottom'` |
-| `validation-style` | `popover` message vs. `inline` | string | `'popover'` |
-| `validation-stop-after-first-invalid` | Stop at first invalid control and focus it, vs. validating the whole form | boolean | `true` |
-| `validation-auto-disable` | Disable the form's submit button while any control is invalid | boolean | `false` |
-| `message` | Busy-indicator message | string | `` |
-| `suppress-spinner` / `suppress-message` | Hide the spinner / hide the message | boolean | `false` / `true` |
-| `spinner-clockwise` | Spinner animation direction | boolean | `true` |
-| `spinner-expanse` | Spinner size (`2xs`…`3xl`) | string | `'default'` |
-| `spinner-theme` | Spinner semantic theme (`primary`/`success`/`danger`/etc.) | string | `'default'` |
-
-## BBjControlValidation plugin
-
-A reusable set of JS validators, composed with a builder instead of hand-writing expressions:
-```bbj
-use ::BBjControlValidation/ValidationBuilder.bbj::ValidationBuilder
-use ::BBjControlValidation/Validators/NotBlank.bbj::NotBlank
-use ::BBjControlValidation/Validators/MinLength.bbj::MinLength
-use ::BBjControlValidation/Validators/MaxLength.bbj::MaxLength
-use ::BBjControlValidation/Validators/Regex.bbj::Regex
-
-validation! = new ValidationBuilder()
-validation!.add(new NotBlank("Please provide a username"))
-validation!.add(new MinLength(2))
-validation!.add(new MaxLength(20))
-validation!.add(new Regex("^[a-zA-Z0-9_]+$"))
-control!.setClientValidationFunction(validation!.build())
-```
+- https://dwc.style/docs/#/dwc/guide/form-validation
+- https://documentation.basis.cloud/BASISHelp/WebHelp/bbjinterfaces/IF_ClientValidation/Interface_ClientValidation.htm
+- https://documentation.basis.cloud/BASISHelp/WebHelp/bbjinterfaces/IF_ClientValidation/Interface_ClientValidation_setClientValidationFunction.htm
+- https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjFormValidationEvent/bbjformvalidationevent_accept.htm
+- Verified on BBj 26.03 (bbjcpl -t -N -X and bbj-ls; probe p12)
