@@ -121,6 +121,7 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 | A `bbj should-fail` block no route fails, with only `bbj-ls` present, is undecided: skip, FAIL under BBJ_SKILLS_LIVE=1, not counted (D-08 amendment) | `bbj-ls` is parse-only and cannot show a type error | ✓ Accepted at Phase 3 UAT |
 | A present but broken live route (failed canary pair) is skip unless BBJ_SKILLS_LIVE=1 (IN-03) | Same rule as a missing route; the release gate runs live | ✓ Accepted at Phase 3 UAT |
 | A rule no page states ships only when the skill maintainer confirmed it on BBj 26.03, worded as such (OWNER ledger class; `str()` sign rule, `bbj -tIO`, Dialog-flag front rule D-24) | Owner knowledge is real but must be marked, never passed off as documented | ✓ Accepted at Phase 4 UAT |
+| Release-text gates: `upgrade_addressed` runs at every version; `upgrade_quotes` and `not_run` are pinned to CONTENT_VERSION and FAIL with a re-pin message at any other version (REL-06, D-04 to D-07) | A version bump must not pass on the facts of an older release, and a skip would block the skip=0 release run; reverses the skip half of review fix WR-02 on purpose | ✓ Decided — Phase 7 (facts stay 0.2.0; Phase 10 re-pins them to 0.2.1) |
 
 ## Evolution
 
