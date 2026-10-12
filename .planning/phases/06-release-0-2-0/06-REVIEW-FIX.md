@@ -30,13 +30,13 @@ Verification ran in an isolated git worktree under `.claude/worktrees/` (no `nod
 **Commit:** 9a634e5
 **Applied fix:** Added "`--force` deletes the two installed skill directories and copies the shipped ones; copy any local edits out first." to the CHANGELOG Upgrading bullet, and the same warning to the `--force` table row and the "Installs the two skills" step of `docs/install-codex.md`. The three quoted installer lines in the CHANGELOG are unchanged. The review's "better" option (installer backup under `--force`) is a product change and was left for a follow-up.
 
-### WR-02: The Claude Code update instructions on the install page contradict the CHANGELOG
+### WR-02: The Claude Code update instructions on the install page contradict the CHANGELOG and would not deliver 0.2.0
 
 **Files modified:** `docs/install-claude-code.md`, `tests/test_release_text.py`
 **Commit:** 0641ced
 **Applied fix:** The "Update and remove" section now shows `claude plugin marketplace update basis-bbj`, `claude plugin update bbj@basis-bbj` and `claude plugin update bbj-local@basis-bbj` (only if installed), with one sentence on why to refresh the marketplace first. Added the gate `release_upgrade_install_page` so the page cannot drift from the CHANGELOG.
 
-### WR-03: `tests/test_release_text.py` forbids any changelog history
+### WR-03: `tests/test_release_text.py` forbids any changelog history, so the next release must edit or delete the gate
 
 **Files modified:** `tests/test_release_text.py`
 **Commit:** 78236db
