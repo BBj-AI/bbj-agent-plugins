@@ -62,7 +62,7 @@ Spike 004 (Copilot CLI) belongs to the next milestone.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 7: Test hardening and release prep** - Suite green with `bbjcpl` on `PATH` and a running Codex daemon; 0.2.0 review fixes in the release tree; CONTENT_VERSION policy decided
+- [x] **Phase 7: Test hardening and release prep** - Suite green with `bbjcpl` on `PATH` and a running Codex daemon; 0.2.0 review fixes in the release tree; CONTENT_VERSION policy decided (completed 2026-10-12)
 - [ ] **Phase 8: Codex plugin route** - Codex installs `bbj` and the opt-in `bbj-local` from the `basis-bbj` marketplace with a working docs URL and the unchanged hook; installer kept as fallback; gated in CI on fakes
 - [ ] **Phase 9: Windows and macOS verification** - Owner runs of the Claude Code plugin and the Codex plugin route on Windows and macOS; every defect fixed with a CI gate on fakes or recorded as a known gap
 - [ ] **Phase 10: Install wording and release 0.2.1** - Per-client, per-platform, per-route wording backed by the recorded runs and pinned by gates; 0.2.1 merged, tagged and published
@@ -81,7 +81,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The four review-fix commits `b0a4c62`, `3a42ebf`, `b600ac4` and `172e6a5` are in the branch that becomes the 0.2.1 release tree, and the full suite passes with them (REL-05)
   5. The owner has decided the CONTENT_VERSION policy of `tests/test_release_text.py` and it is recorded with its reason. The policy says how the content gates (`upgrade_addressed`, `upgrade_quotes`, `not_run`) behave at version 0.2.1 so that the Phase 10 release run can reach skip=0. Today they print `skip` for any version other than 0.2.0 (REL-06)
 
-**Plans**: 4/4 plans executed
+**Plans**: 4/4 plans complete
 
 Plans:
 **Wave 1**
@@ -165,7 +165,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 7. Test hardening and release prep | v0.2.1 | 4/4 | In Progress | - |
+| 7. Test hardening and release prep | v0.2.1 | 4/4 | Complete    | 2026-10-12 |
 | 8. Codex plugin route | v0.2.1 | 0/TBD | Not started | - |
 | 9. Windows and macOS verification | v0.2.1 | 0/TBD | Not started | - |
 | 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |
