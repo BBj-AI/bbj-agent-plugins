@@ -34,7 +34,7 @@ Options:
 | `--skills-dir DIR` | Where the two skills go. Default `~/.agents/skills`. |
 | `--codex-home DIR` | The Codex home. Default `$CODEX_HOME`, else `~/.codex`. |
 | `--with-local` | Also register the local check server `bbj-local` (the `bbj-ls` of a running BBjServices 26.03 or later, `http://127.0.0.1:5009/mcp`) and approve its three tools; see section 2, "Enable the local check". |
-| `--force` | Replace a skill directory that differs from the shipped one. |
+| `--force` | Replace a skill directory that differs from the shipped one. It deletes the directory and copies the shipped one, so copy any local edits out first. |
 | `--help` | Print the usage text. |
 
 Exit codes: `0` done; `2` the installer refused (a bad option or URL, or a destination it cannot write; it checks every destination before it writes anything, and if a later step still fails it names the steps that had already run);
@@ -94,7 +94,7 @@ what to do in that case. Running it a second time changes nothing.
 3. **Installs the two skills**, `bbj-programming` and `bbj-web-programming`, into
    `~/.agents/skills`, where Codex CLI 0.162.1 finds them; if your Codex version does not
    list the BBj skills, rerun the installer with `--skills-dir ~/.codex/skills`. A skill
-   directory that already exists and differs is left alone unless you pass `--force`.
+   directory that already exists and differs is left alone unless you pass `--force`, which deletes it and copies the shipped one (copy any local edits out first).
 4. **Copies the check script** to `~/.codex/bbj/bbj-check.sh`, a stable path outside any cache.
 5. **Writes `~/.codex/hooks.json`** when it does not exist: a `PostToolUse` hook with the matcher
    `apply_patch|Edit|Write`, a timeout of 30 seconds and a `commandWindows` entry. An existing
