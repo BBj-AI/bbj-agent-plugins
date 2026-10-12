@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 5
 current_phase_name: bbj-web-programming makeover
 status: executing
-stopped_at: Completed 05-07-PLAN.md
-last_updated: "2026-10-12T06:58:35.322Z"
+stopped_at: Completed 05-08-PLAN.md
+last_updated: "2026-10-12T07:04:32.531Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 5 execution started
-state_head: 7d9323eddee31b692b211225a8fc4a752ae0817f
+state_head: 574b7a83b633b54ae0dd9723797157e739e2aa21
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 35
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 5 (bbj-web-programming makeover) — EXECUTING
-Plan: 7 of 10
+Plan: 8 of 10
 Status: Ready to execute
 Last activity: 2026-10-11 — Phase 5 execution started
 
@@ -88,6 +88,7 @@ Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phas
 | Phase 5 P04 | 40 min | 2 tasks | 15 files |
 | Phase 5 P05-05 | owner session | 3 tasks | 4 files |
 | Phase 05 P07 | 10min | 2 tasks | 1 files |
+| Phase 05 P08 | 15min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -147,6 +148,7 @@ Recent decisions affecting current work:
 - [Phase 5]: D-19 to D-27: nine owner grants (O1, O2, O4, O5, O6, O7, O9, O10, O11) recorded as OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03
 - [Phase 5]: DWC build recorded as the BBj build 26.03 (build 10/06/2026 09:19), owner statement that DWC ships inside BBj
 - [Phase 5]: O3 and O8 rejected by the owner: dropped, no grant
+- [Phase 05]: 05-08: setSlot and /files/ stay pointers to SKILL.md sections in shoelace.md; DWC-only dropped from form-validation.md (ledger L103, L062, L079, L080)
 
 ### Pending Todos
 
@@ -169,6 +171,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T06:58:35.207Z
-Stopped at: Completed 05-07-PLAN.md
+Last session: 2026-10-12T07:04:32.403Z
+Stopped at: Completed 05-08-PLAN.md
 Resume file: None
