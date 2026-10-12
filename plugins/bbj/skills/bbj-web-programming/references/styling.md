@@ -11,7 +11,9 @@ Page: https://docs.webforj.com/docs/styling/themes
   the DWC client."
 - `setTheme` takes the theme name: "theme Specifies a DWC theme name ("light", "dark", "dark-pure"), or
   "system" to use the system default theme." The themes guide: "DWC ships three application themes out of
-  the box"; its table lists `dark-pure` as a dark theme with the tint "None (pure neutral grays)".
+  the box"; its table lists `dark-pure` as a dark theme with the tint "None (pure neutral grays)". The guide
+  adds: "The method accepts the name of any built-in or custom theme." The three names above are the built-in
+  ones.
 - Calling it again switches the theme: "Calling it again at any time switches the application to a different
   theme." and "Switching themes recalculates colors, shadows, surfaces, and borders across the whole
   application instantly, with no rebuild."
@@ -41,7 +43,9 @@ Page: https://docs.webforj.com/docs/styling/themes
 
 - Light: "The light theme is the default and is scoped to :root. Override it by setting tokens in :root:"
 - Dark: "Override dark and dark-pure inside their matching data-app-theme selectors:"
-- A new theme: "Pick a unique name and define it under its own data-app-theme block:"
+- A new theme: "Pick a unique name and define it under its own data-app-theme block:" and "Activate a new
+  theme by name:", whose example is `web!.setTheme("brand")`. For the `brand-dark` block below that is
+  `web!.setTheme("brand-dark")`.
 - A custom dark theme sets `--dwc-dark-mode: 1` and `color-scheme: dark` on its selector. The guide: "The
   built-in dark and dark-pure themes already set color-scheme: dark for you" and "Light themes don't need the
   declaration - browsers default to light."
@@ -50,7 +54,8 @@ Page: https://docs.webforj.com/docs/styling/themes
   URL into the web page."). The themes guide uses `injectStyleUrl` for its brand stylesheet.
 - The tokens are listed at https://docs.webforj.com/docs/styling/ and not repeated here.
 
-The three selector forms, with the values the docs.webforj.com themes page uses:
+The three selector forms, with the values the themes pages use (the `brand-dark` block is the dark variant
+of a new theme in the dwc.style themes guide):
 
 ```css
 :root {
@@ -64,6 +69,7 @@ html[data-app-theme="dark"] {
 
 html[data-app-theme="brand-dark"] {
   --dwc-dark-mode: 1;
+  --dwc-color-primary-seed: #a855f7;
   color-scheme: dark;
 }
 ```
