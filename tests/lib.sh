@@ -27,6 +27,8 @@
 #   SESSION_ID          the session_id of both payload builders (default s1)
 #   no_compiler_path [PATHVALUE]   prints PATHVALUE (default PATH) without any directory that
 #                       holds a BBj compiler (MAINT-06, D-11); only for no-route tests
+#   no_compiler_env     unsets BBJ_HOME, BBJHOME and CLAUDE_PLUGIN_OPTION_BBJ_HOME and sets
+#                       BBJ_CHECK_DEFAULT_HOMES empty, in the calling shell (MAINT-06, D-11)
 #
 # Hermetic defaults (exported here): the built-in default homes are replaced by an empty
 # list, no BBj environment variable is set, and the loopback check URL is a closed port,
@@ -183,4 +185,12 @@ no_compiler_path() {
   IFS=$_ncp_ifs
   [ "$_ncp_noglob" = 1 ] || set +f
   printf '%s' "$_ncp_out"
+}
+
+# no_compiler_env: the other discovery sources of the hook, cleared for a no-route test (MAINT-06,
+# D-11). Call it directly, never inside a command substitution: a subshell loses the change.
+no_compiler_env() {
+  unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME
+  BBJ_CHECK_DEFAULT_HOMES=
+  export BBJ_CHECK_DEFAULT_HOMES
 }

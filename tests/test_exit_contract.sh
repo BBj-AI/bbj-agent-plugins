@@ -90,8 +90,12 @@ run_shell() {
   # call of a session and empty stdout on the second, for Write and for apply_patch (HOOK-03).
   # Plan 02-06 flips the codex case to a fallback expectation only if Codex does not deliver
   # additionalContext (D-15).
+  # MAINT-06 (D-11, D-12): a compiler on the caller's PATH would be a route, so PATH is scrubbed
+  # for this block only and restored after it; the farm keeps dash, bash and busybox reachable.
   _savehome=$BBJ_HOME
-  unset BBJ_HOME
+  _savepath=$PATH
+  PATH=$(no_compiler_path)
+  no_compiler_env
   fresh_state
   run_check "$(claude_payload Write "$WORK/proj/plain.bbj" "$WORK/proj")"
   contract "$_sn" no_route notice
@@ -103,6 +107,7 @@ run_shell() {
   contract "$_sn" codex_no_route notice
   run_check "$(codex_payload "$WORK/proj" "$_patch")"
   contract "$_sn" codex_no_route_repeat
+  PATH=$_savepath
   BBJ_HOME=$_savehome
   export BBJ_HOME
 
