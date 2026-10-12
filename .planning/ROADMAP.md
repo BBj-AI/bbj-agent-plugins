@@ -264,7 +264,7 @@ Plans:
   3. The full suite passes with `skip=0` on the live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`), and an install from the git marketplace source passes
   4. The release is tagged `0.2.0`
 
-**Plans**: 1/8 plans executed
+**Plans**: 2/8 plans executed
 
 Plans:
 **Wave 1**
@@ -273,7 +273,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 06-02-PLAN.md — Version 0.2.0 in one commit with strict validation (REL-01); CHANGELOG 0.2.0 entry with upgrade notes quoting the installer; tests/test_release_text.py; project notes at 0.2.0 (wave 2, after 06-01)
+- [x] 06-02-PLAN.md — Version 0.2.0 in one commit with strict validation (REL-01); CHANGELOG 0.2.0 entry with upgrade notes quoting the installer; tests/test_release_text.py; project notes at 0.2.0 (wave 2, after 06-01)
 
 **Wave 3** *(blocked on Wave 2 completion; not autonomous)*
 
@@ -317,4 +317,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
 | 5. bbj-web-programming makeover | 10/10 | Complete    | 2026-10-12 |
-| 6. Release 0.2.0 | 1/8 | In Progress | - |
+| 6. Release 0.2.0 | 2/8 | In Progress | - |
