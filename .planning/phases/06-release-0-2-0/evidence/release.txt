@@ -1,0 +1,6 @@
+tag: 0.2.0
+tag_object: 1df55522a9f2e4dd96119377214a6cd1621c0bc7
+commit: f15c257f6fba6e5d4cde60e49ad06727de44f68f
+release_url: https://github.com/BBj-AI/bbj-agent-plugins/releases/tag/0.2.0
+published: 2026-10-12
+merge_back: 9f178d2c43c31c68028d0700f2173248bdd434d8
