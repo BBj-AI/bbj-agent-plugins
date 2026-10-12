@@ -16,22 +16,19 @@ Shipped **v0.2.0** (plugin release 0.2.0, tag `0.2.0` on f15c257, GitHub Release
 and `bbj-ls` (baseline pending `{}`, `nocheck` 0). The full suite passes at `ok=738 fail=0 skip=0`
 with live gates. Milestone record: `.planning/MILESTONES.md`; archive: `.planning/milestones/`.
 
-## Next Milestone Goals
+## Current Milestone: v0.2.1 Platform verification and release hygiene
 
-Not defined yet; `/gsd-new-milestone` sets them. Candidates carried from the v0.2.0 audit:
+**Goal:** Replace every "not yet run on Windows/macOS" hint with wording backed by real runs, and
+ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
-- Ship the four planning-branch review-fix commits (CHANGELOG and docs wording, release-text
-  gates) in the next release, and settle the CONTENT_VERSION gate policy
-- Harden `real_home_untouched` against a local Codex daemon (D-2); scrub PATH in `tests/lib.sh`
-  (Phase 2 WR-01)
-- Replace the "not yet run on macOS" wording in the installer and docs
-- Send the 04/05 docs proposals to the BASIS documentation owners
-
-## Core Value
-
-Every BBj claim and every code example the plugin hands an agent is correct: documented (URL
-cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t`
-and `bbj-ls`).
+**Target features:**
+- Windows verification: Claude Code plugin and hook (Git for Windows, `cygpath`) and the Codex
+  installer and hook (`commandWindows`), on `bbjcpl` and, where BBjServices runs, `bbj-ls`; fix what breaks
+- macOS verification on `bbjcpl` for Claude Code and Codex (the 0.2.0 UAT covered `bbj-ls` only)
+- Test hardening: `tests/lib.sh` scrubs PATH (WR-01); `real_home_untouched` ignores Codex runtime files (D-2)
+- Per-platform, per-route install wording in README, docs, installer and CHANGELOG, pinned by gates
+- Release hygiene: the four planning-branch review fixes, CONTENT_VERSION gate policy, stale
+  `skills_` line in `.claude/CLAUDE.md`; version 0.2.1, merged, tagged `0.2.1`, GitHub Release
 
 ## Requirements
 
@@ -58,7 +55,11 @@ and `bbj-ls`).
 
 ### Active
 
-(none; all v0.2.0 requirements shipped. The next milestone defines new ones; see Next Milestone Goals)
+- [ ] Windows: Claude Code and Codex installs and hook verified on a real machine (bbjcpl; bbj-ls where available)
+- [ ] macOS: Claude Code and Codex hook verified on the bbjcpl route
+- [ ] Test suite passes on a maintainer machine that has bbjcpl on PATH or a running Codex daemon
+- [ ] Install docs, installer and CHANGELOG state per platform and per route what was verified
+- [ ] Release 0.2.1 carries the 0.2.0 review fixes and is tagged and published
 
 ### Out of Scope
 
@@ -136,4 +137,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-12 after v0.2.0 milestone*
+*Last updated: 2026-10-12 after starting v0.2.1 milestone*
