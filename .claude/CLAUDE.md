@@ -264,12 +264,12 @@ and `bbj-ls`).
 - Depends on: A BBj compiler (`bbjcpl` / `bbjcplw`) or a running `bbj-ls`; `curl` for tier 2.
 - Used by: The host, after every matching tool call.
 - Purpose: Install the docs server, skills and hook for OpenAI Codex, which has no plugin
-- Location: `codex/install-codex.sh` (527 lines), `codex/AGENTS-snippet.md`
+- Location: `codex/install-codex.sh`, `codex/AGENTS-snippet.md`
 - Contains: Option parsing and validation (`usage`, `refuse`, `say`), pre-flight checks
 - Depends on: `codex` CLI (optional; falls back to a managed `config.toml` block), POSIX
 - Used by: A user running the script from a checkout. Exit codes: 0 done, 2 refusal or usage
 - Purpose: Teach the agent BBj syntax, web (DWC) development and the rules agents get wrong.
-- Location: `plugins/bbj/skills/bbj-programming/` (`SKILL.md` 464 lines, 5 reference files),
+- Location: `plugins/bbj/skills/bbj-programming/` (`SKILL.md` and `references/*.md`),
 - Contains: Markdown only. Skills are loaded by the host on demand; references are read on
 - Depends on: Nothing executable. Content describes the `bbj-docs` and `bbj-ls` tools by name.
 - Used by: The host agent's skill loader (`~/.agents/skills` for Codex, the plugin cache for
@@ -316,7 +316,7 @@ and `bbj-ls`).
 - Location: `.claude-plugin/marketplace.json`
 - Triggers: `claude plugin marketplace add BBj-AI/bbj-agent-plugins`, then
 - Responsibilities: Lists the two plugins and marks `bbj-local` as `defaultEnabled: false`.
-- Location: `plugins/bbj/scripts/bbj-check.sh` (last statement `main`, line 276)
+- Location: `plugins/bbj/scripts/bbj-check.sh` (its last statement is `main`)
 - Triggers: PostToolUse for `Write|Edit` (Claude Code) and `apply_patch` (Codex, via the
 - Responsibilities: Parse input, compile-check, exit 0 or 2 only.
 - Location: `codex/install-codex.sh`
