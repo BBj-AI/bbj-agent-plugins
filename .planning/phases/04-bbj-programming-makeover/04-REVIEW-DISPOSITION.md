@@ -9,11 +9,11 @@ findings:
     title: "\"Put one in every mask\" can be read as `@` or `&` being a sign character"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The `getActiveContext()` citation leaves out the later-created window in the same example"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "\"For a modal window, pass the Dialog flag\" has no scope for top-level versus MDI windows"
   - id: WR-02
     severity: warning
@@ -61,9 +61,9 @@ findings:
     title: "\"A program that is run from a shell for the user ends with `RELEASE`\" is an instruction no cited page states"
   - id: WR-08
     severity: warning
-    disposition: open
+    disposition: skipped
     title: "SQL-verb example uses unmarked placeholders that read as a working program"
-open: 3
+open: 0
 total: 15
 recorded: 2026-10-11T15:34:24.763Z
 ---
@@ -73,8 +73,8 @@ recorded: 2026-10-11T15:34:24.763Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | fixed in plan 06-01 (Phase 6 D-16): @ and & named as currency characters, not sign characters |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
+| IN-01 | info | fixed | fixed in plan 06-01 (Phase 6 D-16): $80002$ described as setting the Dialog bit |
+| IN-02 | info | fixed | fixed in plan 06-01 (Phase 6 D-16): modal sentence scoped to top-level windows |
 | WR-02 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
@@ -86,7 +86,7 @@ recorded: 2026-10-11T15:34:24.763Z
 | IN-05 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
 | IN-06 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
 | IN-07 | info | fixed | 04-REVIEW-FIX.md (not in the current review) |
-| WR-08 | warning | open | - (not in the current review) |
+| WR-08 | warning | skipped | no longer holds: plan 04-07 (36d1fca, 5ed9517) names the URL, table t and column col of the SQL-verb block as placeholders in references/database.md (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.

@@ -9,13 +9,14 @@ An undeclared window or control assigned to a typed field is covered by the unde
 - `$00000010$` Invisible: "Sets the window to be initially invisible."
 - `$00080000$` Dialog: "Sets the window to behave as a dialog." The flags add up: `$00080010$` is a dialog that starts invisible.
 
-For a modal window, pass the Dialog flag. The WINDOW mnemonic page, in its notes "for top level windows in BBj", names
+For a modal top-level window, pass the Dialog flag. The WINDOW mnemonic page, in its notes "for top level windows in BBj", names
 "the dialog behavior flag ($00080000$), that creates a modal dialog"
 (https://documentation.basis.cloud/BASISHelp/WebHelp/mnemonic/sysgui/window_mnemonic_create_sysgui_window_bbj.htm).
 The `isModal()` example creates its modal window with `addWindow(X,Y,WIDTH,HEIGHT,"Modal",$00080083$)`
 (https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/bbjtoplevelwindow/bbjtoplevelwindow_ismodal.htm),
-and the `getActiveContext()` example creates the window of context 2 with `$80002$`, which includes the Dialog flag,
-and expects `getActiveContext()` to return 2 ("Should print 2 (the modal window)",
+and the `getActiveContext()` example creates the window of context 2 with `$80002$`, which sets the Dialog bit
+(two windows with flag `$02$` surround it), and expects `getActiveContext()` to return 2
+("Should print 2 (the modal window)",
 https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/SysGui/bbjsysgui/bbjsysgui_getactivecontext.htm).
 
 While a Dialog-flag window is open, a window without the Dialog flag that already existed cannot be brought in front of
