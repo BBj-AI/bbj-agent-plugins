@@ -1,10 +1,14 @@
 #!/bin/sh
-# tests/test_exit_contract.sh -- plan 19-01 Task 3: the exit-code contract (D-12). Across
-# garbage stdin, an empty PATH, a crashing compiler, an unreadable file and hostile file
-# names the script exits only 0 or 2 and never writes to stdout; no marker file is ever
-# created; names with a newline or glob characters never reach the compiler, the other
-# hostile names reach it as exactly one absolute argument. Runs under each of dash, bash and
-# busybox sh that is installed. The compiler is a fake that only logs; nothing runs BBj.
+# tests/test_exit_contract.sh -- plan 19-01 Task 3, amended by plan 02-02 (HOOK-03): the exit-code
+# contract (D-12). Across garbage stdin, an empty PATH, a crashing compiler, an unreadable file
+# and hostile file names the script exits only 0 or 2. Stdout is written only for the no-route
+# notice (exactly one JSON object, the first no-route call of a session) and is empty in every
+# other case: the crashing-compiler case and the no-route Write and apply_patch cases assert the
+# notice on the first call and empty stdout on the second, every other case asserts exit 0 or 2
+# with empty stdout. No PWNED file is ever created; names with a newline or glob characters never
+# reach the compiler, the other hostile names reach it as exactly one absolute argument. Runs
+# under each of dash, bash and busybox sh that is installed. The compiler is a fake that only
+# logs; nothing runs BBj.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -35,9 +39,16 @@ IFS=$OLDIFS
 : > "$WORK/proj/unreadable.bbj"
 chmod 000 "$WORK/proj/unreadable.bbj"
 
-# contract SHELLNAME CASE: exit 0 or 2, empty stdout, no marker file
+# contract SHELLNAME CASE [EXPECT]: EXPECT empty (the default) is exit 0 or 2 and empty stdout;
+# EXPECT notice is exit 0, empty stderr and stdout that is exactly the no-route notice object
 contract() {
-  if { [ "$RC" = 0 ] || [ "$RC" = 2 ]; } && [ ! -s "$WORK/stdout" ]; then
+  if [ "${3:-empty}" = notice ]; then
+    if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && notice_text "$WORK/stdout" > /dev/null; then
+      gate "contract_$1_$2" ok "exit 0, stdout is the notice object"
+    else
+      gate "contract_$1_$2" FAIL "exit $RC, stderr $(wc -c < "$WORK/stderr") bytes, stdout is not the notice object: $(head -c 120 "$WORK/stdout")"
+    fi
+  elif { [ "$RC" = 0 ] || [ "$RC" = 2 ]; } && [ ! -s "$WORK/stdout" ]; then
     gate "contract_$1_$2" ok "exit $RC, stdout empty"
   else
     gate "contract_$1_$2" FAIL "exit $RC, stdout $(wc -c < "$WORK/stdout") bytes"
@@ -65,12 +76,35 @@ run_shell() {
   run_check "$(claude_payload Write "$WORK/proj/unreadable.bbj" "$WORK/proj")"
   contract "$_sn" unreadable_file
 
-  # crashing compiler
+  # crashing compiler: no verdict and no tier-2 route is the no-route notice (D-02), then silent
+  fresh_state
   FAKE_EXIT=139
   export FAKE_EXIT
   run_check "$(claude_payload Write "$WORK/proj/plain.bbj" "$WORK/proj")"
+  contract "$_sn" crashing_compiler notice
+  run_check "$(claude_payload Write "$WORK/proj/plain.bbj" "$WORK/proj")"
   unset FAKE_EXIT
-  contract "$_sn" crashing_compiler
+  contract "$_sn" crashing_compiler_repeat
+
+  # no compiler and no tier-2 route (the bbj-ls URL is a closed port): the notice on the first
+  # call of a session and empty stdout on the second, for Write and for apply_patch (HOOK-03).
+  # Plan 02-06 flips the codex case to a fallback expectation only if Codex does not deliver
+  # additionalContext (D-15).
+  _savehome=$BBJ_HOME
+  unset BBJ_HOME
+  fresh_state
+  run_check "$(claude_payload Write "$WORK/proj/plain.bbj" "$WORK/proj")"
+  contract "$_sn" no_route notice
+  run_check "$(claude_payload Write "$WORK/proj/plain.bbj" "$WORK/proj")"
+  contract "$_sn" no_route_repeat
+  fresh_state
+  _patch=$(printf '*** Begin Patch\n*** Add File: plain.bbj\n+print "a"\n*** End Patch\n')
+  run_check "$(codex_payload "$WORK/proj" "$_patch")"
+  contract "$_sn" codex_no_route notice
+  run_check "$(codex_payload "$WORK/proj" "$_patch")"
+  contract "$_sn" codex_no_route_repeat
+  BBJ_HOME=$_savehome
+  export BBJ_HOME
 
   # empty PATH (cwd is an empty directory so nothing is found there either)
   mkdir -p "$WORK/emptycwd"

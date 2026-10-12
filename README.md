@@ -1,12 +1,18 @@
 # bbj-agent-plugins
 
-The `basis-bbj` marketplace for Claude Code, version 0.1.0, with two plugins:
+The `basis-bbj` marketplace for Claude Code, version 0.2.0, with two plugins:
 
-- `bbj`: the BBj docs MCP server (`bbj-docs`), the two BBjSkills (`bbj-programming`,
+- `bbj`: the BBj docs MCP server (`bbj-docs`), the two BBj skills (`bbj-programming`,
   `bbj-web-programming`) and a check hook that compiles every BBj file the agent writes.
 - `bbj-local`: registers the `bbj-ls` MCP server of a running BBjServices on
   `127.0.0.1:5009` (`bbj_check_syntax`, `bbj_denum`, `bbj_format`; BBj 26.03 or later).
-  It is a separate plugin and installs disabled; enable it where BBjServices runs.
+  It is a separate plugin and installs disabled, and it is recommended where BBjServices 26.03+
+  runs. It is preferred over the hosted check, for two reasons: your code stays on your machine,
+  and it is checked against your installation's own PREFIX, classpath and config. `bbjcpl`
+  stays the hook's first route (it also checks types); `bbj-local` checks syntax only. Claude
+  Code users enable it as described in
+  [the install page](docs/install-claude-code.md); Codex users run
+  `sh codex/install-codex.sh --with-local`.
 
 ## Install
 
@@ -32,13 +38,15 @@ Release notes and what each version was tested against: [CHANGELOG.md](CHANGELOG
 After every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file the hook compiles the file
 with `bbjcpl -t -N -X`, which checks syntax and types only. It never runs BBj code and never
 sends code off the machine. A compile error comes back to the agent (exit code 2) with the
-compiler's own lines; a clean file, a non-BBj file or a missing compiler is silent.
+compiler's own lines; a clean file or a non-BBj file is silent. When no check route exists (no
+compiler and no running `bbj-ls`), the hook tells the agent once per session that the file was
+written but not compile-checked, and how to enable a check.
 
-## Vendored skills
+## Skills
 
-`plugins/bbj/skills` is a byte-for-byte copy of the two BBjSkills at the commit recorded in
-`skills.lock.json`. Never edit it here; changes are made upstream in BBjSkills and re-synced.
-`tests/test_skills_hash.py` fails on any edit, addition or deletion.
+The two skills, `bbj-programming` and `bbj-web-programming`, live in `plugins/bbj/skills` and
+are maintained in this repository. Changes to them go through this repository's tests
+(`sh tests/run.sh`).
 
 ## Development
 

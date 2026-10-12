@@ -1,13 +1,21 @@
 #!/bin/sh
-# tests/test_install_pages.sh -- keeps the install pages honest (plan 19-07, PLUG-05).
+# tests/test_install_pages.sh -- keeps the install pages honest (plan 19-07, PLUG-05; plan 01-07, LOCAL-06).
 #
 # For every docs/install-*.md that exists:
 #   - a required-phrase list per page (what the page must state),
 #   - forbidden claims: the go-live host as a default, and "subagent edits are not covered",
+#   - the local check (plan 01-07, LOCAL-06; D-13, D-14): its own numbered step on both install pages,
+#     the two reasons it is preferred over the hosted check on both pages and in README, and a forbid
+#     so that no page ranks bbj-local above bbjcpl; the bbj-local tool tables of the Codex page equal
+#     LOCAL_TOOLS of the installer, and every installer message the Codex page quotes is printed by
+#     the installer on a line that is not a comment,
 #   - every relative Markdown link in docs/*.md, README.md and CHANGELOG.md resolves,
 #   - every "claude plugin <subcommand>" line in the Claude page's fenced blocks names a real
 #     subcommand of the installed CLI (claude plugin <words> --help exits 0); skipped when
 #     claude is not installed.
+#   - the no-route notice wording (plan 02-03, HOOK-02): "once per session" on README, both pages and the
+#     installer, "not compile-checked" on both pages, and the old claim that the hook stays silent when
+#     no check route exists is forbidden on all four (NOROUTE_SILENCE),
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
 
 . "$(dirname "$0")/lib.sh"
@@ -46,6 +54,12 @@ check_common() {
   forbid "$1" "$2" 'subagent[^.]*not (covered|checked)' subagent_not_covered
 }
 
+# the hook now speaks when no check route exists (plan 02-03, HOOK-02): no text may say it stays silent
+NOROUTE_SILENCE='says nothing|missing compiler is silent'
+
+# the local check must never read as better than the compiler (D-13): bbjcpl also checks types
+LOCAL_ABOVE_BBJCPL='(preferred|better) (than|over) `?bbjcpl'
+
 # ---- Claude Code page ----
 if [ -f "$CLAUDE_PAGE" ]; then
   n=claude
@@ -70,11 +84,20 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'config*.bbx' \
     'not yet been run on Windows' \
     '`bbj-local reported' \
-    '`bbjcpl reported'
+    '`bbjcpl reported' \
+    'recommended where BBjServices 26.03' \
+    'preferred over the hosted check' \
+    'PREFIX, classpath and config' \
+    '## 3. Enable the local check' \
+    'claude plugin enable bbj-local@basis-bbj' \
+    'once per session' \
+    'not compile-checked'
   do
     need "$n" "$CLAUDE_PAGE" "$p"
   done
   check_common "$n" "$CLAUDE_PAGE"
+  forbid "$n" "$CLAUDE_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$CLAUDE_PAGE" "$NOROUTE_SILENCE" noroute_silence
 
   sections=$(grep -c '^## ' "$CLAUDE_PAGE")
   if [ "$sections" -ge 5 ]; then
@@ -150,13 +173,82 @@ if [ -f "$CODEX_PAGE" ]; then
     '## Windows' \
     'Git for Windows' \
     'commandWindows' \
-    'guardrail'
+    'guardrail' \
+    '--with-local' \
+    'recommended where BBjServices 26.03' \
+    'preferred over the hosted check' \
+    'PREFIX, classpath and config' \
+    '## 2. Enable the local check' \
+    '[mcp_servers.bbj-local]' \
+    '[mcp_servers.bbj-local.tools.bbj_check_syntax]' \
+    '[mcp_servers.bbj-local.tools.bbj_format]' \
+    '[mcp_servers.bbj-local.tools.bbj_denum]' \
+    'http://127.0.0.1:5009/mcp' \
+    'codex mcp remove bbj-local' \
+    'BBJ_LOCAL_MCP_URL' \
+    'tools/list' \
+    'once per session' \
+    'not compile-checked'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
   check_common "$n" "$CODEX_PAGE"
   # the Codex route is unverified: the page must not say it was verified or tested on Codex
   forbid "$n" "$CODEX_PAGE" '(was|has been|is) (verified|tested) (on|with) (a )?Codex' codex_verified_claim
+  forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$CODEX_PAGE" "$NOROUTE_SILENCE" noroute_silence
+
+  # the bbj-local tool tables of the page are the installer's LOCAL_TOOLS, one list (plan 01-07)
+  INSTALLER=$REPO/codex/install-codex.sh
+  inst_local=$(sed -n "s/^LOCAL_TOOLS='\(.*\)'\$/\1/p" "$INSTALLER" | tr ' ' '\n' | sort)
+  page_local=$(sed -n 's/^ *\[mcp_servers\.bbj-local\.tools\.\([a-z_]*\)\]$/\1/p' "$CODEX_PAGE" | sort)
+  if [ -n "$inst_local" ] && [ "$inst_local" = "$page_local" ]; then
+    gate codex_local_tools_single_source ok "LOCAL_TOOLS equals the bbj-local tool tables of the page ($(printf '%s\n' "$inst_local" | awk 'END { print NR }') tools)"
+  else
+    gate codex_local_tools_single_source FAIL "installer '$(printf '%s' "$inst_local" | tr '\n' ' ')', page '$(printf '%s' "$page_local" | tr '\n' ' ')'"
+  fi
+
+  # every installer message the page quotes is printed by the installer, on a line that is not a
+  # comment, so the page cannot describe a message the installer does not print (T-01-28)
+  grep -v '^[[:space:]]*#' "$INSTALLER" > "$WORK/installer.code"
+  quoted_bad=0
+  for p in \
+    'a bbj-ls answers at' \
+    'no bbj-ls answered at' \
+    'not probed: curl not found' \
+    'is not a loopback http URL' \
+    'registering it anyway' \
+    'already registered in'
+  do
+    grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
+    grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
+  done
+  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "six quoted fragments, each on the page and on a non-comment installer line"
+fi
+
+# ---- README: the local check, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
+README=$REPO/README.md
+if [ -f "$README" ]; then
+  n=readme
+  for p in \
+    'recommended where BBjServices 26.03' \
+    'preferred over the hosted check' \
+    'PREFIX, classpath and config' \
+    '--with-local' \
+    '## Skills' \
+    'once per session'
+  do
+    need "$n" "$README" "$p"
+  done
+  forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$README" "$NOROUTE_SILENCE" noroute_silence
+fi
+
+# ---- installer output: the Known gaps line names the no-route notice (plan 02-03, HOOK-02) ----
+if [ -f "$REPO/codex/install-codex.sh" ]; then
+  n=installer
+  need "$n" "$REPO/codex/install-codex.sh" 'once per session'
+  forbid "$n" "$REPO/codex/install-codex.sh" "$NOROUTE_SILENCE" noroute_silence
 fi
 
 # ---- relative Markdown links resolve ----

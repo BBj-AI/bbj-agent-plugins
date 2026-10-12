@@ -7,7 +7,7 @@ a few minutes; nothing asks you a question, the defaults apply. For Codex, see
 
 ## Requirements
 
-- Claude Code 2.1.281 or later. The plugin was tested with Claude Code 2.1.294.
+- Claude Code 2.1.281 or later. The plugin was tested with Claude Code 2.1.296.
 - A network connection to the docs server (see the `docs_url` option below).
 - BBj is optional. Without it you get the docs tools and the skills; with it the hook also checks
   the BBj code that Claude writes (see "Check routes").
@@ -34,16 +34,27 @@ The plugin is enabled right away. `claude plugin list` shows `bbj@basis-bbj` wit
 and status. Claude Code prints that two options are not yet set; that is expected, both have a
 usable default.
 
+## 3. Enable the local check (recommended where BBjServices 26.03+ runs)
+
 The optional second plugin, `bbj-local`, registers the `bbj-ls` language server of a running
-BBjServices (BBj 26.03 or later) on `127.0.0.1:5009`. It is a separate plugin and installs
-disabled; enable it on a machine where BBjServices runs:
+BBjServices (BBj 26.03 or later) on `127.0.0.1:5009`, so Claude Code has a check it can call
+itself (`bbj_check_syntax`, `bbj_format`, `bbj_denum`). Enable it on a machine where BBjServices
+runs:
 
 ```bash
 claude plugin install bbj-local@basis-bbj
 claude plugin enable bbj-local@basis-bbj
 ```
 
-## 3. Options
+The local check is preferred over the hosted check for Claude's own check calls, for two reasons:
+your code stays on your machine, and it is checked against your installation's own PREFIX,
+classpath and config. It does not replace the compiler: `bbjcpl` stays the hook's first route
+because it also checks types, while `bbj-local` checks syntax only.
+
+The plugin installs disabled and stays opt-in, because a registered server without a running
+BBjServices shows as failed on every start.
+
+## 4. Options
 
 The `bbj` plugin has two options. Show them, or change them, with:
 
@@ -67,8 +78,7 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
   check next to the docs server, as on the pre-production instance, the server also lists
   `bbj_check_syntax`, `bbj_format` and `bbj_denum`; their answers say `hosted check, stock BBj
   <version>`, a stock BBj rather than your own PREFIX, classpath and config.
-- Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (the BBjSkills, shipped
-  unchanged).
+- Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (maintained in this repository).
 - A hook: after every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file Claude Code compiles
   the file and hands any compiler error back to Claude, which can then repair it. The hook has
   a timeout of 30 seconds.
@@ -76,8 +86,8 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
 ## Check routes
 
 The hook has two routes to a verdict and tries them in this order. It never runs BBj code: it
-only compiles, with `bbjcpl -N`, or asks a language server to parse. The code never leaves your
-machine; the hosted docs server is not used for the check.
+only compiles, with `bbjcpl -N`, or asks a language server to parse. The hook never sends code
+off your machine and does not use the hosted check.
 
 1. **Local compiler (tier 1).** The hook finds BBj in this order: the `bbj_home` option,
    `BBJ_HOME`, `BBJHOME`, `bbjcpl` on `PATH`, then `/c/bbx` (`C:\bbx` on Windows),
@@ -92,8 +102,15 @@ machine; the hosted docs server is not used for the check.
    syntax only: it does not type-check, so it does not see a method that does not exist or a
    `use` target that does not resolve. Its message starts `bbj-local reported N error(s) in
    <file>:`, so you and Claude can see which route spoke.
-3. **Neither route.** If there is no compiler and no reachable `bbj-ls`, the hook does nothing and
-   says nothing.
+3. **Neither route.** If there is no compiler and no reachable `bbj-ls`, the hook tells Claude
+   once per session that the file was written but not compile-checked, and how to enable a check
+   (the `bbj_home` option or the `bbj-local` plugin). Later BBj files in that session are not
+   checked either.
+
+For code Claude hands back without writing a file, the skills give Claude its own order of check
+calls: `bbjcpl`, then `bbj_check_syntax` of `bbj-local`, and `bbj_check_syntax` of the hosted docs
+server (the hosted check) only when neither exists. The hosted check sends the code to the server
+and checks it against a stock BBj, and Claude says so.
 
 A clean file is silent in every route. Unresolved `use` targets (the compiler's "Cannot find
 program" lines) are not counted as errors: they are listed in one line "Not counted: K

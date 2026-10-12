@@ -1,113 +1,78 @@
-# Registering and running a DWC / BUI app
+# Registering and opening a DWC or BUI app
 
-A `.bbj` file is not reachable from a browser just because it is written for DWC. It has to be
-**registered as an application** with BBj Services first. Registration is a one-time step per app —
-once done, the URL keeps working and editing the source is enough to pick up changes on the next
-run.
+Page: https://documentation.basis.cloud/BASISHelp/WebHelp/dwc/DWC_Registration_Launching.htm
+Page: https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminAppDeploymentApplication.html
+Page: https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminAppDeploymentConfiguration.html
+Page: https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminFactory.html
 
----
+- Registration comes first. DWC_Registration_Launching: "To run a BBj Application in the DWC client, you
+  must register it as a web app and enable DWC deployment."
+- A DWC app is exercised in a browser. The same page: "To launch your app, simply navigate to the app's
+  URL in a web browser." and "anyone with the URL and access to the server can run the app in a browser on a
+  computer or mobile device".
+- The URL has the format `server:port/context/appname`. "The default context for DWC apps is webapp, and the
+  default context for BUI apps is apps". The page's example with all the default settings is
+  `localhost:8888/webapp/MyApp`.
+- `getRemoteConfiguration()` gives access to the remote app configurations. BBjAdminAppDeploymentApplication:
+  "use the com.basis.api.admin.BBjAdminAppDeploymentConfiguration.createApplication() method class to create a
+  new application or the getRemoteConfiguration() method to gain access to the remote app configurations and
+  then get the app instance from there." `BBjAdminAppDeploymentConfiguration.getApplications()` returns the
+  applications as a `BBjAdminList` of `BBjAdminAppDeploymentApplication`.
+- `BBjAdminFactory.getBBjAdmin(p_user, p_password)` and `BBjAdminFactory.getBBjAdmin(p_authorizationToken)` each
+  "Get a default BBjAdmin object." A token comes from `getAuthToken`: "Get an authentication token for a
+  connection to a remote BBjServices on the default port."
+- The application object is configured with `setString` for `NAME`, `PROGRAM` and `WORKING_DIRECTORY`, and with
+  `setBoolean` for `DWC_ENABLED` (`BUI_ENABLED` for the BUI client), then `commit()`. The other properties are
+  the `static final String` fields on the BBjAdminAppDeploymentApplication page, which is where to read them.
+- `getDwcUrl(ssl)` and `getBuiUrl(ssl)` return the URL. Both take one boolean argument named `ssl`: the page
+  gives the signatures `String getDwcUrl(boolean ssl)` and `String getBuiUrl(boolean ssl)` and does not
+  describe the argument further; its own class sample calls `getBuiUrl(false)`. The Javadoc: "Generates and
+  returns a URL for the application that can be used to run the application from a Web browser. It uses the
+  name in combination with the host and port information from the Jetty server. This method returns null if
+  the DWC_ENABLED property is set to false."
+- To open a URL from a running BBj program, `BBjThinClient.browse`: "In BBj 11.00 and higher, this method opens
+  the specified URL in the default browser (GUI) or the current browser (BUI and DWC)."
+  https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjthinclient/bbjthinclient_browse.htm
 
-## Running it the wrong way hides every DWC problem
-
-```bash
-bbj -q myapp.bbj          # ThinClient / desktop GUI — NOT the DWC
-```
-`bbj` launches the **ThinClient** (Java GUI on the client). The program runs, but `getWebManager()`
-returns nothing useful, `injectStyle()` goes nowhere, `dwc-icon` components never render, CSS is
-never applied, and DOM-shape bugs are invisible. A DWC app can only be exercised in a browser.
-
-Two flags worth knowing when you do run from the shell:
-
-- **`-WD<dir>`, no space** sets the working directory (`-WD/path/to/app`). A relative program path
-  resolves against it, so without it you get `!ERROR=12 (Missing file …)`.
-- **`-q`** suppresses the BBj banner.
-
----
-
-## Registering with the BBjAdminAPI
-
-`getRemoteConfiguration()` hands back the app-deployment configuration; its applications are
-`BBjAdminAppDeploymentApplication` objects. Look for an existing app with the same name before
-creating one, or every run adds a duplicate.
+Register a program as a DWC app and read its URL. The block creates a new application each time it runs;
+`getApplications()` lists the existing ones. `adminUser$` and `adminPassword$` stand for the administrator
+login, which the caller sets:
 
 ```bbj
 use com.basis.api.admin.BBjAdminFactory
+use com.basis.api.admin.BBjAdminBase
+use com.basis.api.admin.BBjAdminAppDeploymentConfiguration
+use com.basis.api.admin.BBjAdminAppDeploymentApplication
 
-admin! = BBjAdminFactory.getBBjAdmin(username$, password$, err=login_failed)
-REM ...or, with a JWT from BBjAdminFactory.getAuthToken():
-REM admin! = BBjAdminFactory.getBBjAdmin(token$, err=login_failed)
+rem the caller sets adminUser$ and adminPassword$ to the administrator login
+adminUser$ = ""
+adminPassword$ = ""
 
-configuration! = admin!.getRemoteConfiguration()
+declare auto BBjAdminBase admin!
+declare auto BBjAdminAppDeploymentConfiguration config!
+declare auto BBjAdminAppDeploymentApplication app!
 
-REM The name becomes a URL path segment; strip characters that do not belong in one.
-name! = name!.replaceAll("-", "")
-
-app! = null()
-it! = configuration!.getApplications().iterator()
-while (it!.hasNext())
-    currentApp! = it!.next()
-    if (currentApp!.getString(currentApp!.NAME) = name!) then
-        app! = currentApp!
-        break
-    fi
-wend
-if (app! = null()) then app! = configuration!.createApplication()
-
-app!.setString(app!.NAME, name!)
-app!.setString(app!.PROGRAM, programFile!)        REM absolute path to the .bbj
-app!.setString(app!.WORKING_DIRECTORY, workDir!)
-app!.setBoolean(app!.DWC_ENABLED, 1)              REM BUI_ENABLED for the BUI client
-app!.commit()                                     REM nothing is persisted until this runs
-
-url! = app!.getDwcUrl(0)                          REM or app!.getBuiUrl(0)
-BBjAPI().getThinClient().browse(url!)             REM opens the default browser
+admin! = BBjAdminFactory.getBBjAdmin(adminUser$, adminPassword$)
+config! = admin!.getRemoteConfiguration()
+app! = config!.createApplication()
+app!.setString(app!.NAME, "MyApp")
+app!.setString(app!.PROGRAM, "/abs/path/MyApp.bbj")
+app!.setBoolean(app!.DWC_ENABLED, 1)
+app!.commit()
+sslFlag = 0
+url! = app!.getDwcUrl(sslFlag)
+if url! = null() then print "DWC_ENABLED is false, no URL"
 ```
 
-Useful properties on the application object: `NAME`, `PROGRAM`, `WORKING_DIRECTORY`, `CONFIG_FILE`,
-`CLASSPATH`, `DWC_ENABLED`, `BUI_ENABLED`, `WEBUI_ENABLED`, `DEVELOPMENT_MODE`, `DISALLOW_CONSOLE`,
-`TERMINAL`, `APPLICATION_USER`, `SECURE`, `OMIT_BASIS_CSS`. Set them with
-`setString()` / `setBoolean()` before `commit()`.
+A DWC app is launched by navigating to its URL in a web browser (second bullet above).
+bbj-programming/references/running.md covers the `bbj` command line for running other programs when the
+user asks.
 
-**The `"--"` config-file sentinel.** `BBjAPI().getConfig().getConfigFileName()` returns the literal
-string `"--"` when the session was started without an explicit `-c`, and the EM uses the same
-sentinel for "not configured". Writing either `"--"` or `""` into `CONFIG_FILE` registers an
-unusable config file and the app fails to launch. Only set `CONFIG_FILE` when you have a real path:
-```bbj
-if (configFile! <> null() and configFile! > "" and configFile! <> "--") then
-    app!.setString(app!.CONFIG_FILE, configFile!)
-fi
-```
+## Sources
 
----
-
-## The URLs
-
-BBj's Jetty server answers on port **8888** by default:
-
-| Client | URL |
-|---|---|
-| DWC | `http://<host>:8888/webapp/<appName>` |
-| BUI | `http://<host>:8888/apps/<appName>` |
-
-Prefer `app!.getDwcUrl(0)` / `app!.getBuiUrl(0)` over building the string yourself — they pick up the
-configured host and port. (The same server exposes `<BBjHome>/htdocs/` at `/files/`, which is how
-`injectScriptUrl` / `@font-face` assets get served; see the main skill.)
-
----
-
-## A registration helper is worth writing once
-
-Registration is the same twenty lines every time, so keep a small parameterised program around
-(`name`, `program`, `working dir`, and an output file for the resulting URL) and run it from the
-shell whenever a new demo needs a browser URL:
-
-```bash
-"$BBJHOME/bin/bbj" -q -tT0 -WD"$SCRATCH" "$SCRATCH/register-dwc-app.bbj" - \
-    MyAppName /abs/path/MyApp.bbj /abs/path "$SCRATCH/urls.txt"
-```
-`-tT0` gives it a terminal alias so it runs without attaching to an interactive console, and
-`ARGV(n)` reads the arguments after the `-` separator. Have the program `write` the URL to the output
-file rather than printing it — stdout from a `bbj` process does not reliably come back to the caller.
-
-`BBjAPI().getThinClient().browse(url!)` will not work from such a headless run; read the URL out of
-the file and open it yourself.
+- https://documentation.basis.cloud/BASISHelp/WebHelp/dwc/DWC_Registration_Launching.htm
+- https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminAppDeploymentApplication.html
+- https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminAppDeploymentConfiguration.html
+- https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminFactory.html
+- https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjthinclient/bbjthinclient_browse.htm
+- Verified on BBj 26.03 (bbjcpl -t -N -X and bbj-ls; probe q04)

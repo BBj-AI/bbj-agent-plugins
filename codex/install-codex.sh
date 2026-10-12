@@ -2,7 +2,7 @@
 # install-codex.sh -- Codex install script for the BBj docs server, the two BBj skills and the
 # BBj check hook (plan 19-05, PLUG-04; decision D-15 of phase 19).
 #
-# Verified on Linux with Codex CLI 0.156.1 on 2026-10-08 (PLUG-04 human check: registered,
+# Verified on Linux with Codex CLI 0.162.1 on 2026-10-12 (plan 06-05 release run: registered,
 # hook approved in /hooks, a .bbj written through apply_patch got the compiler's feedback,
 # skills found in ~/.agents/skills). Not yet run on Windows or macOS. The test suite runs it
 # with a fake codex in a temp HOME.
@@ -28,6 +28,32 @@
 #      sub-table), or its tools are (a [mcp_servers.bbj-docs.tools] table, a quoted tool
 #      header, a dotted tools key, an approval_mode written as anything but a bare key),
 #      config.toml is left alone, the tables are printed and the exit code is 3.
+#   1b. with --with-local (and on every later run once the block is there), registers the local
+#      check server bbj-local, the bbj-ls of a running BBjServices 26.03 or later, in one managed
+#      block of config.toml between the markers "# >>> bbj-agent-plugins bbj-local (managed) >>>"
+#      and "# <<< bbj-agent-plugins bbj-local (managed) <<<": [mcp_servers.bbj-local] with
+#      url = "http://127.0.0.1:5009/mcp" and one tool table with approval_mode = "approve" for
+#      each of bbj_check_syntax, bbj_format and bbj_denum (plan 01-04, LOCAL-02). These tools run
+#      on this machine and are approved by name only at that fixed url (D-12, D-17: the url does
+#      not follow BBJ_LOCAL_MCP_URL, which moves only the hook and the probe); never through
+#      "codex mcp add" (it cannot set approval_mode), never with default_tools_approval_mode,
+#      required, enabled or startup_timeout_sec. It goes through the same pass as bbj-docs, so
+#      the rules of step 1 apply: a rerun is byte-identical, missing tool tables and approval
+#      keys are added inside the markers and nothing is removed. A run without the flag keeps a
+#      managed block and refreshes it the same way (D-09); there is no removal flag (D-10): after
+#      "codex mcp remove bbj-local" the lone end marker stays in config.toml as a comment, is
+#      tolerated and, with the flag, a fresh block follows it. A plain [mcp_servers.bbj-local]
+#      table whose url is exactly the fixed url gains the three approvals; any other form of
+#      bbj-local (another url, single-quoted key, dotted key, a sub-table without the table) is
+#      left alone, the tables are printed and the exit code is 3 (D-12).
+#      The probe (plan 01-06, LOCAL-03, LOCAL-04): without the flag, and with no bbj-local in
+#      config.toml at all, one tools/list request goes to a bbj-ls on this machine (BBJ_LOCAL_MCP_URL,
+#      else the fixed url; loopback http only, no proxy, no redirect), carries none of your code and
+#      only prints a suggestion to rerun with --with-local; a managed or hand-registered bbj-local is
+#      never probed. With the flag the same request runs first and bbj-local is registered whatever
+#      the answer: one warning line says so when no bbj-ls answered, curl is missing or the url is
+#      refused (Codex shows a registered server that is not running as failed). The probe never
+#      writes a file and never changes the exit code.
 #   2. copies the two skills to the skills directory (default ~/.agents/skills); a directory
 #      that differs is left alone unless --force.
 #   3. copies the shared check script to <codex home>/bbj/bbj-check.sh, a stable path outside
@@ -38,11 +64,13 @@
 #
 # Options: --docs-url URL (default DEFAULT_DOCS_URL, the same value as the bbj plugin's
 # docs_url default; plain http only to 127.0.0.1, localhost or [::1]), --skills-dir DIR,
-# --codex-home DIR (default $CODEX_HOME or ~/.codex), --force, --help.
+# --codex-home DIR (default $CODEX_HOME or ~/.codex), --with-local (register bbj-local, step 1b),
+# --force, --help.
 # Exit codes: 0 done, 2 usage error or refusal, 3 finished with something left to merge or
 # decide by hand: bbj-docs or its tools named in config.toml in a form this script does not
-# edit, a default_tools_approval_mode that approves every tool, an existing hooks.json, a
-# skill directory that differs.
+# edit, bbj-local named in a form it does not edit or with another url than the fixed one, a
+# default_tools_approval_mode that approves every tool, an existing hooks.json, a skill
+# directory that differs.
 #
 # Exit 2 before the first write means nothing was changed: the options are validated and every
 # destination (skills directory, <codex home>/bbj, config.toml) is created or checked up front.
@@ -57,11 +85,21 @@ MARK_END='# <<< bbj-agent-plugins (managed) <<<'
 # the five read-only docs tools of bbj-docs, approved by name; one list, also checked against
 # the tool bullets of AGENTS-snippet.md by the test suite
 DOCS_TOOLS='bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples'
+# the local check server bbj-local (plan 01-04, LOCAL-02): the bbj-ls of a running BBjServices.
+# Its three tools run on this machine and are approved by name only for this fixed loopback url
+# (D-12); the registration never follows BBJ_LOCAL_MCP_URL (D-17)
+LOCAL_URL=http://127.0.0.1:5009/mcp
+LOCAL_MARK_BEGIN='# >>> bbj-agent-plugins bbj-local (managed) >>>'
+LOCAL_MARK_END='# <<< bbj-agent-plugins bbj-local (managed) <<<'
+LOCAL_TOOLS='bbj_check_syntax bbj_format bbj_denum'
+# the tools/list probe of step 1b (plan 01-06, LOCAL-03, D-11): a static request that names no file,
+# no code and no project; the _meta keys are the ones the hook's check sends
+PROBE_BODY='{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}'
 TOOL_KEY='approval_mode = "approve"'
 # the server-wide line that versions up to 398aac5 of this script wrote; it is only ever
 # recognised and removed, never written again
 OLD_KEY_LINE='default_tools_approval_mode = "approve"'
-STATUS_LINE='Verified on Linux with Codex CLI 0.156.1; not yet run on Windows or macOS.'
+STATUS_LINE='Verified on Linux with Codex CLI 0.162.1; not yet run on Windows or macOS.'
 
 say() {
   printf '%s\n' "$*"
@@ -76,19 +114,26 @@ refuse() {
 
 usage() {
   cat <<EOF
-Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--force]
+Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--with-local] [--force]
 
   --docs-url URL     docs server URL (default $DEFAULT_DOCS_URL);
                      https anywhere, http only to 127.0.0.1, localhost or [::1]
   --skills-dir DIR   where the skills go (default \$HOME/.agents/skills)
   --codex-home DIR   Codex home (default \$CODEX_HOME, else \$HOME/.codex)
+  --with-local       register bbj-local, the bbj-ls of a running BBjServices 26.03 or later at
+                     http://127.0.0.1:5009/mcp, and approve its three tools by name; a probe (one
+                     tools/list request, no code sent) asks first, and with no answer bbj-local is
+                     registered anyway with a warning. Without the flag, and with no bbj-local in
+                     config.toml, the probe only suggests this option when a bbj-ls answers
   --force            replace a skill directory that differs from the shipped one
   --help             this text
 
 Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran),
       3 done except something to merge or decide by hand: bbj-docs or its tools named in
         config.toml in a form this script does not edit, a default_tools_approval_mode that
-        approves every tool, an existing hooks.json, a skill directory that differs.
+        approves every tool, bbj-local named in a form this script does not edit or with
+        another url than http://127.0.0.1:5009/mcp, an existing hooks.json, a skill directory
+        that differs.
 EOF
 }
 
@@ -98,11 +143,13 @@ docs_url=$DEFAULT_DOCS_URL
 skills_dir=
 codex_home=
 force=0
+with_local=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --docs-url) [ "$#" -ge 2 ] || refuse "--docs-url needs a value"; docs_url=$2; shift 2 ;;
     --skills-dir) [ "$#" -ge 2 ] || refuse "--skills-dir needs a value"; skills_dir=$2; shift 2 ;;
     --codex-home) [ "$#" -ge 2 ] || refuse "--codex-home needs a value"; codex_home=$2; shift 2 ;;
+    --with-local) with_local=1; shift ;;
     --force) force=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) refuse "unknown option: $1 (see --help)" ;;
@@ -176,23 +223,27 @@ done
 [ ! -e "$script_dst" ] || [ -w "$script_dst" ] || refuse "$script_dst is not writable"
 
 # ---- 1. the docs server: registration and the per-tool approval ----
-# analyze: one pass over config.toml (or nothing when it does not exist); prints
-#   main=1|0     the [mcp_servers.bbj-docs] table is there (plain or quoted key, column 0)
-#   mention=1|0  a line that is not a comment names bbj-docs in a form this script does not edit
-#                (single-quoted key, indented or spaced header, dotted key, inline table, another
-#                sub-table); our own [mcp_servers.bbj-docs.tools.NAME] headers do not count
-#   tfor=1|0     bbj-docs tools are named in a form this script does not edit: a [..bbj-docs.tools]
+# analyze: one pass over config.toml (or nothing when it does not exist) for the server the
+# srv_* globals name (SRV below; it reaches awk only as an -v value); prints
+#   main=1|0     the [mcp_servers.SRV] table is there (plain or quoted key, column 0)
+#   mention=1|0  config.toml defines SRV in a form this script does not edit (single-quoted key,
+#                indented or spaced header, dotted key, inline table, another sub-table); our own
+#                [mcp_servers.SRV.tools.NAME] headers do not count, and neither does the name inside a
+#                path or a value (a [projects."/src/bbj-local"] table is not a server, WR-02)
+#   tfor=1|0     SRV tools are named in a form this script does not edit: a [..SRV.tools]
 #                table, a quoted or indented tool header, a dotted key, a tools key in the main
-#                table, an approval_mode written other than as a bare key in a docs-tool table,
-#                or a docs-tool table twice (only acted on when main=1)
-#   dstate=      none | ours (exactly OLD_KEY_LINE) | approve (default_tools_approval_mode set to
+#                table, an approval_mode written other than as a bare key in a tool table,
+#                or a tool table twice (only acted on when main=1)
+#   dstate=      none | ours (exactly srv_old_key) | approve (default_tools_approval_mode set to
 #                approve in another spelling) | other:VALUE, from the main table
-#   anytool=N    how many [mcp_servers.bbj-docs.tools.NAME] tables there are
-#   tool.NAME=   missing | nokey | approve | other:VALUE, for each of the five docs tools
+#   managed=1|0  a line equals the begin marker srv_begin (a lone end marker is a comment: 0)
+#   url=VALUE    the url key of the main table (last one), "" when there is none
+#   anytool=N    how many [mcp_servers.SRV.tools.NAME] tables there are
+#   tool.NAME=   missing | nokey | approve | other:VALUE, for each tool of srv_tools
 analyze() {
   src=$config
   [ -f "$src" ] || src=/dev/null
-  awk -v tools="$DOCS_TOOLS" -v sq="'" -v old_key="$OLD_KEY_LINE" '
+  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" -v begin="$srv_begin" '
     function val(l) {
       sub(/^[^=]*=/, "", l)
       sub(/[ \t]*#.*$/, "", l)
@@ -205,42 +256,60 @@ analyze() {
       for (i = 1; i <= n; i++) st[tl[i]] = "missing"
       dstate = "none"
       tools_re = "^[ \t]*[\"" sq "]?tools[\"" sq "]?[ \t]*[.=]"
+      key = "(\"" srv "\"|" srv ")"
+      main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
+      tool_re = "^\\[mcp_servers\\." key "\\.tools\\.[A-Za-z0-9_-]+\\][ \t]*(#.*)?$"
+      tool_pre = "^\\[mcp_servers\\." key "\\.tools\\."
+      # WR-02: only a definition of the server counts as a mention, never the name inside a path or a value
+      # (a [projects."/src/bbj-local"] trust table is not a server): a header whose key under mcp_servers is
+      # exactly SRV (any spelling of the quotes and spaces); under [mcp_servers] itself a key that starts
+      # with SRV; at the top level or under [mcp_servers] a dotted key that starts with mcp_servers
+      q = "[\"" sq "]?"
+      def_hdr_re = "^[ \t]*\\[\\[?[ \t]*" q "mcp_servers" q "[ \t]*\\.[ \t]*" q srv q "[ \t]*(\\.|\\])"
+      all_hdr_re = "^[ \t]*\\[[ \t]*" q "mcp_servers" q "[ \t]*\\][ \t]*(#.*)?$"
+      all_key_re = "^[ \t]*" q srv q "[ \t]*[.=]"
+      dotted_re = "^[ \t]*" q "mcp_servers" q "[ \t]*[.=]"
     }
     {
       line = $0
       sub(/\r$/, "", line)
+      if (line == begin) managed = 1
       if (line ~ /^[ \t]*\[/) {
         sect = "other"
         name = ""
-        if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\][ \t]*(#.*)?$/) {
+        if (line ~ main_re) {
           sect = "main"
           main = 1
-        } else if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\.[A-Za-z0-9_-]+\][ \t]*(#.*)?$/) {
+        } else if (line ~ tool_re) {
           sect = "tool"
           name = line
-          sub(/^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\./, "", name)
+          sub(tool_pre, "", name)
           sub(/\].*$/, "", name)
           anytool++
           if (name in st) {
             if (st[name] != "missing") tfor = 1
             st[name] = "nokey"
           }
-        } else if (line ~ /bbj-docs/) {
+        } else if (line ~ def_hdr_re) {
           mention = 1
           if (line ~ /tools/) tfor = 1
+        } else if (line ~ all_hdr_re) {
+          sect = "servers"
         }
       } else if (line !~ /^[ \t]*#/) {
-        if (line ~ /bbj-docs/) {
+        if (index(line, srv) > 0 && ((line ~ all_key_re && sect == "servers") \
+            || (line ~ dotted_re && (sect == "" || sect == "servers")))) {
           mention = 1
           if (line ~ /tools/) tfor = 1
         }
         if (sect == "main") {
           if (line ~ /^[ \t]*default_tools_approval_mode[ \t]*=/) {
             v = val(line)
-            if (line == old_key) dstate = "ours"
+            if (old_key != "" && line == old_key) dstate = "ours"
             else dstate = (v == "approve") ? "approve" : "other:" v
           }
           if (line ~ tools_re) tfor = 1
+          if (line ~ /^[ \t]*url[ \t]*=/) url = val(line)
         } else if (sect == "tool" && (name in st)) {
           if (line ~ /^[ \t]*approval_mode[ \t]*=/) {
             v = val(line)
@@ -254,6 +323,8 @@ analyze() {
     END {
       print "main=" (main ? 1 : 0)
       print "mention=" (mention ? 1 : 0)
+      print "managed=" (managed ? 1 : 0)
+      print "url=" url
       print "tfor=" (tfor ? 1 : 0)
       print "dstate=" dstate
       print "anytool=" anytool + 0
@@ -268,23 +339,31 @@ refresh() {
 an() {
   printf '%s\n' "$analysis" | sed -n "s/^$1=//p" | head -n 1
 }
-# tools_in_state STATE: the docs tools in that state, space separated
+# config_cr: a carriage return when the first line of config.toml ends in one (a CRLF file), else nothing. The
+# lines this script inserts follow it, so a CRLF file stays CRLF (IN-02). Command substitution only drops
+# newlines, so the carriage return survives.
+config_cr() {
+  if [ -f "$config" ] && [ "$(awk 'NR == 1 { print ($0 ~ /\r$/) ? 1 : 0; exit }' "$config")" = 1 ]; then
+    printf '\r'
+  fi
+}
+# tools_in_state STATE: the srv_tools in that state, space separated
 tools_in_state() {
   _out=
-  for _t in $DOCS_TOOLS; do
+  for _t in $srv_tools; do
     [ "$(an "tool.$_t")" = "$1" ] && _out="$_out $_t"
   done
   printf '%s' "${_out# }"
 }
-# print_tools: the five tool tables to put into config.toml by hand
+# print_tools: the tool tables to put into config.toml by hand
 print_tools() {
-  for _t in $DOCS_TOOLS; do
-    printf '\n[mcp_servers.bbj-docs.tools.%s]\n%s\n' "$_t" "$TOOL_KEY"
+  for _t in $srv_tools; do
+    printf '\n[mcp_servers.%s.tools.%s]\n%s\n' "$srv" "$_t" "$TOOL_KEY"
   done
 }
-# print_block URL: the whole bbj-docs entry to put into config.toml by hand
+# print_block URL: the whole server entry to put into config.toml by hand
 print_block() {
-  printf '%s\n' '[mcp_servers.bbj-docs]' "url = \"$1\""
+  printf '%s\n' "[mcp_servers.$srv]" "url = \"$1\""
   print_tools
 }
 
@@ -296,149 +375,337 @@ state() {
     [ "$(an mention)" = 1 ] && foreign=1
   else
     [ "$(an tfor)" = 1 ] && tools_foreign=1
+    # D-12: a server with a fixed url is edited only at exactly that url; its tools are never approved
+    # on another one, so any other url is a form this script does not edit
+    if [ "$srv_fixed_url" = 1 ] && [ "$(an url)" != "$srv_url" ]; then
+      foreign=1
+      tools_foreign=0
+    fi
   fi
   miss=$(tools_in_state missing)
   nokey=$(tools_in_state nokey)
   dstate=$(an dstate)
 }
-refresh
-state
-need_change=0
-if [ "$foreign" = 0 ] && [ "$tools_foreign" = 0 ]; then
-  if [ "$(an main)" = 0 ] || [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ]; then need_change=1; fi
-fi
-if [ "$need_change" = 1 ] && [ -f "$config" ] && [ ! -f "$config.bbj-backup" ]; then
-  cp "$config" "$config.bbj-backup" || refuse "cannot write $config.bbj-backup"
-  wrote="$wrote config.toml(backup)"
-  say "config.toml: backup written to $config.bbj-backup"
-fi
 
-if [ "$foreign" = 0 ] && [ "$(an main)" = 0 ]; then
-  if [ "$(an anytool)" != 0 ]; then
-    # Codex 0.156.1 cannot load tool tables without the bbj-docs table, and its mcp add then fails
-    say "bbj-docs: $config holds tool tables of bbj-docs but no bbj-docs table, which Codex cannot load; adding the table in a managed block"
-  elif command -v codex > /dev/null 2>&1; then
-    if CODEX_HOME=$codex_home codex mcp add bbj-docs --url "$docs_url" > /dev/null 2>&1; then
-      say "bbj-docs: registered with codex mcp add bbj-docs --url $docs_url"
-    else
-      say "bbj-docs: codex mcp add did not succeed; writing the block to config.toml instead"
-    fi
-  fi
-fi
-# re-check: a registration by codex in a form this script does not know must not get a second table
-refresh
-state
-if [ "$foreign" = 1 ]; then
-  say "bbj-docs: $config already names bbj-docs in a form this script does not edit; config.toml was not modified."
-  say "Check that it holds these tables (url and per-tool approval), or add them by hand:"
-  print_block "$docs_url"
-  pending=1
-elif [ "$tools_foreign" = 1 ]; then
-  say "bbj-docs: $config names tools of bbj-docs in a form this script does not edit; config.toml was not modified."
-  say "Check that it approves these five tools by name, or add the tables by hand:"
-  print_tools
-  [ "$dstate" != ours ] || say "Also remove the line $OLD_KEY_LINE from the bbj-docs table by hand: an earlier version of this script wrote it and it approves every tool of bbj-docs, including bbj_check_syntax, bbj_format and bbj_denum."
-  pending=1
-elif [ "$(an main)" = 0 ]; then
-  # shellcheck disable=SC2094  # the group reads $config (its last byte) before the append writes it
-  {
-    if [ -s "$config" ]; then
-      [ -z "$(tail -c 1 "$config")" ] || printf '\n'
-      printf '\n'
-    fi
-    printf '%s\n' "$MARK_BEGIN" '[mcp_servers.bbj-docs]' "url = \"$docs_url\"" "$MARK_END"
-  } >> "$config" || refuse "cannot write $config"
-  wrote="$wrote config.toml"
-  say "bbj-docs: appended a managed block to $config (url $docs_url)"
+# server parameters (POSIX sh has no local, so every server pass sets the same globals and
+# sync_server reads only these): srv is the server name; srv_tools its tools to approve by name;
+# srv_begin and srv_end the managed-block markers; srv_url the url it is registered with;
+# srv_old_key a legacy server-wide line to drop ("" for none); srv_codex_add 1 when a fresh
+# registration goes through "codex mcp add"; srv_label, srv_untouched and srv_approved_note the
+# words of the messages (LOCAL-01); srv_fixed_url 1 when the url is part of the identity of the
+# server and tools are approved only at exactly that url (bbj-local, D-12), 0 when the user's own
+# url is kept (bbj-docs)
+use_docs() {
+  srv=bbj-docs
+  srv_tools=$DOCS_TOOLS
+  srv_begin=$MARK_BEGIN
+  srv_end=$MARK_END
+  srv_url=$docs_url
+  srv_old_key=$OLD_KEY_LINE
+  srv_codex_add=1
+  srv_fixed_url=0
+  srv_label='the five docs tools'
+  srv_untouched='config.toml was not modified.'
+  srv_approved_note='(the hosted check tools bbj_check_syntax, bbj_format and bbj_denum send your code to the server)'
+}
+
+# use_local: the same globals for bbj-local. The url is the fixed LOCAL_URL, never BBJ_LOCAL_MCP_URL (D-17);
+# srv_old_key is empty, so no server-wide key is ever recognised, written or removed; srv_codex_add is 0
+# because codex mcp add cannot set approval_mode
+use_local() {
+  srv=bbj-local
+  srv_tools=$LOCAL_TOOLS
+  srv_begin=$LOCAL_MARK_BEGIN
+  srv_end=$LOCAL_MARK_END
+  srv_url=$LOCAL_URL
+  srv_old_key=
+  srv_codex_add=0
+  srv_fixed_url=1
+  srv_label='the three bbj-ls tools'
+  srv_untouched='the bbj-local entry was not modified.'
+  srv_approved_note="(the three bbj-ls tools run on this machine, against this installation's own PREFIX, classpath and config; nothing leaves it)"
+}
+
+# sync_server: registration and per-tool approval of the server the srv_* globals describe
+sync_server() {
   refresh
   state
-elif [ "$need_change" = 0 ]; then
-  say "bbj-docs: already registered in $config with the five docs tools approved; nothing changed"
-fi
+  need_change=0
+  if [ "$foreign" = 0 ] && [ "$tools_foreign" = 0 ]; then
+    if [ "$(an main)" = 0 ] || [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ]; then need_change=1; fi
+  fi
+  if [ "$need_change" = 1 ] && [ -f "$config" ] && [ ! -f "$config.bbj-backup" ]; then
+    cp "$config" "$config.bbj-backup" || refuse "cannot write $config.bbj-backup"
+    wrote="$wrote config.toml(backup)"
+    say "config.toml: backup written to $config.bbj-backup"
+  fi
 
-# what the user chose stays; say so
-if [ "$foreign" = 0 ] && [ "$(an main)" = 1 ]; then
-  case "$dstate" in
-    approve)
-      say "bbj-docs: $config sets default_tools_approval_mode to approve in a form this script did not write; left as is. It approves every tool of bbj-docs, including bbj_check_syntax, bbj_format and bbj_denum, which send your code to the server; remove the line by hand to keep Codex's prompt for them."
-      pending=1
-      ;;
-    other:*) say "bbj-docs: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
-  esac
-  for _t in $DOCS_TOOLS; do
-    case "$(an "tool.$_t")" in
-      other:*) say "bbj-docs: tool $_t has approval_mode $(an "tool.$_t" | sed 's/^other://') (yours); left as is" ;;
-    esac
-  done
-fi
-
-if [ "$foreign" = 0 ] && [ "$tools_foreign" = 0 ] && [ "$(an main)" = 1 ] \
-  && { [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ]; }; then
-  drop=0
-  [ "$dstate" = ours ] && drop=1
-  tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
-  # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
-  if awk -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$OLD_KEY_LINE" -v tool_key="$TOOL_KEY" -v mark_end="$MARK_END" '
-      # the missing tool tables go at the end of the bbj-docs table body, before the blank
-      # lines and comments that lead into the next table (or the end marker)
-      function flush_main(atheader,   i, n, names) {
-        if (!inmain) return
-        inmain = 0
-        n = split(miss, names, " ")
-        for (i = 1; i <= n; i++) {
-          print ""
-          print "[mcp_servers.bbj-docs.tools." names[i] "]"
-          print tool_key
+  if [ "$foreign" = 0 ] && [ "$(an main)" = 0 ]; then
+    if [ "$(an anytool)" != 0 ]; then
+      # Codex 0.156.1 cannot load tool tables without the server table, and its mcp add then fails
+      say "$srv: $config holds tool tables of $srv but no $srv table, which Codex cannot load; adding the table in a managed block"
+    elif [ "$srv_codex_add" = 1 ] && command -v codex > /dev/null 2>&1; then
+      if CODEX_HOME=$codex_home codex mcp add "$srv" --url "$srv_url" > /dev/null 2>&1; then
+        say "$srv: registered with codex mcp add $srv --url $srv_url"
+      else
+        say "$srv: codex mcp add did not succeed; writing the block to config.toml instead"
+      fi
+    fi
+  fi
+  # re-check: a registration by codex in a form this script does not know must not get a second table
+  refresh
+  state
+  if [ "$foreign" = 1 ]; then
+    say "$srv: $config already names $srv in a form this script does not edit; $srv_untouched"
+    if [ "$srv_fixed_url" = 1 ] && [ "$(an main)" = 1 ] && [ "$(an url)" != "$srv_url" ]; then
+      say "$srv: its url is \"$(an url)\", not $srv_url; its tools are approved by name only at $srv_url"
+    fi
+    say "Check that it holds these tables (url and per-tool approval), or add them by hand:"
+    print_block "$srv_url"
+    pending=1
+  elif [ "$tools_foreign" = 1 ]; then
+    say "$srv: $config names tools of $srv in a form this script does not edit; $srv_untouched"
+    if [ "$srv_fixed_url" = 1 ]; then
+      say "Check that it approves the three bbj-ls tools by name, or add the tables by hand:"
+    else
+      say "Check that it approves these five tools by name, or add the tables by hand:"
+    fi
+    print_tools
+    [ "$dstate" != ours ] || say "Also remove the line $srv_old_key from the $srv table by hand: an earlier version of this script wrote it and it approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum."
+    pending=1
+  elif [ "$(an main)" = 0 ] && [ "$(an managed)" = 1 ]; then
+    # CR-01: the begin marker is there but the table is not (deleting the lines between the markers, the
+    # documented way to drop the registration, leaves exactly this). A second begin marker would break the
+    # one-block rule, so the table goes back inside the existing markers: before the end marker, or, when
+    # no end marker follows the begin marker, right after the begin marker together with a new end marker.
+    _hasend=$(awk -v b="$srv_begin" -v e="$srv_end" '
+      { l = $0; sub(/\r$/, "", l) }
+      l == b { s = 1; next }
+      s && l == e { print 1; exit }
+    ' "$config")
+    tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
+    # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
+    _cr=$(config_cr)
+    if awk -v srv="$srv" -v url="$srv_url" -v b="$srv_begin" -v e="$srv_end" -v hasend="${_hasend:-0}" -v cr="$_cr" '
+        function ins() {
+          printf "%s%s\n", "[mcp_servers." srv "]", cr
+          printf "%s%s\n", "url = \"" url "\"", cr
         }
-        if (n > 0 && atheader && !hasblank) print ""
-        for (i = 1; i <= nb; i++) print buf[i]
-        nb = 0
-        hasblank = 0
-      }
-      {
-        line = $0
-        sub(/\r$/, "", line)
-        if (inmain) {
-          if (line == mark_end || line ~ /^[ \t]*\[/) {
-            flush_main(line != mark_end)
-          } else if (line ~ /^[ \t]*$/ || line ~ /^[ \t]*#/) {
-            buf[++nb] = $0
-            if (line ~ /^[ \t]*$/) hasblank = 1
+        {
+          l = $0
+          sub(/\r$/, "", l)
+          if (!done && !inb && l == b) {
+            print
+            inb = 1
+            if (!hasend) { ins(); printf "%s%s\n", e, cr; done = 1; inb = 0 }
             next
-          } else {
-            if (drop && line == old_key) next
-            for (i = 1; i <= nb; i++) print buf[i]
-            nb = 0
-            hasblank = 0
+          }
+          if (!done && inb && l == e) { ins(); done = 1; inb = 0 }
+          print
+        }
+      ' "$config" > "$tmp" && cat "$tmp" > "$config"; then
+      rm -f "$tmp"
+    else
+      rm -f "$tmp"
+      refuse "cannot update $config"
+    fi
+    wrote="$wrote config.toml"
+    say "$srv: put the table back inside the managed block in $config (url $srv_url)"
+    refresh
+    state
+  elif [ "$(an main)" = 0 ]; then
+    _cr=$(config_cr)
+    # shellcheck disable=SC2094  # the group reads $config (its last byte) before the append writes it
+    {
+      if [ -s "$config" ]; then
+        [ -z "$(tail -c 1 "$config")" ] || printf '%s\n' "$_cr"
+        printf '%s\n' "$_cr"
+      fi
+      printf '%s%s\n' "$srv_begin" "$_cr" "[mcp_servers.$srv]" "$_cr" "url = \"$srv_url\"" "$_cr" "$srv_end" "$_cr"
+    } >> "$config" || refuse "cannot write $config"
+    wrote="$wrote config.toml"
+    say "$srv: appended a managed block to $config (url $srv_url)"
+    refresh
+    state
+  elif [ "$need_change" = 0 ]; then
+    say "$srv: already registered in $config with $srv_label approved; nothing changed"
+  fi
+
+  # what the user chose stays; say so
+  if [ "$foreign" = 0 ] && [ "$(an main)" = 1 ]; then
+    if [ -z "$srv_old_key" ]; then
+      # a server without a legacy server-wide line (bbj-local): report any value, never act on it
+      case "$dstate" in
+        approve|other:*) say "$srv: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
+      esac
+    else
+      case "$dstate" in
+        approve)
+          say "$srv: $config sets default_tools_approval_mode to approve in a form this script did not write; left as is. It approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum, which send your code to the server; remove the line by hand to keep Codex's prompt for them."
+          pending=1
+          ;;
+        other:*) say "$srv: $config sets default_tools_approval_mode to ${dstate#other:}; left as is" ;;
+      esac
+    fi
+    for _t in $srv_tools; do
+      case "$(an "tool.$_t")" in
+        other:*) say "$srv: tool $_t has approval_mode $(an "tool.$_t" | sed 's/^other://') (yours); left as is" ;;
+      esac
+    done
+  fi
+
+  if [ "$foreign" = 0 ] && [ "$tools_foreign" = 0 ] && [ "$(an main)" = 1 ] \
+    && { [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ]; }; then
+    drop=0
+    [ "$dstate" = ours ] && drop=1
+    tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
+    _cr=$(config_cr)
+    # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
+    if awk -v srv="$srv" -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$srv_old_key" -v tool_key="$TOOL_KEY" -v mark_end="$srv_end" -v cr="$_cr" '
+        # the missing tool tables go at the end of the server table body, before the blank
+        # lines and comments that lead into the next table (or the end marker)
+        function flush_main(atheader,   i, n, names) {
+          if (!inmain) return
+          inmain = 0
+          n = split(miss, names, " ")
+          for (i = 1; i <= n; i++) {
+            printf "%s\n", cr
+            printf "%s%s\n", "[mcp_servers." srv ".tools." names[i] "]", cr
+            printf "%s%s\n", tool_key, cr
+          }
+          if (n > 0 && atheader && !hasblank) printf "%s\n", cr
+          for (i = 1; i <= nb; i++) print buf[i]
+          nb = 0
+          hasblank = 0
+        }
+        BEGIN {
+          key = "(\"" srv "\"|" srv ")"
+          main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
+          tool_re = "^\\[mcp_servers\\." key "\\.tools\\.[A-Za-z0-9_-]+\\][ \t]*(#.*)?$"
+          tool_pre = "^\\[mcp_servers\\." key "\\.tools\\."
+        }
+        {
+          line = $0
+          sub(/\r$/, "", line)
+          if (inmain) {
+            if (line == mark_end || line ~ /^[ \t]*\[/) {
+              flush_main(line != mark_end)
+            } else if (line ~ /^[ \t]*$/ || line ~ /^[ \t]*#/) {
+              buf[++nb] = $0
+              if (line ~ /^[ \t]*$/) hasblank = 1
+              next
+            } else {
+              if (drop && line == old_key) next
+              for (i = 1; i <= nb; i++) print buf[i]
+              nb = 0
+              hasblank = 0
+            }
+          }
+          print
+          if (line ~ main_re) inmain = 1
+          else if (line ~ tool_re) {
+            name = line
+            sub(tool_pre, "", name)
+            sub(/\].*$/, "", name)
+            if (index(" " nokey " ", " " name " ") > 0) printf "%s%s\n", tool_key, cr
           }
         }
-        print
-        if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\][ \t]*(#.*)?$/) inmain = 1
-        else if (line ~ /^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\.[A-Za-z0-9_-]+\][ \t]*(#.*)?$/) {
-          name = line
-          sub(/^\[mcp_servers\.("bbj-docs"|bbj-docs)\.tools\./, "", name)
-          sub(/\].*$/, "", name)
-          if (index(" " nokey " ", " " name " ") > 0) print tool_key
-        }
-      }
-      END { flush_main(0) }
-    ' "$config" > "$tmp" && cat "$tmp" > "$config"; then
-    # written in place (not mv'd over it): a symlinked config.toml (dotfile managers) keeps
-    # its link and every file keeps its mode (WR-01)
-    rm -f "$tmp"
-    wrote="$wrote config.toml"
-    if [ "$drop" = 1 ]; then
-      say "bbj-docs: removed the line $OLD_KEY_LINE from $config (an earlier version of this script wrote it; it approved every tool of bbj-docs, including the hosted check tools)"
+        END { flush_main(0) }
+      ' "$config" > "$tmp" && cat "$tmp" > "$config"; then
+      # written in place (not mv'd over it): a symlinked config.toml (dotfile managers) keeps
+      # its link and every file keeps its mode (WR-01)
+      rm -f "$tmp"
+      wrote="$wrote config.toml"
+      if [ "$drop" = 1 ]; then
+        say "$srv: removed the line $srv_old_key from $config (an earlier version of this script wrote it; it approved every tool of $srv, including the hosted check tools)"
+      fi
+      approved="$miss $nokey"
+      approved=$(printf '%s' "$approved" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */, /g')
+      if [ -n "$approved" ]; then
+        say "$srv: approved by name in $config: $approved; every other tool of $srv keeps Codex's prompt $srv_approved_note"
+      fi
+    else
+      rm -f "$tmp"
+      refuse "cannot update $config"
     fi
-    approved="$miss $nokey"
-    approved=$(printf '%s' "$approved" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */, /g')
-    if [ -n "$approved" ]; then
-      say "bbj-docs: approved by name in $config: $approved; every other tool of bbj-docs keeps Codex's prompt (the hosted check tools bbj_check_syntax, bbj_format and bbj_denum send your code to the server)"
-    fi
-  else
-    rm -f "$tmp"
-    refuse "cannot update $config"
   fi
+}
+
+# probe_local: asks the bbj-ls of a running BBjServices for its tool list (plan 01-06, LOCAL-03, D-11).
+# Sets probe (found: a reply names bbj_check_syntax | none: no answer, or another server | nocurl |
+# refused: the url is not loopback http) and probe_url (BBJ_LOCAL_MCP_URL, else LOCAL_URL; the seam
+# moves only the probe, never the registration, D-17). It never writes a file, never exits and always
+# returns 0. Only a validated loopback url reaches curl, with no proxy, no .curlrc and no redirect; the
+# verdict is the tool name in the reply, never curl's exit code.
+probe_local() {
+  probe=none
+  probe_url=${BBJ_LOCAL_MCP_URL:-$LOCAL_URL}
+  case "$probe_url" in
+    *[[:space:]]*|*@*|*'?'*|*'#'*|*'\'*) probe=refused; return 0 ;;
+  esac
+  _pok=$(printf '%s' "$probe_url" | sed -nE 's#^http://(\[::1\]|127\.0\.0\.1|[Ll][Oo][Cc][Aa][Ll][Hh][Oo][Ss][Tt])(:[0-9]+)?(/[^ ]*)?$#ok#p')
+  [ "$_pok" = ok ] || { probe=refused; return 0; }
+  command -v curl > /dev/null 2>&1 || { probe=nocurl; return 0; }
+  _preply=$(curl -q -sS -g --noproxy '*' --proto =http --connect-timeout 2 -m 3 -X POST -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/list' --data "$PROBE_BODY" --url "$probe_url" 2> /dev/null)
+  if printf '%s' "$_preply" | grep -Eq '"name"[[:space:]]*:[[:space:]]*"bbj_check_syntax"'; then
+    probe=found
+  fi
+  return 0
+}
+
+use_docs
+sync_server
+
+# ---- 1b. the local check server: bbj-local (plan 01-04, LOCAL-02; plan 01-06, LOCAL-03, LOCAL-04; D-09, D-12, D-17) ----
+# Runs after the bbj-docs pass on purpose: that pass is complete before this one starts, so
+# neither result depends on which block comes first in config.toml (LOCAL-01).
+# With the flag, the probe of plan 01-06 asks a running bbj-ls for its tool list first. The outcome
+# only selects the line printed (LOCAL-04): bbj-local is registered on every outcome, a warning
+# is printed on every outcome except "a bbj-ls answers", and the probe never returns early, sets
+# pending or changes the exit code.
+# Without the flag, a config.toml that holds a managed bbj-local block (the begin marker line and the
+# table, as analyze reports them) gets the pass and no probe: leaving the flag out never removes or
+# freezes a block the user opted into (D-09), it refreshes it in place. Markers whose table was
+# deleted (the documented removal) get nothing without the flag: no probe, no write, the registration
+# stays removed (D-09, opt-in); with the flag the table is put back inside the existing markers, so
+# there is never a second begin marker. A lone end marker (what codex mcp
+# remove leaves behind, D-10) is a comment and counts as no block; it is never touched.
+# Without the flag and with no bbj-local in config.toml at all (no table, no mention, no managed
+# block) the probe asks once and only suggests --with-local when a bbj-ls answers (LOCAL-03, D-11); it
+# writes nothing and sets nothing. A bbj-local that is in config.toml (hand-registered or foreign) is
+# never probed and never mentioned without the flag.
+use_local
+refresh
+if [ "$with_local" = 1 ]; then
+  probe_local
+  _regat=
+  [ "$probe_url" = "$LOCAL_URL" ] || _regat=" at $LOCAL_URL"
+  _warn="; registering it anyway$_regat. Codex shows bbj-local as failed until BBjServices 26.03+ runs on this machine."
+  case "$probe" in
+    found) say "bbj-local: a bbj-ls answers at $probe_url" ;;
+    none) say "bbj-local: warning: no bbj-ls answered at $probe_url$_warn" ;;
+    nocurl) say "bbj-local: warning: not probed: curl not found$_warn" ;;
+    refused) say "bbj-local: warning: not probed: $probe_url (BBJ_LOCAL_MCP_URL) is not a loopback http URL$_warn" ;;
+  esac
+  sync_server
+elif [ "$(an managed)" = 1 ] && [ "$(an main)" = 1 ]; then
+  sync_server
+elif [ "$(an managed)" = 1 ]; then
+  # CR-01: the markers are there but the table is not: the user removed the registration (the documented
+  # way), so a run without the flag leaves it removed. No probe, no write, no line of output, as for a
+  # hand-registered bbj-local; only --with-local puts the table back, inside these markers.
+  :
+elif [ "$(an main)" = 0 ] && [ "$(an mention)" = 0 ]; then
+  probe_local
+  # when the seam moved the probe, the none line also names the url the registration always uses (D-17)
+  _seam=
+  [ "$probe_url" = "$LOCAL_URL" ] || _seam=" The registration always uses $LOCAL_URL."
+  case "$probe" in
+    found) say "bbj-local: a bbj-ls answers at $probe_url; it is not registered with Codex. Rerun with --with-local to register it as bbj-local ($LOCAL_URL); nothing was written for it." ;;
+    none) say "bbj-local: no bbj-ls answered at $probe_url; not registered (rerun with --with-local once BBjServices 26.03+ runs).$_seam" ;;
+    nocurl) say "bbj-local: not probed: curl not found." ;;
+    refused) say "bbj-local: not probed: $probe_url (BBJ_LOCAL_MCP_URL) is not a loopback http URL." ;;
+  esac
 fi
 
 # ---- 2. the skills ----
@@ -517,8 +784,8 @@ say "Known gaps:"
 say "- OpenAI calls hooks \"a useful guardrail, not a complete enforcement boundary\"."
 say "- Patches applied through a shell heredoc are not seen by the hook; only apply_patch calls are checked."
 say "- Codex has no plugin options here: the check finds BBj through BBJ_HOME, then PATH, then the default homes; set BBJ_HOME when BBj is not in a default location."
-say "- With no compiler found, the hook asks a running bbj-ls on 127.0.0.1:5009 (syntax only); with neither it does nothing and says nothing."
-say "- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (~/.agents/skills worked with Codex CLI 0.156.1)."
+say "- With no compiler found, the hook asks a running bbj-ls on 127.0.0.1:5009 (syntax only); with neither, it tells Codex once per session that the file was written but not compile-checked."
+say "- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (~/.agents/skills worked with Codex CLI 0.162.1)."
 say "- commandWindows in hooks.json is not yet tried on Windows; if Codex rejects it there, use command_windows in config.toml instead."
 say ""
 say "$STATUS_LINE"

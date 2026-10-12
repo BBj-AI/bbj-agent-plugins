@@ -32,7 +32,7 @@ if command -v python3 > /dev/null 2>&1; then
     if [ "$rc" != 0 ]; then echo "test $(basename "$t") exited $rc"; BAD=1; fi
   done
 elif [ "${CI:-}" = true ]; then
-  # the layout, skills-hash, install-page and CI-guard tests are python: they must not vanish in CI
+  # the layout, install-page and CI-guard tests are python: they must not vanish in CI
   echo "gate python_tests FAIL python3 not found; the python tests are mandatory in CI" | tee -a "$OUT.gates"
 else
   echo "gate python_tests skip python3 not found; the python tests did not run" | tee -a "$OUT.gates"
