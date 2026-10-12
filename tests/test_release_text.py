@@ -1,20 +1,29 @@
-"""tests/test_release_text.py -- plan 06-02, REL-01, REL-02; decisions D-06 to D-09, D-12, D-15:
-gates the release text so it stays honest.
+"""tests/test_release_text.py -- plan 06-02, REL-01, REL-02; decisions D-06 to D-09, D-12, D-15;
+phase 7 REL-06, D-04 to D-07: gates the release text so it stays honest.
 
 What is locked for every version: README.md states the version of tests/test_layout.py (the
 single source of the version); the newest entry of CHANGELOG.md (its first "## " heading) is
 headed with that version and has the sections Upgrading, Tested against and Not run in that
 order, with no placeholder heading or word in it; older entries below it are left alone, so the
-next release only adds one above; the install page carries the Claude Code update commands; the
-Claude Code and Codex CLI versions it was tested with each name one version across the install
-pages, the CHANGELOG and the installer.
+next release only adds one above; the Upgrading section is addressed to "If you installed from
+`main` before VERSION" and carries the two Claude Code update commands (gate upgrade_addressed);
+the install page carries the Claude Code update commands; the Claude Code and Codex CLI versions
+it was tested with each name one version across the install pages, the CHANGELOG and the
+installer.
 
-What is locked only while the version is CONTENT_VERSION (0.2.0): the facts of that release.
-The Upgrading section is addressed to users of main before this version, carries the Claude Code
-update commands, and quotes three installer lines byte for byte (each quote must also sit on a
-non-comment line of codex/install-codex.sh, so a reworded installer fails here); the Not run
-section holds exactly the two lines of D-15. A later release writes its own addressee, quotes and
-Not run lines, so for any other version these three gates print skip instead of failing it.
+What is pinned to CONTENT_VERSION (0.2.0): the facts of that release. The Upgrading section
+quotes three installer lines byte for byte (each quote must also sit on a non-comment line of
+codex/install-codex.sh, so a reworded installer fails here; gate upgrade_quotes), and the Not run
+section holds exactly the two lines of D-15 (gate not_run). At any other version these two gates
+FAIL with a message that says to re-pin the facts; they never skip. Reason: a version bump must
+not pass on the facts of an older release, and a skip would block the skip=0 release run. This
+reverses the skip half of review fix WR-02 (3a42ebf) on purpose (phase 7 D-05). WR-02's goal,
+letting the next release pass, still holds once that release has written its own facts.
+
+Bumping the version: change VERSION in tests/test_layout.py, both plugin manifests, both
+marketplace entries, the README.md version line and the CHANGELOG heading; write the new
+release's Upgrading quotes and Not run lines; then set CONTENT_VERSION, UPGRADE_QUOTES and
+NOT_RUN_LINES to those facts. The suite stays red until both steps are done.
 
 stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate release_<name> ok|FAIL <detail>
@@ -40,7 +49,7 @@ UPGRADE_QUOTES = [
     "every update of it makes Codex ask for the /hooks review again",
     "open /hooks, and approve the BBj check hook",
 ]
-# the release whose text facts the content gates pin; any other version skips them (REVIEW WR-02)
+# the release whose facts upgrade_quotes and not_run pin; at any other version they FAIL and ask for a re-pin (phase 7 D-05)
 CONTENT_VERSION = "0.2.0"
 NOT_RUN_LINES = [
     "- Windows: the Windows branch of the hook and the `commandWindows` entry were not run on Windows.",
@@ -55,10 +64,6 @@ def gate(name, ok, detail=""):
     if not ok:
         failed = True
     print("gate release_%s %s %s" % (name, "ok" if ok else "FAIL", detail))
-
-
-def skip(name, detail):
-    print("gate release_%s skip %s" % (name, detail))
 
 
 def read_lines(rel):
@@ -128,18 +133,26 @@ left = [w for w in (LEFTOVER, NEXT_HEADING) if w in text]
 gate("changelog_leftovers", not left,
      "newest CHANGELOG.md entry holds %s" % ", ".join(left) if left else "no placeholder in the newest entry")
 
-# the Upgrading section: addressee and Claude Code commands (the facts of CONTENT_VERSION only)
+# the Upgrading section: the addressee and the Claude Code commands are checked at every version (phase 7 D-04)
 upgrading = squash(sections.get("Upgrading", []))
 pinned = VERSION == CONTENT_VERSION
+
+
+def pinned_gate(name, ok, detail, constants):
+    """A gate on the facts of CONTENT_VERSION: at any other version it FAILs and says what to re-pin."""
+    if pinned:
+        gate(name, ok, detail)
+    else:
+        gate(name, False, "version %s is not CONTENT_VERSION %s: write the facts of %s and re-pin %s"
+             % (VERSION, CONTENT_VERSION, VERSION, constants))
+
+
 need = ["If you installed from `main` before %s" % VERSION,
         "claude plugin marketplace update basis-bbj",
         "claude plugin update bbj@basis-bbj"]
 missing = [n for n in need if n not in upgrading]
-if pinned:
-    gate("upgrade_addressed", not missing,
-         "Upgrading lacks %r" % (missing,) if missing else "addressee and both Claude Code commands present")
-else:
-    skip("upgrade_addressed", "the Upgrading text is pinned to %s only" % CONTENT_VERSION)
+gate("upgrade_addressed", not missing,
+     "Upgrading lacks %r" % (missing,) if missing else "addressee and both Claude Code commands present")
 
 # the install page gives the same Claude Code update commands as the CHANGELOG (REVIEW WR-02)
 page = squash(read_lines("docs/install-claude-code.md") or [])
@@ -159,11 +172,9 @@ for q in UPGRADE_QUOTES:
         bad.append("not in Upgrading: " + q)
     if not any(q in ln for ln in code_lines):
         bad.append("not on a non-comment installer line: " + q)
-if pinned:
-    gate("upgrade_quotes", not bad,
-         "; ".join(bad) if bad else "%d quotes in Upgrading and on installer code lines" % len(UPGRADE_QUOTES))
-else:
-    skip("upgrade_quotes", "the installer quotes are pinned to %s only" % CONTENT_VERSION)
+pinned_gate("upgrade_quotes", not bad,
+            "; ".join(bad) if bad else "%d quotes in Upgrading and on installer code lines" % len(UPGRADE_QUOTES),
+            "CONTENT_VERSION and UPGRADE_QUOTES")
 
 # every "Codex CLI N.N.N" string names one version, so a bump cannot miss a place (REVIEW IN-03).
 # The text is squashed first, so a hard wrap between "Codex CLI" and the number still matches.
@@ -187,10 +198,8 @@ gate("claude_version_single", len(claude_versions) == 1,
 
 # the Not run section: exactly the two D-15 lines
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]
-if pinned:
-    gate("not_run", not_run == NOT_RUN_LINES,
-         "Not run lines=%r" % (not_run,) if not_run != NOT_RUN_LINES else "exactly the two D-15 lines")
-else:
-    skip("not_run", "the Not run lines are pinned to %s only" % CONTENT_VERSION)
+pinned_gate("not_run", not_run == NOT_RUN_LINES,
+            "Not run lines=%r" % (not_run,) if not_run != NOT_RUN_LINES else "exactly the two D-15 lines",
+            "CONTENT_VERSION and NOT_RUN_LINES")
 
 sys.exit(1 if failed else 0)

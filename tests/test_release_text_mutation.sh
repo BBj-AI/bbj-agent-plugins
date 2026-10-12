@@ -7,8 +7,9 @@
 # codex/install-codex.sh) into a temporary root, checks that the copy passes, then changes one
 # thing per gate in a fresh copy and requires that gate to print FAIL and the script to exit 1.
 # Older CHANGELOG entries must not matter, so one more case adds an old entry and requires a pass.
-# A later release must be able to pass with its own text, so a last case moves the version on,
-# changes the addressee and the Not run lines, and requires a pass with the content gates skipped.
+# The later-version cases move the version on (phase 7 D-05, D-07) and require: the generic
+# addressee gate keeps running, the pinned fact gates FAIL until they are re-pinned, and a
+# re-pinned copy passes.
 # Nothing here runs BBj; the only program run is python3 -I on the gate script.
 
 . "$(dirname "$0")/lib.sh"
@@ -71,24 +72,36 @@ else
   gate release_mut_older_entry FAIL "rc=$_rc with an older entry below the newest"
 fi
 
-# a later release writes its own Upgrading addressee and Not run lines: the structural gates still
-# pass and the three 0.2.0 content gates skip (REVIEW WR-02)
-fresh_root "$WORK/root-later"
-_later="$WORK/root-later"
-sed 's/^VERSION = ".*"$/VERSION = "9.9.9"/' "$_later/tests/test_layout.py" > "$_later/tests/test_layout.py.new" \
-  && mv "$_later/tests/test_layout.py.new" "$_later/tests/test_layout.py"
-sed "s/, version $VERSION,/, version 9.9.9,/" "$_later/README.md" > "$_later/README.md.new" \
-  && mv "$_later/README.md.new" "$_later/README.md"
-sed -e "s/^## $VERSION\$/## 9.9.9/" -e "s/before $VERSION/before 9.9.8/" \
-  -e 's/^- macOS: not run on macOS\.$/- macOS: run./' "$_later/CHANGELOG.md" > "$_later/CHANGELOG.md.new" \
-  && mv "$_later/CHANGELOG.md.new" "$_later/CHANGELOG.md"
-python3 -I "$GATE" "$_later" > "$WORK/out" 2> "$WORK/err"
-_rc=$?
-if [ "$_rc" = 0 ] && ! grep -q "^gate [^ ]* FAIL " "$WORK/out" \
-  && [ "$(grep -c "^gate release_[a-z_]* skip " "$WORK/out")" = 3 ]; then
-  gate release_mut_later_version ok "a later version passes with its own text; three content gates skip"
+# later_root DIR ADDRESSEE_VERSION: a copy whose version is moved on to 9.9.9; the Upgrading text
+# is addressed to users of main before ADDRESSEE_VERSION; the quotes and Not run lines stay as they are
+later_root() {
+  fresh_root "$1" || return 1
+  sed 's/^VERSION = ".*"$/VERSION = "9.9.9"/' "$1/tests/test_layout.py" > "$1/tests/test_layout.py.new" \
+    && mv "$1/tests/test_layout.py.new" "$1/tests/test_layout.py" || return 1
+  sed "s/, version $VERSION,/, version 9.9.9,/" "$1/README.md" > "$1/README.md.new" \
+    && mv "$1/README.md.new" "$1/README.md" || return 1
+  sed -e "s/^## $VERSION\$/## 9.9.9/" -e "s/before $VERSION/before $2/" "$1/CHANGELOG.md" > "$1/CHANGELOG.md.new" \
+    && mv "$1/CHANGELOG.md.new" "$1/CHANGELOG.md" || return 1
+}
+
+# a version bump without new facts: the generic gate is ok, the two pinned gates FAIL with the
+# re-pin text, and nothing prints skip (phase 7 D-05)
+if later_root "$WORK/root-unpinned" 9.9.9; then
+  python3 -I "$GATE" "$WORK/root-unpinned" > "$WORK/out" 2> "$WORK/err"
+  _rc=$?
+  _nfail=$(grep -c "^gate [^ ]* FAIL " "$WORK/out")
+  _nskip=$(grep -c "^gate [^ ]* skip " "$WORK/out")
+  if [ "$_rc" = 1 ] \
+    && grep -q "^gate release_upgrade_addressed ok " "$WORK/out" \
+    && grep -q "^gate release_upgrade_quotes FAIL version 9.9.9 is not CONTENT_VERSION .*re-pin CONTENT_VERSION and UPGRADE_QUOTES$" "$WORK/out" \
+    && grep -q "^gate release_not_run FAIL version 9.9.9 is not CONTENT_VERSION .*re-pin CONTENT_VERSION and NOT_RUN_LINES$" "$WORK/out" \
+    && [ "$_nfail" = 2 ] && [ "$_nskip" = 0 ]; then
+    gate release_mut_later_unpinned ok "a later version without new facts: two pinned gates FAIL with the re-pin text, no skip"
+  else
+    gate release_mut_later_unpinned FAIL "rc=$_rc, $_nfail FAIL line(s), $_nskip skip line(s) for a later version without new facts"
+  fi
 else
-  gate release_mut_later_version FAIL "rc=$_rc for a later version with its own addressee and Not run lines"
+  gate release_mut_later_unpinned FAIL "cannot build the later-version copy"
 fi
 
 mutate version_source tests/test_layout.py '/^VERSION = /d'
