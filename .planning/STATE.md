@@ -20,10 +20,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-11)
+See: .planning/PROJECT.md (updated 2026-10-12)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 6 — Release 0.2.0
+**Current focus:** Milestone v0.2.0 complete — ready to archive
 
 ## Current Position
 
@@ -32,7 +32,7 @@ Plan: Not started
 Status: All phases complete
 Last activity: 2026-10-12 — Phase 6 complete
 
-Progress: [██████████] 100% (4 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4, Phase 4 8/8 plans)
+Progress: [██████████] 100% (6 of 6 phases; 43/43 plans)
 
 ## Performance Metrics
 
@@ -183,9 +183,9 @@ None yet.
 ### Blockers/Concerns
 
 - [Phase 5]: Needs phase research: DWC DOM/CSS claims with no doc source; owner reproduction on a named DWC/BBj build is a human step
-- [Phase 6]: Tag form `0.2.0`; Codex upgrade traps (`--force`, `/hooks` re-approval) must reach CHANGELOG and installer output
 - [Phase 4]: real_home_untouched in tests/test_install_codex.sh races a local Codex daemon writing under ~/.codex; owner accepted it as an environmental flake at UAT (test 3); hardening the gate is open for a later phase
-- [Phase 4]: 04-REVIEW-DISPOSITION.md still lists WR-01 (SKILL.md `@`/`&` next to the sign characters), IN-01, IN-02 as open and WR-08 as stale; owner passed UAT test 5 without recording dispositions — settle before the Phase 6 release
+- [Phase 6]: Review-fix commits b0a4c62, 3a42ebf, b600ac4, 172e6a5 (CHANGELOG/docs wording refinements, release-text gates) are on the planning branch only, not in tag 0.2.0; they ship with the next release
+- [Phase 6]: install-codex.sh and docs still say "not yet run on macOS"; the owner ran it on macOS at UAT (2026-10-12, Codex hook feedback confirmed) — update the wording in a later release
 
 ## Deferred Items
 
@@ -197,6 +197,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T17:42:19.059Z
-Stopped at: Phase 6 complete — all phases complete
+Last session: 2026-10-12
+Stopped at: Phase 6 complete (UAT 23/23, SECURITY threats_open 0, verification passed); milestone v0.2.0 ready to close
 Resume file: None
