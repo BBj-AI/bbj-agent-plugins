@@ -62,7 +62,7 @@ and `bbj-ls`).
 
 ## Key Dependencies
 
-- `@anthropic-ai/claude-code` 2.1.293 (exact pin) - Provides the `claude` CLI used by CI for plugin validation: `.github/ci-tools/package.json`. Installed with `npm ci --ignore-scripts`, then its install script is run explicitly; `npm audit signatures` verifies registry signatures. The changelog notes the tested Claude Code version as 2.1.294 (`CHANGELOG.md`).
+- `@anthropic-ai/claude-code` 2.1.293 (exact pin) - Provides the `claude` CLI used by CI for plugin validation: `.github/ci-tools/package.json`. Installed with `npm ci --ignore-scripts`, then its install script is run explicitly; `npm audit signatures` verifies registry signatures. The Tested against section of `CHANGELOG.md` names the Claude Code version of the release run.
 - BBj compiler (`bbjcpl` / `bbjcplw`, BBj 26.03 for tier 2) - External, not shipped here. Used by `plugins/bbj/scripts/bbj-check.sh` with `-t -N -X -P<dirs>`. Optional at runtime; the hook exits silently when no compiler is found.
 - `curl` - Used by `plugins/bbj/scripts/bbj-check.sh` for the loopback tier-2 request (`--noproxy '*'`, `--proto =http`). Optional.
 - GitHub Actions - Workflow `.github/workflows/ci.yml`, runner `ubuntu-24.04`, 15-minute timeout. Actions pinned by full commit SHA, for example `actions/checkout` at `v7.0.1`.
@@ -93,7 +93,7 @@ and `bbj-ls`).
 - Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install-claude-code.md`)
 - Installed for Codex through `codex/install-codex.sh` (`docs/install-codex.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
-- Current version: 0.1.0 for both plugins, unreleased per `CHANGELOG.md`
+- Current version: 0.2.0 for both plugins, the first release (`CHANGELOG.md`)
 
 <!-- GSD:stack-end -->
 
@@ -211,7 +211,7 @@ and `bbj-ls`).
 - Shared helpers live in `tests/lib.sh` (gate, mkwork, json_escape, claude_payload, codex_payload, run_check). New test files source it instead of re-defining these.
 - Compiler fakes are copied into each temporary home (`mkhome` in `tests/test_discovery.sh`); tests never call a real compiler unless they opt in.
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
-- Versions are identical across both plugin manifests and both marketplace entries (`0.1.0`), and `tests/test_layout.py` enforces this. Bump all four together.
+- Versions are identical across both plugin manifests and both marketplace entries (`0.2.0`), and `tests/test_layout.py` enforces this. Bump all four together.
 - Licence is `Apache-2.0` in every manifest.
 
 ## Git and Commit Conventions
@@ -224,7 +224,7 @@ and `bbj-ls`).
 
 - Markdown skill references use the `references/` subdirectory under each skill, one topic per file, lowercase hyphenated names.
 - `README.md`, `docs/install-claude-code.md`, `docs/install-codex.md` describe installation; keep install steps there, not in the scripts' code comments.
-- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.1.0 (unreleased)`).
+- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.0`).
 
 <!-- GSD:conventions-end -->
 
