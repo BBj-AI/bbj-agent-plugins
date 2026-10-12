@@ -23,3 +23,4 @@ plugin route, and what the installer must still do. The outcome reshapes v0.2.1 
 | # | Idea | Name | Type | Validates | Verdict | Tags |
 |---|------|------|------|-----------|---------|------|
 | 001 | native-plugin-distribution | codex-plugin-hooks | standard | Plugin hook fires after apply_patch via `codex plugin add`; feedback reaches the model | ✓ VALIDATED | codex, hooks, plugin, trust |
+| 002 | native-plugin-distribution | codex-plugin-manifest | comparison | `.codex-plugin/plugin.json` overlay gives Codex a literal docs URL; skills, hook and Claude strict validation unchanged | ✓ VALIDATED (overlay) | codex, manifest, mcp |
