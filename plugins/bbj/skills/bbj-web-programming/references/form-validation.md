@@ -36,7 +36,8 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjFormValid
 - The built-in attributes of each control, the value and text of each control class, and the customization
   attributes are tables in the guide and are not copied here.
 
-A JavaScript expression and a built-in attribute on one control, and a `data-` attribute on the window:
+A JavaScript expression on a control that has no built-in attribute, so the expression is the validation that
+runs (a control with both uses only the built-in one, as above), and a `data-` attribute on the window:
 
 ```bbj
 declare auto BBjSysGui sysgui!
@@ -47,7 +48,6 @@ win!.setAttribute("data-validation-style", "inline")
 declare auto BBjEditBox code!
 code! = win!.addEditBox("")
 code!.setClientValidationFunction("value.length == 8")
-code!.setAttribute("required", "true")
 ```
 
 ## Sources
