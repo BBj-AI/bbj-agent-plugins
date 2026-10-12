@@ -1,0 +1,767 @@
+claude: 2.1.296 (Claude Code)
+node: v24.20.0
+== test_ci_gates.sh
+gate ci_shellcheck_missing_fails_in_ci ok CI=true, no shellcheck: gate FAIL, exit 1
+gate ci_shellcheck_missing_skips_outside_ci ok no CI, no shellcheck: gate skip
+gate run_python_missing_fails_in_ci ok CI=true, no python3: gate FAIL counted, exit 1
+gate run_python_missing_skips_outside_ci ok no CI, no python3: gate skip counted, exit 0
+== test_claude_plugin.sh
+gate validate_root ok claude plugin validate --strict .
+gate validate_plugins_bbj ok claude plugin validate --strict plugins/bbj
+gate validate_plugins_bbj_local ok claude plugin validate --strict plugins/bbj-local
+gate marketplace_add ok local directory marketplace
+gate install_bbj ok bbj@basis-bbj installed
+gate list_bbj_enabled ok bbj is enabled
+gate install_bbj_local ok bbj-local@basis-bbj installed
+gate list_bbj_local_disabled ok bbj-local is disabled
+gate list_bbj_still_enabled ok bbj still enabled
+gate mcp_docs_connected ok bbj-docs at https://mcp.bbj-ai.com/mcp connected
+gate hook_command_bad ok exit 2 with the compiler line, root contains a space
+gate hook_command_clean ok exit 0, silent
+gate real_config_untouched ok plugin list of the real configuration unchanged
+== test_codex_patch.sh
+gate add_bad ok exit 2, header names the file resolved against cwd
+gate add_bad_argv ok one compiler call with the absolute file
+gate add_bad_dash_n ok compiler call carries -N
+gate add_bad_trailer ok trailer last, stdout empty
+gate move_destination_only ok moved/old2.src checked, vanished old.src not
+gate move_source_when_present ok old.src checked while it exists
+gate skipped_never_compiled ok Delete, content line, non-BBj, .. and outside-cwd paths: no call, silent
+gate absolute_inside_cwd ok accepted
+gate header_past_8192 ok late.bbj header at byte 24681 is checked
+gate keys_after_tool_input ok tool_name and cwd found after tool_input
+gate unicode_escape_in_content ok header found
+gate silent_cases ok Bash tool, no cwd, no command key, relative cwd: exit 0 and silent
+gate two_failing_files ok two headers (N=1, N=2), one bbj_lookup line, last
+gate one_failing_one_clean ok one block
+gate duplicates_once ok early.bbj, ./early.bbj and early.bbj give one call
+gate real_compiler_add_bad ok exit 2, header and the compiler's own line
+gate real_compiler_clean ok silent
+== test_discovery.sh
+gate order_option_first ok ran /tmp/bbjplug.2uaSlQ/A/bin/bbjcpl
+gate order_bbj_home_before_bbjhome ok ran /tmp/bbjplug.2uaSlQ/B/bin/bbjcpl
+gate order_bbjhome_before_path ok ran /tmp/bbjplug.2uaSlQ/C/bin/bbjcpl
+gate order_path_before_defaults ok ran /tmp/bbjplug.2uaSlQ/D/bin/bbjcpl
+gate order_defaults_last ok ran /tmp/bbjplug.2uaSlQ/E/bin/bbjcpl
+gate empty_home_falls_through ok ran /tmp/bbjplug.2uaSlQ/B/bin/bbjcpl
+gate home_given_as_bin_dir ok ran /tmp/bbjplug.2uaSlQ/B/bin/bbjcpl
+gate symlink_absolute_resolved ok ran /tmp/bbjplug.2uaSlQ/C/bin/bbjcpl
+gate symlink_relative_resolved ok ran /tmp/bbjplug.2uaSlQ/C/bin/bbjcpl
+gate bbjcplw_only ok ran /tmp/bbjplug.2uaSlQ/W/bin/bbjcplw
+gate no_route_notice_then_silent ok first call notice, second call silent
+gate unusable_output_notice_then_silent ok first call notice, second call silent
+gate crash_notice_then_silent ok first call notice, second call silent
+gate p_list_dedup ok -P/tmp/bbjplug.2uaSlQ/proj/sub:/tmp/bbjplug.2uaSlQ/proj
+gate p_list_three ok -P/tmp/bbjplug.2uaSlQ/proj/sub:/tmp/bbjplug.2uaSlQ/proj:/tmp/bbjplug.2uaSlQ/elsewhere
+gate p_list_drops_separator ok -P/tmp/bbjplug.2uaSlQ/proj/sub:/tmp/bbjplug.2uaSlQ/proj
+gate windows_p_list ok -PW:/tmp/bbjplug.2uaSlQ/proj/sub;W:/tmp/bbjplug.2uaSlQ/proj
+gate windows_target ok W:/tmp/bbjplug.2uaSlQ/proj/sub/f.bbj
+== test_exit_contract.sh
+gate contract_dash_empty_stdin ok exit 0, stdout empty
+gate contract_dash_not_json ok exit 0, stdout empty
+gate contract_dash_no_tool_input ok exit 0, stdout empty
+gate contract_dash_unicode_escape ok exit 0, stdout empty
+gate contract_dash_truncated ok exit 0, stdout empty
+gate contract_dash_unreadable_file ok exit 0, stdout empty
+gate contract_dash_crashing_compiler ok exit 0, stdout is the notice object
+gate contract_dash_crashing_compiler_repeat ok exit 0, stdout empty
+gate contract_dash_no_route ok exit 0, stdout is the notice object
+gate contract_dash_no_route_repeat ok exit 0, stdout empty
+gate contract_dash_codex_no_route ok exit 0, stdout is the notice object
+gate contract_dash_codex_no_route_repeat ok exit 0, stdout empty
+gate contract_dash_empty_path ok exit 0, stdout empty
+gate contract_dash_hostile_x__touch_PWN ok exit 0, stdout empty
+gate argument_dash ok one absolute argument for x$(touch PWNED).bbj
+gate contract_dash_hostile_x_touch_PWNE ok exit 0, stdout empty
+gate argument_dash ok one absolute argument for x`touch PWNED2`.bbj
+gate contract_dash_hostile_a_b_bbj ok exit 0, stdout empty
+gate argument_dash ok one absolute argument for a;b.bbj
+gate contract_dash_hostile_q_uote_bbj ok exit 0, stdout empty
+gate argument_dash ok one absolute argument for q"uote.bbj
+gate contract_dash_hostile_it_s_bbj ok exit 0, stdout empty
+gate argument_dash ok one absolute argument for it's.bbj
+gate contract_dash_glob_name ok exit 0, stdout empty
+gate contract_dash_newline_name ok exit 0, stdout empty
+gate glob_newline_not_passed_dash ok never reached the compiler
+gate no_marker_dash ok no PWNED marker file
+gate contract_bash_empty_stdin ok exit 0, stdout empty
+gate contract_bash_not_json ok exit 0, stdout empty
+gate contract_bash_no_tool_input ok exit 0, stdout empty
+gate contract_bash_unicode_escape ok exit 0, stdout empty
+gate contract_bash_truncated ok exit 0, stdout empty
+gate contract_bash_unreadable_file ok exit 0, stdout empty
+gate contract_bash_crashing_compiler ok exit 0, stdout is the notice object
+gate contract_bash_crashing_compiler_repeat ok exit 0, stdout empty
+gate contract_bash_no_route ok exit 0, stdout is the notice object
+gate contract_bash_no_route_repeat ok exit 0, stdout empty
+gate contract_bash_codex_no_route ok exit 0, stdout is the notice object
+gate contract_bash_codex_no_route_repeat ok exit 0, stdout empty
+gate contract_bash_empty_path ok exit 0, stdout empty
+gate contract_bash_hostile_x__touch_PWN ok exit 0, stdout empty
+gate argument_bash ok one absolute argument for x$(touch PWNED).bbj
+gate contract_bash_hostile_x_touch_PWNE ok exit 0, stdout empty
+gate argument_bash ok one absolute argument for x`touch PWNED2`.bbj
+gate contract_bash_hostile_a_b_bbj ok exit 0, stdout empty
+gate argument_bash ok one absolute argument for a;b.bbj
+gate contract_bash_hostile_q_uote_bbj ok exit 0, stdout empty
+gate argument_bash ok one absolute argument for q"uote.bbj
+gate contract_bash_hostile_it_s_bbj ok exit 0, stdout empty
+gate argument_bash ok one absolute argument for it's.bbj
+gate contract_bash_glob_name ok exit 0, stdout empty
+gate contract_bash_newline_name ok exit 0, stdout empty
+gate glob_newline_not_passed_bash ok never reached the compiler
+gate no_marker_bash ok no PWNED marker file
+gate contract_busybox_empty_stdin ok exit 0, stdout empty
+gate contract_busybox_not_json ok exit 0, stdout empty
+gate contract_busybox_no_tool_input ok exit 0, stdout empty
+gate contract_busybox_unicode_escape ok exit 0, stdout empty
+gate contract_busybox_truncated ok exit 0, stdout empty
+gate contract_busybox_unreadable_file ok exit 0, stdout empty
+gate contract_busybox_crashing_compiler ok exit 0, stdout is the notice object
+gate contract_busybox_crashing_compiler_repeat ok exit 0, stdout empty
+gate contract_busybox_no_route ok exit 0, stdout is the notice object
+gate contract_busybox_no_route_repeat ok exit 0, stdout empty
+gate contract_busybox_codex_no_route ok exit 0, stdout is the notice object
+gate contract_busybox_codex_no_route_repeat ok exit 0, stdout empty
+gate contract_busybox_empty_path ok exit 0, stdout empty
+gate contract_busybox_hostile_x__touch_PWN ok exit 0, stdout empty
+gate argument_busybox ok one absolute argument for x$(touch PWNED).bbj
+gate contract_busybox_hostile_x_touch_PWNE ok exit 0, stdout empty
+gate argument_busybox ok one absolute argument for x`touch PWNED2`.bbj
+gate contract_busybox_hostile_a_b_bbj ok exit 0, stdout empty
+gate argument_busybox ok one absolute argument for a;b.bbj
+gate contract_busybox_hostile_q_uote_bbj ok exit 0, stdout empty
+gate argument_busybox ok one absolute argument for q"uote.bbj
+gate contract_busybox_hostile_it_s_bbj ok exit 0, stdout empty
+gate argument_busybox ok one absolute argument for it's.bbj
+gate contract_busybox_glob_name ok exit 0, stdout empty
+gate contract_busybox_newline_name ok exit 0, stdout empty
+gate glob_newline_not_passed_busybox ok never reached the compiler
+gate no_marker_busybox ok no PWNED marker file
+gate contract_real_hostile_x__touch_PWN ok exit 2, stdout empty
+gate real_hostile_reached_compiler ok the real compiler judged x$(touch PWNED).bbj
+gate contract_real_hostile_x_touch_PWNE ok exit 2, stdout empty
+gate real_hostile_reached_compiler ok the real compiler judged x`touch PWNED2`.bbj
+gate no_marker_real ok the real compiler created no marker file
+== test_hook_review_fixes.sh
+gate symlink_not_checked ok a .bbj link to another file: exit 0, silent, compiler not called
+gate regular_file_still_checked ok a regular file next to the link is still compiled
+gate symlink_not_checked_patch ok a patch naming a link: exit 0, compiler not called
+gate big_patch_linear ok a 2988984 byte patch: header after the bulk found, exit 2 in 0 s
+gate patch_content_cannot_forge_header ok backslash-n inside a content line is not a line break
+== test_install_codex.sh
+gate installer_executable ok mode has the exec bit
+gate first_exit ok exit 0
+gate first_status_banner ok first stdout line states the tested platforms
+gate first_codex_mcp_add ok codex mcp add bbj-docs --url <default>
+gate first_config_toml ok one bbj-docs table, five tool tables once each, five approvals, no server-wide key
+gate first_tools_tables ok tomllib: url, no default_tools_approval_mode, the five docs tools approve
+gate first_prints_tools ok stdout names the five approved tools and bbj_check_syntax as the one that keeps the prompt
+gate first_skills ok both skills in ~/.agents/skills are identical to plugins/bbj/skills
+gate first_script_copy ok script copied outside any plugin cache, executable
+gate first_hooks_json ok valid JSON: apply_patch matcher, command names the copy, commandWindows, timeout 30
+gate first_prints_snippet_and_trust ok snippet USE sentence and the /hooks step are printed
+gate first_prints_gaps ok gaps: guardrail wording, shell heredoc, BBJ_HOME, skills path fallback
+gate first_hook_command_runs ok the installed command exits 2 with the feedback header
+gate second_run_idempotent ok exit 0, config.toml and hooks.json byte-identical, codex not called again
+gate no_backup_for_fresh_config ok no backup when config.toml did not exist
+gate managed_block ok markers, table and url once each, the five tool tables between the markers, no server-wide key
+gate managed_block_tools_tables ok tomllib: the five docs tools approve
+gate managed_block_idempotent ok second run leaves it as is
+gate existing_table_gains_tools ok nothing removed, the added lines are the five headers and five approvals, url kept, codex not called
+gate existing_parses ok tomllib: five tools approve, url kept, mcp_servers.other still parses
+gate existing_backup ok config.toml.bbj-backup holds the original
+gate existing_backup_once ok backup not rewritten by the second run
+gate foreign_toml_form ok five spellings of bbj-docs: exit 3, config.toml byte-identical and parseable, no backup, codex not called, block printed
+gate approval_key_keeps_symlink_and_mode ok the link survives, its target gained the five tool tables, mode 644 kept
+gate unusable_dest_refused_before_writes ok exit 2, config.toml byte-identical, no backup, no hooks.json, no script, codex not called
+gate codex_home_shell_chars_refused ok dollar, backtick, double quote, backslash, apostrophe in --codex-home: exit 2, nothing created
+gate foreign_hooks_untouched ok exit 3, file byte-identical, the block to merge is printed
+gate foreign_rest_done ok skills and script still installed
+gate skill_differs_untouched ok exit 3, differing directory untouched and named, the other skill installed
+gate skill_force_replaces ok --force replaces it, exit 0
+gate docs_url_http_refused ok plain http to a non-loopback host: exit 2, nothing written
+gate docs_url_bad_refused ok ftp, whitespace, quote, no scheme and empty values: exit 2, nothing written
+gate docs_url_loopback_http ok http to loopback is accepted
+gate docs_url_https_other ok https to any host is accepted
+gate custom_dirs ok everything under the given directories, nothing under HOME defaults
+gate command_windows_cygpath ok commandWindows holds the two cygpath -w forms, each double-quoted
+gate installer_no_compiler_calls ok no compiler or bbj call during an install
+gate unknown_option_refused ok exit 2
+gate help_exit_zero ok usage printed, exit 0
+gate default_url_equals_plugin ok https://mcp.bbj-ai.com/mcp
+gate snippet_shape ok 33 lines, carries the USE sentence
+gate upgrade_removes_old_key ok the old line removed and reported, five tool tables, backup holds the original, rerun byte-identical
+gate upgrade_managed_block ok the managed block of an earlier version loses the old line and gets the five tool tables inside the markers
+gate default_other_value_kept ok a prompt default stays byte for byte, is reported, the tools are added, exit 0
+gate default_approve_other_spelling ok an approve default in another spelling stays, the tools are added, the output names bbj_check_syntax, exit 3
+gate partial_set_completed ok three tool tables added once each, the user's prompt for bbj_lookup kept and reported, rerun byte-identical
+gate tool_table_without_key ok a tool table without approval_mode gains it directly under its header, header once
+gate subtables_without_main_table ok codex not called, the table appended once in a managed block, the missing tools added, every header once, backup written
+gate foreign_tool_forms ok five forms: exit 3, config.toml byte-identical, no backup, codex not called, the five tool tables printed
+gate foreign_tool_forms_old_line ok the old line is left, the output says to remove it by hand, exit 3
+gate local_block_fresh_no_codex ok --with-local, no codex: the markers once, [mcp_servers.bbj-local] once, the fixed url, the three tool tables between the markers, eight approvals, no server-wide key
+gate local_block_fresh_with_codex_on_path ok codex on PATH: mcp add for bbj-docs only, never for bbj-local; the same block shape
+gate local_url_fixed_ignores_seam ok BBJ_LOCAL_MCP_URL=...:9999 does not move the registration: the url is http://127.0.0.1:5009/mcp, 9999 is nowhere in config.toml (D-17)
+gate local_no_flag_writes_nothing ok a fresh run without --with-local: no line of config.toml names bbj-local
+gate local_rerun_idempotent ok a second --with-local run: exit 0, config.toml byte-identical, bbj-local reported as already registered
+gate local_kept_without_flag ok a run without the flag keeps the managed block: exit 0, config.toml byte-identical
+gate local_rerun_without_flag_refreshes_in_place ok no flag, an older managed block: the bbj_format key and the bbj_denum table added inside the markers, nothing removed, each header once
+gate local_lone_end_marker_without_flag ok a lone end marker and no flag: exit 0, config.toml byte-identical, no block added
+gate local_lone_end_marker ok a lone end marker (what codex mcp remove leaves) and the flag: a fresh block follows it, [mcp_servers.bbj-local] once, a rerun byte-identical
+gate local_markers_without_table_no_flag ok both markers, no table, no flag: exit 0, config.toml byte-identical, no backup, bbj-local not registered
+gate local_markers_without_table_with_flag ok both markers, no table, the flag: the table and its three approvals sit between the existing markers, one begin and one end marker, a rerun byte-identical
+gate local_markers_table_inside ok the restored bbj-local table lies between the begin and the end marker
+gate local_begin_marker_alone ok a begin marker alone: no flag leaves config.toml byte-identical, the flag adds the table and one end marker after it, a rerun byte-identical
+gate local_hand_registered_same_url ok a hand-registered table at the fixed url gains the three approvals, no marker added, backup holds the original, codex not called for bbj-local, exit 0
+gate local_foreign_forms ok another url, a single-quoted key, a dotted key, a sub-table without the table: exit 3, config.toml byte-identical and parseable, no backup, codex not called, the block printed
+gate local_foreign_key_forms ok a top-level dotted key and a quoted key under [mcp_servers]: exit 3, config.toml byte-identical, no backup
+gate local_name_in_path_not_foreign ok bbj-local and bbj-docs inside a [projects] path and a string value: exit 0, both servers registered normally, nothing refused, a rerun byte-identical
+gate crlf_config_stays_crlf ok a CRLF config.toml (tool tables added, a block appended, a table restored between markers): every line still ends CRLF, the file still parses
+gate local_and_docs_coexist_both_orders ok docs first and local first: five docs approvals, three local approvals, each table once, the begin marker directly above [mcp_servers.bbj-local]
+gate local_user_value_kept ok a prompt on bbj_format stays byte for byte and is named in the output, exit 0
+gate local_check_tools_only_in_local_tables ok 22 configs: bbj_check_syntax, bbj_format and bbj_denum are named under no server but bbj-local; bbj-local has no default_tools_approval_mode, required, enabled or startup_timeout_sec
+gate probe_found_suggests ok a bbj-ls answers: exit 0, one suggestion line naming --with-local and http://127.0.0.1:5009/mcp, no line of config.toml names bbj-local, one request
+gate probe_request_shape ok one POST /mcp: Mcp-Method tools/list, MCP-Protocol-Version 2026-07-28, Content-Type application/json; the body is a tools/list whose params hold only _meta and names neither arguments nor code (T-01-17)
+gate probe_no_answer_no_flag ok a closed port: exit 0, one 'no bbj-ls answered' line naming the probe url, http://127.0.0.1:5009/mcp and --with-local, nothing about bbj-local in config.toml
+gate probe_no_curl ok no curl on PATH: exit 0, the line 'bbj-local: not probed: curl not found.', nothing about bbj-local in config.toml
+gate probe_other_server_no_suggestion ok another server on the port (a tool list without bbj_check_syntax): one request, no suggestion, the 'no bbj-ls answered' line, nothing written
+gate probe_refuses_non_loopback_seam ok BBJ_LOCAL_MCP_URL=http://example.invalid:5009/mcp: curl never called, one 'not probed:' line naming the value, exit 0, nothing written
+gate probe_curl_flags ok one curl call with -q, --noproxy '*', --proto =http, --connect-timeout 2, -m 3, Mcp-Method and MCP-Protocol-Version headers, --url the seam, no -L or --location, a static tools/list body
+gate with_local_probe_found_registers ok a bbj-ls answers: one request, the managed block written (fixed url, three approvals), one 'a bbj-ls answers' line, no warning, exit 0
+gate with_local_probe_fail_registers_and_warns ok nothing answers: the managed block is written all the same, exactly one 'bbj-local: warning:' line naming the probe url and 'registering it anyway', exit 0
+gate with_local_probe_other_server_registers_and_warns ok another server answers (no bbj_check_syntax): one request, the block written, exactly one warning line, no 'a bbj-ls answers' line, exit 0
+gate with_local_probe_nocurl_registers_and_warns ok no curl: the managed block is written, exactly one warning line 'not probed: curl not found' ... 'registering it anyway', exit 0
+gate with_local_probe_refused_registers_and_warns ok a non-loopback seam: curl never called, the block written at the fixed url, exactly one warning line, example.invalid nowhere in config.toml, exit 0
+gate local_rerun_without_flag_skips_probe ok a managed block and no flag: the block is refreshed (byte-identical), no request reached the fake, no suggestion, exit 0
+gate local_hand_registered_no_probe ok a hand-registered bbj-local and no flag: no request, no bbj-local line of output, config.toml byte-identical, exit 0
+gate local_lone_end_marker_without_flag_only_suggests ok a lone end marker and no flag: one request, the suggestion line, config.toml byte-identical, exit 0
+gate local_markers_without_table_no_probe ok both markers, no table, no flag: no request reached the fake, no bbj-local line of output, config.toml byte-identical, exit 0
+gate local_name_in_path_is_probed ok bbj-local only in a [projects] path and no flag: one request, the suggestion line, config.toml byte-identical, exit 0
+gate probe_never_changes_exit ok a foreign bbj-docs form with a suggestion still exits 3, the same home with the form fixed and a suggestion exits 0
+gate tools_list_single_source ok DOCS_TOOLS equals the tool bullets of AGENTS-snippet.md and the tool tables of docs/install-codex.md (5 tools)
+gate real_codex_install ok codex mcp add by the real codex, then the five tool tables
+gate real_codex_parses_configs ok 53 configs
+gate check_tools_never_named ok 17 written configs: none names bbj_check_syntax, bbj_format or bbj_denum
+gate real_home_untouched ok nothing under the real ~/.codex or ~/.agents changed
+== test_install_pages.sh
+gate claude_has_claude_plugin_install_bbj_basis_bbj ok claude plugin install bbj@basis-bbj
+gate claude_has_claude_plugin_marketplace_add_BBj_AI_bbj ok claude plugin marketplace add BBj-AI/bbj-agent-plugins
+gate claude_has_docs_url ok docs_url
+gate claude_has_bbj_home ok bbj_home
+gate claude_has_https___mcp_bbj_ai_com_mcp ok https://mcp.bbj-ai.com/mcp
+gate claude_has_bbj_local ok bbj-local
+gate claude_has____Check_routes ok ## Check routes
+gate claude_has_bbjcpl__t__N__X ok bbjcpl -t -N -X
+gate claude_has_127_0_0_1_5009 ok 127.0.0.1:5009
+gate claude_has_syntax_only ok syntax only
+gate claude_has____Not_covered ok ## Not covered
+gate claude_has_Bash ok Bash
+gate claude_has_NotebookEdit ok NotebookEdit
+gate claude_has_subagent ok subagent
+gate claude_has____Windows ok ## Windows
+gate claude_has_Git_for_Windows ok Git for Windows
+gate claude_has_data_handling ok data-handling
+gate claude_has_config__bbx ok config*.bbx
+gate claude_has_not_yet_been_run_on_Windows ok not yet been run on Windows
+gate claude_has__bbj_local_reported ok `bbj-local reported
+gate claude_has__bbjcpl_reported ok `bbjcpl reported
+gate claude_has_recommended_where_BBjServices_26_03 ok recommended where BBjServices 26.03
+gate claude_has_preferred_over_the_hosted_check ok preferred over the hosted check
+gate claude_has_PREFIX__classpath_and_config ok PREFIX, classpath and config
+gate claude_has____3__Enable_the_local_check ok ## 3. Enable the local check
+gate claude_has_claude_plugin_enable_bbj_local_basis_bbj ok claude plugin enable bbj-local@basis-bbj
+gate claude_has_once_per_session ok once per session
+gate claude_has_not_compile_checked ok not compile-checked
+gate claude_forbids_go_live_host ok no match for: bbj-mcp\.basis\.cloud
+gate claude_forbids_subagent_not_covered ok no match for: subagent[^.]*not (covered|checked)
+gate claude_forbids_local_not_above_bbjcpl ok no match for: (preferred|better) (than|over) `?bbjcpl
+gate claude_forbids_noroute_silence ok no match for: says nothing|missing compiler is silent
+gate claude_sections ok 10 sections
+gate claude_command__marketplace_add ok claude plugin marketplace add --help (from: claude plugin marketplace add BBj-AI/bbj-agent-plugins)
+gate claude_command__marketplace_add ok claude plugin marketplace add --help (from: claude plugin marketplace add /path/to/bbj-agent-plugins)
+gate claude_command__install ok claude plugin install --help (from: claude plugin install bbj@basis-bbj)
+gate claude_command__install ok claude plugin install --help (from: claude plugin install bbj-local@basis-bbj)
+gate claude_command__enable ok claude plugin enable --help (from: claude plugin enable bbj-local@basis-bbj)
+gate claude_command__configure ok claude plugin configure --help (from: claude plugin configure bbj@basis-bbj)
+gate claude_command__update ok claude plugin update --help (from: claude plugin update bbj@basis-bbj)
+gate claude_command__uninstall ok claude plugin uninstall --help (from: claude plugin uninstall bbj@basis-bbj)
+gate claude_command__uninstall ok claude plugin uninstall --help (from: claude plugin uninstall bbj-local@basis-bbj)
+gate claude_command__marketplace_remove ok claude plugin marketplace remove --help (from: claude plugin marketplace remove basis-bbj)
+gate claude_commands_found ok 10 command line(s) checked
+gate codex_has_Tested_on_Linux_only ok Tested on Linux only
+gate codex_has_install_codex_sh ok install-codex.sh
+gate codex_has___docs_url ok --docs-url
+gate codex_has___skills_dir ok --skills-dir
+gate codex_has___codex_home ok --codex-home
+gate codex_has_default_tools_approval_mode ok default_tools_approval_mode
+gate codex_has__mcp_servers_bbj_docs_tools_bbj_search_ ok [mcp_servers.bbj-docs.tools.bbj_search]
+gate codex_has__mcp_servers_bbj_docs_tools_bbj_fetch_pa ok [mcp_servers.bbj-docs.tools.bbj_fetch_page]
+gate codex_has__mcp_servers_bbj_docs_tools_bbj_lookup_ ok [mcp_servers.bbj-docs.tools.bbj_lookup]
+gate codex_has__mcp_servers_bbj_docs_tools_bbj_reserved ok [mcp_servers.bbj-docs.tools.bbj_reserved_word]
+gate codex_has__mcp_servers_bbj_docs_tools_bbj_examples ok [mcp_servers.bbj-docs.tools.bbj_examples]
+gate codex_has_approval_mode____approve_ ok approval_mode = "approve"
+gate codex_has_bbj_check_syntax ok bbj_check_syntax
+gate codex_has____agents_skills ok ~/.agents/skills
+gate codex_has____codex_skills ok ~/.codex/skills
+gate codex_has__hooks ok /hooks
+gate codex_has_apply_patch ok apply_patch
+gate codex_has____Check_routes ok ## Check routes
+gate codex_has____Not_covered ok ## Not covered
+gate codex_has____Windows ok ## Windows
+gate codex_has_Git_for_Windows ok Git for Windows
+gate codex_has_commandWindows ok commandWindows
+gate codex_has_guardrail ok guardrail
+gate codex_has___with_local ok --with-local
+gate codex_has_recommended_where_BBjServices_26_03 ok recommended where BBjServices 26.03
+gate codex_has_preferred_over_the_hosted_check ok preferred over the hosted check
+gate codex_has_PREFIX__classpath_and_config ok PREFIX, classpath and config
+gate codex_has____2__Enable_the_local_check ok ## 2. Enable the local check
+gate codex_has__mcp_servers_bbj_local_ ok [mcp_servers.bbj-local]
+gate codex_has__mcp_servers_bbj_local_tools_bbj_check_s ok [mcp_servers.bbj-local.tools.bbj_check_syntax]
+gate codex_has__mcp_servers_bbj_local_tools_bbj_format_ ok [mcp_servers.bbj-local.tools.bbj_format]
+gate codex_has__mcp_servers_bbj_local_tools_bbj_denum_ ok [mcp_servers.bbj-local.tools.bbj_denum]
+gate codex_has_http___127_0_0_1_5009_mcp ok http://127.0.0.1:5009/mcp
+gate codex_has_codex_mcp_remove_bbj_local ok codex mcp remove bbj-local
+gate codex_has_BBJ_LOCAL_MCP_URL ok BBJ_LOCAL_MCP_URL
+gate codex_has_tools_list ok tools/list
+gate codex_has_once_per_session ok once per session
+gate codex_has_not_compile_checked ok not compile-checked
+gate codex_forbids_go_live_host ok no match for: bbj-mcp\.basis\.cloud
+gate codex_forbids_subagent_not_covered ok no match for: subagent[^.]*not (covered|checked)
+gate codex_forbids_codex_verified_claim ok no match for: (was|has been|is) (verified|tested) (on|with) (a )?Codex
+gate codex_forbids_local_not_above_bbjcpl ok no match for: (preferred|better) (than|over) `?bbjcpl
+gate codex_forbids_noroute_silence ok no match for: says nothing|missing compiler is silent
+gate codex_local_tools_single_source ok LOCAL_TOOLS equals the bbj-local tool tables of the page (3 tools)
+gate codex_quoted_messages_in_installer ok six quoted fragments, each on the page and on a non-comment installer line
+gate readme_has_recommended_where_BBjServices_26_03 ok recommended where BBjServices 26.03
+gate readme_has_preferred_over_the_hosted_check ok preferred over the hosted check
+gate readme_has_PREFIX__classpath_and_config ok PREFIX, classpath and config
+gate readme_has___with_local ok --with-local
+gate readme_has____Skills ok ## Skills
+gate readme_has_once_per_session ok once per session
+gate readme_forbids_local_not_above_bbjcpl ok no match for: (preferred|better) (than|over) `?bbjcpl
+gate readme_forbids_noroute_silence ok no match for: says nothing|missing compiler is silent
+gate installer_has_once_per_session ok once per session
+gate installer_forbids_noroute_silence ok no match for: says nothing|missing compiler is silent
+gate link_README_md_docs_install_claude_code_md ok README.md -> docs/install-claude-code.md
+gate link_README_md_docs_install_claude_code_md ok README.md -> docs/install-claude-code.md
+gate link_README_md_docs_install_codex_md ok README.md -> docs/install-codex.md
+gate link_README_md_CHANGELOG_md ok README.md -> CHANGELOG.md
+gate link_CHANGELOG_md_docs_install_claude_code_md ok CHANGELOG.md -> docs/install-claude-code.md
+gate link_CHANGELOG_md_docs_install_codex_md ok CHANGELOG.md -> docs/install-codex.md
+gate link_docs_install_claude_code_md_install_codex_md ok docs/install-claude-code.md -> install-codex.md
+gate link_docs_install_codex_md_install_claude_code_md ok docs/install-codex.md -> install-claude-code.md
+gate link_docs_install_codex_md____codex_AGENTS_snippet_md ok docs/install-codex.md -> ../codex/AGENTS-snippet.md
+== test_never_execute.sh
+gate sentinel ok the fake interpreter never ran
+gate call_count ok calls=3 noN=0 noTX=0 badTarget=0 stray=0
+gate dash_N ok -N is its own argument on every call
+gate dash_t_X ok -t and -X on every call
+gate target_last_absolute ok the target is last and absolute
+gate no_stray_argument ok every other argument starts with -
+gate canned_error ok exit 2, canned line in stderr, stdout empty
+gate canned_clean ok exit 0, no output
+gate sentinel_final ok still never ran
+== test_noroute_notice.sh
+gate notice_shape_dash ok exit 0, stderr empty, one line, exact keys
+gate notice_shape_bash ok exit 0, stderr empty, one line, exact keys
+gate notice_text_claude ok all fragments present
+gate notice_last_sentence ok the last sentence starts Tell the user
+gate notice_not_error_grammar ok no error header words and no URL
+gate notice_marker_in_state_dir ok one empty directory bbj-check-noroute-s1
+gate notice_second_call_silent ok exit 0, stdout and stderr empty
+gate notice_other_session ok session s2 got its own notice
+gate notice_codex_text ok all fragments present
+gate notice_codex_text_no_claude_steps ok no forbidden fragment present
+gate notice_edit_text ok all fragments present
+gate notice_two_files ok all fragments present
+gate notice_path_cap ok all fragments present
+gate notice_path_cap_rest ok no forbidden fragment present
+gate notice_long_names_bounded ok longest path 200 bytes, 5 named and 1 more, text 1658 characters
+gate notice_hostile_names_json ok valid object for a quote, a backslash, a tab, a Latin-1 byte and a command substitution
+gate notice_no_pwned ok no file PWNED anywhere
+gate notice_no_session_every_call ok no session_id: notice on both calls, no 'not repeated', state dir empty
+gate notice_empty_key_every_call ok id ../.. gives a notice every call and creates nothing
+gate notice_key_sanitised ok marker bbj-check-noroute-abcde
+gate notice_key_max_64 ok marker bbj-check-noroute-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+gate notice_uuid_key_intact ok marker bbj-check-noroute-0198c0de-7a3b-4c2d-9e8f-123456789abc
+gate notice_symlink_squat ok a link at the marker name: notice on both calls, nothing written through it
+gate notice_file_squat ok a file at the marker name: notice on both calls, file untouched
+gate notice_unwritable_state ok state dir mode 555: notice on both calls
+gate notice_missing_state ok absent state dir: notice on both calls, dir not created
+gate notice_tmpdir_fallback ok marker in TMPDIR, second call silent
+gate notice_concurrent_once ok 20 rounds of 8 processes, one notice each
+gate notice_claim_present_silent ok exit 0, stdout and stderr empty
+gate notice_marker_without_claim ok marker dir without a claim: one notice with 'not repeated', then silent
+gate notice_claim_symlink_squat ok a link at the claim name (dangling, or to a file): notice on both calls, nothing written through it
+gate notice_exit2_keeps_slot ok exit 2 printed no notice and left the marker alone; the next call notified
+gate notice_header_marker_rules ok the header names the marker rules
+gate notice_d02_reason ok all fragments present
+gate notice_d02_not_no_bbjcpl ok no forbidden fragment present
+gate notice_d02_second_silent ok exit 0, stdout and stderr empty
+gate notice_d02_rc126 ok all fragments present
+gate notice_curl_exit_1_silent ok exit 0, silent, one request, no marker
+gate notice_curl_exit_6_silent ok exit 0, silent, one request, no marker
+gate notice_curl_exit_18_silent ok exit 0, silent, one request, no marker
+gate notice_curl_exit_28_silent ok exit 0, silent, one request, no marker
+gate notice_curl_exit_52_silent ok exit 0, silent, one request, no marker
+gate notice_curl_exit_56_silent ok exit 0, silent, one request, no marker
+gate notice_curl_empty_reply_silent ok exit 0, silent, one request, no marker
+gate notice_fake_rpc_error_silent ok exit 0, silent, one request, no marker
+gate notice_fake_garbage_silent ok exit 0, silent, one request, no marker
+gate notice_fake_is_error_silent ok exit 0, silent, one request, no marker
+gate notice_fake_empty_silent ok exit 0, silent, one request, no marker
+gate notice_fake_no_verdict_silent ok exit 0, silent, one request, no marker
+gate notice_clean_silent ok tier-2 clean reply and a silent compiler: exit 0, silent, no marker
+gate notice_errors_no_notice ok tier-2 and compiler errors: exit 2, stdout empty, no marker
+gate notice_early_skips_silent ok skipped files exit 0, silent, no marker
+gate notice_d02_failed_route_silent ok exit 0, silent, one request, no marker
+gate notice_mixed_errors_exit2 ok errors and a no-route file: exit 2, compiler block, no stdout, no marker
+gate notice_mixed_clean_names_noroute_only ok all fragments present
+gate notice_mixed_clean_not_named ok no forbidden fragment present
+gate notice_no_tmp_marker ok no bbj-check-noroute-* entry appeared in /tmp
+== test_real_compiler.sh
+gate write_bad_exit ok exit 2
+gate write_bad_first_line ok header
+gate write_bad_compiler_line ok compiler line verbatim
+gate write_bad_last_line ok trailer
+gate write_bad_stdout_empty ok stdout empty
+gate edit_bad ok exit 2 with header
+gate clean_silent ok exit 0, no output
+gate non_bbj_silent ok exit 0, no output
+gate missing_file_silent ok exit 0, no output
+gate invented_method_exit2 ok type check error line, N=1
+gate declared_method_clean ok exit 0, no output
+gate hashmap_clean ok exit 0, no output
+gate usemissing_demoted ok exit 0, no output
+gate helper_beside_file_resolved ok no unresolved-use lines with helper.bbj in the file's directory
+gate helper_in_project_dir_resolved ok helper.bbj only in CLAUDE_PROJECT_DIR is on -P
+gate mixed_demoted_note ok N=1, error line, the Not counted line, the bbj_lookup line last
+gate elseif_exit2 ok else if reported
+gate ext_rule_prog.Src ok exit 2
+gate ext_rule_prog2.BBX ok exit 2
+gate ext_rule_notconfig.bbx ok exit 2
+gate config_bbx_skipped ok exit 0, no output
+gate config_bbjsp_bbx_skipped ok exit 0, no output
+gate config_control_would_error ok bbjcpl itself reports errors on the config file
+gate config_skip_no_compiler_call ok no compiler call for a skipped file
+gate config_skip_control_call ok a program .bbx still reaches the compiler
+gate space_in_directory ok exit 2
+gate many_errors_capped ok N=50, 40 compiler lines, overflow line, trailer
+== test_static_guards.sh
+gate static_interpreter_word_bbj-check.sh ok no match
+gate static_interpreter_path_bbj-check.sh ok no match
+gate static_interpreter_bin_bbj-check.sh ok no match
+gate static_terminal_io_flag_bbj-check.sh ok no match
+gate static_eval_bbj-check.sh ok no match
+gate static_json_cli_bbj-check.sh ok no match
+gate static_python_node_bbj-check.sh ok no match
+gate static_readlink_f_bbj-check.sh ok no match
+gate static_grep_perl_bbj-check.sh ok no match
+gate static_sed_in_place_bbj-check.sh ok no match
+gate static_bash_test_bbj-check.sh ok no match
+gate static_timeout_command_bbj-check.sh ok no match
+gate static_compiler_call_bbj-check.sh ok every compiler call carries -N
+gate static_url_hosts_bbj-check.sh ok every URL literal is loopback http
+gate static_curl_call_bbj-check.sh ok every curl call has --noproxy and --proto =http, no -L
+gate static_notice_single_writer_bbj-check.sh ok 1 line(s) hold hookSpecificOutput
+gate static_syntax_bbj-check.sh ok sh -n passes
+gate static_shellcheck_bbj-check.sh ok shellcheck -s sh passes
+gate static_interpreter_word_install-codex.sh ok no match
+gate static_interpreter_path_install-codex.sh ok no match
+gate static_interpreter_bin_install-codex.sh ok no match
+gate static_terminal_io_flag_install-codex.sh ok no match
+gate static_eval_install-codex.sh ok no match
+gate static_json_cli_install-codex.sh ok no match
+gate static_python_node_install-codex.sh ok no match
+gate static_compiler_name_install-codex.sh ok no match
+gate static_sed_in_place_install-codex.sh ok no match
+gate static_curl_call_install-codex.sh ok every curl call has --noproxy and --proto =http, no -L
+gate static_syntax_install-codex.sh ok sh -n passes
+gate static_shellcheck_install-codex.sh ok shellcheck -s sh passes
+gate static_curl_say_not_excused ok 6 curl calls sharing a line with a say are all caught
+gate static_curl_say_messages_ok ok plain say messages that name curl, a command -v test and a safe call followed by a say all pass
+== test_tier2_fake.sh
+gate clean_reply_silent ok exit 0, no output
+gate req_one_request ok 1 requests
+gate req_post_mcp ok POST /mcp
+gate req_header_content_type ok application/json
+gate req_header_protocol ok 2026-07-28
+gate req_header_method ok tools/call
+gate req_header_name ok bbj_check_syntax
+gate req_envelope ok envelope fields
+gate req_meta_keys ok _meta keys
+gate req_code_exact ok arguments.code equals the file text minus control characters
+gate mode_one_error ok exit 2, header, line (with decoded \u0027 \u003d and a UTF-8 e-acute), trailer
+gate mode_many_cap ok N=60, 40 lines, overflow line
+gate mode_rpc_error_silent ok exit 0, no output
+gate mode_garbage_silent ok exit 0, no output
+gate mode_sse ok exit 2 from the data: line
+gate config_skipped_no_request ok config.bbx sends nothing to the loopback
+gate tier1_wins_no_request ok compiler called, fake server saw nothing
+gate unusable_compiler_falls_to_tier2 ok tier 2 answered
+gate url_refused_remote_http ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_hosted_https ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_lookalike_host ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_userinfo ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_query ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_fragment ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_https_loopback ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_ftp ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_lookalike_localhost ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_whitespace ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_upper_scheme ok refused, curl not invoked, first call notice, second call silent
+gate url_refused_newline ok refused, curl not invoked, first call notice, second call silent
+gate url_accepted_localhost ok http://localhost:5009/mcp reached curl with --noproxy '*' --proto =http, no -L
+gate url_accepted_ipv6 ok http://[::1]:5009/mcp reached curl with --noproxy '*' --proto =http, no -L
+gate url_accepted_localhost_upper ok http://LOCALHOST:5009/mcp reached curl with --noproxy '*' --proto =http, no -L
+gate url_accepted_ipv4 ok http://127.0.0.1:5009/mcp reached curl with --noproxy '*' --proto =http, no -L
+gate no_curl_notice_then_silent ok first call notice with curl not found, no request, second call silent
+== test_tier2_live.sh
+gate live_server ok http://127.0.0.1:5009/mcp answers 405 to GET
+gate live_bad_exit ok exit 2
+gate live_bad_header ok header names bbj-local
+gate live_bad_error_line ok line 1, column 1: [SyntaxError] syntax error
+gate live_bad_last_line ok trailer
+gate live_bad_stdout_empty ok stdout empty
+gate live_clean_silent ok exit 0, no output
+gate tier2_syntax_only ok invented method passes tier 2 (syntax only; tier 1 reports it)
+== test_check_order.py
+gate checkorder_markers_snippet ok codex/AGENTS-snippet.md: 1 begin, 1 end, in order, 5 non-blank line(s) between
+gate checkorder_markers_bbj_programming ok plugins/bbj/skills/bbj-programming/SKILL.md: 1 begin, 1 end, in order, 5 non-blank line(s) between
+gate checkorder_markers_bbj_web_programming ok plugins/bbj/skills/bbj-web-programming/SKILL.md: 1 begin, 1 end, in order, 5 non-blank line(s) between
+gate checkorder_identical ok all three copies equal
+gate checkorder_route_order ok bbjcpl, bbj-local, bbj-docs in that order, disclosure phrases present
+gate checkorder_client_neutral ok no client, qualified tool name, matcher, patch tool or host name
+gate checkorder_skill_placement_bbj_programming ok block directly after the frontmatter, before the H1
+gate checkorder_skill_placement_bbj_web_programming ok block directly after the frontmatter, before the H1
+gate checkorder_snippet_check_paragraph_replaced ok old paragraph gone, shell-command sentence and Built in line outside the block
+gate checkorder_no_tool_bullets ok no '- `bbj_...`:' line in the block
+== test_ci_guards.py
+gate ci_guard_workflow_present ok .github/workflows/ci.yml
+gate ci_guard_actions_sha_pinned ok 1 uses: lines
+gate ci_guard_permissions_read_only ok blocks=1 entries=['contents: read']
+gate ci_guard_no_write_permission ok no ': write', no write-all, no OIDC permission
+gate ci_guard_no_secret_reference ok no secret reference in the workflow
+gate ci_guard_triggers ok triggers=['push', 'pull_request']
+gate ci_guard_checkout_no_persist ok 1 checkout step(s)
+gate ci_guard_validator_exact_version ok package.json='2.1.293' lockfile='2.1.293' integrity=True
+gate ci_guard_validator_install_locked ok npm ci --ignore-scripts, explicit install.cjs, npm audit signatures; loose installs=[]
+gate ci_guard_calls_ci_sh ok run: sh tests/ci.sh with env CI true
+gate ci_guard_dependabot_github_actions ok .github/dependabot.yml names github-actions
+== test_layout.py
+gate layout_marketplace_entries ok name='basis-bbj' entries=['bbj', 'bbj-local'] sources_exist=True
+gate layout_versions ok versions=['0.2.0', '0.2.0', '0.2.0', '0.2.0'] want all 0.2.0
+gate layout_license ok bbj='Apache-2.0' bbj-local='Apache-2.0'
+gate layout_bbj_mcp ok mcpServers={'bbj-docs': {'type': 'http', 'url': '${user_config.docs_url}'}}
+gate layout_user_config_docs_url ok docs_url={'type': 'string', 'title': 'BBj docs server URL', 'description': 'URL of the BBj docs MCP server; the default is the pre-production instance until the go-live release.', 'default': 'https://mcp.bbj-ai.com/mcp'}
+gate layout_user_config_bbj_home ok bbj_home={'type': 'directory', 'title': 'BBj installation directory', 'description': 'BBj installation directory for the compile-only check; empty means BBJ_HOME, BBJHOME, PATH, then the usual install locations.'}
+gate layout_user_config_keys ok keys=['bbj_home', 'docs_url']
+gate layout_hook_matcher ok PostToolUse=[{'matcher': 'Write|Edit', 'hooks': [{'type': 'command', 'command': 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"', 'timeout': 30, 'statusMessage': 'BBj compile-only check'}]}]
+gate layout_hook_command ok hooks=[{'type': 'command', 'command': 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"', 'timeout': 30, 'statusMessage': 'BBj compile-only check'}]
+gate layout_hook_timeout ok timeout=30
+gate layout_hook_events_only_post_tool_use ok events=['PostToolUse']
+gate layout_script_mode ok mode='100755'
+gate layout_local_default_disabled ok plugin.json=False marketplace=False
+gate layout_local_mcp ok mcpServers={'bbj-local': {'type': 'http', 'url': 'http://127.0.0.1:5009/mcp'}}
+gate layout_bbj_default_enabled ok bbj does not switch itself off
+gate layout_docs_host_single_source ok files naming mcp.bbj-ai.com: ['plugins/bbj/.claude-plugin/plugin.json']
+gate layout_no_skills_lock ok present=[] naming=[]
+gate layout_skills_not_executable ok no skill file is executable
+gate layout_no_vendoring_wording ok 8 shipped texts hold no forbidden wording
+gate layout_notice_no_provenance ok NOTICE lines=['bbj-agent-plugins', 'Copyright 2026 BASIS International Ltd.']
+== test_release_text.py
+gate release_version_source ok VERSION='0.2.0' from tests/test_layout.py
+gate release_readme_version ok README.md states version 0.2.0 on 1 line(s)
+gate release_changelog_heading ok second-level headings=['## 0.2.0'] want ['## 0.2.0']
+gate release_changelog_sections ok ### headings=['Upgrading', 'Tested against', 'Not run'] want Upgrading, Tested against, Not run
+gate release_changelog_leftovers ok no leftover of the earlier entry
+gate release_upgrade_addressed ok addressee and both Claude Code commands present
+gate release_upgrade_quotes ok 3 quotes in Upgrading and on installer code lines
+gate release_not_run ok exactly the two D-15 lines
+== test_skill_examples.py
+gate skills_baseline ok 0 pending skill(s)
+gate skills_discovery ok 2 skill(s): bbj-programming, bbj-web-programming
+gate skills_pending_keys ok pending: none
+gate skills_nocheck_count ok 0 bbj nocheck block(s) (baseline 0)
+gate skills_guard_cpl_args ok CPL_ARGS is -t -N -X
+gate skills_route_bbjcpl ok /opt/bbx/bin/bbjcpl: 34 file(s) in one call
+gate skills_route_bbj-ls ok http://127.0.0.1:5009/mcp: 32 call(s)
+gate skills_total_bbjcpl ok 23 bbj blocks: 23 pass, 0 fail; 9 should-fail blocks
+gate skills_total_bbj-ls ok 23 bbj blocks: 23 pass, 0 fail; 9 should-fail blocks
+gate skills_ratchet_bbj-programming_grammar ok 0 violations
+gate skills_ratchet_bbj-programming_structure ok 0 violations
+gate skills_ratchet_bbj-programming_bbjcpl ok 0 violations
+gate skills_ratchet_bbj-programming_bbj-ls ok 0 violations
+gate skills_ratchet_bbj-programming_should-fail ok 0 violations
+gate skills_ratchet_bbj-web-programming_grammar ok 0 violations
+gate skills_ratchet_bbj-web-programming_structure ok 0 violations
+gate skills_ratchet_bbj-web-programming_bbjcpl ok 0 violations
+gate skills_ratchet_bbj-web-programming_bbj-ls ok 0 violations
+gate skills_ratchet_bbj-web-programming_should-fail ok 0 violations
+gate skills_fx_grammar_bbj_accepted ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_grammar_should_fail_accepted ok kinds ['should-fail'], 0 violation(s)
+gate skills_fx_grammar_nocheck_accepted ok kinds ['nocheck'], 0 violation(s)
+gate skills_fx_grammar_nocheck_no_reason ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_nocheck_empty_reason ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_nocheck_blank_reason ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_unknown_attribute ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_double_space ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_tag_case ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_tag_bbx ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_tag_java ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_untagged ok kinds ['violation'], 1 violation(s)
+gate skills_fx_grammar_allowlist ok kinds ['other', 'other', 'other', 'other', 'other', 'other', 'other', 'other'], 0 violation(s)
+gate skills_fx_grammar_unclosed ok kinds ['bbj'], 1 violation(s)
+gate skills_fx_grammar_dots_in_bbj ok kinds ['bbj'], 1 violation(s)
+gate skills_fx_grammar_dots_in_should_fail ok kinds ['should-fail'], 1 violation(s)
+gate skills_fx_grammar_dots_in_nocheck_exempt ok kinds ['nocheck'], 0 violation(s)
+gate skills_fx_grammar_dots_in_css_ignored ok kinds ['other'], 0 violation(s)
+gate skills_fx_grammar_tilde_fence ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_grammar_indented_fence ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_grammar_tab_indented_fence ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_grammar_four_backticks ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_grammar_backtick_info_not_fence ok kinds [], 0 violation(s)
+gate skills_fx_grammar_closer_longer ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_grammar_closer_with_text_not_closer ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_grammar_opener_line_number ok opener on line 3 reports [3]
+gate skills_fx_grammar_trailing_space_info ok kinds ['bbj'], 0 violation(s)
+gate skills_fx_ratchet_equal ok status=ok detail='pending (Phase 4): 3 (baseline 3)'
+gate skills_fx_ratchet_lower ok status=ok detail='pending (Phase 4): 2 < baseline 3; lower the baseline with --report'
+gate skills_fx_ratchet_higher ok status=FAIL detail='pending (Phase 4): 4 > baseline 3'
+gate skills_fx_ratchet_zero_enforced ok status=FAIL detail='pending (Phase 4): 1 > baseline 0'
+gate skills_fx_ratchet_not_pending_clean ok status=ok detail='0 violations'
+gate skills_fx_ratchet_not_pending_dirty ok status=FAIL detail='2 violation(s)'
+gate skills_fx_pending_all_zero_unit ok measured zero, unmeasured baseline 3, unmeasured baseline 0: (True, False, True)
+gate skills_fx_pending_skip_e2e ok rc 0, 13 child gate line(s)
+gate skills_fx_pending_rise_fails ok rc 1, 13 child gate line(s)
+gate skills_fx_pending_all_zero_fails ok rc 1, 12 child gate line(s)
+gate skills_fx_pending_new_skill_enforced ok rc 1, 16 child gate line(s)
+gate skills_fx_pending_unknown_key ok rc 1, 13 child gate line(s)
+gate skills_fx_pending_missing_dir ok rc 1, 11 child gate line(s)
+gate skills_fx_pending_phase_mismatch ok rc 1, 12 child gate line(s)
+gate skills_fx_baseline_missing ok rc 1, 11 child gate line(s)
+gate skills_fx_baseline_malformed ok rc 1, 11 child gate line(s)
+gate skills_fx_baseline_string_count ok rc 1, 12 child gate line(s)
+gate skills_fx_baseline_bool_count ok rc 1, 12 child gate line(s)
+gate skills_fx_discovery_ok ok rc 0, 11 child gate line(s)
+gate skills_fx_discovery_missing_tree_fails ok rc 1, 7 child gate line(s)
+gate skills_fx_discovery_empty_dir_fails ok rc 1, 7 child gate line(s)
+gate skills_fx_cli_root_runs_no_fixtures ok rc 0, 11 child gate line(s)
+gate skills_fx_cli_usage_error ok rc 2, 0 child gate line(s)
+gate skills_fx_report_first_baseline ok want ['bbj-programming', 'bbj-web-programming'], got ['bbj-programming', 'bbj-web-programming']
+gate skills_fx_report_never_readd ok want ['bbj-programming'], got ['bbj-programming']
+gate skills_fx_report_drops_all_zero ok want ['bbj-programming'], got ['bbj-programming']
+gate skills_fx_report_deterministic ok want True, got True
+gate skills_fx_report_md_lines ok want True, got True
+gate skills_fx_report_clean_skill ok want ['no violations'], got ['no violations']
+gate skills_fx_report_atomic ok want ('new', ['target.txt']), got ('new', ['target.txt'])
+gate skills_fx_report_old_names_only ok want {'bbj-programming'}, got {'bbj-programming'}
+gate skills_fx_structure_desc_limit_1024_ok ok want [], got []
+gate skills_fx_structure_desc_limit_1025_fail ok want [('SKILL.md', 3, 'description is 1025 characters (limit 1024)')], got [('SKILL.md', 3, 'description is 1025 characters (limit 1024)')]
+gate skills_fx_structure_desc_single_quoted ok want 1024 chars, got 1024 chars error ''
+gate skills_fx_structure_desc_single_quoted_len ok want [], got []
+gate skills_fx_structure_desc_plain_multiline ok want 'one two three', got 'one two three' error ''
+gate skills_fx_structure_desc_folded ok want 'one two\nthree', got 'one two\nthree' error ''
+gate skills_fx_structure_desc_literal ok want 'one\ntwo', got 'one\ntwo' error ''
+gate skills_fx_structure_desc_no_frontmatter ok want [('SKILL.md', 1, 'description: no frontmatter')], got [('SKILL.md', 1, 'description: no frontmatter')]
+gate skills_fx_structure_desc_unclosed_frontmatter ok want [('SKILL.md', 1, 'description: frontmatter not closed')], got [('SKILL.md', 1, 'description: frontmatter not closed')]
+gate skills_fx_structure_desc_missing ok want [('SKILL.md', 1, 'description: no description')], got [('SKILL.md', 1, 'description: no description')]
+gate skills_fx_structure_desc_empty ok want [('SKILL.md', 3, 'description: description is empty')], got [('SKILL.md', 3, 'description: description is empty')]
+gate skills_fx_structure_desc_undecodable ok want [('SKILL.md', 3, 'description: description is a double-quoted scalar the lint cannot decode')], got [('SKILL.md', 3, 'description: description is a double-quoted scalar the lint cannot decode')]
+gate skills_fx_structure_desc_code_points ok want [], got []
+gate skills_fx_structure_denylist_all_six ok want [('SKILL.md', 7, "denylisted 'DailyDrift'"), ('SKILL.md', 8, "denylisted 'DriftDB'"), ('SKILL.md', 9, "denylisted 'migrateSortPrefs'"), ('SKILL.md', 10, "denylisted 'watches!'"), ('SKILL.md', 11, "denylisted 'cart-updated'"), ('SKILL.md', 12, "denylisted '/opt/basis/bin/'")], got [('SKILL.md', 7, "denylisted 'DailyDrift'"), ('SKILL.md', 8, "denylisted 'DriftDB'"), ('SKILL.md', 9, "denylisted 'migrateSortPrefs'"), ('SKILL.md', 10, "denylisted 'watches!'"), ('SKILL.md', 11, "denylisted 'cart-updated'"), ('SKILL.md', 12, "denylisted '/opt/basis/bin/'")]
+gate skills_fx_structure_denylist_two_on_one_line ok want [('SKILL.md', 7, "denylisted 'DailyDrift'"), ('SKILL.md', 7, "denylisted 'DriftDB'")], got [('SKILL.md', 7, "denylisted 'DailyDrift'"), ('SKILL.md', 7, "denylisted 'DriftDB'")]
+gate skills_fx_structure_denylist_case_sensitive ok want [], got []
+gate skills_fx_structure_denylist_inside_fence ok want [('SKILL.md', 9, "denylisted 'watches!'")], got [('SKILL.md', 9, "denylisted 'watches!'")]
+gate skills_fx_structure_denylist_non_md_file ok want [('notes.txt', 1, "denylisted '/opt/basis/bin/'")], got [('notes.txt', 1, "denylisted '/opt/basis/bin/'")]
+gate skills_fx_structure_sources_ok ok want [], got []
+gate skills_fx_structure_sources_ok_bullet ok want [], got []
+gate skills_fx_structure_sources_ok_h3_after ok want [], got []
+gate skills_fx_structure_sources_no_heading ok want [('references/x.md', 1, 'no ## section; the file must end with a ## Sources section')], got [('references/x.md', 1, 'no ## section; the file must end with a ## Sources section')]
+gate skills_fx_structure_sources_not_last ok want [('references/x.md', 3, "last ## section is 'Other', not '## Sources'")], got [('references/x.md', 3, "last ## section is 'Other', not '## Sources'")]
+gate skills_fx_structure_sources_no_verified ok want [('references/x.md', 1, "## Sources has no 'Verified on BBj <version>' line")], got [('references/x.md', 1, "## Sources has no 'Verified on BBj <version>' line")]
+gate skills_fx_structure_sources_no_version ok want [('references/x.md', 1, "## Sources has no 'Verified on BBj <version>' line")], got [('references/x.md', 1, "## Sources has no 'Verified on BBj <version>' line")]
+gate skills_fx_structure_sources_verified_before_heading ok want [('references/x.md', 3, "## Sources has no 'Verified on BBj <version>' line")], got [('references/x.md', 3, "## Sources has no 'Verified on BBj <version>' line")]
+gate skills_fx_structure_sources_heading_in_fence ok want [('references/x.md', 1, "last ## section is 'Other', not '## Sources'")], got [('references/x.md', 1, "last ## section is 'Other', not '## Sources'")]
+gate skills_fx_structure_sources_verified_in_fence ok want [('references/x.md', 1, "## Sources has no 'Verified on BBj <version>' line")], got [('references/x.md', 1, "## Sources has no 'Verified on BBj <version>' line")]
+gate skills_fx_structure_sources_nested_path_exempt ok want [], got []
+gate skills_fx_structure_sources_skill_md_exempt ok want [], got []
+gate skills_fx_structure_symlink_violation ok want [('link.txt', 1, 'symlink not followed')], got [('link.txt', 1, 'symlink not followed')]
+gate skills_fx_structure_linked_skill_dir ok status=ok: rc 1, wanted a failing line starting 'gate skills_structure_linked FAIL' among 12 line(s)
+gate skills_fx_structure_hostile_dir_name ok status=ok: rc 1, 0 forged, 0 malformed, 1 sanitised ratchet line(s) of 14
+gate skills_fx_structure_no_skill_md ok want [('SKILL.md', 1, 'no SKILL.md')], got [('SKILL.md', 1, 'no SKILL.md')]
+gate skills_fx_structure_unreadable_fails ok rc 1, wanted a failing gate line starting 'gate skills_read_bbj-programming_references_bad.md ' among 14 line(s)
+gate skills_fx_structure_zero_enforced ok rc 1, 13 child gate line(s)
+gate skills_fx_nocheck_above_fails ok rc 1, 13 child gate line(s)
+gate skills_fx_nocheck_equal_ok ok rc 0, 13 child gate line(s)
+gate skills_fx_nocheck_lower_ok ok rc 0, 13 child gate line(s)
+gate skills_fx_nocheck_not_counted_as_violation ok rc 0, 13 child gate line(s)
+gate skills_fx_nocheck_bad_reason_is_grammar ok rc 0, 13 child gate line(s)
+gate skills_fx_baseline_missing_nocheck ok rc 1, 11 child gate line(s)
+gate skills_guard_cpl_argv ok one call of -t -N -X and four counter-named paths
+gate skills_fx_cpl_attribution ok want ('ok', {0: {'fail': False, 'detail': ''}, 1: {'fail': True, 'detail': 'line 22: type check error [Ambiguous signatures <init>(java.util.Collection)'}}), got ('ok', {0: {'fail': False, 'detail': ''}, 1: {'fail': True, 'detail': 'line 22: type check error [Ambiguous signatures <init>(java.util.Collection)'}})
+gate skills_fx_cpl_records_prefix_exact ok want ({'/w/b0010.bbj': [['error at line 10 (1): x']]}, []), got ({'/w/b0010.bbj': [['error at line 10 (1): x']]}, [])
+gate skills_fx_cpl_records_lookalike_unattributed ok want ({'/w/b0001.bbj': [['e']]}, ['/w/b0001.bbjx: z']), got ({'/w/b0001.bbj': [['e']]}, ['/w/b0001.bbjx: z'])
+gate skills_fx_cpl_records_continuation ok want ({'P': [['first', 'second', 'third'], ['another']]}, []), got ({'P': [['first', 'second', 'third'], ['another']]}, [])
+gate skills_fx_cpl_records_no_line ok want ({'P': [['error: Unable to open file']]}, [], 'error: Unable to open file', 200), got ({'P': [['error: Unable to open file']]}, [], 'error: Unable to open file', 200)
+gate skills_fx_cpl_stdin_eof_exit_ignored ok want ('stdin-eof', 'ok'), got ('stdin-eof', 'ok')
+gate skills_fx_cpl_canary_silent ok want ('broken', True, {}), got ('broken', True, {})
+gate skills_fx_cpl_canary_good_record ok want ('broken', 'canary_good.bbj got an error record', {}), got ('broken', 'canary_good.bbj got an error record', {})
+gate skills_fx_cpl_stray ok want ('broken', 'unattributed compiler output: stray line from nowhere', {}), got ('broken', 'unattributed compiler output: stray line from nowhere', {})
+gate skills_fx_cpl_zero_blocks ok want (1, ['/tmp/skillfx-_tjob7nv/canary_good.bbj', '/tmp/skillfx-_tjob7nv/canary_bad.bbj'], None, 'ok', {}), got (1, ['/tmp/skillfx-_tjob7nv/canary_good.bbj', '/tmp/skillfx-_tjob7nv/canary_bad.bbj'], None, 'ok', {})
+gate skills_fx_live_blocks_selection ok want [(0, 'fx', 'a.md', 1, 'bbj'), (1, 'fx', 'a.md', 4, 'bbj should-fail')], got [(0, 'fx', 'a.md', 1, 'bbj'), (1, 'fx', 'a.md', 4, 'bbj should-fail')]
+gate skills_fx_outcome_bbj_pass ok want [], got []
+gate skills_fx_outcome_bbj_fail_cpl ok want [('bbjcpl', 'violation', 'd1')], got [('bbjcpl', 'violation', 'd1')]
+gate skills_fx_outcome_bbj_fail_both ok want [('bbjcpl', 'violation', 'd1'), ('bbj-ls', 'violation', 'd2')], got [('bbjcpl', 'violation', 'd1'), ('bbj-ls', 'violation', 'd2')]
+gate skills_fx_outcome_sf_failed_by_cpl ok want [], got []
+gate skills_fx_outcome_sf_failed_by_ls ok want [], got []
+gate skills_fx_outcome_sf_unfailed ok want [('should-fail', 'violation', 'should-fail block passes every available route (bbjcpl)')], got [('should-fail', 'violation', 'should-fail block passes every available route (bbjcpl)')]
+gate skills_fx_outcome_sf_undecided ok want [('should-fail', 'undecided', 'undecided: should-fail block passes bbj-ls; only bbjcpl can confirm it')], got [('should-fail', 'undecided', 'undecided: should-fail block passes bbj-ls; only bbjcpl can confirm it')]
+gate skills_fx_outcome_no_route ok want ([], []), got ([], [])
+gate skills_fx_report_refusal_unit ok want ('route bbjcpl is missing: why', 'route bbjcpl is broken: why', None), got ('route bbjcpl is missing: why', 'route bbjcpl is broken: why', None)
+gate skills_fx_route_missing_skip ok rc 0, 11 child gate line(s)
+gate skills_fx_route_missing_strict_fail ok rc 1, 11 child gate line(s)
+gate skills_fx_route_ci_stays_skip ok rc 0, 11 child gate line(s)
+gate skills_fx_route_broken_skip ok rc 0, route line present True, calls 1, problem None
+gate skills_fx_route_broken_strict_fail ok rc 1, route line present True, calls 1, problem None
+gate skills_fx_report_refused_no_route ok rc 2, files left in the output directory: []
+gate skills_fx_pending_unmeasured_uses_baseline ok rc 0, 12 child gate line(s)
+gate skills_fx_ls_mode_clean ok want ('ok', {0: {'fail': False, 'detail': ''}}, True), got ('ok', {0: {'fail': False, 'detail': ''}}, True)
+gate skills_fx_ls_mode_one_error ok want ('ok', {0: {'fail': True, 'detail': "line 11, column 1: [SyntaxError] syntax error near '=' in caf?"}}, True), got ('ok', {0: {'fail': True, 'detail': "line 11, column 1: [SyntaxError] syntax error near '=' in caf?"}}, True)
+gate skills_fx_ls_mode_many ok want ('ok', {0: {'fail': True, 'detail': 'line 11, column 1: [SyntaxError] syntax error 1'}}, True), got ('ok', {0: {'fail': True, 'detail': 'line 11, column 1: [SyntaxError] syntax error 1'}}, True)
+gate skills_fx_ls_mode_sse ok want ('ok', {0: {'fail': True, 'detail': 'line 11, column 1: [SyntaxError] syntax error'}}, True), got ('ok', {0: {'fail': True, 'detail': 'line 11, column 1: [SyntaxError] syntax error'}}, True)
+gate skills_fx_ls_mode_rpc_error ok want ('broken', {}, True), got ('broken', {}, True)
+gate skills_fx_ls_mode_garbage ok want ('broken', {}, True), got ('broken', {}, True)
+gate skills_fx_ls_mode_is_error ok want ('broken', {}, True), got ('broken', {}, True)
+gate skills_fx_ls_mode_empty ok want ('broken', {}, True), got ('broken', {}, True)
+gate skills_fx_ls_mode_no_verdict ok want ('broken', {}, True), got ('broken', {}, True)
+gate skills_fx_ls_up_closed ok want False, got False
+gate skills_fx_ls_up_only_405 ok want {200: False, 302: False, 404: False, 405: True, 500: False}, got {200: False, 302: False, 404: False, 405: True, 500: False}
+gate skills_fx_ls_version ok want ('26.03', None, 'aaaaaaaaaaaaaaaaaaaa', None, None, None, None, None), got ('26.03', None, 'aaaaaaaaaaaaaaaaaaaa', None, None, None, None, None)
+gate skills_fx_ls_verdict_table ok want [('pass', ('pass', '')), ('fail', ('fail', 'line 3, column 4: [E] bad')), ('is_error_true', ('noverdict', '')), ('is_error_missing', ('noverdict', '')), ('is_error_string', ('noverdict', '')), ('error_member', ('noverdict', '')), ('content_not_list', ('noverdict', '')), ('list_reply', ('noverdict', '')), ('no_text_verdict', ('noverdict', '')), ('pass_not_at_start', ('noverdict', ''))], got [('pass', ('pass', '')), ('fail', ('fail', 'line 3, column 4: [E] bad')), ('is_error_true', ('noverdict', '')), ('is_error_missing', ('noverdict', '')), ('is_error_string', ('noverdict', '')), ('error_member', ('noverdict', '')), ('content_not_list', ('noverdict', '')), ('list_reply', ('noverdict', '')), ('no_text_verdict', ('noverdict', '')), ('pass_not_at_start', ('noverdict', ''))]
+gate skills_fx_report_refusal_ls_unit ok want ('route bbj-ls is missing: why', 'route bbj-ls is broken: why', None), got ('route bbj-ls is missing: why', 'route bbj-ls is broken: why', None)
+gate skills_fx_route_ls_missing_skip ok rc 0, 9 child gate line(s)
+gate skills_fx_route_ls_missing_strict_fail ok rc 1, 9 child gate line(s)
+gate skills_fx_route_ls_not_loopback_skip ok rc 0, 9 child gate line(s)
+gate skills_fx_route_ls_broken_skip ok rc 0, 9 child gate line(s)
+gate skills_fx_route_ls_broken_strict_fail ok rc 1, 9 child gate line(s)
+gate skills_fx_ls_only_bbj_pass ok rc 0, 11 child gate line(s)
+gate skills_fx_ls_only_bbj_fail ok rc 1, 12 child gate line(s)
+gate skills_fx_ls_only_should_fail_undecided ok rc 0, 12 child gate line(s)
+gate skills_fx_ls_only_should_fail_undecided_strict ok rc 1, 12 child gate line(s)
+gate skills_guard_request_shape ok one GET probe and one POST of the hook's body and headers
+gate skills_guard_loopback ok 19 refused and 5 accepted forms behave
+gate skills_guard_refused_no_request ok two refused forms, no request reached the server
+gate skills_guard_no_redirect ok 302 broke the route; requested paths ['/mcp']
+gate skills_guard_no_proxy ok clean call with proxy variables set, in this process and in a child run
+gate skills_guard_opener_only ok every connection goes through OPENER
+SUMMARY: ok=738 fail=0 skip=0
+gate run_sh ok tests/run.sh exited 0
+gate ci_claude_present ok claude CLI found
+gate ci_validate_root ok claude plugin validate --strict .
+gate ci_validate_plugins_bbj ok claude plugin validate --strict plugins/bbj
+gate ci_validate_plugins_bbj_local ok claude plugin validate --strict plugins/bbj-local
+gate ci_shellcheck ok shellcheck -s sh over plugins/bbj/scripts, codex and tests
+CI SUMMARY: ok=6 fail=0 skip=0 run_sh_exit=0
