@@ -3,17 +3,17 @@ gsd_state_version: "1.0"
 milestone: v0.2.0
 current_phase: 5
 current_phase_name: bbj-web-programming makeover
-status: executing
-stopped_at: Completed 05-06-PLAN.md
-last_updated: "2026-10-12T07:20:57.243Z"
+status: verifying
+stopped_at: Completed 05-10-PLAN.md
+last_updated: "2026-10-12T07:25:51.867Z"
 last_activity: 2026-10-11
 last_activity_desc: Phase 5 execution started
-state_head: fc273f41be96f4d65ad40957a572502f9c1ec14b
+state_head: 379ce6bf095cf2379575cf8ad1154a81cb671017
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 35
-  completed_plans: 34
+  completed_plans: 35
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 
 Phase: 5 (bbj-web-programming makeover) — EXECUTING
 Plan: 10 of 10
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-11 — Phase 5 execution started
 
 Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phase 2 6/6, Phase 3 4/4, Phase 4 8/8 plans)
@@ -91,6 +91,7 @@ Progress: [███████░░░] 67% (4 of 6 phases; Phase 1 7/7, Phas
 | Phase 05 P08 | 15min | 3 tasks | 3 files |
 | Phase 5 P09 | 5m | 2 tasks | 1 files |
 | Phase 05 P06 | 30min | 2 tasks | 1 files |
+| Phase 05 P10 | 8 min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,7 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-08: setSlot and /files/ stay pointers to SKILL.md sections in shoelace.md; DWC-only dropped from form-validation.md (ledger L103, L062, L079, L080)
 - [Phase 5]: 05-09: docs proposal uses bracketed owner-fill slots for open questions; rejected owner items O3 and O8 appear only as dropped candidates
 - [Phase 05]: 05-06: injectStyle top stated as the page sentence only; injectLinkUrl's head/body meaning named separately with its own URL
+- [Phase 05]: 05-10: bbj-web-programming left pending via --report in the same commit as the four ledger-listed deletions; KNOWN_PENDING left unedited
 
 ### Pending Todos
 
@@ -175,6 +177,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T07:20:57.130Z
-Stopped at: Completed 05-06-PLAN.md
+Last session: 2026-10-12T07:25:51.753Z
+Stopped at: Completed 05-10-PLAN.md
 Resume file: None

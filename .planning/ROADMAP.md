@@ -208,7 +208,7 @@ Plans:
   3. The `injectStyle` `top` claim states the documented meaning (the top-level window)
   4. Every `bbj` block in the skill and its references passes the live gate, the structure lints pass, and the skill is still invoked as `/bbj:bbj-web-programming`
 
-**Plans**: 9/10 plans executed
+**Plans**: 10/10 plans executed
 
 Plans:
 **Wave 1**
@@ -243,7 +243,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 05-10-PLAN.md — Finish: delete the folded references and regenerate the baseline in one commit (skill leaves pending), phase-wide scans, full suite live and CI views (wave 8, after 05-06, 05-07, 05-08, 05-09)
+- [x] 05-10-PLAN.md — Finish: delete the folded references and regenerate the baseline in one commit (skill leaves pending), phase-wide scans, full suite live and CI views (wave 8, after 05-06, 05-07, 05-08, 05-09)
 
 **Cross-cutting constraints:**
 
@@ -277,5 +277,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
-| 5. bbj-web-programming makeover | 9/10 | In Progress | - |
+| 5. bbj-web-programming makeover | 10/10 | In Progress | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |
