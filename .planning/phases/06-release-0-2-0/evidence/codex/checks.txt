@@ -1,0 +1,20 @@
+== codex mcp list ==
+Name       Url                         (token env column)    Status   Auth
+bbj-docs   https://mcp.bbj-ai.com/mcp  -                     enabled  Unsupported
+bbj-local  http://127.0.0.1:5009/mcp   -                     enabled  Unsupported
+== codex mcp get bbj-docs ==
+exit 0
+== skills vs tree ==
+bbj-programming: identical
+bbj-web-programming: identical
+== script ==
+bbj-check.sh: identical
+== hooks.json ==
+        "matcher": "apply_patch|Edit|Write",
+            "commandWindows": "sh \"~/.codex/bbj/bbj-check.sh\"",
+== hook smoke (hooks.json command, apply_patch payloads from tests/lib.sh codex_payload, BBJ_HOME=/opt/bbx, no model) ==
+bad: exit 2, stdout empty, stderr:
+  bbjcpl reported 1 error(s) in $R/codex-proj/bad.bbj:
+  $R/codex-proj/bad.bbj: error at line 10 (1): print "a"   rem same line
+  bbj_lookup gives exact syntax for a named symbol.
+clean: exit 0, silent

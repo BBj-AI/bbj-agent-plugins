@@ -1,0 +1,61 @@
+Verified on Linux with Codex CLI 0.156.1; not yet run on Windows or macOS.
+config.toml: backup written to ~/.codex/config.toml.bbj-backup
+bbj-docs: registered with codex mcp add bbj-docs --url https://mcp.bbj-ai.com/mcp
+bbj-docs: approved by name in ~/.codex/config.toml: bbj_search, bbj_fetch_page, bbj_lookup, bbj_reserved_word, bbj_examples; every other tool of bbj-docs keeps Codex's prompt (the hosted check tools bbj_check_syntax, bbj_format and bbj_denum send your code to the server)
+bbj-local: a bbj-ls answers at http://127.0.0.1:5009/mcp
+bbj-local: appended a managed block to ~/.codex/config.toml (url http://127.0.0.1:5009/mcp)
+bbj-local: approved by name in ~/.codex/config.toml: bbj_check_syntax, bbj_format, bbj_denum; every other tool of bbj-local keeps Codex's prompt (the three bbj-ls tools run on this machine, against this installation's own PREFIX, classpath and config; nothing leaves it)
+skill bbj-programming: installed to ~/.agents/skills/bbj-programming
+skill bbj-web-programming: installed to ~/.agents/skills/bbj-web-programming
+check script: copied to ~/.codex/bbj/bbj-check.sh (every update of it makes Codex ask for the /hooks review again)
+hooks.json: written to ~/.codex/hooks.json (PostToolUse, matcher apply_patch|Edit|Write, timeout 30)
+
+Add the following to AGENTS.md in your repository, or to ~/.codex/AGENTS.md (AGENTS.md files share a 32 KiB cap; a plugin cannot ship one):
+----8<----
+## BBj (BASIS)
+
+Before you write or review BBj code, read the resource `bbj://primer` from the `bbj-docs` MCP
+server: the BBj language primer, the rules agents usually get wrong, each with its source.
+
+Tools of `bbj-docs`:
+
+- `bbj_lookup`: exact syntax for a named symbol (verb, function, mnemonic, BBjAPI class or
+  method, event or SETOPTS bit).
+- `bbj_examples`: verified code examples.
+- `bbj_reserved_word`: check a name before you use it for a variable.
+- `bbj_search`: documentation search for everything else.
+- `bbj_fetch_page`: the full text of one documentation page.
+
+Cite the URL of every documentation page you rely on.
+
+Style: PRO/5-style syntax is valid BBj and is answered fully. The modern Java-object form
+(`a!`, BBjAPI, `PROCESS_EVENTS`, DWC) is preferred for new code. Say in every answer which
+style it uses.
+
+Built in: no USE needed. That holds for BBj classes (`BBjWindow`, `BBjVector`) and the `java.lang` classes (`String`, `Integer`); any other Java class needs `USE java.util.HashMap` or its full name `java.util.HashMap`, and a class from a BBj source file needs `USE ::file.bbj::ClassName`.
+
+<!-- bbj-check-order:begin -->
+**Check BBj code before you hand it back.** Use the first route that exists:
+
+1. `bbjcpl -t -N -X <file>`, when BBj is installed on this machine. It checks syntax and types. `-N` writes no output files; the errors arrive on stderr.
+2. `bbj_check_syntax` of the `bbj-local` server (the `bbj-ls` of a running BBjServices, BBj 26.03 or later), when that server is registered. It runs on this machine, against the installation's own PREFIX, classpath and config. It checks syntax only, not types.
+3. Only when neither exists: `bbj_check_syntax` of the `bbj-docs` server, the hosted check. You may use it without asking, but tell the user that the code was sent to the server and checked against a stock BBj, not against their installation.
+
+A hook checks the BBj files you write or edit. This order is for code you hand back without writing it to a file: answers, and code from earlier turns.
+<!-- bbj-check-order:end -->
+
+In Codex only `apply_patch` calls reach the hook; files written through shell commands are not checked.
+----8<----
+
+Trust step: Codex skips a hook it did not manage until you review it. Start Codex, open /hooks, and approve the BBj check hook.
+The review is pinned to a hash of the script: a changed bbj-check.sh asks again. This script cannot approve it for you.
+
+Known gaps:
+- OpenAI calls hooks "a useful guardrail, not a complete enforcement boundary".
+- Patches applied through a shell heredoc are not seen by the hook; only apply_patch calls are checked.
+- Codex has no plugin options here: the check finds BBj through BBJ_HOME, then PATH, then the default homes; set BBJ_HOME when BBj is not in a default location.
+- With no compiler found, the hook asks a running bbj-ls on 127.0.0.1:5009 (syntax only); with neither, it tells Codex once per session that the file was written but not compile-checked.
+- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (~/.agents/skills worked with Codex CLI 0.156.1).
+- commandWindows in hooks.json is not yet tried on Windows; if Codex rejects it there, use command_windows in config.toml instead.
+
+Verified on Linux with Codex CLI 0.156.1; not yet run on Windows or macOS.
