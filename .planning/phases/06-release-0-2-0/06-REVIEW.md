@@ -2,112 +2,94 @@
 phase: 06-release-0-2-0
 reviewed: 2026-10-12T00:00:00Z
 depth: standard
-files_reviewed: 14
+files_reviewed: 6
 files_reviewed_list:
-  - CHANGELOG.md
   - .claude/CLAUDE.md
-  - .claude-plugin/marketplace.json
-  - codex/install-codex.sh
+  - CHANGELOG.md
   - docs/install-claude-code.md
   - docs/install-codex.md
-  - plugins/bbj/.claude-plugin/plugin.json
-  - plugins/bbj-local/.claude-plugin/plugin.json
-  - plugins/bbj/skills/bbj-programming/references/sysgui.md
-  - plugins/bbj/skills/bbj-programming/SKILL.md
-  - README.md
-  - tests/test_layout.py
-  - tests/test_noroute_notice.sh
   - tests/test_release_text.py
+  - tests/test_release_text_mutation.sh
 findings:
   critical: 0
-  warning: 3
-  info: 3
-  total: 6
+  warning: 2
+  info: 2
+  total: 4
 status: issues_found
 ---
 
-# Phase 6: Code Review Report
+# Phase 6: Code Review Report (re-review of the fix round)
 
 **Reviewed:** 2026-10-12
 **Depth:** standard
-**Files Reviewed:** 14
+**Files Reviewed:** 6
 **Status:** issues_found
 
 ## Summary
 
-Phase 6 changed the version to 0.2.0 in the four manifests, rewrote the CHANGELOG, bumped the "verified with" Codex and Claude Code versions, fixed three skill sentences, added shellcheck directives to `tests/test_noroute_notice.sh`, and added `tests/test_release_text.py`. 0.2.0 is already tagged, so these findings feed a follow-up.
+This is an incremental re-review of the fixes for the previous WR-01..WR-03 and IN-01..IN-03 (`git diff c9c525c..HEAD` on the six files).
 
-What held up when I checked it:
-- The version is `0.2.0` in all four places, and `tests/test_layout.py` and `tests/test_release_text.py` both pass.
-- Both shellcheck directives are correct, and `shellcheck -s sh tests/test_noroute_notice.sh` is clean.
-- The three installer lines quoted in the CHANGELOG exist verbatim on non-comment lines of `codex/install-codex.sh`. The "exits 3 without `--force`" claim matches the code (`pending=1` leads to `exit 3`).
-- I fetched the documentation pages cited in the two skill fixes and they agree with the new text:
-  - `getActiveContext` creates the window of context 2 with `$80002$` between two `$02$` windows.
-  - The `isModal` example uses `$00080083$`.
-  - `@` and `&` are currency-code and currency-symbol mask characters, not sign characters.
+What I verified:
+- `python3 -I tests/test_release_text.py` passes, with 10 gates ok.
+- `sh tests/test_release_text_mutation.sh` passes, with 12 `release_mut_*` gates ok.
+- `shellcheck -s sh tests/test_release_text_mutation.sh` is clean.
+- The whole suite (`sh tests/run.sh`) ends `ok=754 fail=0 skip=0`.
+- WR-01 (`--force` deletes the skill directory) is correct. `codex/install-codex.sh:722-725` does `rm -rf "$dst" && cp -R "$src" "$dst"` only when `diff -r` shows a difference. The warning appears in the CHANGELOG, on the `--force` table row and in step 3 of the install page.
+- IN-01 is fixed. The mutation harness exists, and each gate is shown to fail on a changed input, with a no-change guard so a sed program that does nothing cannot pass.
+- IN-02 is fixed. No line counts remain in `.claude/CLAUDE.md`.
 
-I found no correctness or security defects in the shipped code. The findings below concern user-facing upgrade guidance, a release-text gate that will break the next release, and stale project notes.
+The fixes did not break anything that runs. Two of them are incomplete or introduced new text that is not backed by evidence:
+- The WR-02 fix added a sentence about how Claude Code finds updates. That sentence contradicts the documentation this phase cited for version resolution.
+- The WR-03 fix removes the history ban, but the gate still cannot pass a 0.3.0 entry that is honest.
 
 ## Warnings
 
-### WR-01: Upgrade instructions tell users to run `--force` without saying it deletes the skill directories
+### WR-01: New sentence on the install page says updates are found by the marketplace entry's version; the phase's own cited docs say plugin.json is read first
 
-**File:** `CHANGELOG.md:36-43` (also `docs/install-codex.md:37` and `docs/install-codex.md:96-97`)
-**Issue:** The Upgrading section tells every Codex user coming from `main` to rerun `sh codex/install-codex.sh --force`. In the installer (`codex/install-codex.sh:722-725`), `--force` runs `rm -rf "$dst" && cp -R ...` on each installed skill directory. Any local edit or added file in `~/.agents/skills/bbj-programming` or `~/.agents/skills/bbj-web-programming` is lost with no backup. Neither the CHANGELOG nor the install page mentions this. The pitfalls research for this phase (`.planning/research/PITFALLS.md`) already flagged this as the known concern on the upgrade path. The `config.toml` backup that the installer writes does not cover skills. The install page's `--force` table row says only "Replace a skill directory that differs".
-**Fix:** Add one sentence to the Upgrading bullet, and the same wording to the `--force` row in `docs/install-codex.md`:
+**File:** `docs/install-claude-code.md:155-158`
+**Issue:** The fix added: "an update is found by the version string in the marketplace entry, so a stale copy of the marketplace can keep you on the old version."
+- `06-RESEARCH.md:557` cites https://code.claude.com/docs/en/plugins/host-marketplace for "version resolution (plugin.json first, then marketplace entry)". Line 181 says the same, and both fields are kept identical at 0.2.0 on purpose.
+- `06-RESEARCH.md:430` and `:234` record "`plugin update` alone refreshes a stale git marketplace" as assumption A4: `[ASSUMED]`, "verify during the real-client run".
+- `evidence/` has no real-client run of the stale-marketplace case.
+
+So the page states an uncited and possibly wrong mechanism as fact, in a project whose core value is "documented (URL cited) or reproduced". The commands are right to give. The explanation is the problem.
+**Fix:** Drop the mechanism and keep the instruction, or cite the page and say only what it says:
 ```markdown
-`--force` deletes the two skill directories and copies the shipped ones; copy any local edits out first.
+Refresh the marketplace first so that Claude Code sees the new release, then update the plugins.
 ```
-Better, in a follow-up, have the installer move the old directory to `<dst>.bbj-backup` under `--force`.
 
-### WR-02: The Claude Code update instructions on the install page contradict the CHANGELOG and would not deliver 0.2.0
+### WR-02: `test_release_text.py` still pins 0.2.0-only content in the newest entry, so the claim "the next release only adds one above" is false
 
-**File:** `docs/install-claude-code.md:157-163`
-**Issue:** The CHANGELOG Upgrading section says the update needs two steps: `claude plugin marketplace update basis-bbj`, then `claude plugin update bbj@basis-bbj`, plus `bbj-local@basis-bbj` if installed. The install page's "Update and remove" section gives only `claude plugin update bbj@basis-bbj`. A user who follows the install page and does not refresh the marketplace first can stay on the cached 0.1.0 manifest, since plugin updates are keyed on the version string in the marketplace entry. The page also never mentions `bbj-local`. The release text gate (`upgrade_addressed`) checks the commands only in the CHANGELOG, so nothing catches the mismatch.
-**Fix:**
-```bash
-claude plugin marketplace update basis-bbj
-claude plugin update bbj@basis-bbj
-claude plugin update bbj-local@basis-bbj   # only if installed
-```
-Optionally add `docs/install-claude-code.md` to the files `tests/test_release_text.py` checks for the same two commands.
+**File:** `tests/test_release_text.py:4-8` (docstring), `:38-41` (`NOT_RUN_LINES`), `:121-127` (`upgrade_addressed`), `:138-148` (`upgrade_quotes`)
+**Issue:** The fix makes `changelog_heading` and `changelog_leftovers` look at the newest entry only. The other gates run on that same newest entry and still bake in 0.2.0:
+- `not_run` requires the exact two D-15 lines (Windows and macOS were not run).
+- `upgrade_addressed` requires "If you installed from `main` before <VERSION>", where VERSION is read from `test_layout.py`. A 0.3.0 entry must therefore say "If you installed from `main` before 0.3.0". That is the wrong addressee for people on 0.2.0.
+- `upgrade_quotes` requires three Codex installer quotes in Upgrading.
+- `changelog_sections` requires exactly Upgrading, Tested against and Not run.
 
-### WR-03: `tests/test_release_text.py` forbids any changelog history, so the next release must edit or delete the gate
+The 0.3.0 author must edit the gate or write false release text. The mutation test `older_entry` proves only that older entries below are ignored. It does not prove that a next-release entry can pass, so the gap is not visible. The fix report (`06-REVIEW-FIX.md:43`) admits that `NOT_RUN_LINES` will change. The docstring does not say so, and it claims the opposite.
+**Fix:** Pick one of these.
+1. State it in the docstring: "the Upgrading addressee, the quotes and the Not run lines are 0.2.0 facts; the next release replaces them with its own".
+2. Make the content gates apply only while `VERSION == "0.2.0"`, and keep the structural gates (heading, section order, no placeholder) for every version.
 
-**File:** `tests/test_release_text.py:99-101`, `tests/test_release_text.py:133-137`, `tests/test_release_text.py:44-46`
-**Issue:** Three assertions bake the single-release state into the gate:
-- `changelog_heading` requires the list of `## ` headings to be exactly `["## <VERSION>"]`. A changelog that keeps the 0.2.0 entry under 0.3.0 fails.
-- `changelog_leftovers` fails if the text contains the literal `0.1.0`, the word `unreleased`, or a `### Next` heading. That is right for 0.2.0, but a future "installed 0.1.0" note fails it too.
-- `not_run` pins the exact two D-15 lines, and `upgrade_addressed` pins the phrase "If you installed from `main` before <VERSION>".
-
-When 0.3.0 is cut, the author must either delete the 0.2.0 entry or weaken the gate, and the gate gives no hint which is intended. The CLAUDE.md convention says the CHANGELOG records changes "under a version heading", which implies several headings over time.
-**Fix:** Check only the newest entry. For example, take the first `## ` heading and require it to equal `VERSION`. Run the section, quote and Not-run checks on that entry only. Drop the `OLD` constant, or make it "any `## ` heading above VERSION is a failure".
+Add a mutation case that sets `VERSION` to a later version in the copied `tests/test_layout.py` and `CHANGELOG.md`, so that whatever the policy is, it is tested.
 
 ## Info
 
-### IN-01: `tests/test_release_text.py` documents a mutation check that does not exist
+### IN-01: The version-consistency gate covers only `Codex CLI N.N.N`; the Claude Code versions are still free text
 
-**File:** `tests/test_release_text.py:15-17`
-**Issue:** The docstring says "the mutation check points it at a copy that holds README.md, CHANGELOG.md, tests/test_layout.py and codex/install-codex.sh". No test in `tests/` does this (`grep -rn release_text tests .github` finds only this file). The optional `argv[1]` root is therefore dead code, and nothing proves the gates can fail. `tests/test_layout.py` and `tests/test_ci_guards.py` have the same sentence, and for them the mutation checks do exist in the suite.
-**Fix:** Either add a small mutation test (copy the four files to a temp root, change one byte per gate, assert that gate prints FAIL), or reword the docstring to say the root argument is for manual use.
+**File:** `tests/test_release_text.py:150-156`, `docs/install-claude-code.md:10`, `:136`, `CHANGELOG.md:61`
+**Issue:** The IN-03 fix gates the Codex CLI string only. The Claude Code version appears in `docs/install-claude-code.md:10` ("tested with Claude Code 2.1.296") and `CHANGELOG.md:61`, and no gate checks that they agree. Line 136 has the older 2.1.294 claim, which now reads correctly ("not repeated on later versions"). The regex also requires the version on the same line as "Codex CLI". A hard wrap between the two words would drop that mention silently. The `codex/install-codex.sh:445` mention of "Codex 0.156.1" is not matched and is deliberate, but nothing says so.
+**Fix:** Extend the gate to "tested with Claude Code N.N.N" in the install page and the CHANGELOG, or squash the file text first (as `squash` does) before matching. Add a one-line comment for why line 445 is excluded.
 
-### IN-02: Stale line counts and structure facts in `.claude/CLAUDE.md`
+### IN-02: Wording and wrapping of the new `--force` text
 
-**File:** `.claude/CLAUDE.md` (Architecture section, entry points and layers)
-**Issue:** This phase edited this file to update the version, but the generated architecture section still states facts that are no longer true:
-- `SKILL.md` is "464 lines" (it is 159).
-- "5 reference files" (there are 4 in `bbj-programming/references`).
-- `codex/install-codex.sh` is "527 lines" (it is 794).
-- The hook entry is "last statement `main`, line 276" (`bbj-check.sh` is 661 lines).
-
-An agent reading this file for orientation is misled about the size of what it opens.
-**Fix:** Drop the line counts and the reference-file count, or regenerate the section with `/gsd-docs-update`.
-
-### IN-03: Hard-coded tested-against versions are scattered with nothing tying them together
-
-**File:** `docs/install-claude-code.md:10` and `docs/install-claude-code.md:143`, `codex/install-codex.sh:5` (and the `STATUS_LINE` and known-gaps lines), `docs/install-codex.md:3-4,95,102,140`
-**Issue:** Release 0.2.0 touched "Codex CLI 0.162.1" in the installer header, `STATUS_LINE`, the known-gaps line and four places in `docs/install-codex.md`, and "Claude Code 2.1.296" in one place in `docs/install-claude-code.md`. Line 143 of that page still says subagent edits "were verified with Claude Code 2.1.294", next to "tested with Claude Code 2.1.296" at line 10. The older claim is true but reads as inconsistent, and the 2.1.296 run does not claim to have repeated it. `tests/test_release_text.py` checks the version number but not these strings, so the next bump can easily miss one.
-**Fix:** State "verified with 2.1.294; not repeated on later versions" on line 143. Optionally add a release-text gate that every `Codex CLI N.N.N` string in the installer and `docs/install-codex.md` is identical.
+**File:** `CHANGELOG.md:46-47`, `docs/install-codex.md:97`, `tests/test_release_text.py:4-8`
+**Issue:**
+- The CHANGELOG says `--force` "deletes the two installed skill directories". The installer deletes only a directory that differs from the shipped copy; an identical one is left alone. The install page says this correctly ("a skill directory that ... differs").
+- The new lines are much longer than the 100-column wrapping used in the rest of those files. The `docs/install-codex.md` step 3 line is about 150 characters.
+- The `test_release_text.py` docstring now breaks mid-sentence ("... adds one above; the" followed by "Upgrading section ...").
+**Fix:** Say "deletes a skill directory that differs from the shipped one and copies the shipped one", and re-wrap the three places.
 
 ---
 
