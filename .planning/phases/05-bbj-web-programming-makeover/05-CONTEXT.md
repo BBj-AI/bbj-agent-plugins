@@ -238,6 +238,11 @@ and every `bbj` block passes both live routes. At the end `bbj-web-programming` 
 - A lint for `--dwc-*` token names against a pinned token list. It was considered and not added
   this phase (D-17); it could go to v2 maintenance.
 - Matching expected error text for `should-fail` blocks (Phase 3 deferred item).
+- A better, verified sample for sizing and positioning a top-level window in DWC (owner request,
+  2026-10-12, owner session). The old sample (SKILL.md:146, from the BBjSkills import) sized and placed
+  windows with CSS; the owner's view is that a BBjTopLevelWindow is sized and positioned with the API, and
+  CSS lays out only the controls inside a window created with the Automatic Layout flag. Not granted as a
+  rule for this phase (owner chose to leave it out); a future skill item.
 
 </deferred>
 
