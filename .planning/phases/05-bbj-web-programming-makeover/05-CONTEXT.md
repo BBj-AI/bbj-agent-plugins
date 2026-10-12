@@ -159,6 +159,15 @@ and every `bbj` block passes both live routes. At the end `bbj-web-programming` 
 
 Not confirmed: O3 (ledger L031) and O8 (ledger L032) were rejected by the owner and are dropped (D-07); no D-nn is written for them.
 
+### Review follow-up (2026-10-12)
+- **D-28:** All 11 findings of `05-REVIEW.md` (WR-01..WR-08, IN-01..IN-03) are fixed before the phase
+  closes (owner decision after verification returned human_needed). Fixes narrow claims back to the page
+  wording the ledger decided; no new claim ships.
+- **D-29:** WR-04 framing (owner decision): the D-26 granted sentence stays verbatim; the following
+  sentence "the documentation does not state it" is replaced by wording that says the rule was confirmed
+  on BBj 26.03 and that the BBjColorChooser page gives 0 to 100 for saturation, a conflict reported to the
+  documentation owners (05-DOCS-PROPOSAL.md, Conflicts between pages).
+
 ### Claude's Discretion
 - The plan split and order, within the ledger → owner checkpoint → rewrite constraint (D-07).
 - The checklist and probe layout and naming under the phase directory.
