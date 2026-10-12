@@ -14,9 +14,9 @@ section holds exactly the two lines of D-15.
 stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate release_<name> ok|FAIL <detail>
 and exits 1 when any gate failed. An optional argv[1] is the repository root to check
-(default: the parent of the tests directory); the mutation check points it at a copy that holds
-README.md, CHANGELOG.md, docs/install-claude-code.md, tests/test_layout.py and
-codex/install-codex.sh.
+(default: the parent of the tests directory); tests/test_release_text_mutation.sh points it at a
+copy that holds README.md, CHANGELOG.md, docs/install-claude-code.md, tests/test_layout.py and
+codex/install-codex.sh, and requires each gate to fail when its input changes.
 Reads files only; nothing here runs BBj code or any other program.
 """
 import os
