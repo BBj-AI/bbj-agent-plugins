@@ -25,7 +25,7 @@ maintainer confirmed them on BBj 26.03.
 - The `top` argument of injectStyle (https://documentation.basis.cloud/BASISHelp/WebHelp/bui/BBjBuiManager/BBjBuiManager_injectStyle.htm): "A boolean value specifying whether this CSS is to be injected into the top level window of the page." `injectStyleUrl`, `injectScript` and `injectScriptUrl` say the same of their style or script.
 - `injectLinkUrl` differs (https://documentation.basis.cloud/BASISHelp/WebHelp/bui/BBjBuiManager/BBjBuiManager_injectLinkUrl.htm): its `top` "Specifies which element the link URL will be injected into." 1 is the head element, 0 is the body element, and the head is the default.
 - The attributes argument: "A set of attributes to be added to the style element. Attributes can be specified either as a string in the format "attr=value,attr=value" or as a HashMap containing key/value pairs." The script methods add them to the script element.
-- A file saved in the htdocs directory under the basis home directory "can be accessed with a URL in the format http://localhost:8888/files/myhtml.html" (DWC_Registration_Launching.htm); the path part is `/files/`.
+- DWC_Registration_Launching.htm, in the section on embedding a DWC app in a custom web page: "This html file should be saved to the htdocs directory under the basis home directory; it can be accessed with a URL in the format http://localhost:8888/files/myhtml.html". The page says this of that html file. It does not say that script, stylesheet or subdirectory files in htdocs are served at host-relative `/files/...` URLs, so the paths in the block below are examples: confirm a URL in the browser before relying on it.
 
 ```bbj
 declare auto BBjWebManager web!
