@@ -31,7 +31,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 ### Test hardening
 
 - [x] **MAINT-06**: `sh tests/run.sh` passes on a machine with `bbjcpl` or `bbjcplw` on `PATH`, because `tests/lib.sh` scrubs `PATH` for the no-route gates (review WR-01)
-- [ ] **MAINT-07**: `real_home_untouched` passes while a Codex daemon writes its runtime files (`logs_*.sqlite*`) and still fails on any change to Codex config, hooks or skills (D-2)
+- [x] **MAINT-07**: `real_home_untouched` passes while a Codex daemon writes its runtime files (`logs_*.sqlite*`) and still fails on any change to Codex config, hooks or skills (D-2)
 - [ ] **MAINT-08**: The gate-prefix list in `.claude/CLAUDE.md` matches the prefixes the tests actually emit
 
 ### Install wording
@@ -82,7 +82,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 | CODEX-05 | Phase 8 | Pending |
 | CODEX-06 | Phase 8 | Pending |
 | MAINT-06 | Phase 7 | Complete |
-| MAINT-07 | Phase 7 | Pending |
+| MAINT-07 | Phase 7 | Complete |
 | MAINT-08 | Phase 7 | Pending |
 | DOCS-01 | Phase 10 | Pending |
 | DOCS-02 | Phase 10 | Pending |

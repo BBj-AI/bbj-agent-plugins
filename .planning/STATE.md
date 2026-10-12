@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 07
 current_phase_name: Test hardening and release prep
 status: executing
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-10-12T21:44:28.268Z"
+stopped_at: Completed 07-03-PLAN.md
+last_updated: "2026-10-12T21:52:44.990Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 07 execution started
-state_head: 4a268e7b54eabf7ca9f9109ef3faa4fe77f7aa62
+state_head: 8354f016006648d98e29c3b7d3977e1ef7d7c10b
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 ## Current Position
 
 Phase: 07 (Test hardening and release prep) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-10-12 — Phase 07 execution started
 
@@ -106,6 +106,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P08 | multi-session | 3 tasks | 3 files |
 | Phase 07 P01 | 12 min | 2 tasks | 3 files |
 | Phase 07 P02 | 8 min | 3 tasks | 5 files |
+| Phase 07 P03 | 12 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Spikes 003/005]: On the plugin route all Codex tools prompt on first use; the installer's per-tool pre-approvals are not carried. This is an accepted trade-off: it is safer, and the code-sending tools prompted anyway. The install probe is replaced by docs and notice wording.
 - [Phase 07]: Release-text gates: upgrade_addressed runs at every version; upgrade_quotes and not_run pinned to CONTENT_VERSION and FAIL with a re-pin message elsewhere (REL-06 D-04..D-07) — A version bump must not pass on older facts; a skip would block the skip=0 release run
 - [Phase 07]: 07-02: no_compiler_path replaces a compiler-holding PATH directory with a symlink farm under WORK instead of dropping it — Shared directories such as /usr/local/bin keep sh, awk, curl and python3 reachable (D-11 intent); removal only when WORK is unset
+- [Phase 07]: 07-03: home_snapshot lists six installer-written paths as F/D/L/U/- lines with cksum, LC_ALL=C sorted; Phase 8 extends the list — content not mtime (D-08, D-09); daemon files never read
 
 ### Pending Todos
 
@@ -148,8 +150,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T21:44:28.233Z
-Stopped at: Completed 07-02-PLAN.md
+Last session: 2026-10-12T21:52:44.955Z
+Stopped at: Completed 07-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
