@@ -6,10 +6,10 @@ current_phase: 07
 current_phase_name: Test hardening and release prep
 status: executing
 stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-10-12T21:32:46.482Z"
+last_updated: "2026-10-12T21:32:54.494Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 07 execution started
-state_head: 329add30893d7348c500bf99ba9e882466ae31f6
+state_head: c0859db5d94fcbdaee72074bbaf85fb8eb7a1fb7
 progress:
   total_phases: 4
   completed_phases: 0
@@ -115,6 +115,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Roadmap v0.2.1]: Four phases, run in order 7 → 8 → 9 → 10. The PATH scrub (WR-01) and the four review-fix commits land first (Phase 7), because the Windows and macOS machines have `bbjcpl` on `PATH` and the review fixes touch the same docs and gates that Phases 8 and 10 rewrite. The Codex plugin route (Phase 8) comes before the platform runs (Phase 9), because Phase 9 verifies that route on Windows and macOS. The install wording (Phase 10) comes last, because it may claim only what a recorded run shows.
 - [Roadmap v0.2.1, user decisions after spikes 001-005]: The Codex native plugin route ships in v0.2.1. The version stays 0.2.1 (tag `0.2.1`). Copilot CLI support goes to the next milestone (spike 004). `install-codex.sh` stays for one release as a documented fallback.
 - [Spikes 003/005]: On the plugin route all Codex tools prompt on first use; the installer's per-tool pre-approvals are not carried. This is an accepted trade-off: it is safer, and the code-sending tools prompted anyway. The install probe is replaced by docs and notice wording.
+- [Phase 07]: Release-text gates: upgrade_addressed runs at every version; upgrade_quotes and not_run pinned to CONTENT_VERSION and FAIL with a re-pin message elsewhere (REL-06 D-04..D-07) — A version bump must not pass on older facts; a skip would block the skip=0 release run
 
 ### Pending Todos
 
