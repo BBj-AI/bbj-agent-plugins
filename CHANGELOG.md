@@ -43,9 +43,9 @@ First release of the `basis-bbj` marketplace.
 If you installed from `main` before 0.2.0:
 
 - Codex: rerun the installer with `--force` (`sh codex/install-codex.sh --force`; add
-  `--with-local` to register `bbj-local`). `--force` deletes the two installed skill directories
-  and copies the shipped ones; copy any local edits out first. Without `--force` the installer leaves a skill
-  directory that differs from the shipped copy alone, prints
+  `--with-local` to register `bbj-local`). For each skill directory that differs from the shipped
+  one, `--force` deletes it and copies the shipped one; copy any local edits out first. Without
+  `--force` the installer leaves such a skill directory alone, prints
   "rerun with --force to replace it" and exits 3. The check script changes in 0.2.0, and the
   installer notes that
   "every update of it makes Codex ask for the /hooks review again": start Codex,
