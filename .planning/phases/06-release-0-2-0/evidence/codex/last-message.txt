@@ -1,0 +1,20 @@
+# agent messages of the run, in order (item_0, item_3). The codex exec -o file held item_3 only; item_0 carries the SKILLS answer.
+
+## SKILLS
+
+- bbj-programming
+- bbj-web-programming
+
+---
+
+## PATCH 1
+
+```text
+bbjcpl reported 1 error(s) in /tmp/bbj-release-06/codex-proj/bad.bbj:
+/tmp/bbj-release-06/codex-proj/bad.bbj: error at line 10 (1): print "a"   rem same line
+bbj_lookup gives exact syntax for a named symbol.
+```
+
+## PATCH 2
+
+NONE

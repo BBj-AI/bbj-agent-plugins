@@ -1,0 +1,21 @@
+date: 2026-10-12
+codex_version: codex-cli 0.162.1
+target: real-restored
+tree: 7ec798d73192831f3fb712d13a8e02573fa17c7e
+installer_exit: 0
+bbj_docs: registered
+bbj_local: registered
+skills_dir: ~/.agents/skills
+skills_identical: yes
+hook_script_identical: yes
+hooks_json: written
+hook_smoke: bad exit 2, clean silent
+hooks_approved: owner, /hooks
+skills_listed: yes
+bad_feedback: yes
+clean_silent: yes
+mcp_calls: 0
+command_items: 0
+home_after: restored
+daemon: stopped
+verdict: pass

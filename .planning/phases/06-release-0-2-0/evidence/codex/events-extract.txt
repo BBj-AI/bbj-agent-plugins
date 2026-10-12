@@ -1,0 +1,17 @@
+# codex exec event extract (filtered; raw events deleted, never committed)
+
+item_types (completed): agent_message=2,file_change=2
+mcp_tool_call_items: 0
+command_items: 0
+
+file_change items (paths only):
+  item_1 $R/codex-proj/bad.bbj add
+  item_2 $R/codex-proj/clean.bbj add
+
+hook output text the events carry: none in the event stream (events hold no hook item).
+hook feedback reached the model as the apply_patch tool error; codex printed it on stderr, quoted here:
+  2026-10-12T15:23:40.113283Z ERROR codex_core::tools::router: error=bbjcpl reported 1 error(s) in $R/codex-proj/bad.bbj:
+  $R/codex-proj/bad.bbj: error at line 10 (1): print "a"   rem same line
+  bbj_lookup gives exact syntax for a named symbol.
+
+turn.completed usage: {"input_tokens": 41694, "cached_input_tokens": 27662, "cache_write_input_tokens": 14023, "output_tokens": 277, "reasoning_output_tokens": 54}
