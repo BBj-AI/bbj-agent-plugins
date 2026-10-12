@@ -26,6 +26,8 @@ panel!.addClass("p5-panel")
 panelButton! = panel!.addButton("Button in the child window"); rem O4: its parent element
 
 rem the second window, for the margin rule of O2
+rem a second top-level window needs a free context first, else "context already in use"
+sysgui!.setContext(sysgui!.getAvailableContext())
 win2! = sysgui!.addWindow("O2 second window", $00100083$)
 win2!.addClass("p5-center2")
 win2!.addOuterStyle("p5-frame2")
