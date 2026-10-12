@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
 status: planning
-last_updated: "2026-10-12T19:31:04.533Z"
+last_updated: "2026-10-12T20:02:50.000Z"
 last_activity: 2026-10-12
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-12)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Planning next milestone
+**Current focus:** Phase 7 — Test hardening and release prep
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 7 (Test hardening and release prep)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-10-12 — Milestone v0.2.1 started
+Status: Ready to plan
+Last activity: 2026-10-12 — Roadmap for v0.2.1 revised for the Codex plugin route (Phases 7-10, 22/22 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -104,15 +106,25 @@ Last activity: 2026-10-12 — Milestone v0.2.1 started
 
 The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0.2.0-phases/`); the lasting decisions are in the Key Decisions table of PROJECT.md.
 
+- [Roadmap v0.2.1]: Four phases, run in order 7 → 8 → 9 → 10. The PATH scrub (WR-01) and the four review-fix commits land first (Phase 7), because the Windows and macOS machines have `bbjcpl` on `PATH` and the review fixes touch the same docs and gates that Phases 8 and 10 rewrite. The Codex plugin route (Phase 8) comes before the platform runs (Phase 9), because Phase 9 verifies that route on Windows and macOS. The install wording (Phase 10) comes last, because it may claim only what a recorded run shows.
+- [Roadmap v0.2.1, user decisions after spikes 001-005]: The Codex native plugin route ships in v0.2.1. The version stays 0.2.1 (tag `0.2.1`). Copilot CLI support goes to the next milestone (spike 004). `install-codex.sh` stays for one release as a documented fallback.
+- [Spikes 003/005]: On the plugin route all Codex tools prompt on first use; the installer's per-tool pre-approvals are not carried. This is an accepted trade-off: it is safer, and the code-sending tools prompted anyway. The install probe is replaced by docs and notice wording.
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
 
-- [Phase 4]: real_home_untouched in tests/test_install_codex.sh races a local Codex daemon writing under ~/.codex; owner accepted it as an environmental flake at UAT (test 3); hardening the gate is open for a later phase
-- [Phase 6]: Review-fix commits b0a4c62, 3a42ebf, b600ac4, 172e6a5 (CHANGELOG/docs wording refinements, release-text gates) are on the planning branch only, not in tag 0.2.0; they ship with the next release
-- [Phase 6]: install-codex.sh and docs still say "not yet run on macOS"; the owner ran it on macOS at UAT (2026-10-12, Codex hook feedback confirmed) — update the wording in a later release
+- [Phase 4]: real_home_untouched in tests/test_install_codex.sh races a local Codex daemon writing under ~/.codex; owner accepted it as an environmental flake at UAT (test 3); hardening the gate is open for a later phase (planned: Phase 7, MAINT-07)
+- [Phase 6]: Review-fix commits b0a4c62, 3a42ebf, b600ac4, 172e6a5 (CHANGELOG/docs wording refinements, release-text gates) are on the planning branch only, not in tag 0.2.0; they ship with the next release (planned: Phase 7, REL-05)
+- [Phase 6]: install-codex.sh and docs still say "not yet run on macOS"; the owner ran it on macOS at UAT (2026-10-12, Codex hook feedback confirmed) — update the wording in a later release (planned: Phase 10, DOCS-01..03, from the Phase 9 runs)
+- [Roadmap v0.2.1]: `tests/test_release_text.py` prints `skip` for its three content gates at any version other than CONTENT_VERSION (0.2.0). At 0.2.1 that would break the skip=0 release run (REL-08), so the Phase 7 policy decision (REL-06) has to settle it
+- [Roadmap v0.2.1]: The macOS run (PLAT-05) needs BBj with `bbjcpl` installed on the owner's Mac before Phase 9 can verify that route
+- [Roadmap v0.2.1]: PLAT-04 needs BBjServices running on the owner's Windows machine. If it cannot run there, the gap is recorded under PLAT-06 and the docs keep a "not run" line for that route
+- [Roadmap v0.2.1]: Gap with no requirement: moving an existing `install-codex.sh` install to the plugin route. Adding the plugin on top of an installer install likely leaves two hook entries (double check and double feedback), skills in both `~/.agents/skills` and the plugin cache, and a `[mcp_servers.bbj-docs]` table that overrides the plugin's server. Decided: new requirement CODEX-06 in Phase 8 (documented switch, verified on Linux)
+- [Spike 001]: Whether a plugin upgrade asks for hook trust again is unknown; the trusted hash covers the versioned cache path. If trust is not asked again, the hook stops silently. Observe it on Linux in Phase 8 and document it (CODEX-05)
+- [Spike 005]: Three Windows unknowns for Phase 9 (PLAT-03): does Codex run the plugin hook's `sh "..."` through Git for Windows; is `commandWindows` in a plugin `hooks.json` honoured (Codex `hooks/list` showed `commandWindows: None` on Linux); does `CLAUDE_PLUGIN_ROOT` expand to a path `sh` accepts
 
 ## Deferred Items
 
@@ -128,9 +140,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-12
-Stopped at: Milestone v0.2.0 archived (override_closeout: 4 open items acknowledged, see Deferred Items)
+Stopped at: Roadmap for v0.2.1 revised for the Codex plugin route (Phases 7-10); awaiting owner approval
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- After roadmap approval, start Phase 7 with /gsd-discuss-phase 7 (then /gsd-plan-phase 7)

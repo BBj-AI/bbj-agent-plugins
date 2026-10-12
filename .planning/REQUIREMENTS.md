@@ -5,7 +5,8 @@
 
 **Milestone:** v0.2.1 Platform verification and release hygiene. The install wording may claim
 only what a recorded run on that platform shows. BBj code is never executed; the runs on
-Windows and macOS are human steps on the owner's machines.
+Windows and macOS are human steps on the owner's machines. Codex moves to its native plugin
+route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one release as fallback.
 
 ## v0.2.1 Requirements
 
@@ -13,10 +14,19 @@ Windows and macOS are human steps on the owner's machines.
 
 - [ ] **PLAT-01**: On Windows with Git for Windows, a user installs the `bbj` plugin in Claude Code; after Write and after Edit, a bad `.bbj` gets `bbjcpl` feedback and a clean one gets silence
 - [ ] **PLAT-02**: On Windows, the hook's `cygpath` branch works on real paths: compiler path, `-P` list joined with `;`, drive-letter file paths, and a project path that contains a space
-- [ ] **PLAT-03**: On Windows, a user runs `install-codex.sh` from Git Bash; Codex accepts the hook entry it writes (`commandWindows`, or the form Codex accepts, with the installer fixed to match); after `apply_patch` the hook gives `bbjcpl` feedback for a bad file and nothing for a clean one
-- [ ] **PLAT-04**: On Windows with BBjServices running, `bbj-local` connects in Claude Code (when enabled) and in Codex (`--with-local`)
-- [ ] **PLAT-05**: On macOS with BBj installed, the Claude Code hook and the Codex hook give `bbjcpl` (tier 1) feedback for a bad file and silence for a clean one
+- [ ] **PLAT-03**: On Windows, a user installs `bbj` through the Codex plugin route; Codex runs the plugin hook through Git for Windows' `sh` (with `commandWindows` or another fix if needed); after `apply_patch` the hook gives `bbjcpl` feedback for a bad file and nothing for a clean one
+- [ ] **PLAT-04**: On Windows with BBjServices running, `bbj-local` connects in Claude Code (when enabled) and in Codex (`codex plugin add bbj-local@basis-bbj`)
+- [ ] **PLAT-05**: On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook give `bbjcpl` (tier 1) feedback for a bad file and silence for a clean one
 - [ ] **PLAT-06**: Every defect a Windows or macOS run finds is fixed in the shipped hook or installer with a regression gate that runs in CI on fakes, or recorded as a known gap; each run's evidence (OS, client, BBj version, route, outcome) is recorded in the phase
+
+### Codex plugin route
+
+- [ ] **CODEX-01**: A Codex user installs with `codex plugin marketplace add BBj-AI/bbj-agent-plugins` and `codex plugin add bbj@basis-bbj`; `bbj-docs` is registered with a working URL (a `.codex-plugin/plugin.json` overlay pointing at a literal-URL MCP file), both skills load, and Claude Code's `userConfig` and `claude plugin validate --strict` are unchanged
+- [ ] **CODEX-02**: After the user trusts the hook in `/hooks`, the plugin's unchanged `hooks/hooks.json` checks every BBj file an `apply_patch` writes (bbjcpl feedback for a bad file, silence for a clean one), proven in CI on fakes with a Codex plugin-route payload
+- [ ] **CODEX-03**: `bbj-local` is opt-in on Codex through `codex plugin add bbj-local@basis-bbj`, and the hook's no-route notice names the command that fits how the hook was installed (plugin route or `install-codex.sh --with-local`)
+- [ ] **CODEX-04**: Gates keep the docs URL identical in the Claude `docs_url` default and the Codex literal MCP file, keep every manifest (both plugins, marketplace, Codex overlay) at one version, and keep the hosted-host rule of `tests/test_layout.py` correct for the new file
+- [ ] **CODEX-05**: `docs/install-codex.md` leads with the plugin route (including the `/hooks` trust step, first-use tool prompts, the `BBJ_HOME` note and whether an upgrade asks for trust again, as observed) and keeps `install-codex.sh` as a documented fallback for this release
+- [ ] **CODEX-06**: A user with an existing `install-codex.sh` setup can switch to the plugin route by documented steps (or an installer option) that leave one hook entry, one copy of the skills and one `bbj-docs` server, verified once on Linux in a throwaway Codex home
 
 ### Test hardening
 
@@ -42,6 +52,7 @@ Windows and macOS are human steps on the owner's machines.
 
 - Windows or macOS CI runner
 - Running the full test suite under Git Bash on Windows
+- GitHub Copilot CLI plugin route (spike 004: marketplace and skills work as-is; `.github/plugin/plugin.json` overlay for the docs URL; hook input and output changes)
 
 ## Out of Scope
 
@@ -51,16 +62,42 @@ Windows and macOS are human steps on the owner's machines.
 | Docs-URL go-live constant | Waits for the hosted docs server to leave pre-production |
 | Sending the 04/05 docs proposals | Done outside the repository |
 | New skill content | Patch release; no feature work |
+| GitHub Copilot CLI support | Next milestone: spike 004 showed the hook needs a Copilot input path and a second feedback format (`additionalContext` JSON), an anti-pattern in `.claude/CLAUDE.md` that needs its own decision |
+| Removing `install-codex.sh` | Kept one release as the fallback route; removal is a later decision |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| PLAT-01 | Phase 9 | Pending |
+| PLAT-02 | Phase 9 | Pending |
+| PLAT-03 | Phase 9 | Pending |
+| PLAT-04 | Phase 9 | Pending |
+| PLAT-05 | Phase 9 | Pending |
+| PLAT-06 | Phase 9 | Pending |
+| CODEX-01 | Phase 8 | Pending |
+| CODEX-02 | Phase 8 | Pending |
+| CODEX-03 | Phase 8 | Pending |
+| CODEX-04 | Phase 8 | Pending |
+| CODEX-05 | Phase 8 | Pending |
+| CODEX-06 | Phase 8 | Pending |
+| MAINT-06 | Phase 7 | Pending |
+| MAINT-07 | Phase 7 | Pending |
+| MAINT-08 | Phase 7 | Pending |
+| DOCS-01 | Phase 10 | Pending |
+| DOCS-02 | Phase 10 | Pending |
+| DOCS-03 | Phase 10 | Pending |
+| DOCS-04 | Phase 10 | Pending |
+| REL-05 | Phase 7 | Pending |
+| REL-06 | Phase 7 | Pending |
+| REL-07 | Phase 10 | Pending |
+| REL-08 | Phase 10 | Pending |
 
 **Coverage:**
-- v0.2.1 requirements: 18 total
-- Mapped to phases: 0 (filled by the roadmap)
+- v0.2.1 requirements: 23 total (PLAT 6, CODEX 6, MAINT 3, DOCS 4, REL 4)
+- Mapped to phases: 23 (Phase 7: 5, Phase 8: 6, Phase 9: 6, Phase 10: 6)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-10-12*
-*Last updated: 2026-10-12 after initial definition*
+*Last updated: 2026-10-12 after the roadmap revision for the Codex plugin route (Phases 7-10)*

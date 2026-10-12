@@ -50,6 +50,6 @@ SEED-001, D-1); D-2 is still open.
   with the next release. The CONTENT_VERSION gate policy needs a human look.
 - 04/05-DOCS-PROPOSAL.md not yet sent to the BASIS documentation owners
 - Installer and docs still say "not yet run on macOS" although UAT ran it there
-- `.claude/CLAUDE.md` still lists the removed `skills_` gate prefix
+- The gate-prefix list in `.claude/CLAUDE.md` is incomplete (the audit called `skills_` stale, but it is still emitted)
 
 ---

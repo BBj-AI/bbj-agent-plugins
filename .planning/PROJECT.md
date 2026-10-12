@@ -22,13 +22,15 @@ with live gates. Milestone record: `.planning/MILESTONES.md`; archive: `.plannin
 ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 **Target features:**
+- Codex native plugin route (`codex plugin add bbj@basis-bbj`, `.codex-plugin` overlay for the docs
+  URL, unchanged hook after `/hooks` trust); `install-codex.sh` kept one release as fallback
 - Windows verification: Claude Code plugin and hook (Git for Windows, `cygpath`) and the Codex
-  installer and hook (`commandWindows`), on `bbjcpl` and, where BBjServices runs, `bbj-ls`; fix what breaks
+  plugin route, on `bbjcpl` and, where BBjServices runs, `bbj-ls`; fix what breaks
 - macOS verification on `bbjcpl` for Claude Code and Codex (the 0.2.0 UAT covered `bbj-ls` only)
 - Test hardening: `tests/lib.sh` scrubs PATH (WR-01); `real_home_untouched` ignores Codex runtime files (D-2)
 - Per-platform, per-route install wording in README, docs, installer and CHANGELOG, pinned by gates
-- Release hygiene: the four planning-branch review fixes, CONTENT_VERSION gate policy, stale
-  `skills_` line in `.claude/CLAUDE.md`; version 0.2.1, merged, tagged `0.2.1`, GitHub Release
+- Release hygiene: the four planning-branch review fixes, CONTENT_VERSION gate policy, complete
+  gate-prefix list in `.claude/CLAUDE.md`; version 0.2.1, merged, tagged `0.2.1`, GitHub Release
 
 ## Requirements
 
@@ -55,6 +57,7 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 ### Active
 
+- [ ] Codex installs through its own plugin marketplace; the installer becomes the fallback
 - [ ] Windows: Claude Code and Codex installs and hook verified on a real machine (bbjcpl; bbj-ls where available)
 - [ ] macOS: Claude Code and Codex hook verified on the bbjcpl route
 - [ ] Test suite passes on a maintainer machine that has bbjcpl on PATH or a running Codex daemon
