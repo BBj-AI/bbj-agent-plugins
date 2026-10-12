@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 07
 current_phase_name: Test hardening and release prep
 status: executing
-stopped_at: Completed 07-01-PLAN.md
-last_updated: "2026-10-12T21:32:54.494Z"
+stopped_at: Completed 07-02-PLAN.md
+last_updated: "2026-10-12T21:44:28.268Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 07 execution started
-state_head: c0859db5d94fcbdaee72074bbaf85fb8eb7a1fb7
+state_head: 4a268e7b54eabf7ca9f9109ef3faa4fe77f7aa62
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 ## Current Position
 
 Phase: 07 (Test hardening and release prep) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-10-12 — Phase 07 execution started
 
@@ -105,6 +105,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 06 P07 | multi-session | 3 tasks | 5 files |
 | Phase 06 P08 | multi-session | 3 tasks | 3 files |
 | Phase 07 P01 | 12 min | 2 tasks | 3 files |
+| Phase 07 P02 | 8 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Roadmap v0.2.1, user decisions after spikes 001-005]: The Codex native plugin route ships in v0.2.1. The version stays 0.2.1 (tag `0.2.1`). Copilot CLI support goes to the next milestone (spike 004). `install-codex.sh` stays for one release as a documented fallback.
 - [Spikes 003/005]: On the plugin route all Codex tools prompt on first use; the installer's per-tool pre-approvals are not carried. This is an accepted trade-off: it is safer, and the code-sending tools prompted anyway. The install probe is replaced by docs and notice wording.
 - [Phase 07]: Release-text gates: upgrade_addressed runs at every version; upgrade_quotes and not_run pinned to CONTENT_VERSION and FAIL with a re-pin message elsewhere (REL-06 D-04..D-07) — A version bump must not pass on older facts; a skip would block the skip=0 release run
+- [Phase 07]: 07-02: no_compiler_path replaces a compiler-holding PATH directory with a symlink farm under WORK instead of dropping it — Shared directories such as /usr/local/bin keep sh, awk, curl and python3 reachable (D-11 intent); removal only when WORK is unset
 
 ### Pending Todos
 
@@ -146,8 +148,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T21:32:46.447Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-10-12T21:44:28.233Z
+Stopped at: Completed 07-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
