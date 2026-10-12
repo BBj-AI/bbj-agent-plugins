@@ -94,7 +94,8 @@ what to do in that case. Running it a second time changes nothing.
 3. **Installs the two skills**, `bbj-programming` and `bbj-web-programming`, into
    `~/.agents/skills`, where Codex CLI 0.162.1 finds them; if your Codex version does not
    list the BBj skills, rerun the installer with `--skills-dir ~/.codex/skills`. A skill
-   directory that already exists and differs is left alone unless you pass `--force`, which deletes it and copies the shipped one (copy any local edits out first).
+   directory that already exists and differs is left alone unless you pass `--force`, which
+   deletes it and copies the shipped one (copy any local edits out first).
 4. **Copies the check script** to `~/.codex/bbj/bbj-check.sh`, a stable path outside any cache.
 5. **Writes `~/.codex/hooks.json`** when it does not exist: a `PostToolUse` hook with the matcher
    `apply_patch|Edit|Write`, a timeout of 30 seconds and a `commandWindows` entry. An existing
