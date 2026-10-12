@@ -25,6 +25,8 @@
 #                       {"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":..}}
 #                       (1 otherwise, 2 without python3)
 #   SESSION_ID          the session_id of both payload builders (default s1)
+#   no_compiler_path [PATHVALUE]   prints PATHVALUE (default PATH) without any directory that
+#                       holds a BBj compiler (MAINT-06, D-11); only for no-route tests
 #
 # Hermetic defaults (exported here): the built-in default homes are replaced by an empty
 # list, no BBj environment variable is set, and the loopback check URL is a closed port,
@@ -139,4 +141,46 @@ run_check() {
   $SHELL_UNDER_TEST "$SCRIPT" < "$WORK/payload" > "$WORK/stdout" 2> "$WORK/stderr"
   # shellcheck disable=SC2034  # RC is read by the test that sourced this file
   RC=$?
+}
+
+# no_compiler_path [PATHVALUE]: prints PATHVALUE (default PATH) with every directory that holds
+# bbjcpl, bbjcpl.exe, bbjcplw or bbjcplw.exe (the names the hook can find) replaced by a symlink
+# farm under $WORK that links all of that directory's other entries, so sh, awk, curl and the
+# like stay reachable. Without WORK the directory is dropped. Clean directories keep their place
+# and text, empty entries are dropped, and the caller's IFS and noglob state are unchanged.
+# Always call it as PATH=$(no_compiler_path ...); only no-route tests use it (MAINT-06, D-11, D-12).
+no_compiler_path() {
+  _ncp_in=${1-$PATH}
+  _ncp_ifs=$IFS
+  case "$-" in *f*) _ncp_noglob=1 ;; *) _ncp_noglob=0 ;; esac
+  _ncp_out=
+  set -f
+  IFS=:
+  for _ncp_d in $_ncp_in; do
+    [ -n "$_ncp_d" ] || continue
+    _ncp_has=0
+    for _ncp_n in bbjcpl bbjcpl.exe bbjcplw bbjcplw.exe; do
+      if [ -e "$_ncp_d/$_ncp_n" ] || [ -L "$_ncp_d/$_ncp_n" ]; then _ncp_has=1; fi
+    done
+    if [ "$_ncp_has" = 0 ]; then
+      _ncp_out=${_ncp_out:+$_ncp_out:}$_ncp_d
+      continue
+    fi
+    [ -n "${WORK:-}" ] || continue
+    _ncp_abs=$(cd "$_ncp_d" 2> /dev/null && pwd) || continue
+    _ncp_farm=$(mktemp -d "$WORK/pathfarm.XXXXXX" 2> /dev/null) || continue
+    IFS=$_ncp_ifs
+    set +f
+    for _ncp_e in "$_ncp_abs"/* "$_ncp_abs"/.[!.]*; do
+      [ -e "$_ncp_e" ] || [ -L "$_ncp_e" ] || continue
+      ln -s "$_ncp_e" "$_ncp_farm/${_ncp_e##*/}" 2> /dev/null
+    done
+    set -f
+    IFS=:
+    rm -f "$_ncp_farm/bbjcpl" "$_ncp_farm/bbjcpl.exe" "$_ncp_farm/bbjcplw" "$_ncp_farm/bbjcplw.exe"
+    _ncp_out=${_ncp_out:+$_ncp_out:}$_ncp_farm
+  done
+  IFS=$_ncp_ifs
+  [ "$_ncp_noglob" = 1 ] || set +f
+  printf '%s' "$_ncp_out"
 }
