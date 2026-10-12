@@ -133,7 +133,7 @@ The hook does not see:
 - notebook edits (`NotebookEdit`),
 - any tool outside the `Write|Edit` matcher.
 
-Edits made by subagents are checked as well; this was verified with Claude Code 2.1.294.
+Edits made by subagents are checked as well; this was verified with Claude Code 2.1.294 and not repeated on later versions.
 
 Other limits: only the extensions `.bbj`, `.src` and `.bbx` are checked, and tier 2 sees syntax
 errors only.
