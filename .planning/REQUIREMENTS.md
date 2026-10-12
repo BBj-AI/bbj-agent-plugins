@@ -56,7 +56,7 @@
 
 - [x] **REL-01**: `plugins/bbj`, `plugins/bbj-local`, the marketplace entries and `tests/test_layout.py` `VERSION` move to 0.2.0 in one commit; `claude plugin validate --strict` passes
 - [x] **REL-02**: CHANGELOG has a 0.2.0 entry with Codex upgrade notes (`--force` to replace the skills, `/hooks` re-approval of the changed hook) and a "Tested against" section rewritten from the actual run
-- [ ] **REL-03**: The full suite passes with `skip=0` on the live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`), and an install from the git marketplace source passes
+- [x] **REL-03**: The full suite passes with `skip=0` on the live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`), and an install from the git marketplace source passes
 - [ ] **REL-04**: The release is tagged `0.2.0`
 
 ## v2 Requirements
@@ -116,7 +116,7 @@
 | WEB-03 | Phase 5 | Complete |
 | REL-01 | Phase 6 | Complete |
 | REL-02 | Phase 6 | Complete |
-| REL-03 | Phase 6 | Pending |
+| REL-03 | Phase 6 | Complete |
 | REL-04 | Phase 6 | Pending |
 
 **Coverage:**
