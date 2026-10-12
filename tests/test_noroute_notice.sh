@@ -65,6 +65,7 @@ for _sh in dash bash; do
     fresh_state
     SHELL_UNDER_TEST=$_sh
     run_check "$PAYLOAD"
+    # shellcheck disable=SC2209  # the value is the shell name, not a command to run here
     SHELL_UNDER_TEST=sh
     notice_text "$WORK/stdout" > /dev/null
     _nr=$?
@@ -320,6 +321,7 @@ key_case() {
   _before=$(ls -A "$WORK")
   SESSION_ID=$2
   run_check "$(claude_payload Write "$FILE" "$WORK/proj")"
+  # shellcheck disable=SC2034  # read by claude_payload in tests/lib.sh as ${SESSION_ID:-s1}
   SESSION_ID=s1
   _entries=$(ls -A "$BBJ_CHECK_STATE_DIR")
   if [ "$_entries" = "$3" ] && [ "$(ls -A "$WORK")" = "$_before" ]; then
