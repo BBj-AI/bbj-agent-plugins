@@ -146,6 +146,19 @@ and every `bbj` block passes both live routes. At the end `bbj-web-programming` 
   for it to go into the docs proposal only. It is not an OWNER grant, and the skill ships nothing about it
   (ledger row L045 stays drop). Plan 05-09 carries it.
 
+### Owner confirmation (owner session, plan 05-05, 2026-10-12)
+- **D-19:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O1, ledger L021; granted sentence: "addClass() on a BBjTopLevelWindow puts the class on dwc-window-center and addOuterStyle() puts it on dwc-frame."
+- **D-20:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O2, ledger L028; granted sentence: "dwc-frame is in normal flow, so top and left have no effect on it and margin auto centers it horizontally."
+- **D-21:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O4, ledger L022; granted sentence: "The controls of a top-level window are children of dwc-window-content, and a BBjChildWindow renders as dwc-panel whose controls are its direct children."
+- **D-22:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O5, ledger L038; granted sentence: "The HTML of a BBjListBox item is inside the control's shadow root, so a page selector does not reach it while an inline style attribute does."
+- **D-23:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O6, ledger L071; granted sentence: "An ancestor with overflow hidden or overflow auto clips the focus ring of a control, and padding of calc(var(--dwc-focus-ring-width) + var(--dwc-focus-ring-gap)) on that ancestor avoids it."
+- **D-24:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O7, ledger L005; granted sentence: "HTML text in a control must start with <html> or it shows as literal text."
+- **D-25:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O9, ledger L013; granted sentence: "A BBjColorChooser shows no caption for setAttribute("label", ...)."
+- **D-26:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O10, ledger L097; granted sentence: "getClientProperty("saturation") and getClientProperty("lightness") of a BBjColorChooser return a fraction from 0 to 1.0."
+- **D-27:** OWNER-confirmed by Stephan Wald, 2026-10-12, BBj 26.03 (build 10/06/2026 09:19), DWC 26.03, build 10/06/2026 09:19 (DWC ships inside BBj; owner statement 2026-10-12): checklist O11, ledger L061; granted sentence: "An ES module injected inline with injectScript() cannot load its relative imports, while the same module loaded with injectScriptUrl(url, top, "type=module") can."
+
+Not confirmed: O3 (ledger L031) and O8 (ledger L032) were rejected by the owner and are dropped (D-07); no D-nn is written for them.
+
 ### Claude's Discretion
 - The plan split and order, within the ledger → owner checkpoint → rewrite constraint (D-07).
 - The checklist and probe layout and naming under the phase directory.
