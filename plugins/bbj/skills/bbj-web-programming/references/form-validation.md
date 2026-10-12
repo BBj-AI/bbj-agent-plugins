@@ -30,8 +30,8 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjevents/BBjFormValid
 - The variables available to the function are `value`, `text` and `control` (setClientValidationFunction: "The
   variables available to the client validation function are value, text, and control."). What `value` and
   `text` hold for each control class is in the guide, section "Text & value".
-- The note sits in the guide's section "Validation customization", which lists the attributes that customize
-  the validation behaviour, location, style and message (for example `validation-style`). The guide: "It is
+- The guide's section "Validation customization" lists the attributes that customize the validation
+  behaviour, location, style and message (for example `validation-style`), and there the guide says: "It is
   also possible to set theses attributes on the closest BBjWindow instead of setting them per control. The
   attribute name in this case must be prefixed with data-". The guide does not say the built-in rule
   attributes can be set this way.
