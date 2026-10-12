@@ -264,7 +264,46 @@ Plans:
   3. The full suite passes with `skip=0` on the live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`), and an install from the git marketplace source passes
   4. The release is tagged `0.2.0`
 
-**Plans**: TBD
+**Plans**: 8 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 06-01-PLAN.md — Pre-release loose ends: Phase 4 findings WR-01, IN-01, IN-02 fixed and WR-08 skipped (open: 0, D-16); shellcheck directives in test_noroute_notice.sh; busybox and shellcheck installed (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 06-02-PLAN.md — Version 0.2.0 in one commit with strict validation (REL-01); CHANGELOG 0.2.0 entry with upgrade notes quoting the installer; tests/test_release_text.py; project notes at 0.2.0 (wave 2, after 06-01)
+
+**Wave 3** *(blocked on Wave 2 completion; not autonomous)*
+
+- [ ] 06-03-PLAN.md — Release-candidate suite at skip=0 (daemon stopped); owner decisions D-20 to D-23 (blocking); strict /gsd-pr-branch, planning-free history, tree equality, suite on the PR tree (wave 3, after 06-02)
+
+**Wave 4** *(blocked on Wave 3 completion; not autonomous)*
+
+- [ ] 06-04-PLAN.md — Git-source path probed over HTTPS; owner approves the push and logs in a throwaway config; push, draft PR, D-13 run from the pushed ref, bbj-local enabled, first CI (wave 4, after 06-03)
+
+**Wave 5** *(blocked on Wave 4 completion; not autonomous)*
+
+- [ ] 06-05-PLAN.md — Real Codex D-11: fresh install with --with-local checked without a model, owner /hooks approval, billed apply_patch run, home restored per D-22, daemon stopped (wave 5, after 06-04)
+
+**Wave 6** *(blocked on Wave 5 completion; not autonomous)*
+
+- [ ] 06-06-PLAN.md — Tested against from the run evidence and D-23 pins; final suite on the PR tree equals the CHANGELOG; owner-approved fast-forward push; CI green; PR ready (wave 6, after 06-05)
+
+**Wave 7** *(blocked on Wave 6 completion; not autonomous)*
+
+- [ ] 06-07-PLAN.md — D-05 install gate script passes on the PR ref; owner-approved merge commit; main carries the tested tree; CI on main and the install gate from main pass (wave 7, after 06-06)
+
+**Wave 8** *(blocked on Wave 7 completion; not autonomous)*
+
+- [ ] 06-08-PLAN.md — Annotated tag 0.2.0 prepared locally on the merge commit; owner confirms; tag pushed, GitHub Release from the CHANGELOG entry; main merged back into the planning branch (wave 8, after 06-07)
+
+**Cross-cutting constraints:**
+
+- Every push, the merge, the tag push and the Release wait for a blocking-human owner confirmation immediately before them; nothing is ever force-pushed
+- Nothing runs BBj: the hook and the gates compile only (bbjcpl -t -N -X, loopback bbj-ls); no test code reaches the hosted check
+- Real-client runs use throwaway configs or a recorded-and-restored home; credentials never enter the repository; raw streams stay outside it
 
 ## Progress
 
@@ -278,4 +317,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
 | 5. bbj-web-programming makeover | 10/10 | Complete    | 2026-10-12 |
-| 6. Release 0.2.0 | 0/TBD | Not started | - |
+| 6. Release 0.2.0 | 0/8 | Planned | - |
