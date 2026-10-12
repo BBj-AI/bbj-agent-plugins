@@ -1,7 +1,7 @@
 # Install for Codex
 
-> **Tested on Linux only.** This page was verified on Linux with Codex CLI 0.156.1 on
-> 2026-10-08: the installer, `codex mcp add`, the skills in `~/.agents/skills`, the `/hooks`
+> **Tested on Linux only.** This page was verified on Linux with Codex CLI 0.162.1 on
+> 2026-10-12: the installer, `codex mcp add`, the skills in `~/.agents/skills`, the `/hooks`
 > approval and the hook's compiler feedback after `apply_patch`. It has not yet been run on
 > Windows or macOS; please report what you find there.
 
@@ -92,14 +92,14 @@ what to do in that case. Running it a second time changes nothing.
    is already in `config.toml`; see section 2, "Enable the local check". Without the flag the installer sends one `tools/list`
    request to the local `bbj-ls` and only suggests the flag when one answers.
 3. **Installs the two skills**, `bbj-programming` and `bbj-web-programming`, into
-   `~/.agents/skills`, where Codex CLI 0.156.1 finds them; if your Codex version does not
+   `~/.agents/skills`, where Codex CLI 0.162.1 finds them; if your Codex version does not
    list the BBj skills, rerun the installer with `--skills-dir ~/.codex/skills`. A skill
    directory that already exists and differs is left alone unless you pass `--force`.
 4. **Copies the check script** to `~/.codex/bbj/bbj-check.sh`, a stable path outside any cache.
 5. **Writes `~/.codex/hooks.json`** when it does not exist: a `PostToolUse` hook with the matcher
    `apply_patch|Edit|Write`, a timeout of 30 seconds and a `commandWindows` entry. An existing
    `hooks.json` is never modified: the installer prints the block and you merge it yourself.
-   Codex CLI 0.156.1 accepts the `commandWindows` key on Linux; if Codex rejects it on Windows,
+   Codex CLI 0.162.1 accepts the `commandWindows` key on Linux; if Codex rejects it on Windows,
    put `command_windows` in `config.toml` instead.
 6. **Prints the `AGENTS.md` snippet**, the trust step and the known gaps.
 
@@ -137,7 +137,7 @@ approval_mode = "approve"
 # <<< bbj-agent-plugins bbj-local (managed) <<<
 ```
 
-Codex CLI 0.156.1 loads this block. The three tools run on your machine, so Codex runs them without
+Codex CLI 0.162.1 loads this block. The three tools run on your machine, so Codex runs them without
 asking; they are approved by name and only at this url.
 
 - **The url is fixed.** The registration always uses `http://127.0.0.1:5009/mcp`. The environment

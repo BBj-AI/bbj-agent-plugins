@@ -2,7 +2,7 @@
 # install-codex.sh -- Codex install script for the BBj docs server, the two BBj skills and the
 # BBj check hook (plan 19-05, PLUG-04; decision D-15 of phase 19).
 #
-# Verified on Linux with Codex CLI 0.156.1 on 2026-10-08 (PLUG-04 human check: registered,
+# Verified on Linux with Codex CLI 0.162.1 on 2026-10-12 (plan 06-05 release run: registered,
 # hook approved in /hooks, a .bbj written through apply_patch got the compiler's feedback,
 # skills found in ~/.agents/skills). Not yet run on Windows or macOS. The test suite runs it
 # with a fake codex in a temp HOME.
@@ -99,7 +99,7 @@ TOOL_KEY='approval_mode = "approve"'
 # the server-wide line that versions up to 398aac5 of this script wrote; it is only ever
 # recognised and removed, never written again
 OLD_KEY_LINE='default_tools_approval_mode = "approve"'
-STATUS_LINE='Verified on Linux with Codex CLI 0.156.1; not yet run on Windows or macOS.'
+STATUS_LINE='Verified on Linux with Codex CLI 0.162.1; not yet run on Windows or macOS.'
 
 say() {
   printf '%s\n' "$*"
@@ -785,7 +785,7 @@ say "- OpenAI calls hooks \"a useful guardrail, not a complete enforcement bound
 say "- Patches applied through a shell heredoc are not seen by the hook; only apply_patch calls are checked."
 say "- Codex has no plugin options here: the check finds BBj through BBJ_HOME, then PATH, then the default homes; set BBJ_HOME when BBj is not in a default location."
 say "- With no compiler found, the hook asks a running bbj-ls on 127.0.0.1:5009 (syntax only); with neither, it tells Codex once per session that the file was written but not compile-checked."
-say "- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (~/.agents/skills worked with Codex CLI 0.156.1)."
+say "- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (~/.agents/skills worked with Codex CLI 0.162.1)."
 say "- commandWindows in hooks.json is not yet tried on Windows; if Codex rejects it there, use command_windows in config.toml instead."
 say ""
 say "$STATUS_LINE"
