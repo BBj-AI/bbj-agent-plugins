@@ -47,7 +47,7 @@
 ## Key Dependencies
 
 **Critical:**
-- `@anthropic-ai/claude-code` 2.1.293 (exact pin) - Provides the `claude` CLI used by CI for plugin validation: `.github/ci-tools/package.json`. Installed with `npm ci --ignore-scripts`, then its install script is run explicitly; `npm audit signatures` verifies registry signatures. The changelog notes the tested Claude Code version as 2.1.294 (`CHANGELOG.md`).
+- `@anthropic-ai/claude-code` 2.1.293 (exact pin) - Provides the `claude` CLI used by CI for plugin validation: `.github/ci-tools/package.json`. Installed with `npm ci --ignore-scripts`, then its install script is run explicitly; `npm audit signatures` verifies registry signatures. The Tested against section of `CHANGELOG.md` names the Claude Code version of the release run.
 - BBj compiler (`bbjcpl` / `bbjcplw`, BBj 26.03 for tier 2) - External, not shipped here. Used by `plugins/bbj/scripts/bbj-check.sh` with `-t -N -X -P<dirs>`. Optional at runtime; the hook exits silently when no compiler is found.
 - `curl` - Used by `plugins/bbj/scripts/bbj-check.sh` for the loopback tier-2 request (`--noproxy '*'`, `--proto =http`). Optional.
 
@@ -88,7 +88,7 @@
 - Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install-claude-code.md`)
 - Installed for Codex through `codex/install-codex.sh` (`docs/install-codex.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
-- Current version: 0.1.0 for both plugins, unreleased per `CHANGELOG.md`
+- Current version: 0.2.0 for both plugins, the first release (`CHANGELOG.md`)
 
 ---
 

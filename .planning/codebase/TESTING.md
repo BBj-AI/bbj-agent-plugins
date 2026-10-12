@@ -211,7 +211,7 @@ grep -rn "D-12" tests/
 - `tests/test_ci_guards.py` reads `.github/workflows/ci.yml` and `.github/dependabot.yml` by line scan and enforces SHA pinning, read-only `contents`, `persist-credentials: false`, no secret reference, no privileged trigger, and the claude CLI lockfile install.
 
 **Manifest and integrity tests (Python):**
-- `tests/test_layout.py`: marketplace entries, plugin versions (`0.1.0` everywhere), license, `.mcp.json` shape, `userConfig` keys, the `PostToolUse` matcher `Write|Edit` and the exact hook command.
+- `tests/test_layout.py`: marketplace entries, plugin versions (`0.2.0` everywhere), license, `.mcp.json` shape, `userConfig` keys, the `PostToolUse` matcher `Write|Edit` and the exact hook command.
 
 **Installer tests:**
 - `tests/test_install_codex.sh` (about 700 lines, the largest test) and `tests/test_install_pages.sh` run `codex/install-codex.sh` in a temp home with a fake codex. They check each exit code (0, 2, 3), backups, managed-block markers, idempotent reruns, and the refusal paths.
