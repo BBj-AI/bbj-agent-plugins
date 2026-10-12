@@ -264,7 +264,7 @@ Plans:
   3. The full suite passes with `skip=0` on the live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`), and an install from the git marketplace source passes
   4. The release is tagged `0.2.0`
 
-**Plans**: 7/8 plans executed
+**Plans**: 8/8 plans executed
 
 Plans:
 **Wave 1**
@@ -297,7 +297,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion; not autonomous)*
 
-- [ ] 06-08-PLAN.md — Annotated tag 0.2.0 prepared locally on the merge commit; owner confirms; tag pushed, GitHub Release from the CHANGELOG entry; main merged back into the planning branch (wave 8, after 06-07)
+- [x] 06-08-PLAN.md — Annotated tag 0.2.0 prepared locally on the merge commit; owner confirms; tag pushed, GitHub Release from the CHANGELOG entry; main merged back into the planning branch (wave 8, after 06-07)
 
 **Cross-cutting constraints:**
 
@@ -317,4 +317,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
 | 5. bbj-web-programming makeover | 10/10 | Complete    | 2026-10-12 |
-| 6. Release 0.2.0 | 7/8 | In Progress | - |
+| 6. Release 0.2.0 | 8/8 | In Progress | - |
