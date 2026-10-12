@@ -31,7 +31,8 @@ web!.injectScriptUrl("/files/lib/shoelace/shoelace.js", 1, "type=module")
   BBjWebComponent."
   https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/BBjWebComponent/BBjWebComponent_setHtml.htm
 - Nesting one component or control into another is `setSlot`: see SKILL.md, section "Web components", and the
-  BBjWebComponent_setSlot page.
+  BBjWebComponent_setSlot page. `setSlot` "moves" the child (BBjControl_setSlot), so a control goes into one
+  parent; the example makes a second icon for the second parent.
 
 ```bbj
 declare auto BBjSysGui sysgui!
@@ -40,14 +41,19 @@ sysgui! = BBjAPI().openSysGui("X0")
 win! = sysgui!.addWindow("t", $00100083$)
 declare auto BBjWebComponent card!
 declare auto BBjWebComponent icon!
+declare auto BBjWebComponent copyIcon!
+declare auto BBjWebComponent badge!
 declare auto BBjButton copy!
 card! = win!.addWebComponent("sl-card")
 icon! = win!.addWebComponent("sl-icon")
 icon!.setAttribute("name", "copy")
-card!.setSlot(icon!)
+card!.setSlot(icon!); rem default slot of the card
+copyIcon! = win!.addWebComponent("sl-icon")
+copyIcon!.setAttribute("name", "copy")
 copy! = win!.addButton("Copy")
-copy!.setSlot("prefix", icon!)
-card!.setHtml("Automatic")
+copy!.setSlot("prefix", copyIcon!); rem prefix slot of the button
+badge! = win!.addWebComponent("sl-badge")
+badge!.setHtml("New"); rem HTML content of a component with no slotted children
 ```
 
 ## Listening to a component event
