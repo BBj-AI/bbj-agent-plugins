@@ -2,9 +2,14 @@
 gsd_state_version: "1.0"
 milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
+current_phase: 7
+current_phase_name: Test hardening and release prep
 status: planning
-last_updated: "2026-10-12T20:02:50.000Z"
+stopped_at: Phase 7 context gathered
+last_updated: "2026-10-12T20:25:11.012Z"
 last_activity: 2026-10-12
+last_activity_desc: Roadmap for v0.2.1 revised for the Codex plugin route (Phases 7-10, 22/22 requirements mapped)
+state_head: 9217f693988e3c445cf5b85a64b99a08994d7837
 progress:
   total_phases: 4
   completed_phases: 0
@@ -139,9 +144,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12
-Stopped at: Roadmap for v0.2.1 revised for the Codex plugin route (Phases 7-10); awaiting owner approval
-Resume file: None
+Last session: 2026-10-12T20:25:10.985Z
+Stopped at: Phase 7 context gathered
+Resume file: .planning/phases/07-test-hardening-and-release-prep/07-CONTEXT.md
 
 ## Operator Next Steps
 
