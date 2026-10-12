@@ -1,0 +1,62 @@
+$ claude plugin marketplace add BBj-AI/bbj-agent-plugins#gsd/planning-setup-pr  (CLAUDE_CONFIG_DIR=<throwaway>, CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1)
+Adding marketplace…Cloning via HTTPS: https://github.com/BBj-AI/bbj-agent-plugins.git
+Refreshing marketplace cache (timeout: 120s)…
+Cloning repository (timeout: 120s): https://github.com/BBj-AI/bbj-agent-plugins.git (ref: gsd/planning-setup-pr)
+Clone complete, validating marketplace…
+Cleaning up old marketplace cache…
+✔ Successfully added marketplace: basis-bbj (declared in user settings)
+exit: 0
+$ claude plugin install bbj@basis-bbj
+Installing plugin "bbj@basis-bbj"...✔ Successfully installed plugin: bbj@basis-bbj (scope: user)
+2 userConfig options not yet set — run /plugin configure bbj@basis-bbj in Claude Code, or pass --config KEY=VALUE.
+exit: 0
+$ claude plugin list
+Installed plugins:
+
+  ❯ bbj@basis-bbj
+    Version: 0.2.0
+    Scope: user
+    Status: ✔ enabled
+
+exit: 0
+$ claude plugin install bbj-local@basis-bbj
+Installing plugin "bbj-local@basis-bbj"...✔ Successfully installed plugin: bbj-local@basis-bbj (scope: user). This plugin is disabled by default — enable it with: claude plugin enable bbj-local@basis-bbj
+exit: 0
+$ claude plugin list
+Installed plugins:
+
+  ❯ bbj-local@basis-bbj
+    Version: 0.2.0
+    Scope: user
+    Status: ✘ disabled
+
+  ❯ bbj@basis-bbj
+    Version: 0.2.0
+    Scope: user
+    Status: ✔ enabled
+
+exit: 0
+$ claude plugin enable bbj-local@basis-bbj
+✔ Successfully enabled plugin: bbj-local (scope: user)
+exit: 0
+$ claude plugin list
+Installed plugins:
+
+  ❯ bbj-local@basis-bbj
+    Version: 0.2.0
+    Scope: user
+    Status: ✔ enabled
+
+  ❯ bbj@basis-bbj
+    Version: 0.2.0
+    Scope: user
+    Status: ✔ enabled
+
+exit: 0
+$ claude mcp list   (cwd: scratch project)
+Checking MCP server health…
+
+claude.ai Claude Docs: https://api.anthropic.com/v1/pages/mcp - ✔ Connected
+plugin:bbj:bbj-docs: https://mcp.bbj-ai.com/mcp (HTTP) - ✔ Connected
+plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - ✔ Connected
+exit: 0

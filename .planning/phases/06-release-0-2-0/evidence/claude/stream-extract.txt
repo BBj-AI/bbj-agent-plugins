@@ -1,0 +1,51 @@
+claude_code_version: 2.1.296
+plugin bbj loaded: ['0.2.0']
+permission_mode: acceptEdits
+
+== tool_use calls, in order (name, file_path, edit strings) ==
+1. Write file_path=/tmp/bbj-release-06/claude-proj/bad.bbj content="print \"a\"   rem same line\n"
+2. Edit file_path=/tmp/bbj-release-06/claude-proj/bad.bbj old="\"a\"" new="\"b\""
+3. Write file_path=/tmp/bbj-release-06/claude-proj/clean.bbj content="print \"a\"; rem ok\n"
+4. Edit file_path=/tmp/bbj-release-06/claude-proj/clean.bbj old="\"a\"" new="\"b\""
+tool_use count: 4
+
+== tool_result texts (what the tool itself returned) ==
+- File created successfully at: /tmp/bbj-release-06/claude-proj/bad.bbj (file state is current in your context — no need to Read it back)
+- The file /tmp/bbj-release-06/claude-proj/bad.bbj has been updated successfully. (file state is current in your context — no need to Read it back)
+- File created successfully at: /tmp/bbj-release-06/claude-proj/clean.bbj (file state is current in your context — no need to Read it back)
+- The file /tmp/bbj-release-06/claude-proj/clean.bbj has been updated successfully. (file state is current in your context — no need to Read it back)
+
+== final result text (the model quotes the hook feedback it received; the stream carries no separate hook event) ==
+I did all four steps with Write and Edit only. Hook feedback for each:
+
+**1. Write bad.bbj** (`print "a"   rem same line`)
+```
+PostToolUse:Write hook blocking error from command: "sh "/tmp/bbj-release-06/claude-config/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"": [sh "/tmp/bbj-release-06/claude-config/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in /tmp/bbj-release-06/claude-proj/bad.bbj:
+/tmp/bbj-release-06/claude-proj/bad.bbj: error at line 10 (1): print "a"   rem same line
+bbj_lookup gives exact syntax for a named symbol.
+
+This hook comes from the bbj@basis-bbj plugin.
+```
+
+**2. Edit bad.bbj** (`"a"` → `"b"`)
+```
+PostToolUse:Edit hook blocking error from command: "sh "/tmp/bbj-release-06/claude-config/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"": [sh "/tmp/bbj-release-06/claude-config/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in /tmp/bbj-release-06/claude-proj/bad.bbj:
+/tmp/bbj-release-06/claude-proj/bad.bbj: error at line 10 (1): print "b"   rem same line
+bbj_lookup gives exact syntax for a named symbol.
+
+This hook comes from the bbj@basis-bbj plugin.
+```
+
+**3. Write clean.bbj** (`print "a"; rem ok`)
+no hook feedback
+
+**4. Edit clean.bbj** (`"a"` → `"b"`)
+no hook feedback
+
+The hook blocked both bad.bbj steps because there's no semicolon before the trailing `rem`. Both files were still written and edited, so bad.bbj now contains `print "b"   rem same line` and still fails to compile. The error says "line 10", but the file has only one line. The hook's script probably adds an offset to the line number.
+
+You told me not to call any MCP tool, so I didn't use the bbj-docs server, and there is no bbj-docs footer line to end this reply with.
+
+== run ==
+is_error: False  terminal_reason: completed  num_turns: 5  permission_denials: 0
+total_cost_usd: 0.1594 (cap 2)

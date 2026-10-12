@@ -1,0 +1,16 @@
+date: 2026-10-12
+claude_version: 2.1.296
+source: BBj-AI/bbj-agent-plugins#gsd/planning-setup-pr
+pr_head: 7ec798d73192831f3fb712d13a8e02573fa17c7e
+installed_version: 0.2.0
+write_bad: feedback
+edit_bad: feedback
+write_clean: silent
+edit_clean: silent
+hosted_check_calls: 0
+bbj_local_installed: disabled
+bbj_local_enabled: connected
+real_config: unchanged
+verdict: pass
+run_cost_usd: 0.1594 (cap 2)
+evidence_note: hook feedback text is the model's verbatim quote of what it received after each step; the stream-json carries no separate hook event
