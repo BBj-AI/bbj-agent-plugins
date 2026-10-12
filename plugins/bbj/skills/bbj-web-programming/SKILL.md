@@ -83,7 +83,7 @@ panel!.addClass("sidebar")
 - Style a label through its shadow part: "Use CSS to control label styles by targeting the part::label of the Shadow DOM on the control." The selector is `::part(label)` (https://dwc.style/docs/#/theme-engine/css-shadow-parts).
 - HTML text in a control must start with <html> or it shows as literal text. That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
 - A BBjColorChooser shows no caption for setAttribute("label", ...). That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
-- getClientProperty("saturation") and getClientProperty("lightness") of a BBjColorChooser return a fraction from 0 to 1.0. That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
+- getClientProperty("saturation") and getClientProperty("lightness") of a BBjColorChooser return a fraction from 0 to 1.0. That is the rule the skill maintainer confirmed on BBj 26.03; the BBjColorChooser page (https://dwc.style/docs/#/dwc/BBjColorChooser) gives 0 to 100 for saturation, a conflict reported to the documentation owners.
 
 ```bbj
 declare auto BBjTopLevelWindow win!
