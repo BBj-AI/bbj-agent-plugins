@@ -82,7 +82,7 @@ panel!.addClass("sidebar")
 - Declare the control: with an undeclared `button!`, `bbjcpl -t` reports `Cannot assign <undeclared> to BBjString` on `getAttribute`. `getProperty` returns an object: a `$` variable gives `Cannot assign java.lang.Object to BBjString`.
 - In the DWC, `setAttribute("label", text)` on a BBjControl creates a label element (https://documentation.basis.cloud/BASISHelp/WebHelp/dwc/DWC_Labels.htm). The page names three advantages: it reduces "the number of elements", it keeps the control and its label "closely connected regardless of layout", and it helps screenreaders link a field with its description.
 - Style a label through its shadow part: "Use CSS to control label styles by targeting the part::label of the Shadow DOM on the control." The selector is `::part(label)` (https://dwc.style/docs/#/theme-engine/css-shadow-parts).
-- HTML text in a control must start with <html> or it shows as literal text. That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
+- HTML text in a control must start with <html> or it shows as literal text. (The opening tag, written `<html>`.) That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
 - A BBjColorChooser shows no caption for setAttribute("label", ...). That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
 - getClientProperty("saturation") and getClientProperty("lightness") of a BBjColorChooser return a fraction from 0 to 1.0. That is the rule the skill maintainer confirmed on BBj 26.03; the BBjColorChooser page (https://dwc.style/docs/#/dwc/BBjColorChooser) gives 0 to 100 for saturation, a conflict reported to the documentation owners.
 
