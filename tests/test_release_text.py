@@ -13,7 +13,8 @@ stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate release_<name> ok|FAIL <detail>
 and exits 1 when any gate failed. An optional argv[1] is the repository root to check
 (default: the parent of the tests directory); the mutation check points it at a copy that holds
-README.md, CHANGELOG.md, tests/test_layout.py and codex/install-codex.sh.
+README.md, CHANGELOG.md, docs/install-claude-code.md, tests/test_layout.py and
+codex/install-codex.sh.
 Reads files only; nothing here runs BBj code or any other program.
 """
 import os
@@ -123,6 +124,15 @@ need = ["If you installed from `main` before %s" % VERSION,
 missing = [n for n in need if n not in upgrading]
 gate("upgrade_addressed", not missing,
      "Upgrading lacks %r" % (missing,) if missing else "addressee and both Claude Code commands present")
+
+# the install page gives the same Claude Code update commands as the CHANGELOG (REVIEW WR-02)
+page = squash(read_lines("docs/install-claude-code.md") or [])
+page_missing = [c for c in ("claude plugin marketplace update basis-bbj",
+                            "claude plugin update bbj@basis-bbj",
+                            "claude plugin update bbj-local@basis-bbj") if c not in page]
+gate("upgrade_install_page", not page_missing,
+     "docs/install-claude-code.md lacks %r" % (page_missing,) if page_missing
+     else "install page carries the marketplace refresh and both plugin updates")
 
 # the installer quotes: in Upgrading and on a non-comment line of the installer
 installer = read_lines("codex/install-codex.sh") or []

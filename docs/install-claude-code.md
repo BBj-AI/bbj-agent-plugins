@@ -149,8 +149,13 @@ tested only on Linux.
 ## Update and remove
 
 ```bash
+claude plugin marketplace update basis-bbj
 claude plugin update bbj@basis-bbj
+claude plugin update bbj-local@basis-bbj   # only if installed
 ```
+
+Refresh the marketplace first: an update is found by the version string in the marketplace
+entry, so a stale copy of the marketplace can keep you on the old version.
 
 Then restart Claude Code or run `/reload-plugins`. To remove the plugins and the marketplace:
 
