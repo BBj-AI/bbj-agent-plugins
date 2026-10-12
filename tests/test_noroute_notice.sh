@@ -14,9 +14,13 @@
 # marker directory, not mkdir alone (uutils mkdir lets parallel calls of one path all succeed);
 # gates notice_concurrent_once (repeated rounds), notice_claim_present_silent,
 # notice_marker_without_claim, notice_claim_symlink_squat.
+# MAINT-06 (D-11, D-12): PATH is scrubbed of any BBj compiler right after mkwork (no_compiler_path),
+# so a maintainer with bbjcpl on PATH still gets the no-route gates.
 # Nothing here runs BBj; there is no compiler and the bbj-ls URL is a closed port.
 . "$(dirname "$0")/lib.sh"
 mkwork
+# MAINT-06, D-11, D-12: a compiler on the caller's PATH would be a route
+PATH=$(no_compiler_path)
 
 # plan 02-02 starts fake servers: kill them as well as removing WORK (as tests/test_tier2_fake.sh does)
 FAKE_PIDS=
@@ -567,7 +571,8 @@ fi
 unset BBJ_HOME FAKE_LOG FAKE_OUT FAKE_EXIT
 
 # ---- plan 02-02: the notice never appears for clean files, errors, failed routes, skipped files ----
-SYSPATH=/usr/bin:/bin
+# MAINT-06, D-12: a compiler in /usr/bin or /bin would be a route
+SYSPATH=$(no_compiler_path /usr/bin:/bin)
 ORIGPATH=$PATH
 FAKE_CURL_LOG=$WORK/curl.log
 export FAKE_CURL_LOG
