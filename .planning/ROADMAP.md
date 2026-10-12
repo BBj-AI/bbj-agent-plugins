@@ -70,6 +70,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 7: Test hardening and release prep
+
 **Goal**: A maintainer gets a green suite on a machine that has `bbjcpl` on `PATH` or a running Codex daemon, and the release tree already carries the 0.2.0 review fixes and a decided release-text gate policy. The Codex and platform work then starts from a clean baseline.
 **Depends on**: Nothing (first phase of v0.2.1; builds on the shipped 0.2.0, Phase 6)
 **Requirements**: MAINT-06, MAINT-07, MAINT-08, REL-05, REL-06
@@ -79,16 +80,24 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The gate-prefix list in `.claude/CLAUDE.md`, and in `.planning/codebase/CONVENTIONS.md` it is generated from, matches the prefixes `sh tests/run.sh` prints. `skills_` stays (`tests/test_skill_examples.py` still emits it), and the missing prefixes such as `notice_`, `local_`, `checkorder_` and `release_` are added (MAINT-08)
   4. The four review-fix commits `b0a4c62`, `3a42ebf`, `b600ac4` and `172e6a5` are in the branch that becomes the 0.2.1 release tree, and the full suite passes with them (REL-05)
   5. The owner has decided the CONTENT_VERSION policy of `tests/test_release_text.py` and it is recorded with its reason. The policy says how the content gates (`upgrade_addressed`, `upgrade_quotes`, `not_run`) behave at version 0.2.1 so that the Phase 10 release run can reach skip=0. Today they print `skip` for any version other than 0.2.0 (REL-06)
+
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
 - [ ] 07-01-PLAN.md — REL-06: generic `upgrade_addressed`, pinned fact gates FAIL with a re-pin message, mutation cases, policy docstring and PROJECT.md row (wave 1)
 - [ ] 07-02-PLAN.md — MAINT-06: `no_compiler_path` / `no_compiler_env` PATH scrub in `tests/lib.sh`, no-route call sites, `tests/test_path_scrub.sh` fake-compiler and mutation proof (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 07-03-PLAN.md — MAINT-07: `home_snapshot` / `home_diff` allowlist content snapshot, `real_home_untouched` switched to it, `tests/test_home_guard.sh` both-direction proof (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 07-04-PLAN.md — MAINT-08 gate-prefix list rebuilt from the suite transcript; REL-05 ancestry proof; D-02 local `main` fast-forward; phase gate (wave 3)
+
 **Notes**: This phase lands first. The Windows and macOS machines of Phase 9 have `bbjcpl` on `PATH`, so without the scrub (review WR-01) the no-route gates fail there. A Codex daemon runs wherever Phase 8 works with real Codex. The review-fix commits change the install docs, the CHANGELOG and the release-text gates that Phases 8 and 10 rewrite, so they come in first. Tests use fakes only; nothing runs BBj.
 
 ### Phase 8: Codex plugin route
+
 **Goal**: A Codex user installs `bbj`, and opts into `bbj-local`, from the `basis-bbj` marketplace with Codex's own plugin commands. They get a working `bbj-docs` server, both skills, and the unchanged compile-check hook once they trust it. Claude Code is unchanged, the route is proven on Linux and gated in CI on fakes, and `install-codex.sh` remains a documented fallback.
 **Depends on**: Phase 7
 **Requirements**: CODEX-01, CODEX-02, CODEX-03, CODEX-04, CODEX-05, CODEX-06
@@ -99,6 +108,7 @@ Plans:
   4. A gate fails if any of the following happens: the docs URL in Claude's `docs_url` default and the one in the Codex literal MCP file differ; a manifest (both plugins, both marketplace entries, the Codex overlay) carries a different version; or the hosted host appears in a file other than these two (CODEX-04)
   5. `docs/install-codex.md` leads with the plugin route and keeps `install-codex.sh` as a documented fallback for this release. It covers the two install commands, the `/hooks` trust step, the first-use tool prompts, the `BBJ_HOME` note, and whether a plugin upgrade asks for hook trust again, as observed on Linux (CODEX-05)
   6. A user who installed with `install-codex.sh` (0.1.0 or 0.2.0) switches to the plugin route by documented steps or an installer option and ends with exactly one hook entry, one copy of the skills and one `bbj-docs` server: no double check, no double feedback, and the installer's `[mcp_servers.bbj-docs]` table no longer overriding the plugin's server. Verified once on Linux in a throwaway Codex home (CODEX-06)
+
 **Plans**: TBD
 **Notes**:
 - This phase must land before Phase 9: Phase 9 verifies the plugin route on Windows and macOS by following the steps documented here.
@@ -112,6 +122,7 @@ Plans:
 - Billed real-model runs only with the user's approval for each run.
 
 ### Phase 9: Windows and macOS verification
+
 **Goal**: The Claude Code plugin and the Codex plugin route work on real Windows and macOS machines on the compile-only `bbjcpl` route, and `bbj-local` connects on Windows where BBjServices runs. Every defect a run finds is fixed with a CI gate on fakes or recorded as a known gap, and every run is on record.
 **Depends on**: Phase 8
 **Requirements**: PLAT-01, PLAT-02, PLAT-03, PLAT-04, PLAT-05, PLAT-06
@@ -121,6 +132,7 @@ Plans:
   3. On Windows with BBjServices running, `bbj-local` connects in Claude Code once the user enables it and in Codex after `codex plugin add bbj-local@basis-bbj`; it stays off unless the user opts in (PLAT-04)
   4. On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook each give tier-1 `bbjcpl` feedback for a bad file and silence for a clean one (PLAT-05)
   5. The phase records each run (OS, client and version, BBj version, route, outcome). Every defect found is either fixed in the shipped hook (script or `hooks.json`), plugin files or installer with a regression gate that runs in CI on fakes, or recorded as a known gap. The Linux suite stays green (PLAT-06)
+
 **Plans**: TBD
 **Notes**:
 - The owner runs these steps by hand on their own machines: Windows (Git for Windows, BBj with `bbjcpl`, Claude Code, Codex CLI) and Mac (BBj with `bbjcpl` must be installed first).
@@ -129,6 +141,7 @@ Plans:
 - Out of scope: a native Windows hook without Git for Windows, a Windows or macOS CI runner, and running the full suite under Git Bash.
 
 ### Phase 10: Install wording and release 0.2.1
+
 **Goal**: Users read, per client, platform and check route, exactly what was verified, and nothing more than the recorded runs show. For Codex the plugin route comes first and the installer is the fallback. Release 0.2.1 ships with that wording, the Codex plugin route, the 0.2.0 review fixes and the Phase 9 fixes.
 **Depends on**: Phase 9
 **Requirements**: DOCS-01, DOCS-02, DOCS-03, DOCS-04, REL-07, REL-08
@@ -138,6 +151,7 @@ Plans:
   3. `tests/test_install_codex.sh` and `tests/test_release_text.py` fail if an old "not yet run" hint comes back for a verified configuration, or if the installer text and the docs drift apart (DOCS-04)
   4. Both plugins, both marketplace entries, the Codex overlay and `tests/test_layout.py` read 0.2.1, and `claude plugin validate --strict` passes. The `## 0.2.1` CHANGELOG entry's Tested against section covers Linux, Windows and macOS from the recorded runs (REL-07)
   5. The full suite passes on the release tree with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) at skip=0. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.1` (no `v` prefix) is pushed, and the GitHub Release is published (REL-08)
+
 **Plans**: TBD
 **Notes**:
 - The release follows the v0.2.0 Phase 6 pattern, with a blocking owner confirmation before every push, merge, tag push and Release.
