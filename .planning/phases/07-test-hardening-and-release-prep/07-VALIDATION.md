@@ -87,3 +87,13 @@ No framework install is needed.
 - [ ] `nyquist_compliant: true` set in frontmatter — left false: MAINT-08 (doc list, sync gate declined by design) and REL-05 (D-03) are manual-only by the owner's decisions; 3 of 5 requirements have persistent automated verification
 
 **Approval:** validated 2026-10-12 (partial — see sign-off)
+
+## Validation Audit 2026-10-12
+
+| Metric | Count |
+|---|---|
+| Gaps found | 2 |
+| Resolved | 0 |
+| Escalated | 2 |
+| Automated requirements | 3 |
+| Manual-only requirements | 2 |
