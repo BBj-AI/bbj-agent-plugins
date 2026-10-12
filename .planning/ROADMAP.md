@@ -264,12 +264,12 @@ Plans:
   3. The full suite passes with `skip=0` on the live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`), and an install from the git marketplace source passes
   4. The release is tagged `0.2.0`
 
-**Plans**: 8 plans
+**Plans**: 1/8 plans executed
 
 Plans:
 **Wave 1**
 
-- [ ] 06-01-PLAN.md — Pre-release loose ends: Phase 4 findings WR-01, IN-01, IN-02 fixed and WR-08 skipped (open: 0, D-16); shellcheck directives in test_noroute_notice.sh; busybox and shellcheck installed (wave 1)
+- [x] 06-01-PLAN.md — Pre-release loose ends: Phase 4 findings WR-01, IN-01, IN-02 fixed and WR-08 skipped (open: 0, D-16); shellcheck directives in test_noroute_notice.sh; busybox and shellcheck installed (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -317,4 +317,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
 | 5. bbj-web-programming makeover | 10/10 | Complete    | 2026-10-12 |
-| 6. Release 0.2.0 | 0/8 | Planned | - |
+| 6. Release 0.2.0 | 1/8 | In Progress | - |
