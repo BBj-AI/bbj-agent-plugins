@@ -30,12 +30,13 @@ Page: https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminFact
   returns a URL for the application that can be used to run the application from a Web browser. It uses the
   name in combination with the host and port information from the Jetty server. This method returns null if
   the DWC_ENABLED property is set to false."
-- `BBjThinClient.browse`: "In BBj 11.00 and higher, this method opens the specified URL in the default
-  browser (GUI) or the current browser (BUI and DWC)."
+- To open a URL from a running BBj program, `BBjThinClient.browse`: "In BBj 11.00 and higher, this method opens
+  the specified URL in the default browser (GUI) or the current browser (BUI and DWC)."
   https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjthinclient/bbjthinclient_browse.htm
 
-Register a program as a DWC app and read its URL. `user$` and `password$` stand for the administrator
-login the caller supplies:
+Register a program as a DWC app and read its URL. The block creates a new application each time it runs;
+`getApplications()` lists the existing ones. `adminUser$` and `adminPassword$` stand for the administrator
+login, which the caller sets:
 
 ```bbj
 use com.basis.api.admin.BBjAdminFactory
@@ -43,14 +44,15 @@ use com.basis.api.admin.BBjAdminBase
 use com.basis.api.admin.BBjAdminAppDeploymentConfiguration
 use com.basis.api.admin.BBjAdminAppDeploymentApplication
 
-user$ = ""
-password$ = ""
+rem the caller sets adminUser$ and adminPassword$ to the administrator login
+adminUser$ = ""
+adminPassword$ = ""
 
 declare auto BBjAdminBase admin!
 declare auto BBjAdminAppDeploymentConfiguration config!
 declare auto BBjAdminAppDeploymentApplication app!
 
-admin! = BBjAdminFactory.getBBjAdmin(user$, password$)
+admin! = BBjAdminFactory.getBBjAdmin(adminUser$, adminPassword$)
 config! = admin!.getRemoteConfiguration()
 app! = config!.createApplication()
 app!.setString(app!.NAME, "MyApp")
@@ -62,7 +64,9 @@ url! = app!.getDwcUrl(sslFlag)
 if url! = null() then print "DWC_ENABLED is false, no URL"
 ```
 
-To run a program from a shell when the user asks, see bbj-programming/references/running.md.
+A DWC app is launched by navigating to its URL in a web browser (second bullet above).
+bbj-programming/references/running.md covers the `bbj` command line for running other programs when the
+user asks.
 
 ## Sources
 
