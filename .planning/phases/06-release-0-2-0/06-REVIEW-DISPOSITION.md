@@ -9,11 +9,11 @@ findings:
     title: "Upgrade instructions tell users to run `--force` without saying it deletes the skill directories"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The Claude Code update instructions on the install page contradict the CHANGELOG and would not deliver 0.2.0"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`tests/test_release_text.py` forbids any changelog history, so the next release must edit or delete the gate"
   - id: IN-01
     severity: info
@@ -27,9 +27,9 @@ findings:
     severity: info
     disposition: fixed
     title: "Hard-coded tested-against versions are scattered with nothing tying them together"
-open: 2
+open: 0
 total: 6
-recorded: 2026-10-12T18:04:56.281Z
+recorded: 2026-10-12T18:05:05.905Z
 ---
 
 # Phase 06: Code Review Disposition
@@ -37,8 +37,8 @@ recorded: 2026-10-12T18:04:56.281Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | 06-REVIEW-FIX.md |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
+| WR-02 | warning | fixed | 06-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 06-REVIEW-FIX.md |
 | IN-01 | info | fixed | 06-REVIEW-FIX.md |
 | IN-02 | info | fixed | 06-REVIEW-FIX.md |
 | IN-03 | info | fixed | 06-REVIEW-FIX.md |
