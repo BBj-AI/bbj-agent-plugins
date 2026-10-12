@@ -15,8 +15,8 @@ stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate release_<name> ok|FAIL <detail>
 and exits 1 when any gate failed. An optional argv[1] is the repository root to check
 (default: the parent of the tests directory); tests/test_release_text_mutation.sh points it at a
-copy that holds README.md, CHANGELOG.md, docs/install-claude-code.md, tests/test_layout.py and
-codex/install-codex.sh, and requires each gate to fail when its input changes.
+copy that holds README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md,
+tests/test_layout.py and codex/install-codex.sh, and requires each gate to fail when its input changes.
 Reads files only; nothing here runs BBj code or any other program.
 """
 import os
@@ -146,6 +146,14 @@ for q in UPGRADE_QUOTES:
         bad.append("not on a non-comment installer line: " + q)
 gate("upgrade_quotes", not bad,
      "; ".join(bad) if bad else "%d quotes in Upgrading and on installer code lines" % len(UPGRADE_QUOTES))
+
+# every "Codex CLI N.N.N" string names one version, so a bump cannot miss a place (REVIEW IN-03)
+codex_versions = set()
+for rel in ("codex/install-codex.sh", "docs/install-codex.md"):
+    for ln in read_lines(rel) or []:
+        codex_versions.update(re.findall(r"Codex CLI ([0-9]+\.[0-9]+\.[0-9]+)", ln))
+gate("codex_version_single", len(codex_versions) == 1,
+     "Codex CLI versions named in the installer and its page: %s" % sorted(codex_versions))
 
 # the Not run section: exactly the two D-15 lines
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]

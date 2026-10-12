@@ -2,8 +2,8 @@
 # tests/test_release_text_mutation.sh -- review fix IN-01 (phase 06): proves that every gate of
 # tests/test_release_text.py can fail.
 #
-# The release text gate takes an optional repository root. This test copies the five files it
-# reads (README.md, CHANGELOG.md, docs/install-claude-code.md, tests/test_layout.py,
+# The release text gate takes an optional repository root. This test copies the six files it
+# reads (README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md, tests/test_layout.py,
 # codex/install-codex.sh) into a temporary root, checks that the copy passes, then changes one
 # thing per gate in a fresh copy and requires that gate to print FAIL and the script to exit 1.
 # Older CHANGELOG entries must not matter, so one more case adds an old entry and requires a pass.
@@ -25,7 +25,7 @@ VERSION=$(sed -n 's/^VERSION = "\([0-9.]*\)"$/\1/p' "$REPO/tests/test_layout.py"
 fresh_root() {
   mkdir -p "$1/tests" "$1/codex" "$1/docs" || return 1
   cp "$REPO/README.md" "$REPO/CHANGELOG.md" "$1/" || return 1
-  cp "$REPO/docs/install-claude-code.md" "$1/docs/" || return 1
+  cp "$REPO/docs/install-claude-code.md" "$REPO/docs/install-codex.md" "$1/docs/" || return 1
   cp "$REPO/tests/test_layout.py" "$1/tests/" || return 1
   cp "$REPO/codex/install-codex.sh" "$1/codex/" || return 1
 }
@@ -79,6 +79,7 @@ mutate changelog_leftovers CHANGELOG.md 's/^### Tested against$/### Next\
 mutate upgrade_addressed CHANGELOG.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
 mutate upgrade_install_page docs/install-claude-code.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
 mutate upgrade_quotes codex/install-codex.sh 's/every update of it makes Codex ask/every update of it makes Codex request/'
+mutate codex_version_single docs/install-codex.md '1,/Codex CLI [0-9][0-9.]*/s/Codex CLI [0-9][0-9.]*/Codex CLI 0.0.1/'
 mutate not_run CHANGELOG.md 's/^- macOS: not run on macOS\.$/- macOS: run./'
 
 finish
