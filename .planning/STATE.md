@@ -4,16 +4,16 @@ milestone: v0.2.0
 current_phase: 6
 current_phase_name: Release 0.2.0
 status: executing
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-10-12T13:01:18.636Z"
+stopped_at: Completed 06-03-PLAN.md
+last_updated: "2026-10-12T14:15:18.070Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 6 execution started
-state_head: 932a0a760aebc651dcbe262a5e691c4c3054855f
+state_head: 80536bea51a4fd874677e10ed49d3384d493cd58
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 43
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-10-11)
 ## Current Position
 
 Phase: 6 (Release 0.2.0) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-10-12 — Phase 6 execution started
 
@@ -95,6 +95,7 @@ Progress: [████████░░] 83% (4 of 6 phases; Phase 1 7/7, Phas
 | Phase 05 P10 | 8 min | 2 tasks | 6 files |
 | Phase 06 P01 | 3 min | 3 tasks | 5 files |
 | Phase 06 P02 | 9 min | 3 tasks | 11 files |
+| Phase 06 P03 | 10min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -160,6 +161,10 @@ Recent decisions affecting current work:
 - [Phase 05]: 05-10: bbj-web-programming left pending via --report in the same commit as the four ledger-listed deletions; KNOWN_PENDING left unedited
 - [Phase 06]: 06-01: IN-01 written in long form (getActiveContext page shows $02$ windows before and after $80002$); WR-08 skipped as resolved by 04-07; inline shellcheck directives, no .shellcheckrc change
 - [Phase 06]: 06-02: each CHANGELOG installer quote sits on one line so single-line mutation checks bite; Claude Code upgrade line lists marketplace update and plugin update
+- [Phase 06]: D-20: PR-branch ref install supplies the Claude Code Tested-against line; main install is the D-05 gate
+- [Phase 06]: D-21: .claude/CLAUDE.md ships on main
+- [Phase 06]: D-22: Codex fresh install in the real home then restored; Claude Code in a throwaway config with one owner login
+- [Phase 06]: D-23: update a pin only where the release run re-exercised the fact
 
 ### Pending Todos
 
@@ -182,6 +187,6 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T13:01:18.506Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-10-12T14:15:17.932Z
+Stopped at: Completed 06-03-PLAN.md
 Resume file: None
