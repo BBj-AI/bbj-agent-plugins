@@ -7,6 +7,8 @@
 # codex/install-codex.sh) into a temporary root, checks that the copy passes, then changes one
 # thing per gate in a fresh copy and requires that gate to print FAIL and the script to exit 1.
 # Older CHANGELOG entries must not matter, so one more case adds an old entry and requires a pass.
+# A later release must be able to pass with its own text, so a last case moves the version on,
+# changes the addressee and the Not run lines, and requires a pass with the content gates skipped.
 # Nothing here runs BBj; the only program run is python3 -I on the gate script.
 
 . "$(dirname "$0")/lib.sh"
@@ -67,6 +69,26 @@ if [ "$_rc" = 0 ]; then
   gate release_mut_older_entry ok "an older entry with a placeholder does not matter"
 else
   gate release_mut_older_entry FAIL "rc=$_rc with an older entry below the newest"
+fi
+
+# a later release writes its own Upgrading addressee and Not run lines: the structural gates still
+# pass and the three 0.2.0 content gates skip (REVIEW WR-02)
+fresh_root "$WORK/root-later"
+_later="$WORK/root-later"
+sed 's/^VERSION = ".*"$/VERSION = "9.9.9"/' "$_later/tests/test_layout.py" > "$_later/tests/test_layout.py.new" \
+  && mv "$_later/tests/test_layout.py.new" "$_later/tests/test_layout.py"
+sed "s/, version $VERSION,/, version 9.9.9,/" "$_later/README.md" > "$_later/README.md.new" \
+  && mv "$_later/README.md.new" "$_later/README.md"
+sed -e "s/^## $VERSION\$/## 9.9.9/" -e "s/before $VERSION/before 9.9.8/" \
+  -e 's/^- macOS: not run on macOS\.$/- macOS: run./' "$_later/CHANGELOG.md" > "$_later/CHANGELOG.md.new" \
+  && mv "$_later/CHANGELOG.md.new" "$_later/CHANGELOG.md"
+python3 -I "$GATE" "$_later" > "$WORK/out" 2> "$WORK/err"
+_rc=$?
+if [ "$_rc" = 0 ] && ! grep -q "^gate [^ ]* FAIL " "$WORK/out" \
+  && [ "$(grep -c "^gate release_[a-z_]* skip " "$WORK/out")" = 3 ]; then
+  gate release_mut_later_version ok "a later version passes with its own text; three content gates skip"
+else
+  gate release_mut_later_version FAIL "rc=$_rc for a later version with its own addressee and Not run lines"
 fi
 
 mutate version_source tests/test_layout.py '/^VERSION = /d'
