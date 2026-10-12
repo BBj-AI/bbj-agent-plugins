@@ -24,10 +24,12 @@ Page: https://documentation.basis.cloud/Javadoc/com/basis/api/admin/BBjAdminFact
 - The application object is configured with `setString` for `NAME`, `PROGRAM` and `WORKING_DIRECTORY`, and with
   `setBoolean` for `DWC_ENABLED` (`BUI_ENABLED` for the BUI client), then `commit()`. The other properties are
   the `static final String` fields on the BBjAdminAppDeploymentApplication page, which is where to read them.
-- `getDwcUrl(0)` and `getBuiUrl(0)` return the URL. The Javadoc: "Generates and returns a URL for the
-  application that can be used to run the application from a Web browser. It uses the name in combination with
-  the host and port information from the Jetty server. This method returns null if the DWC_ENABLED property is
-  set to false."
+- `getDwcUrl(ssl)` and `getBuiUrl(ssl)` return the URL. Both take one boolean argument named `ssl`: the page
+  gives the signatures `String getDwcUrl(boolean ssl)` and `String getBuiUrl(boolean ssl)` and does not
+  describe the argument further; its own class sample calls `getBuiUrl(false)`. The Javadoc: "Generates and
+  returns a URL for the application that can be used to run the application from a Web browser. It uses the
+  name in combination with the host and port information from the Jetty server. This method returns null if
+  the DWC_ENABLED property is set to false."
 - `BBjThinClient.browse`: "In BBj 11.00 and higher, this method opens the specified URL in the default
   browser (GUI) or the current browser (BUI and DWC)."
   https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/bbjthinclient/bbjthinclient_browse.htm
@@ -55,7 +57,9 @@ app!.setString(app!.NAME, "MyApp")
 app!.setString(app!.PROGRAM, "/abs/path/MyApp.bbj")
 app!.setBoolean(app!.DWC_ENABLED, 1)
 app!.commit()
-url$ = app!.getDwcUrl(0)
+sslFlag = 0
+url! = app!.getDwcUrl(sslFlag)
+if url! = null() then print "DWC_ENABLED is false, no URL"
 ```
 
 To run a program from a shell when the user asks, see bbj-programming/references/running.md.
