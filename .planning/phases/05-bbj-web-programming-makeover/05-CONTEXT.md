@@ -139,6 +139,13 @@ and every `bbj` block passes both live routes. At the end `bbj-web-programming` 
   `shadow-dom-styling.md` probe. A placement/cascade claim beyond the docs goes to the owner
   checklist (D-05) or is dropped.
 
+### Owner request during the owner session (2026-10-12)
+- **D-18a:** `05-DOCS-PROPOSAL.md` gets an entry for the context issue the owner (Stephan Wald) hit while
+  running `owner-repros/o01_window_dom.bbj`: creating a second top-level window failed with "context
+  already in use" until `sysgui!.setContext(sysgui!.getAvailableContext())` ran first. The owner asked
+  for it to go into the docs proposal only. It is not an OWNER grant, and the skill ships nothing about it
+  (ledger row L045 stays drop). Plan 05-09 carries it.
+
 ### Claude's Discretion
 - The plan split and order, within the ledger → owner checkpoint → rewrite constraint (D-07).
 - The checklist and probe layout and naming under the phase directory.
