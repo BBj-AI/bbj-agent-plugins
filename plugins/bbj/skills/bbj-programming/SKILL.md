@@ -132,9 +132,10 @@ classend
 
 A numeric mask with no sign character loses the minus sign of a negative value. That is the rule the skill
 maintainer confirmed on BBj 26.03; the documentation does not state it. The Numeric Output page lists the sign
-characters `-`, `+`, `(` and `)`, `CR` and `DR` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Language_Concepts/numeric_output.htm);
-its BBj-specific page adds the mask characters `@` and `&` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/BBj_Enhancements/numeric_output_bbj.htm).
-Put one in every mask that can format a negative value. For every other mask character use
+characters `-`, `+`, `(` and `)`, `CR` and `DR` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/Language_Concepts/numeric_output.htm).
+Put one of these in every mask that can format a negative value. Its BBj-specific page also defines the currency
+mask characters `@` and `&` (https://documentation.basis.cloud/BASISHelp/WebHelp/usr/BBj_Enhancements/numeric_output_bbj.htm);
+they are not sign characters. For every other mask character use
 `bbj_lookup` on STR() or https://documentation.basis.cloud/BASISHelp/WebHelp/commands/str_function.htm.
 
 ```bbj
