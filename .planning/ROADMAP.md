@@ -208,7 +208,7 @@ Plans:
   3. The `injectStyle` `top` claim states the documented meaning (the top-level window)
   4. Every `bbj` block in the skill and its references passes the live gate, the structure lints pass, and the skill is still invoked as `/bbj:bbj-web-programming`
 
-**Plans**: 5/10 plans executed
+**Plans**: 6/10 plans executed
 
 Plans:
 **Wave 1**
@@ -233,7 +233,7 @@ Plans:
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
-- [ ] 05-07-PLAN.md — references/styling.md: themes, overrides, component attributes, shadow parts, focus ring in the docs' words (wave 6, after 05-05)
+- [x] 05-07-PLAN.md — references/styling.md: themes, overrides, component attributes, shadow parts, focus ring in the docs' words (wave 6, after 05-05)
 - [ ] 05-08-PLAN.md — running-dwc-apps.md, form-validation.md, shoelace.md rewritten to their documented BBj facts (wave 6, after 05-05)
 - [ ] 05-09-PLAN.md — 05-DOCS-PROPOSAL.md for the BASIS docs owners: top wording, DOM structure, OWNER claims, conflicts, dropped candidates (wave 6, after 05-05)
 
@@ -277,5 +277,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
-| 5. bbj-web-programming makeover | 5/10 | In Progress | - |
+| 5. bbj-web-programming makeover | 6/10 | In Progress | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |
