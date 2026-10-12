@@ -1,0 +1,30 @@
+$ claude plugin marketplace add BBj-AI/bbj-agent-plugins#main  (CLAUDE_CONFIG_DIR=<throwaway probe>, CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1)
+Adding marketplace…Cloning via HTTPS: https://github.com/BBj-AI/bbj-agent-plugins.git
+Refreshing marketplace cache (timeout: 120s)…
+Cloning repository (timeout: 120s): https://github.com/BBj-AI/bbj-agent-plugins.git (ref: main)
+Clone complete, validating marketplace…
+Cleaning up old marketplace cache…
+✔ Successfully added marketplace: basis-bbj (declared in user settings)
+exit: 0
+$ claude plugin install bbj@basis-bbj
+Installing plugin "bbj@basis-bbj"...✔ Successfully installed plugin: bbj@basis-bbj (scope: user)
+2 userConfig options not yet set — run /plugin configure bbj@basis-bbj in Claude Code, or pass --config KEY=VALUE.
+exit: 0
+$ claude plugin list
+Installed plugins:
+
+  ❯ bbj@basis-bbj
+    Version: 0.1.0
+    Scope: user
+    Status: ✔ enabled
+
+exit: 0
+$ git push --dry-run origin gsd/planning-setup-pr
+To github.com:BBj-AI/bbj-agent-plugins.git
+ * [new branch]      gsd/planning-setup-pr -> gsd/planning-setup-pr
+exit: 0
+$ git ls-remote origin refs/heads/gsd/planning-setup-pr
+exit: 0 (empty output above means the branch is not on origin)
+$ gh pr list --head gsd/planning-setup-pr --state all --json number
+[]
+exit: 0
