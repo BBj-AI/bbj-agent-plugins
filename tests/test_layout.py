@@ -17,7 +17,7 @@ import sys
 ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
@@ -63,7 +63,7 @@ gate("marketplace_entries",
      and len(market.get("plugins", [])) == 2 and sources_ok,
      "name=%r entries=%r sources_exist=%s" % (market.get("name"), sorted(entries), sources_ok))
 
-# versions: two plugin.json and both marketplace entries, all 0.1.0
+# versions: two plugin.json and both marketplace entries, all equal to VERSION
 versions = [bbj.get("version"), local.get("version"),
             entries.get("bbj", {}).get("version"), entries.get("bbj-local", {}).get("version")]
 gate("versions", all(v == VERSION for v in versions), "versions=%r want all %s" % (versions, VERSION))
@@ -181,7 +181,7 @@ gate("skills_not_executable", not execs,
      ", ".join(sorted(execs)) if execs else "no skill file is executable")
 
 # VEND-02: shipped text says the skills are maintained here; no history, no upstream name.
-# CHANGELOG.md is read too: its never-tagged 0.1.0 entry was reworded (phase 1 UAT ruling).
+# CHANGELOG.md is read too (phase 1 UAT ruling).
 texts = ["README.md", "NOTICE", "CHANGELOG.md", ".claude-plugin/marketplace.json",
          "plugins/bbj/.claude-plugin/plugin.json", "plugins/bbj-local/.claude-plugin/plugin.json"]
 texts.extend(os.path.relpath(p, ROOT) for p in sorted(glob.glob(os.path.join(ROOT, "docs", "*.md"))))
