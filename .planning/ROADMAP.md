@@ -81,11 +81,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The four review-fix commits `b0a4c62`, `3a42ebf`, `b600ac4` and `172e6a5` are in the branch that becomes the 0.2.1 release tree, and the full suite passes with them (REL-05)
   5. The owner has decided the CONTENT_VERSION policy of `tests/test_release_text.py` and it is recorded with its reason. The policy says how the content gates (`upgrade_addressed`, `upgrade_quotes`, `not_run`) behave at version 0.2.1 so that the Phase 10 release run can reach skip=0. Today they print `skip` for any version other than 0.2.0 (REL-06)
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 
 Plans:
 **Wave 1**
-- [ ] 07-01-PLAN.md — REL-06: generic `upgrade_addressed`, pinned fact gates FAIL with a re-pin message, mutation cases, policy docstring and PROJECT.md row (wave 1)
+- [x] 07-01-PLAN.md — REL-06: generic `upgrade_addressed`, pinned fact gates FAIL with a re-pin message, mutation cases, policy docstring and PROJECT.md row (wave 1)
 - [ ] 07-02-PLAN.md — MAINT-06: `no_compiler_path` / `no_compiler_env` PATH scrub in `tests/lib.sh`, no-route call sites, `tests/test_path_scrub.sh` fake-compiler and mutation proof (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -165,7 +165,7 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 7. Test hardening and release prep | v0.2.1 | 0/4 | Planned | - |
+| 7. Test hardening and release prep | v0.2.1 | 1/4 | In Progress | - |
 | 8. Codex plugin route | v0.2.1 | 0/TBD | Not started | - |
 | 9. Windows and macOS verification | v0.2.1 | 0/TBD | Not started | - |
 | 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |
