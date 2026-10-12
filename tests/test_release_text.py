@@ -2,8 +2,10 @@
 gates the release text so it stays honest.
 
 What is locked: README.md states the version of tests/test_layout.py (the single source of the
-version); CHANGELOG.md holds exactly one entry headed with that version, with the sections
-Upgrading, Tested against and Not run in that order; no leftover of the earlier entry; the
+version); the newest entry of CHANGELOG.md (its first "## " heading) is headed with that version
+and has the sections Upgrading, Tested against and Not run in that order, with no placeholder
+heading or word in it; older entries below it are left alone, so the next release only adds
+one above; the
 Upgrading section is addressed to users of main before this version, carries the Claude Code
 update commands, and quotes three installer lines byte for byte (each quote must also sit on a
 non-comment line of codex/install-codex.sh, so a reworded installer fails here); the Not run
@@ -25,7 +27,6 @@ ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
 
 # assembled from pieces so this file never names what it searches for (self-scan convention)
-OLD = "0.1" + ".0"
 LEFTOVER = "unre" + "leased"
 NEXT_HEADING = "### " + "Next"
 
@@ -78,11 +79,11 @@ readme_hit = [ln for ln in readme
 gate("readme_version", len(readme_hit) == 1,
      "README.md states version %s on %d line(s)" % (VERSION, len(readme_hit)))
 
-# CHANGELOG: one "## " line, equal to the version
+# CHANGELOG: the newest entry (first "## " line) is headed with the version; older entries stay
 change = read_lines("CHANGELOG.md") or []
 h2 = [ln for ln in change if ln.startswith("## ")]
-gate("changelog_heading", h2 == ["## " + VERSION],
-     "second-level headings=%r want ['## %s']" % (h2, VERSION))
+gate("changelog_heading", h2[:1] == ["## " + VERSION],
+     "newest second-level heading=%r want '## %s'" % (h2[:1], VERSION))
 
 # the entry: lines after the first "## " line up to the next "## " line or the end
 entry = []
@@ -110,11 +111,11 @@ for ln in entry:
 gate("changelog_sections", heads == ["Upgrading", "Tested against", "Not run"],
      "### headings=%r want Upgrading, Tested against, Not run" % (heads,))
 
-# leftovers of the earlier entry
-text = "\n".join(change)
-left = [w for w in (OLD, LEFTOVER, NEXT_HEADING) if w in text]
+# placeholders in the newest entry only; older entries may say what they like
+text = "\n".join(entry)
+left = [w for w in (LEFTOVER, NEXT_HEADING) if w in text]
 gate("changelog_leftovers", not left,
-     "CHANGELOG.md holds %s" % ", ".join(left) if left else "no leftover of the earlier entry")
+     "newest CHANGELOG.md entry holds %s" % ", ".join(left) if left else "no placeholder in the newest entry")
 
 # the Upgrading section: addressee and Claude Code commands
 upgrading = squash(sections.get("Upgrading", []))
