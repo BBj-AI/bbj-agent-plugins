@@ -243,6 +243,10 @@ and every `bbj` block passes both live routes. At the end `bbj-web-programming` 
   windows with CSS; the owner's view is that a BBjTopLevelWindow is sized and positioned with the API, and
   CSS lays out only the controls inside a window created with the Automatic Layout flag. Not granted as a
   rule for this phase (owner chose to leave it out); a future skill item.
+  The same separate sampling effort revisits two rejected owner items (owner, 2026-10-12): O3 (where BBj
+  puts inline width/height: not on dwc-frame; seen once on dwc-window-center, not reproducible) and O8
+  (getX/getY/getWidth/getHeight on an Automatic Layout window return correct numbers and update on move
+  and resize, not null; the owner suggests the old claim may have meant controls inside a dynamic layout).
 
 </deferred>
 
