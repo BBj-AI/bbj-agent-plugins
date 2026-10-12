@@ -264,7 +264,7 @@ Plans:
   3. The full suite passes with `skip=0` on the live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`), and an install from the git marketplace source passes
   4. The release is tagged `0.2.0`
 
-**Plans**: 4/8 plans executed
+**Plans**: 5/8 plans executed
 
 Plans:
 **Wave 1**
@@ -285,7 +285,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion; not autonomous)*
 
-- [ ] 06-05-PLAN.md — Real Codex D-11: fresh install with --with-local checked without a model, owner /hooks approval, billed apply_patch run, home restored per D-22, daemon stopped (wave 5, after 06-04)
+- [x] 06-05-PLAN.md — Real Codex D-11: fresh install with --with-local checked without a model, owner /hooks approval, billed apply_patch run, home restored per D-22, daemon stopped (wave 5, after 06-04)
 
 **Wave 6** *(blocked on Wave 5 completion; not autonomous)*
 
@@ -317,4 +317,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
 | 5. bbj-web-programming makeover | 10/10 | Complete    | 2026-10-12 |
-| 6. Release 0.2.0 | 4/8 | In Progress | - |
+| 6. Release 0.2.0 | 5/8 | In Progress | - |
