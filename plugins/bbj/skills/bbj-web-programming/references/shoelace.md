@@ -10,8 +10,9 @@ Page: https://documentation.basis.cloud/BASISHelp/WebHelp/bbjobjects/Window/BBjW
   `attributes$ = "type=module"`. The BBjWebComponent_setSlot page does this in its Shoelace example: it sets
   `attributes$ = "type=module"` and calls `browser!.injectScriptUrl(url$, top, attributes$)`.
 - An ES module injected inline with injectScript() cannot load its relative imports, while the same module loaded with injectScriptUrl(url, top, "type=module") can. That is the rule the skill maintainer confirmed on BBj 26.03; the documentation does not state it.
-- Where a library file under `<BBjHome>/htdocs` is served from, the `/files/` path: see SKILL.md, section
-  "Injecting CSS and JavaScript".
+- DWC_Registration_Launching gives a `/files/` URL for an html file saved in the htdocs directory: see
+  SKILL.md, section "Injecting CSS and JavaScript". The `/files/lib/shoelace/shoelace.js` path below is an example, not
+  a documented location of a library file; confirm its URL in the browser.
 
 ```bbj
 declare auto BBjWebManager web!
