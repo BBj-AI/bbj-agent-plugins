@@ -48,7 +48,8 @@
     "security_asvs_level": 1,
     "security_block_on": "high",
     "tdd_mode": false,
-    "ui_review": false
+    "ui_review": false,
+    "_auto_chain_active": true
   },
   "ship": {
     "pr_body_sections": [
@@ -97,5 +98,8 @@
   "graphify": {
     "enabled": false,
     "auto_update": false
+  },
+  "planning": {
+    "pr_strict": true
   }
 }

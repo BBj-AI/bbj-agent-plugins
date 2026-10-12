@@ -85,6 +85,22 @@ skill content beyond what the finding triage requires.
 - **D-19:** The release run happens on this machine (BBj 26.03, `bbj-ls` on `127.0.0.1:5009`, as
   in Phases 3–5). The owner starts BBjServices if it is not running.
 
+### Release-run decisions (owner, plan 06-03, 2026-10-12)
+- **D-20:** option (a): plan 06-04 pushes the release-candidate branch and runs the D-13 checks from
+  the git source `BBj-AI/bbj-agent-plugins#gsd/planning-setup-pr` in a throwaway config; that line
+  goes into the CHANGELOG before the merge. After the merge, plan 06-07 repeats the install from
+  `main` (no ref) as the D-05 gate and proves the merge commit's tree equals the tested tree
+  (default accepted by the owner)
+- **D-21:** option (a): `.claude/CLAUDE.md` ships on main as the strict branch leaves it (default
+  accepted by the owner)
+- **D-22:** option (a): Codex: fresh install into the real home, restored to the recorded before
+  state afterwards; Claude Code: a throwaway `CLAUDE_CONFIG_DIR` under
+  `${TMPDIR:-/tmp}/bbj-release-06` with one owner login, deleted after the run (default accepted by
+  the owner)
+- **D-23:** option (a): after the runs, a version pin is set to the version and date of the release
+  run only where that run re-exercised the pinned fact; pins of facts not re-run stay (default
+  accepted by the owner)
+
 ### Claude's Discretion
 - How the work splits into plans, the wording of the changelog bullets, and the annotated tag
   message.
