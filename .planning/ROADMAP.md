@@ -208,7 +208,7 @@ Plans:
   3. The `injectStyle` `top` claim states the documented meaning (the top-level window)
   4. Every `bbj` block in the skill and its references passes the live gate, the structure lints pass, and the skill is still invoked as `/bbj:bbj-web-programming`
 
-**Plans**: 8/10 plans executed
+**Plans**: 9/10 plans executed
 
 Plans:
 **Wave 1**
@@ -239,7 +239,7 @@ Plans:
 
 **Wave 7** *(blocked on Wave 6 completion)*
 
-- [ ] 05-06-PLAN.md — SKILL.md rewrite: trigger-first description, check-order block, documented injectStyle top meaning, two should-fail traps, pointers, index of the references 05-07 and 05-08 wrote (wave 7, after 05-05, 05-07, 05-08)
+- [x] 05-06-PLAN.md — SKILL.md rewrite: trigger-first description, check-order block, documented injectStyle top meaning, two should-fail traps, pointers, index of the references 05-07 and 05-08 wrote (wave 7, after 05-05, 05-07, 05-08)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
@@ -277,5 +277,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6. Phase 2 has no
 | 2. Hook no-route notice | 6/6 | Complete    | 2026-10-10 |
 | 3. Example gate and structure lints | 4/4 | Complete    | 2026-10-10 |
 | 4. bbj-programming makeover | 8/8 | Complete    | 2026-10-11 |
-| 5. bbj-web-programming makeover | 8/10 | In Progress | - |
+| 5. bbj-web-programming makeover | 9/10 | In Progress | - |
 | 6. Release 0.2.0 | 0/TBD | Not started | - |
