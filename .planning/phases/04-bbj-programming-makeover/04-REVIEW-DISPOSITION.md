@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "\"Put one in every mask\" can be read as `@` or `&` being a sign character"
   - id: IN-01
     severity: info
@@ -63,7 +63,7 @@ findings:
     severity: warning
     disposition: open
     title: "SQL-verb example uses unmarked placeholders that read as a working program"
-open: 4
+open: 3
 total: 15
 recorded: 2026-10-11T15:34:24.763Z
 ---
@@ -72,7 +72,7 @@ recorded: 2026-10-11T15:34:24.763Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
+| WR-01 | warning | fixed | fixed in plan 06-01 (Phase 6 D-16): @ and & named as currency characters, not sign characters |
 | IN-01 | info | open | - |
 | IN-02 | info | open | - |
 | WR-02 | warning | fixed | 04-REVIEW-FIX.md (not in the current review) |
