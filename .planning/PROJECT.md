@@ -5,9 +5,27 @@
 The `basis-bbj` plugin marketplace for coding agents (Claude Code, with an installer for
 OpenAI Codex). It gives an agent the BBj documentation MCP server, two BBj skills
 (`bbj-programming`, `bbj-web-programming`), and a hook that compile-checks every BBj file the
-agent writes, so agents write BBj that compiles. Release 0.2.0 makes this repository the home of
-the two skills, rewrites them to state only verified facts, and makes the local `bbj-ls` check
-the first choice wherever it is available.
+agent writes, so agents write BBj that compiles. Release 0.2.0 (shipped 2026-10-12) made this
+repository the home of the two skills, rewrote them to state only verified facts, and made the
+local `bbj-ls` check the preferred route over the hosted one wherever it is available.
+
+## Current State
+
+Shipped **v0.2.0** (plugin release 0.2.0, tag `0.2.0` on f15c257, GitHub Release published
+2026-10-12). Both skills are maintained here and fully enforced by the example gate on `bbjcpl -t`
+and `bbj-ls` (baseline pending `{}`, `nocheck` 0). The full suite passes at `ok=738 fail=0 skip=0`
+with live gates. Milestone record: `.planning/MILESTONES.md`; archive: `.planning/milestones/`.
+
+## Next Milestone Goals
+
+Not defined yet; `/gsd-new-milestone` sets them. Candidates carried from the v0.2.0 audit:
+
+- Ship the four planning-branch review-fix commits (CHANGELOG and docs wording, release-text
+  gates) in the next release, and settle the CONTENT_VERSION gate policy
+- Harden `real_home_untouched` against a local Codex daemon (D-2); scrub PATH in `tests/lib.sh`
+  (Phase 2 WR-01)
+- Replace the "not yet run on macOS" wording in the installer and docs
+- Send the 04/05 docs proposals to the BASIS documentation owners
 
 ## Core Value
 
@@ -40,7 +58,7 @@ and `bbj-ls`).
 
 ### Active
 
-(none — all v0.2.0 requirements shipped; next milestone defines new ones)
+(none; all v0.2.0 requirements shipped. The next milestone defines new ones; see Next Milestone Goals)
 
 ### Out of Scope
 
@@ -57,13 +75,13 @@ and `bbj-ls`).
   `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md`.
 - BBjServices 26.03+ runs `bbj-ls` on `127.0.0.1:5009` with `bbj_check_syntax`, `bbj_denum`,
   `bbj_format`; verified 2026-10-09 (`BBJ_LS_LIVE=1 sh tests/test_tier2_live.sh` passes).
-- Current skills: `bbj-programming` (SKILL.md 464 lines + 5 references), `bbj-web-programming`
-  (SKILL.md 370 lines + 7 references). About 50 example lines put `REM` after code without `;`;
-  `doSomething(v!.get(i))` is rejected (bare call). Project leftovers: `DailyDrift`/`DriftDB`,
-  `migrateSortPrefs`, `watches!`, `cart-updated`, `/opt/basis/bin/`, a statistics anecdote.
-- Worth keeping after verification: the `!ERROR=26` undeclared-value explanation, `str()`
-  masks, `bbjcpl -t -N -X` and its output quirks, the DWC DOM structure, `addOuterStyle`, the
-  focus-ring padding rule.
+- Skills after the v0.2.0 makeover: `bbj-programming` (SKILL.md 159 lines + 4 references:
+  callback-performance, database, running, sysgui) and `bbj-web-programming` (SKILL.md 164 lines
+  + 4 references: form-validation, running-dwc-apps, shoelace, styling). Before the makeover they
+  had 464 and 370 lines with 5 and 7 references. Claim ledgers, probes and docs proposals are
+  archived in `.planning/milestones/v0.2.0-phases/`.
+- Keep `bbj-programming` SKILL.md near 150 lines; it is already at 159.
+- Rules no page states ship only as owner-confirmed (OWNER ledger class), worded as such.
 - Hosted `bbj_check_syntax`, `bbj_format`, `bbj_denum` send code to `https://mcp.bbj-ai.com/mcp`
   (pre-production); that is the reason the local route is preferred.
 - Vendoring retired in Phase 1: the skills are edited here under `tests/test_layout.py`; the
@@ -118,4 +136,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-12 after Phase 6*
+*Last updated: 2026-10-12 after v0.2.0 milestone*

@@ -5,6 +5,10 @@ planted: 2026-10-09
 planted_during: plugin 0.1.0 released; no GSD milestone yet
 trigger_when: first milestone of this project; plugin release 0.2.0
 scope: large
+audit_acknowledged:
+  milestone: v0.2.0
+  at: 2026-10-12
+  status: dormant
 ---
 
 # SEED-001: This repository hosts the skills (makeover) and prefers the local bbj-ls MCP
