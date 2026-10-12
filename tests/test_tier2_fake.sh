@@ -6,6 +6,8 @@
 # working compiler means no request, and the loopback-only URL rule: refused URLs never reach
 # curl (first call: the no-route notice, then silent; plan 02-01), accepted ones carry
 # --noproxy '*' and --proto =http and no redirect flag.
+# MAINT-06 (D-11, D-12): SYSPATH is scrubbed of any BBj compiler (no_compiler_path), so a compiler
+# in /usr/bin or /bin cannot turn a no-route or tier-2 gate into a tier-1 run.
 # Nothing here runs BBj; the "compiler" is the logging fake.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -18,7 +20,8 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 1' INT TERM HUP
 
-SYSPATH=/usr/bin:/bin
+# MAINT-06, D-12: a compiler in /usr/bin or /bin would be a tier-1 route
+SYSPATH=$(no_compiler_path /usr/bin:/bin)
 ORIGPATH=$PATH
 
 # start_fake MODE: starts the fake server, sets FAKE_PID, LOGF and BBJ_LOCAL_MCP_URL.

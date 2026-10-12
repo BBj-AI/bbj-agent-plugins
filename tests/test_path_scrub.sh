@@ -83,4 +83,97 @@ else
   gate pathscrub_env_cleared FAIL "child saw: $_env"
 fi
 
+# ---- unit gates of the helper on a synthetic PATH ----
+U=$WORK/u
+_sh=$(command -v sh)  # the synthetic PATHs below hold no sh, so it is called by absolute path
+mkdir -p "$U/cpl" "$U/sh ared" "$U/win" "$U/clean" "$U/clean2"
+cp "$WORK/cplbin/bbjcpl" "$WORK/cplbin/bbjcplw" "$U/cpl/"
+cp "$WORK/cplbin/bbjcpl" "$U/sh ared/bbjcpl"
+: > "$U/sh ared/bbjcplw.exe"
+printf '#!/bin/sh\necho "mytool ran"\n' > "$U/sh ared/mytool"
+: > "$U/win/bbjcpl.exe"
+printf '#!/bin/sh\nexit 0\n' > "$U/clean/tool1"
+printf '#!/bin/sh\nexit 0\n' > "$U/clean2/tool2"
+chmod 755 "$U/cpl/bbjcpl" "$U/cpl/bbjcplw" "$U/sh ared/bbjcpl" "$U/sh ared/mytool" "$U/clean/tool1" "$U/clean2/tool2"
+
+# a directory that only holds the compiler is gone
+_out=$(no_compiler_path "$U/cpl:$U/clean")
+_f=$(PATH=$_out "$_sh" -c 'command -v bbjcpl; command -v bbjcplw')
+if [ -z "$_f" ]; then
+  gate pathscrub_compiler_only_dir ok "no compiler name resolves on $_out"
+else
+  gate pathscrub_compiler_only_dir FAIL "still found: $_f"
+fi
+
+# a shared directory (with a space in its name) keeps its other tools through the farm
+_out=$(no_compiler_path "$U/sh ared:$U/clean")
+_ran=$(PATH=$_out "$_sh" -c 'mytool')
+_f=$(PATH=$_out "$_sh" -c 'command -v bbjcpl; command -v bbjcplw.exe')
+case "$_out" in "$WORK"/pathfarm.*) _first=1 ;; *) _first=0 ;; esac
+if [ "$_ran" = "mytool ran" ] && [ -z "$_f" ] && [ "$_first" = 1 ]; then
+  gate pathscrub_shared_dir_keeps_tools ok "mytool still runs, the compiler names are gone"
+else
+  gate pathscrub_shared_dir_keeps_tools FAIL "ran '$_ran', found '$_f', output $_out"
+fi
+
+# the .exe names count
+_out=$(no_compiler_path "$U/win:$U/clean")
+case ":$_out:" in
+  *":$U/win:"*) gate pathscrub_exe_names FAIL "kept $U/win: $_out" ;;
+  *) gate pathscrub_exe_names ok "a directory with only bbjcpl.exe is replaced" ;;
+esac
+
+# clean directories keep their place and text
+_out=$(no_compiler_path "$U/clean:$U/clean2")
+if [ "$_out" = "$U/clean:$U/clean2" ]; then
+  gate pathscrub_clean_unchanged ok "clean directories are printed as given"
+else
+  gate pathscrub_clean_unchanged FAIL "got $_out"
+fi
+
+# empty entries are dropped
+_out=$(no_compiler_path ":$U/clean::$U/clean2:")
+if [ "$_out" = "$U/clean:$U/clean2" ]; then
+  gate pathscrub_empty_entries_dropped ok "empty entries are gone"
+else
+  gate pathscrub_empty_entries_dropped FAIL "got $_out"
+fi
+
+# order is kept: clean, farm, clean2
+_out=$(no_compiler_path "$U/clean:$U/cpl:$U/clean2")
+_n=$(printf '%s' "$_out" | awk -F: '{ print NF }')
+_e1=$(printf '%s' "$_out" | awk -F: '{ print $1 }')
+_e2=$(printf '%s' "$_out" | awk -F: '{ print $2 }')
+_e3=$(printf '%s' "$_out" | awk -F: '{ print $3 }')
+case "$_e2" in "$WORK"/pathfarm.*) _farm=1 ;; *) _farm=0 ;; esac
+if [ "$_n" = 3 ] && [ "$_e1" = "$U/clean" ] && [ "$_farm" = 1 ] && [ "$_e3" = "$U/clean2" ]; then
+  gate pathscrub_order_kept ok "clean, farm, clean2"
+else
+  gate pathscrub_order_kept FAIL "got $_out"
+fi
+
+# without WORK the compiler directory is dropped
+_out=$(unset WORK; no_compiler_path "$U/cpl:$U/clean")
+if [ "$_out" = "$U/clean" ]; then
+  gate pathscrub_no_work_drops_dir ok "dropped, nothing created"
+else
+  gate pathscrub_no_work_drops_dir FAIL "got $_out"
+fi
+
+# the caller's IFS and noglob state survive a direct (non-substitution) call
+_ifs=$IFS
+no_compiler_path "$U/cpl:$U/clean" > "$WORK/state.out"
+_ifs_ok=0
+[ "$IFS" = "$_ifs" ] && _ifs_ok=1
+case "$-" in *f*) _glob_off=0 ;; *) _glob_off=1 ;; esac
+set -f
+no_compiler_path "$U/cpl:$U/clean" > "$WORK/state.out"
+case "$-" in *f*) _glob_kept=1 ;; *) _glob_kept=0 ;; esac
+set +f
+if [ "$_ifs_ok" = 1 ] && [ "$_glob_off" = 1 ] && [ "$_glob_kept" = 1 ]; then
+  gate pathscrub_shell_state_restored ok "IFS and noglob are the caller's"
+else
+  gate pathscrub_shell_state_restored FAIL "ifs_ok=$_ifs_ok globbing_on=$_glob_off noglob_kept=$_glob_kept"
+fi
+
 finish
