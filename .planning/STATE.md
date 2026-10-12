@@ -4,17 +4,17 @@ milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
 current_phase: 07
 current_phase_name: Test hardening and release prep
-status: executing
-stopped_at: Completed 07-03-PLAN.md
-last_updated: "2026-10-12T21:52:44.990Z"
+status: verifying
+stopped_at: Completed 07-04-PLAN.md
+last_updated: "2026-10-12T22:03:29.363Z"
 last_activity: 2026-10-12
 last_activity_desc: Phase 07 execution started
-state_head: 8354f016006648d98e29c3b7d3977e1ef7d7c10b
+state_head: 57bebd9a427f021f902d373b919bf13bc8bb89bf
 progress:
   total_phases: 4
   completed_phases: 0
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 
 Phase: 07 (Test hardening and release prep) — EXECUTING
 Plan: 4 of 4
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-12 — Phase 07 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -107,6 +107,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 07 P01 | 12 min | 2 tasks | 3 files |
 | Phase 07 P02 | 8 min | 3 tasks | 5 files |
 | Phase 07 P03 | 12 min | 2 tasks | 3 files |
+| Phase 07 P04 | 6 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 07]: Release-text gates: upgrade_addressed runs at every version; upgrade_quotes and not_run pinned to CONTENT_VERSION and FAIL with a re-pin message elsewhere (REL-06 D-04..D-07) — A version bump must not pass on older facts; a skip would block the skip=0 release run
 - [Phase 07]: 07-02: no_compiler_path replaces a compiler-holding PATH directory with a symlink farm under WORK instead of dropping it — Shared directories such as /usr/local/bin keep sh, awk, curl and python3 reachable (D-11 intent); removal only when WORK is unset
 - [Phase 07]: 07-03: home_snapshot lists six installer-written paths as F/D/L/U/- lines with cksum, LC_ALL=C sorted; Phase 8 extends the list — content not mtime (D-08, D-09); daemon files never read
+- [Phase 07]: No gate-prefix sync gate (MAINT-08) — CI must not run the suite twice, .planning/ is stripped from the PR branch, and variable-built gate names defeat a static check
+- [Phase 07]: Release tree is gsd/planning-setup; review-fix commits proven by ancestry (REL-05, D-01); local main fast-forwarded to origin/main with no push (D-02) — Phase 10 PR carries the commits to main
 
 ### Pending Todos
 
@@ -150,8 +153,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-12T21:52:44.955Z
-Stopped at: Completed 07-03-PLAN.md
+Last session: 2026-10-12T22:03:24.853Z
+Stopped at: Completed 07-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
