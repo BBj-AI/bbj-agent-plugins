@@ -1,0 +1,15 @@
+Date: 2026-10-12
+Mode: strict (planning.pr_strict=true); built by the gsd-pr-branch workflow steps with target main
+PR head: 7ec798d73192831f3fb712d13a8e02573fa17c7e
+Planning HEAD: 333bd960ea50a71149971172f95cf29690fc3e42
+Commit count main..gsd/planning-setup-pr: 104 (of 289 on the planning branch)
+Planning paths named by any commit of main..gsd/planning-setup-pr: 0
+Planning deletions against main: 0
+Deletions against main: plugins/bbj/skills/bbj-programming/references/java-interop.md plugins/bbj/skills/bbj-programming/references/reserved-words.md plugins/bbj/skills/bbj-web-programming/references/color-chooser.md plugins/bbj/skills/bbj-web-programming/references/responsive-layout.md plugins/bbj/skills/bbj-web-programming/references/shadow-dom-styling.md plugins/bbj/skills/bbj-web-programming/references/themes.md skills.lock.json tests/test_skills_hash.py 
+Merge base: 3c75f4f8a6c6bfb638fce2b327a5ea9cdc58c23b
+main: 3c75f4f8a6c6bfb638fce2b327a5ea9cdc58c23b
+origin/main: 3c75f4f8a6c6bfb638fce2b327a5ea9cdc58c23b
+Release tree of gsd/planning-setup (without .planning): 600a01a88e5534ed03a14be07d3cc8b002ba3593
+PR branch root tree: 600a01a88e5534ed03a14be07d3cc8b002ba3593
+Tree equality: equal
+Pushed to origin: no
