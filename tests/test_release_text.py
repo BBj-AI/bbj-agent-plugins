@@ -5,7 +5,9 @@ What is locked for every version: README.md states the version of tests/test_lay
 single source of the version); the newest entry of CHANGELOG.md (its first "## " heading) is
 headed with that version and has the sections Upgrading, Tested against and Not run in that
 order, with no placeholder heading or word in it; older entries below it are left alone, so the
-next release only adds one above; the install page carries the Claude Code update commands.
+next release only adds one above; the install page carries the Claude Code update commands; the
+Claude Code and Codex CLI versions it was tested with each name one version across the install
+pages, the CHANGELOG and the installer.
 
 What is locked only while the version is CONTENT_VERSION (0.2.0): the facts of that release.
 The Upgrading section is addressed to users of main before this version, carries the Claude Code
@@ -163,13 +165,25 @@ if pinned:
 else:
     skip("upgrade_quotes", "the installer quotes are pinned to %s only" % CONTENT_VERSION)
 
-# every "Codex CLI N.N.N" string names one version, so a bump cannot miss a place (REVIEW IN-03)
+# every "Codex CLI N.N.N" string names one version, so a bump cannot miss a place (REVIEW IN-03).
+# The text is squashed first, so a hard wrap between "Codex CLI" and the number still matches.
+# Only "Codex CLI N.N.N" counts: the installer's "Codex 0.156.1" comment is the version that
+# broke on a tool table without a server table, a historical fact that stays as it is.
 codex_versions = set()
 for rel in ("codex/install-codex.sh", "docs/install-codex.md"):
-    for ln in read_lines(rel) or []:
-        codex_versions.update(re.findall(r"Codex CLI ([0-9]+\.[0-9]+\.[0-9]+)", ln))
+    codex_versions.update(re.findall(r"Codex CLI ([0-9]+\.[0-9]+\.[0-9]+)", squash(read_lines(rel) or [])))
 gate("codex_version_single", len(codex_versions) == 1,
      "Codex CLI versions named in the installer and its page: %s" % sorted(codex_versions))
+
+# the Claude Code version the release was tested with is one version in the install page
+# ("tested with Claude Code N.N.N") and the newest CHANGELOG entry ("- Claude Code N.N.N: ...").
+# Other mentions ("2.1.281 or later", the subagent check on 2.1.294) are different facts (REVIEW IN-01)
+claude_versions = set(re.findall(r"tested with Claude Code ([0-9]+\.[0-9]+\.[0-9]+)", page))
+claude_versions.update(re.findall(r"(?:^| )Claude Code ([0-9]+\.[0-9]+\.[0-9]+): ",
+                                  squash(sections.get("Tested against", []))))
+gate("claude_version_single", len(claude_versions) == 1,
+     "Claude Code versions tested with, in the install page and the newest entry: %s"
+     % sorted(claude_versions))
 
 # the Not run section: exactly the two D-15 lines
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]

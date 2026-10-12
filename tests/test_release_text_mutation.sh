@@ -102,6 +102,7 @@ mutate upgrade_addressed CHANGELOG.md 's/claude plugin marketplace update basis-
 mutate upgrade_install_page docs/install-claude-code.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
 mutate upgrade_quotes codex/install-codex.sh 's/every update of it makes Codex ask/every update of it makes Codex request/'
 mutate codex_version_single docs/install-codex.md '1,/Codex CLI [0-9][0-9.]*/s/Codex CLI [0-9][0-9.]*/Codex CLI 0.0.1/'
+mutate claude_version_single docs/install-claude-code.md 's/tested with Claude Code [0-9][0-9.]*/tested with Claude Code 2.1.0/'
 mutate not_run CHANGELOG.md 's/^- macOS: not run on macOS\.$/- macOS: run./'
 
 finish
