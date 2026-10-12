@@ -1,0 +1,11 @@
+pr: https://github.com/BBj-AI/bbj-agent-plugins/pull/1
+command: gh pr merge 1 --merge --match-head-commit d6e5d56035302483fd73abb79fee4af7c0a35aaf
+merge: f15c257f6fba6e5d4cde60e49ad06727de44f68f
+parent1: 3c75f4f8a6c6bfb638fce2b327a5ea9cdc58c23b
+parent2: d6e5d56035302483fd73abb79fee4af7c0a35aaf
+tree: 77b1c7a7b49401ba7ee033f0c992c5bac7072e07
+parents: 2
+planning_paths: 0
+tags_on_origin: 0
+main_ci: success https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38279355272
+install_gate_main: pass
