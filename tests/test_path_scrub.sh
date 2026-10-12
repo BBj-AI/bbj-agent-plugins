@@ -42,5 +42,45 @@ green() {
 }
 
 green noroute_notice test_noroute_notice.sh '^gate notice_text_claude ok '
+green exit_contract test_exit_contract.sh '^gate contract_[a-z]*_no_route ok '
+
+# a copy of tests/ whose no_compiler_path does nothing: removing the scrub must be caught. The
+# copy's REPO is $WORK/mut (fake-bin and fake_mcp.py are found inside it); it has no plugins/,
+# so SCRIPT points at the real hook. A later definition wins in POSIX sh.
+mkdir -p "$WORK/mut"
+cp -R "$REPO/tests" "$WORK/mut/tests"
+printf '%s\n' 'no_compiler_path() { printf '"'"'%s'"'"' "${1-$PATH}"; }' >> "$WORK/mut/tests/lib.sh"
+
+# mutant TAG FILE PROOF_REGEX: FILE runs nested from the mutated copy with the fake compiler first
+# on PATH; it must exit 1 and print a line that matches PROOF_REGEX.
+mutant() {
+  if cmp -s "$WORK/mut/tests/lib.sh" "$REPO/tests/lib.sh"; then
+    gate "pathscrub_mutation_$1" FAIL "the mutation changed nothing"
+    return
+  fi
+  SCRIPT="$REPO/plugins/bbj/scripts/bbj-check.sh" PATH=$WORK/cplbin:$PATH sh "$WORK/mut/tests/$2" > "$WORK/mut.$1.out" 2>&1
+  _mrc=$?
+  if [ "$_mrc" = 1 ] && grep -q "$3" "$WORK/mut.$1.out"; then
+    gate "pathscrub_mutation_$1" ok "$2 goes red when the scrub is a no-op"
+  else
+    gate "pathscrub_mutation_$1" FAIL "rc $_mrc, no $3 line: removing the scrub was not caught"
+  fi
+}
+
+mutant noroute_notice test_noroute_notice.sh '^gate notice_text_claude FAIL '
+mutant exit_contract test_exit_contract.sh '^gate contract_[a-z]*_no_route FAIL '
+
+# no_compiler_env clears every other discovery source, in the calling shell
+_env=$(
+  BBJ_HOME=/x; BBJHOME=/y; CLAUDE_PLUGIN_OPTION_BBJ_HOME=/z; BBJ_CHECK_DEFAULT_HOMES=/opt/bbx
+  export BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME BBJ_CHECK_DEFAULT_HOMES
+  no_compiler_env
+  sh -c 'printf "%s|%s|%s|%s" "${BBJ_HOME-unset}" "${BBJHOME-unset}" "${CLAUDE_PLUGIN_OPTION_BBJ_HOME-unset}" "${BBJ_CHECK_DEFAULT_HOMES+set}${BBJ_CHECK_DEFAULT_HOMES}"'
+)
+if [ "$_env" = "unset|unset|unset|set" ]; then
+  gate pathscrub_env_cleared ok "BBJ_HOME, BBJHOME and the plugin option are unset; the default homes are empty"
+else
+  gate pathscrub_env_cleared FAIL "child saw: $_env"
+fi
 
 finish

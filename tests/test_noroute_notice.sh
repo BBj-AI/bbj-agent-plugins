@@ -21,6 +21,7 @@
 mkwork
 # MAINT-06, D-11, D-12: a compiler on the caller's PATH would be a route
 PATH=$(no_compiler_path)
+no_compiler_env
 
 # plan 02-02 starts fake servers: kill them as well as removing WORK (as tests/test_tier2_fake.sh does)
 FAKE_PIDS=
