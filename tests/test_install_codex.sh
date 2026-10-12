@@ -1,7 +1,8 @@
 #!/bin/sh
 # tests/test_install_codex.sh -- plan 19-05 Task 2 (PLUG-04, D-15): codex/install-codex.sh in
 # a temp HOME and CODEX_HOME with a fake codex. Every case has its own temp directories; the
-# real ~/.codex and ~/.agents are never touched (gate real_home_untouched). Nothing here runs
+# real ~/.codex and ~/.agents are never touched (the real_home_untouched gate compares content
+# checksums of the paths the installer can write). Nothing here runs
 # BBj. Codex runs only in the optional gate real_codex_parses_configs (BBJ_TEST_CODEX=/path/to/codex,
 # else a codex on the caller's PATH), only as `codex mcp get bbj-docs` (and bbj-local) and `codex mcp add` in temp
 # homes, never a session; without a codex that gate is a clean skip. Plan 01-06 adds the tools/list
@@ -26,8 +27,7 @@ REAL_CODEX=${BBJ_TEST_CODEX:-$(command -v codex 2> /dev/null)}
 INSTALLER=$REPO/codex/install-codex.sh
 SYSPATH=/usr/bin:/bin
 REALHOME=${HOME:-/nonexistent}
-: > "$WORK/marker"
-sleep 1
+home_snapshot "$REALHOME/.codex" "$REALHOME/.agents/skills" > "$WORK/home.before"
 
 if [ ! -f "$INSTALLER" ]; then
   gate installer_exists FAIL "missing $INSTALLER"
@@ -1517,7 +1517,12 @@ done < "$WORK/written.list"
 [ -z "$named" ] && gate check_tools_never_named ok "$(awk 'END { print NR }' "$WORK/written.list") written configs: none names bbj_check_syntax, bbj_format or bbj_denum" || gate check_tools_never_named FAIL "named in:$named"
 
 # ---- the real ~/.codex and ~/.agents were never touched ----
-touched=$(find "$REALHOME/.codex" "$REALHOME/.agents" -newer "$WORK/marker" 2> /dev/null | head -n 3)
-[ -z "$touched" ] && gate real_home_untouched ok "nothing under the real ~/.codex or ~/.agents changed" || gate real_home_untouched FAIL "changed: $touched"
+# MAINT-07, D-08 to D-10: content of the paths the installer can write; daemon files are ignored
+home_snapshot "$REALHOME/.codex" "$REALHOME/.agents/skills" > "$WORK/home.after"
+if _changed=$(home_diff "$WORK/home.before" "$WORK/home.after"); then
+  gate real_home_untouched ok "no watched path under the real ~/.codex or ~/.agents/skills changed (config.toml, config.toml.bbj-backup, hooks.json, bbj/, bbj-programming/, bbj-web-programming/)"
+else
+  gate real_home_untouched FAIL "changed: $(printf '%s' "$_changed" | tr '\n' ' ')"
+fi
 
 finish

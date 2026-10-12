@@ -29,6 +29,11 @@
 #                       holds a BBj compiler (MAINT-06, D-11); only for no-route tests
 #   no_compiler_env     unsets BBJ_HOME, BBJHOME and CLAUDE_PLUGIN_OPTION_BBJ_HOME and sets
 #                       BBJ_CHECK_DEFAULT_HOMES empty, in the calling shell (MAINT-06, D-11)
+#   home_snapshot CODEXHOME SKILLSDIR   prints a sorted content snapshot of the six paths the Codex
+#                       installer can write (MAINT-07, D-08, D-09): one line per entry, a kind and a
+#                       path, never a time
+#   home_diff BEFORE AFTER   returns 0 when two snapshot files are identical; otherwise prints at
+#                       most three changed lines and returns 1 (MAINT-07, D-10)
 #
 # Hermetic defaults (exported here): the built-in default homes are replaced by an empty
 # list, no BBj environment variable is set, and the loopback check URL is a closed port,
@@ -193,4 +198,49 @@ no_compiler_env() {
   unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME
   BBJ_CHECK_DEFAULT_HOMES=
   export BBJ_CHECK_DEFAULT_HOMES
+}
+
+# home_snapshot CODEXHOME SKILLSDIR: one line per entry under the paths the Codex installer can
+# write, sorted with LC_ALL=C (MAINT-07, D-08, D-09, D-10):
+#   F <crc> <size> <path>   regular file (cksum of the content, never a time)
+#   D <path>   directory    L <path>   symlink (not followed)    U <path>   unreadable    - <path>   absent
+# Content, never mtime (D-09): a touch changes nothing, an edited, added or removed file does. Only
+# the six paths below are read, so daemon files (logs_*.sqlite*, state_*.sqlite, history.jsonl,
+# sessions/, log/, tmp/) and credential files (auth.json) are never opened. File content is never
+# printed, only its cksum values. Pass the real homes or fake ones; this helper only reads.
+# Accepted residual risk: Codex itself rewrites config.toml when a session trusts a new project or
+# changes a TUI option. That is a real content change and fails real_home_untouched by design, so do
+# not open Codex in a new project during a suite run (0.2.0 D-18 advice, narrowed).
+home_snapshot() {
+  _hs_c=$1
+  _hs_s=$2
+  # D-08: the paths codex/install-codex.sh can write; Phase 8 adds its plugin-route paths here
+  for _hs_p in "$_hs_c/config.toml" "$_hs_c/config.toml.bbj-backup" "$_hs_c/hooks.json" \
+    "$_hs_c/bbj" "$_hs_s/bbj-programming" "$_hs_s/bbj-web-programming"; do
+    if [ -L "$_hs_p" ]; then
+      printf 'L %s\n' "$_hs_p"
+    elif [ -e "$_hs_p" ]; then
+      find "$_hs_p" -print 2> /dev/null | while IFS= read -r _hs_f; do
+        if [ -L "$_hs_f" ]; then
+          printf 'L %s\n' "$_hs_f"
+        elif [ -d "$_hs_f" ]; then
+          printf 'D %s\n' "$_hs_f"
+        elif [ -r "$_hs_f" ]; then
+          printf 'F %s %s\n' "$(cksum < "$_hs_f")" "$_hs_f"
+        else
+          printf 'U %s\n' "$_hs_f"
+        fi
+      done
+    else
+      printf -- '- %s\n' "$_hs_p"
+    fi
+  done | LC_ALL=C sort
+}
+
+# home_diff BEFORE AFTER: returns 0 and prints nothing when the two snapshot files are identical;
+# otherwise prints the first three changed lines ("<" before, ">" after) and returns 1.
+home_diff() {
+  cmp -s "$1" "$2" && return 0
+  diff "$1" "$2" | grep -e '^<' -e '^>' | head -n 3
+  return 1
 }
