@@ -28,7 +28,7 @@ orphan release).
 
 ## Fixed Issues
 
-### WR-01: A watched path that is a symlink to a regular file was recorded by target only
+### WR-01: A watched path that is a symlink to a regular file is recorded by target only, so a write through it goes undetected
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
@@ -40,7 +40,7 @@ documents the `T` line. New gates `homeguard_filelink_write_through_detected` (e
 `homeguard_filelink_untouched_same` (touch on link and target, expects `same`). With `tests/lib.sh`
 stashed to the old version the write-through gate fails, so the gate is load-bearing.
 
-### WR-02: An incomplete snapshot compared equal to itself, so `real_home_untouched` reported `ok`
+### WR-02: An incomplete snapshot compares equal to itself, so `real_home_untouched` reports `ok` when part of the home could not be read
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_install_codex.sh`, `tests/test_home_guard.sh`
@@ -53,7 +53,7 @@ calls on the real homes are unchanged, so `homeguard_install_codex_uses_helper` 
 `homeguard_incomplete_snapshot` (an `E` line in both snapshots, an empty pair, a missing file, and a
 complete pair) and `homeguard_incomplete_status` (skip locally, FAIL under `CI=true`).
 
-### IN-01: The temp-file globs silently stopped expanding under `set -f`
+### IN-01: The temp-file globs in `home_snapshot` silently stop expanding when the caller has `set -f`
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
@@ -64,7 +64,7 @@ complete pair) and `homeguard_incomplete_status` (skip locally, FAIL under `CI=t
 `differ` with an `F` line for it, and checks that `set -f` is still on afterwards. It fails on the old
 `home_snapshot`.
 
-### IN-02: Directory modes were not recorded; `readlink` is outside POSIX
+### IN-02: Directory modes are not recorded, and `readlink` is outside the POSIX tool list
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
@@ -76,7 +76,7 @@ header says so. The classifier checks `command -v readlink` once and otherwise c
 holds only symlinks to `find`, `sh`, `sort`, `ls`, `awk`, `sed`, `cksum`, `cat`, `grep`, `head`, `tr`: the
 two retargeted snapshots printed different `L` lines.
 
-### IN-03: `TIER2_TEST_SYSPATH` was read from the ambient environment
+### IN-03: `TIER2_TEST_SYSPATH` is read from the ambient environment
 
 **Disposition:** fixed
 **Files modified:** `tests/test_path_scrub.sh`, `tests/run.sh`
@@ -86,7 +86,7 @@ and an `unset TIER2_TEST_SYSPATH` at the top of `tests/run.sh` (with a comment),
 the developer's shell reaches neither the nested runs nor `tests/test_tier2_fake.sh` under the runner.
 Checked by running `test_path_scrub.sh` with `TIER2_TEST_SYSPATH=/nonexistent` exported: all 19 gates ok.
 
-### IN-04: `homeguard_fifo_not_opened` left orphans on failure; `homeguard_unreadable_dir_reported` skipped as root
+### IN-04: `homeguard_fifo_not_opened` leaves orphans on failure, and `homeguard_unreadable_dir_reported` skips as root
 
 **Disposition:** fixed
 **Files modified:** `tests/test_home_guard.sh`
