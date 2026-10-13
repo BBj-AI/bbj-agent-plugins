@@ -2198,6 +2198,19 @@ else
   gate remove_left_script_dir_extra_file FAIL "install exit $RM_RC1, remove exit $RC: $(ls "$E_CODEX/bbj" 2> /dev/null | tr '\n' ' ')"
 fi
 
+# a read-only check script is still removed: unlinking needs the directory, not the file (IN-05)
+rm_env rmreadonly
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+chmod 444 "$E_CODEX/bbj/bbj-check.sh"
+run_inst "$WITH_CODEX" --remove
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 0 ] && [ ! -e "$E_CODEX/bbj" ] && ! grep -F 'not writable' "$WORK/err" > /dev/null; then
+  gate remove_readonly_check_script ok "a chmod 444 bbj-check.sh: --remove exits 0 and removes the script and its directory"
+else
+  gate remove_readonly_check_script FAIL "install exit $RM_RC1, remove exit $RC: $(head -c 200 "$WORK/err")"
+fi
+
 # a hooks.json with a second entry: kept byte for byte, with the entry to delete by hand
 rm_env rmhooksedit
 rm_user_cfg "$E_CODEX/config.toml"

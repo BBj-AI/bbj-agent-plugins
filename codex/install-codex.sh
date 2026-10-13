@@ -298,7 +298,8 @@ else
   done
 fi
 [ ! -e "$config" ] || [ -w "$config" ] || refuse "$config is not writable"
-[ ! -e "$script_dst" ] || [ -w "$script_dst" ] || refuse "$script_dst is not writable"
+# --remove only unlinks the check script, which needs write permission on its directory (checked above), not on the file
+[ "$remove" = 1 ] || [ ! -e "$script_dst" ] || [ -w "$script_dst" ] || refuse "$script_dst is not writable"
 
 # the hooks.json block: one renderer for step 4 and for --remove (D-04), so the cmp of --remove compares
 # against the exact bytes the install writes
