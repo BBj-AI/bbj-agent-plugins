@@ -32,7 +32,10 @@ First release of the `basis-bbj` marketplace.
   plugin's `.mcp.json` sets `oauth.clientId` and `oauth.callbackPort` 47613. The Codex installer
   writes `[mcp_servers.bbj-docs.oauth]` with `client_id`,
   `callback_url = "http://localhost:47613/callback"` and `callback_port = 47613`; a rerun adds it
-  to an existing registration, and an OAuth entry of your own is left as it is. Sign in once:
+  to an existing registration, and an OAuth entry of your own is left as it is. The installer
+  writes it only for the default docs URL; another `--docs-url` gets no `oauth` table. The plugin's
+  `.mcp.json` is static, so for another `docs_url` remove its `oauth` block (see the install
+  page). Sign in once:
   `/mcp` in Claude Code, `codex mcp login bbj-docs` in Codex.
 - Skills rewritten to state only documented or reproduced facts: each claim cites a documentation
   URL or was reproduced on BBj 26.03, and every `bbj` code block passes `bbjcpl -t -N -X` and

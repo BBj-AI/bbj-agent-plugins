@@ -84,6 +84,11 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
   sign-in at `http://localhost:47613/callback`, so port 47613 must be free while you sign in.
   Until you sign in, `claude mcp list` shows `plugin:bbj:bbj-docs` with `Needs authentication`.
   Run `/mcp` in Claude Code, choose `plugin:bbj:bbj-docs` and sign in, in the browser that opens.
+  The client and the port belong to the hosted docs server only; `.mcp.json` is static and applies
+  them whatever `docs_url` is. If you point `docs_url` at another server (self-hosted, local), that
+  server rejects this client id or has no sign-in. Remove the `oauth` block from the plugin's
+  `.mcp.json` (or override the `bbj-docs` entry with your own) so the other server's own
+  registration is used; the Codex installer does this by itself, see its page.
 - Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (maintained in this repository).
 - A hook: after every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file Claude Code compiles
   the file and hands any compiler error back to Claude, which can then repair it. The hook has
