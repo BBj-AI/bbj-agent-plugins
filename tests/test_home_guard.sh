@@ -143,6 +143,26 @@ mklinkhome link_untouched_same
 touch "$H_S/bbj-web-programming/SKILL.md"
 expect link_untouched_same same
 
+# ---- a config file that is a symlink to a regular file (a dotfiles checkout), WR-01 ----
+# mkfilelinkhome NAME: like mkhome, but config.toml is a symlink to a file under $WORK
+mkfilelinkhome() {
+  mkdir -p "$WORK/$1.target" "$WORK/$1/.codex"
+  printf 'model = "a"\n' > "$WORK/$1.target/config.toml"
+  ln -s "$WORK/$1.target/config.toml" "$WORK/$1/.codex/config.toml"
+  mkhome "$1"
+  # mkhome wrote a plain file over the link target through the link; restore the wanted content
+  printf 'model = "a"\n' > "$WORK/$1.target/config.toml"
+  home_snapshot "$H_C" "$H_S" > "$WORK/$1.before"
+}
+
+mkfilelinkhome filelink_write_through_detected
+printf 'model = "b"\n' > "$H_C/config.toml"
+expect filelink_write_through_detected differ
+
+mkfilelinkhome filelink_untouched_same
+touch "$H_C/config.toml" "$WORK/filelink_untouched_same.target/config.toml"
+expect filelink_untouched_same same
+
 # ---- odd names and file types: a newline in a name, a FIFO, an unreadable directory ----
 mkhome newline_name_detected
 mkdir "$H_C/bbj"
