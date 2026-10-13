@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 08
 current_phase_name: Codex plugin route
 status: executing
-stopped_at: Completed 08-08-PLAN.md
-last_updated: "2026-10-13T15:30:16.948Z"
+stopped_at: Completed 08-06-PLAN.md
+last_updated: "2026-10-13T15:40:36.083Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 08 execution started
-state_head: 50c39370d079fdad5e696ccdf578a9a11c03b380
+state_head: ec3d5605f662ac4a7f4b753fb34e3b3819fbae14
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 ## Current Position
 
 Phase: 08 (Codex plugin route) — EXECUTING
-Plan: 7 of 8
+Plan: 8 of 8
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 08 execution started
 
@@ -117,6 +117,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 08 P04 | 16 min | 2 tasks | 2 files |
 | Phase 08 P05 | multi-session | 3 tasks | 5 files |
 | Phase 08 P08 | 30 min | 3 tasks | 3 files |
+| Phase 08 P06 | 10 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -142,6 +143,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 08]: 08-04: --remove --force is refused with exit 2 (D-03 over RESEARCH A10); a differing skill directory is never deleted by the installer
 - [Phase 08]: 08-04: the two --remove refusals (--with-local, --force) sit right after the option loop, before any filesystem access
 - [Phase 08]: 08-08: owner chose signin add-block; Codex plugin .codex-mcp.json ships the public OAuth client (clientId, callbackUrl, callbackPort 47613); D-07 holds; hook trust yes
+- [Phase 08]: 08-06: a version-only plugin upgrade (0.2.0 to 0.2.0-test, hooks.json unchanged, local marketplace, codex plugin add) kept the hook trusted with an unchanged hash and the hook ran; docs may state only that, with the other upgrade cases recorded as not run
+- [Phase 08]: 08-06: with the installer files and the plugin both present, hooks/list shows two hook entries, each skill is listed twice, the compiler runs twice and feedback arrives twice, mcp list shows one bbj-docs; after install-codex.sh --remove one hook, one copy of each skill and one bbj-docs remain
 
 ### Pending Todos
 
@@ -172,8 +175,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T15:30:16.878Z
-Stopped at: Completed 08-08-PLAN.md
+Last session: 2026-10-13T15:40:36.012Z
+Stopped at: Completed 08-06-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
