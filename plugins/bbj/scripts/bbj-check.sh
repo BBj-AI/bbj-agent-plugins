@@ -271,7 +271,12 @@ no_tier1_route() {
     | LC_ALL=C awk '{ printf "%s%s", $0, "\\n" }')
   _body='{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"bbj_check_syntax","arguments":{"code":"'"$_code"'"},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}'
 
-  _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout 1 -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
+  # Windows (WIN=1, cygpath on PATH): a closed loopback port is reported only after about two
+  # seconds there, so 1 s ends in curl exit 28 and the call would count as a route that gave no
+  # verdict instead of no route (phase 9, W-2). 5 s still fits under -m 12 and the hook timeout.
+  _ct=1
+  if [ "$WIN" = 1 ]; then _ct=5; fi
+  _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout "$_ct" -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
   _rc=$?
   # curl exit 7 (connection refused) is the only "nothing answers" outcome; every other failure
   # or an empty reply reached something and is a route that gave no verdict (see the header)
