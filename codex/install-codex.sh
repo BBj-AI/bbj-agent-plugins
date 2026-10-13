@@ -19,11 +19,11 @@
 #      pre-registered OAuth client of the hosted docs server (quick 261013-cpn), right after the
 #      bbj-docs table body (inside the managed block when there is one); only for the default
 #      docs url, any other --docs-url gets no OAuth table (review 07 WR-02). It never goes through
-#      codex mcp add for this: the client-id option of that command starts the sign-in at once
-#      and waits for a browser. An OAuth entry of your own for bbj-docs is left alone and named.
-#      An existing table only gains the missing OAuth table and tool tables;
-#      config.toml.bbj-backup is written once before the first change to an existing file. A docs tool you set to another approval_mode keeps it
-#      and is named in the output. Upgrade: versions up to 398aac5 wrote
+#      codex mcp add for this: the client-id option of that command starts the sign-in at once and
+#      waits for a browser. An OAuth entry of your own for bbj-docs is left alone and named. An
+#      existing table only gains the missing OAuth table and tool tables; config.toml.bbj-backup is
+#      written once before the first change to an existing file. A docs tool you set to another
+#      approval_mode keeps it and is named in the output. Upgrade: versions up to 398aac5 wrote
 #      default_tools_approval_mode = "approve" into the bbj-docs table, which approved every
 #      tool of the server; a rerun removes exactly that line and says so. Any other
 #      default_tools_approval_mode is left alone and reported, and when it still approves
