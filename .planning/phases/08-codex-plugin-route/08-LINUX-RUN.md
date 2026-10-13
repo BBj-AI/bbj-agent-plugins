@@ -345,3 +345,32 @@ realhome.after-owner` returned 0 and printed nothing: the real `~/.codex` and
 `~/.agents/skills` are identical to the snapshot taken before the first run of this plan
 (`config.toml` mode 0600, 367 bytes; `~/.agents/skills` absent; the other watched paths absent).
 No daemon-written change had to be named.
+
+## Scope decisions
+
+Date: 2026-10-13 (plan 08-08 Task 1, checkpoint:decision, gate blocking-human, no auto_select).
+
+The owner's reply, verbatim:
+
+> signin: add-block
+
+The reply fits the evidence: `## Owner pass` records `B: signed in` (add-block needs it). Q2 (route)
+was not asked, because `## Env probe` recorded a value for `CLAUDE_PLUGIN_ROOT`. Q3 (trust) was not
+asked, because `## Owner pass` records `trusted: yes`. The three decisions:
+
+signin: add-block
+route: d07-holds
+trust: yes
+
+- `signin: add-block` rests on the `## Owner pass` line `B: signed in` (and `A: failed: dynamic
+  client registration is disabled`): variant B's OAuth object ships in `plugins/bbj/.codex-mcp.json`
+  (applied in Task 3, see `## OAuth outcome`).
+- `route: d07-holds` rests on the `## Env probe` line `CLAUDE_PLUGIN_ROOT=<home>/.cache/bbj-phase8/envprobe/home/.codex/plugins/cache/basis-bbj/bbj/0.2.0`
+  ("Conclusion: D-07 holds"). `plugins/bbj/scripts/bbj-check.sh` is not touched by this plan.
+- `trust: yes` rests on the `## Owner pass` line `trusted: yes` (and the reading
+  `trustStatus=trusted` for `bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0` on owner-H), which
+  is the state plan 08-06's post-trust run starts from.
+
+Planning files edited by this task: none. No re-scope, no D-07 amendment and no hold, so
+ROADMAP.md, REQUIREMENTS.md and 08-CONTEXT.md keep their text (4 `### Phase ` headings, 23
+requirement lines, no `D-07 amended`).
