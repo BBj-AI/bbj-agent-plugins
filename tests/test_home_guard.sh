@@ -339,4 +339,14 @@ else
   gate homeguard_install_codex_uses_helper FAIL "home_snapshot calls: $_uses (want 2); mtime line: $_nw"
 fi
 
+# ---- static: the consumer asks home_incomplete before home_diff (an identical pair of
+# incomplete snapshots must not count as "unchanged") ----
+_hi=$(printf '%s\n' "$_code" | grep -nF 'home_incomplete "$WORK/home.before" "$WORK/home.after"' | head -n 1 | cut -d: -f1)
+_hd=$(printf '%s\n' "$_code" | grep -nF 'home_diff "$WORK/home.before" "$WORK/home.after"' | head -n 1 | cut -d: -f1)
+if [ -n "$_hi" ] && [ -n "$_hd" ] && [ "$_hi" -lt "$_hd" ]; then
+  gate homeguard_install_codex_checks_incomplete ok "home_incomplete is called (line $_hi) before home_diff (line $_hd)"
+else
+  gate homeguard_install_codex_checks_incomplete FAIL "home_incomplete line '$_hi', home_diff line '$_hd' (want both, in that order)"
+fi
+
 finish
