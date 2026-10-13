@@ -215,7 +215,78 @@ else
   gate windows_space_p_list FAIL "got $_n line(s), last '$_p', want '$WANT_P'"
 fi
 
-unset FAKE_CYGDRIVE_ROOT CLAUDE_PLUGIN_OPTION_BBJ_HOME
+# forward-slash drive paths give the same compiler call
+wcall 'C:/Users/x/bbj test/sub/f.bbj' 'C:/Users/x/bbj test'
+_t=$(wtarget)
+_n=$(grep -c '^CALL$' "$FAKE_LOG")
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_n" = 1 ] && [ "$_t" = "$WANT_T" ] && [ "$_p" = "$WANT_P" ]; then
+  gate windows_forward_slash_file ok "$_t"
+else
+  gate windows_forward_slash_file FAIL "calls $_n, target '$_t', -P '$_p'; want '$WANT_T', '$WANT_P'"
+fi
+
+# -P edges: empty entries are skipped (an exported empty project directory, an empty cwd)
+CLAUDE_PROJECT_DIR=
+export CLAUDE_PROJECT_DIR
+wcall 'C:\Users\x\bbj test\sub\f.bbj' ''
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_p" = "-PW:$WORK/drive/Users/x/bbj test/sub" ]; then
+  gate windows_p_list_empty_entries ok "$_p"
+else
+  gate windows_p_list_empty_entries FAIL "got '$_p', want '-PW:$WORK/drive/Users/x/bbj test/sub'"
+fi
+
+# -P edges: the same directory in two forms (forward slashes, then backslashes) appears once
+CLAUDE_PROJECT_DIR='C:/Users/x/bbj test'
+export CLAUDE_PROJECT_DIR
+wcall 'C:\Users\x\bbj test\sub\f.bbj' 'C:\Users\x\bbj test'
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_p" = "$WANT_P" ]; then
+  gate windows_p_list_dedup_mixed ok "$_p"
+else
+  gate windows_p_list_dedup_mixed FAIL "got '$_p', want '$WANT_P'"
+fi
+
+# -P edges: order is the file's directory, the project directory, the cwd
+CLAUDE_PROJECT_DIR='C:\Users\x\bbj test'
+export CLAUDE_PROJECT_DIR
+wcall 'C:\Users\x\bbj test\sub\f.bbj' 'C:\Users\x\other'
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+_want="-PW:$WORK/drive/Users/x/bbj test/sub;W:$WORK/drive/Users/x/bbj test;W:$WORK/drive/Users/x/other"
+if [ "$_p" = "$_want" ]; then
+  gate windows_p_list_order ok "$_p"
+else
+  gate windows_p_list_order FAIL "got '$_p', want '$_want'"
+fi
+
+# Codex discovery source (D-04): BBJ_HOME, no plugin option; relative and absolute patch headers
+unset CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR
+BBJ_HOME='C:\bbx'
+export BBJ_HOME
+# wpatch CWD HEADER-PATH: an apply_patch Add File of HEADER-PATH with payload cwd CWD
+wpatch() {
+  : > "$FAKE_LOG"
+  _pt=$(printf '%s\n' '*** Begin Patch' "*** Add File: $2" '+print "a"' '*** End Patch')
+  run_check "$(codex_payload "$1" "$_pt")"
+}
+# wpatch_gate NAME CWD HEADER-PATH: one call, the drive-letter-home compiler, the converted file
+wpatch_gate() {
+  wpatch "$2" "$3"
+  _n=$(grep -c '^CALL$' "$FAKE_LOG")
+  _a=$(sed -n 's/^ARG0 //p' "$FAKE_LOG" | tail -n 1)
+  _t=$(wtarget)
+  if [ "$_n" = 1 ] && [ "$_a" = "$WORK/drive/bbx/bin/bbjcpl.exe" ] && [ "$_t" = "$WANT_T" ]; then
+    gate "$1" ok "$_t"
+  else
+    gate "$1" FAIL "calls $_n, ARG0 '$_a', target '$_t'; want 1, '$WORK/drive/bbx/bin/bbjcpl.exe', '$WANT_T'"
+  fi
+}
+wpatch_gate windows_codex_relative 'C:\Users\x\bbj test' 'sub/f.bbj'
+wpatch_gate windows_codex_absolute 'C:\Users\x\bbj test' 'C:\Users\x\bbj test\sub\f.bbj'
+unset BBJ_HOME
+
+unset FAKE_CYGDRIVE_ROOT CLAUDE_PLUGIN_OPTION_BBJ_HOME BBJ_HOME CLAUDE_PROJECT_DIR
 PATH=$BASEPATH
 export PATH
 
