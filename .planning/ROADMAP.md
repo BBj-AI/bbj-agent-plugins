@@ -124,11 +124,11 @@ Plans:
 - [ ] 08-03-PLAN.md — CODEX-06: `install-codex.sh --remove` round trip for every installer-written form, with no codex call (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 08-04-PLAN.md — CODEX-06: `--remove` refusals (exit 2) and the left-in-place matrix (exit 3) (wave 2)
+- [ ] 08-04-PLAN.md — CODEX-06: `--remove` refusals (exit 2) and the left-in-place matrix (exit 3), then the first full-suite run on the merged wave 1 (wave 2)
 - [ ] 08-05-PLAN.md — CODEX-01 to CODEX-03, CODEX-05: scripted real-Codex runs on Linux in throwaway homes (environment probe first), then the owner pass: `/hooks` trust and sign-in tries (wave 2, checkpoint)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 08-08-PLAN.md — CODEX-01, CODEX-03: owner decision checkpoint on the OAuth block, a CODEX-01 re-scope or hold if neither sign-in works, and a D-07 amendment or hold if the probe finds no variable; writes any re-scope into ROADMAP and REQUIREMENTS, then applies the OAuth block and the route rule (wave 3, checkpoint)
+- [ ] 08-08-PLAN.md — CODEX-01 to CODEX-03: owner decision checkpoint on the OAuth block, a CODEX-01 re-scope or hold if neither sign-in works, a D-07 amendment or hold if the probe finds no variable, and a `/hooks` retry or a CODEX-02 hold if the hook could not be trusted; writes any re-scope or hold into ROADMAP and REQUIREMENTS, then applies the OAuth block and the route rule (wave 3, checkpoint)
 
 **Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 08-06-PLAN.md — CODEX-02, CODEX-05, CODEX-06: the hook after a real trust, the upgrade-trust observation, the real installer-to-plugin switch (wave 4)

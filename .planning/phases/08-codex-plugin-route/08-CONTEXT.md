@@ -37,6 +37,16 @@ code is never executed; nothing touches the real `~/.codex` or `~/.agents`.
   runs only with the owner's approval for each run.
 - Phase 7 D-08: the `home_snapshot` allowlist in `tests/lib.sh` gets the plugin-route paths
   added in this phase.
+  - *Resolved 2026-10-13 at planning (Claude's discretion, listed below; plan 08-01 Task 1
+    rewrites the `tests/lib.sh` comment to match):* no plugin-route path joins the allowlist.
+    The plugin cache (`$CODEX_HOME/plugins/`) and the `[marketplaces]` and `[plugins]` tables are
+    written by Codex itself, not by `install-codex.sh`, and change whenever the owner uses Codex.
+    Watching them in the installer-home gate `real_home_untouched` would turn ordinary Codex use
+    into false failures, as the daemon files did before Phase 7 D-08 (the MAINT-07 flake). They
+    are checked only in the throwaway homes of plans 08-05 and 08-06. The allowlist stays the
+    installer's write set, which this phase does not change, and `--remove` deletes only inside
+    it. `config.toml` stays watched as one file, so the existing residual-risk note in
+    `home_snapshot` (Codex rewriting `config.toml`) already covers the two tables.
 
 ### Switching from the installer (CODEX-06)
 - **D-01:** The switch is an installer option (name is the planner's; `--remove` is the working
