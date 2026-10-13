@@ -374,3 +374,47 @@ trust: yes
 Planning files edited by this task: none. No re-scope, no D-07 amendment and no hold, so
 ROADMAP.md, REQUIREMENTS.md and 08-CONTEXT.md keep their text (4 `### Phase ` headings, 23
 requirement lines, no `D-07 amended`).
+
+## OAuth outcome
+
+Decision: the `signin: add-block` line of `## Scope decisions`. Evidence, from `## Owner pass`:
+
+    A: failed: dynamic client registration is disabled
+    B: signed in
+
+(`codex mcp list` on owner-B read `OAuth` in the Auth column afterwards; on owner-A it stayed
+`Not logged in`.) File state after plan 08-08 Task 3:
+
+- `plugins/bbj/.codex-mcp.json` (commit `04c07be`) carries, next to `type` and `url`, the `oauth`
+  object `clientId` `oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t`, `callbackUrl`
+  `http://localhost:47613/callback`, `callbackPort` `47613`, in that key order. As parsed JSON the
+  whole file equals `~/.cache/bbj-phase8/owner-B/src/plugins/bbj/.codex-mcp.json`, the copy the
+  owner signed in with. It holds the public pre-registered client id and the loopback callback
+  only; no secret, header or token (T-08-23).
+- `tests/test_layout.py`: gate `layout_codex_mcp` now pins that exact dict, built from
+  `OAUTH_CLIENT_ID` and `OAUTH_PORT` (RED commit `88230ac` failed it on the old file with
+  `mcpServers={'bbj-docs': {'type': 'http', 'url': 'https://mcp.bbj-ai.com/mcp'}}`; the GREEN
+  commit makes it `ok`). `layout_mutation_codex_secret` is still `ok`, meaning the gate fails on
+  a copy whose `oauth` object carries a secret-style key; `layout_mutation_control` is `ok`.
+- Fresh throwaway install of the file that ships: `sh run.sh plugin
+  <home>/.cache/bbj-phase8/oauth-shipped` (HOME and CODEX_HOME in that directory, loopback fake
+  provider, real home untouched: `realhome.before` and a new snapshot are identical). Its
+  `result.txt`: `mcp_bbj_docs_url: https://mcp.bbj-ai.com/mcp`, `mcp_bbj_local: absent`,
+  `skills_programming: 1`, `skills_web: 1`, `exec_rc: 0`, `compiler_calls: 1`, `dash_n: yes`,
+  `feedback_reached_model: yes`. The installed cache copy
+  (`.../plugins/cache/basis-bbj/bbj/0.2.0/.codex-mcp.json`) holds the same `oauth` object, and
+  `codex mcp list` on that home reads `bbj-docs  https://mcp.bbj-ai.com/mcp  -  enabled  Not
+  logged in`: Codex 0.162.1 keeps the server listed with the object present and the sign-in is
+  still to be done by the user (`codex mcp login bbj-docs`).
+- Not checked here: the sign-in itself on that fresh home. It was proven on owner-B (`B: signed
+  in`) with the same object.
+
+## Route marker
+
+D-07 holds. Plan 08-08 changed neither `plugins/bbj/scripts/bbj-check.sh` nor
+`tests/test_noroute_notice.sh`. The probe line it rests on (`## Env probe`, Codex 0.162.1):
+
+    CLAUDE_PLUGIN_ROOT=<home>/.cache/bbj-phase8/envprobe/home/.codex/plugins/cache/basis-bbj/bbj/0.2.0
+
+A non-empty `CLAUDE_PLUGIN_ROOT` in the hook process tells the plugin route from the installer
+route, as D-07 locks. The owner was not asked Q2 and no location rule was added.
