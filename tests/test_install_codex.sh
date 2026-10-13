@@ -1730,7 +1730,7 @@ if _incomplete=$(home_incomplete "$WORK/home.before" "$WORK/home.after"); then
   # WR-02: an identical pair of incomplete snapshots proves nothing, so it is never reported ok
   gate real_home_untouched "$(home_incomplete_status)" "the snapshot of the real home cannot prove it unchanged: $_incomplete"
 elif _changed=$(home_diff "$WORK/home.before" "$WORK/home.after"); then
-  gate real_home_untouched ok "no watched path under the real ~/.codex or ~/.agents/skills changed (config.toml, config.toml.bbj-backup, hooks.json, bbj/, bbj-programming/, bbj-web-programming/, the installer temp files config.toml.* and hooks.json.*, and the existence of both parent directories)"
+  gate real_home_untouched ok "no watched path under the real ~/.codex or ~/.agents/skills changed (config.toml, config.toml.bbj-backup, hooks.json, bbj/, bbj-programming/, bbj-web-programming/, the six-character installer temp suffixes config.toml.XXXXXX and hooks.json.XXXXXX, and the existence of both parent directories)"
 else
   gate real_home_untouched FAIL "changed: $(printf '%s' "$_changed" | tr '\n' ' ')"
 fi
