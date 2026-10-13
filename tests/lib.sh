@@ -225,7 +225,8 @@ no_compiler_env() {
 # write, sorted with LC_ALL=C (MAINT-07, D-08, D-09, D-10):
 #   F <mode> <crc> <size> <path>   regular file (permission string and cksum of the content, never a time)
 #   T <crc> <size> <path>   content behind a symlink to a regular file (WR-01: a write through the link)
-#   D <path>   directory    L <path> -> <target>   symlink    U <path>   unreadable file
+#   D <mode> <path>   directory (permission string; IN-02)    L <path> -> <target>   symlink
+#   U <path>   unreadable file
 #   O <path>   other (FIFO, socket, device; never opened)    - <path>   absent
 #   E <path>   find failed below this watched path (an unreadable directory); the walk is incomplete
 #   H <path> present|absent   the Codex home and the skills dir themselves (the installer mkdir -p's both)
@@ -265,15 +266,19 @@ home_snapshot() {
         # in a name cannot split an entry), and only a regular file is ever opened (a FIFO would
         # block cksum forever); a find that fails, for an unreadable directory, adds an E line
         find -H "$_hs_p" -exec sh -c '
+          # readlink is not POSIX: without it the target is cut from the ls -l line, so a retarget
+          # is still seen (IN-02)
+          if command -v readlink > /dev/null 2>&1; then _rl=1; else _rl=0; fi
           for _f; do
             if [ -L "$_f" ]; then
-              printf "L %s -> %s\n" "$_f" "$(readlink "$_f")"
+              if [ "$_rl" = 1 ]; then _t=$(readlink "$_f"); else _t=$(ls -ld "$_f" | sed "s/.* -> //"); fi
+              printf "L %s -> %s\n" "$_f" "$_t"
               # the content behind a file link: a write through the link changes this and nothing else
               if [ -f "$_f" ] && [ -r "$_f" ]; then
                 printf "T %s %s\n" "$(cksum < "$_f")" "$_f"
               fi
             elif [ -d "$_f" ]; then
-              printf "D %s\n" "$_f"
+              printf "D %s %s\n" "$(ls -ld "$_f" | awk "{ print \$1 }")" "$_f"
             elif [ -f "$_f" ] && [ -r "$_f" ]; then
               printf "F %s %s %s\n" "$(ls -ld "$_f" | awk "{ print \$1 }")" "$(cksum < "$_f")" "$_f"
             elif [ -f "$_f" ]; then

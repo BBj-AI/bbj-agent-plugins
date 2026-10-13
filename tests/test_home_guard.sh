@@ -143,6 +143,14 @@ mklinkhome link_untouched_same
 touch "$H_S/bbj-web-programming/SKILL.md"
 expect link_untouched_same same
 
+# ---- a mode change on a watched directory is caught (IN-02) ----
+mkhome dir_chmod_detected
+mkdir "$H_C/bbj"
+chmod 755 "$H_C/bbj"
+home_snapshot "$H_C" "$H_S" > "$WORK/dir_chmod_detected.before"
+chmod 700 "$H_C/bbj"
+expect dir_chmod_detected differ
+
 # ---- a config file that is a symlink to a regular file (a dotfiles checkout), WR-01 ----
 # mkfilelinkhome NAME: like mkhome, but config.toml is a symlink to a file under $WORK
 mkfilelinkhome() {
