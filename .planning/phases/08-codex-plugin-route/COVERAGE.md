@@ -14,7 +14,7 @@ out of the rest. Sources: spikes 001-005, 08-RESEARCH.md, and 08-CONTEXT.md D-01
 | plugin install `codex plugin add <name>@basis-bbj` (bbj, and opt-in bbj-local) | INTEGRATE | plans 08-05, 08-07 |
 | overlay manifest `.codex-plugin/plugin.json` | INTEGRATE | D-10; plan 08-01 |
 | plugin-bundled MCP server file (`mcpServers` path, http url) | INTEGRATE | D-11; plan 08-01 |
-| plugin MCP server OAuth client (`oauth.clientId`, `callbackUrl`, `callbackPort`) | INTEGRATE | tried in plan 08-05 (variant B); shipped in `.codex-mcp.json` only if the owner chooses add-block from that evidence (plan 08-08 decision checkpoint, applied in its Task 3); if neither variant signs in, the owner re-scopes CODEX-01 or holds the phase (plan 08-08) |
+| plugin MCP server OAuth client (`oauth.clientId`, `callbackUrl`, `callbackPort`) | INTEGRATE | tried in plan 08-05 (variant B); shipped in `.codex-mcp.json` on the owner's add-block decision (plan 08-08 checkpoint, applied in Task 3); else CODEX-01 re-scope or hold |
 | plugin skills discovered from `skills/` | INTEGRATE | spike 002; checked in plan 08-05 |
 | plugin hook `hooks/hooks.json` (PostToolUse, Write or Edit on apply_patch) | INTEGRATE | unchanged file; plans 08-01 (fakes), 08-05 and 08-06 (real) |
 | hook environment `CLAUDE_PLUGIN_ROOT` | INTEGRATE | D-07 route detection; probed in plan 08-05; a replacement rule only by the owner's amendment of D-07 (plan 08-08) |
