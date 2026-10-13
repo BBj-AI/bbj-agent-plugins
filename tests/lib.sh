@@ -203,7 +203,7 @@ no_compiler_env() {
 # home_snapshot CODEXHOME SKILLSDIR: one line per entry under the paths the Codex installer can
 # write, sorted with LC_ALL=C (MAINT-07, D-08, D-09, D-10):
 #   F <mode> <crc> <size> <path>   regular file (permission string and cksum of the content, never a time)
-#   D <path>   directory    L <path>   symlink (not followed)    U <path>   unreadable    - <path>   absent
+#   D <path>   directory    L <path> -> <target>   symlink    U <path>   unreadable    - <path>   absent
 #   H <path> present|absent   the Codex home and the skills dir themselves (the installer mkdir -p's both)
 # Content, never mtime (D-09): a touch changes nothing, an edited, added or removed file does. Only
 # the paths below are read, so daemon files (logs_*.sqlite*, state_*.sqlite, history.jsonl,
@@ -211,8 +211,10 @@ no_compiler_env() {
 # installer's whole write set: config.toml, config.toml.bbj-backup, hooks.json, bbj/, the two skill
 # directories, the mktemp files the installer leaves in the Codex home when it dies between
 # mktemp and mv (config.toml.XXXXXX, hooks.json.XXXXXX), and the two parent directories. A glob
-# that matches nothing stays literal and prints as an absent path. File content is never printed,
-# only its cksum values. Pass the real homes or fake ones; this helper only reads.
+# that matches nothing stays literal and prints as an absent path. A symlink is recorded with its
+# target; a watched top-level symlink to a directory is also followed (find -H), so retargeting it
+# and writing through it both show. File content is never printed, only its cksum values. Pass the
+# real homes or fake ones; this helper only reads.
 # Accepted residual risk: Codex itself rewrites config.toml when a session trusts a new project or
 # changes a TUI option. That is a real content change and fails real_home_untouched by design, so do
 # not open Codex in a new project during a suite run (0.2.0 D-18 advice, narrowed).
@@ -227,12 +229,12 @@ home_snapshot() {
     for _hs_p in "$_hs_c/config.toml" "$_hs_c/config.toml.bbj-backup" "$_hs_c/hooks.json" \
       "$_hs_c"/config.toml.?????? "$_hs_c"/hooks.json.?????? \
       "$_hs_c/bbj" "$_hs_s/bbj-programming" "$_hs_s/bbj-web-programming"; do
-      if [ -L "$_hs_p" ]; then
-        printf 'L %s\n' "$_hs_p"
-      elif [ -e "$_hs_p" ]; then
-        find "$_hs_p" -print 2> /dev/null | while IFS= read -r _hs_f; do
+      if [ -e "$_hs_p" ] || [ -L "$_hs_p" ]; then
+        # -H: a watched top-level path that is a symlink to a directory is followed, so a write
+        # through the link is seen; links below it are recorded with their target, not followed
+        find -H "$_hs_p" -print 2> /dev/null | while IFS= read -r _hs_f; do
           if [ -L "$_hs_f" ]; then
-            printf 'L %s\n' "$_hs_f"
+            printf 'L %s -> %s\n' "$_hs_f" "$(readlink "$_hs_f")"
           elif [ -d "$_hs_f" ]; then
             printf 'D %s\n' "$_hs_f"
           elif [ -r "$_hs_f" ]; then
