@@ -3,9 +3,9 @@ phase: "08"
 slug: "codex-plugin-route"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-10-13"
 ---
 
@@ -41,25 +41,25 @@ created: "2026-10-13"
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
-| 08-01-01 | 01 | 1 | CODEX-01, CODEX-02, CODEX-04 | T-08-01..04 | literal URL equals the docs_url default; no secret in the Codex file; hook runs from a cache path with a space | unit + integration (fakes) | `python3 -I tests/test_layout.py && sh tests/test_codex_patch.sh && sh tests/test_claude_plugin.sh` | ❌ W0 (new gates in existing files) | ⬜ pending |
-| 08-01-02 | 01 | 1 | CODEX-04 | T-08-01, T-08-02 | each drift (version, URL either side, host elsewhere, missing file, extra key, secret) fails its gate | mutation | `python3 -I tests/test_layout.py` (8 layout_mutation_ gates) | ❌ W0 | ⬜ pending |
-| 08-02-01 | 02 | 1 | CODEX-03 | T-08-05, T-08-06 | plugin route names codex plugin add bbj-local@basis-bbj; root never printed | unit (fakes) | `sh tests/test_noroute_notice.sh`, plus the `static_*_bbj-check.sh` gates of `sh tests/test_static_guards.sh` | ✅ file, ❌ W0 gates | ⬜ pending |
-| 08-02-02 | 02 | 1 | CODEX-03 | T-08-05, T-08-07 | exact command per route; empty and hostile roots; env restored; exit contract | unit (fakes) | `sh tests/test_noroute_notice.sh && sh tests/test_exit_contract.sh` | ✅ file, ❌ W0 gates | ⬜ pending |
-| 08-03-01 | 03 | 1 | CODEX-06 | T-08-08..12 | --remove restores the pre-install home; never calls codex; no mkdir | integration (fake codex) | `sh tests/test_install_codex.sh`, plus the `static_*_install-codex.sh` gates of `sh tests/test_static_guards.sh` | ✅ file, ❌ W0 gates | ⬜ pending |
-| 08-03-02 | 03 | 1 | CODEX-06 | T-08-09 | every installer-written form round-trips (managed, bbj-local, markers, legacy key, custom URL, CRLF, reinstall) | integration (fakes) | `sh tests/test_install_codex.sh`, plus the `static_*_install-codex.sh` gates | ✅ file, ❌ W0 gates | ⬜ pending |
-| 08-04-01 | 04 | 2 | CODEX-06 | T-08-13, T-08-16 | refused combinations and paths exit 2 with nothing written | integration (fakes) | `sh tests/test_install_codex.sh` | ✅ file, ❌ W0 gates | ⬜ pending |
-| 08-04-02 | 04 | 2 | CODEX-06 | T-08-14, T-08-15 | user forms kept byte for byte with exit 3; installer objects still removed; wave-1 closing gate on the merged 08-01, 08-02, 08-03 | integration (fakes) + full suite | `sh tests/test_install_codex.sh && sh tests/test_static_guards.sh`, then `sh tests/run.sh` | ✅ file, ❌ W0 gates | ⬜ pending |
-| 08-05-01 | 05 | 2 | CODEX-01, CODEX-02, CODEX-03 | T-08-17, T-08-18, T-08-20 | throwaway homes only; env probe writes three variables only; fake model only | real Codex run (not CI) | `sh .planning/phases/08-codex-plugin-route/linux-run/run.sh selftest && sh .planning/phases/08-codex-plugin-route/linux-run/run.sh plugin "$HOME/.cache/bbj-phase8/verify-plugin"` | ❌ W0 (new planning script) | ⬜ pending |
-| 08-05-02 | 05 | 2 | CODEX-03, CODEX-05 | T-08-17, T-08-21 | prepared homes; sign-in tried without completing; only public OAuth values | real Codex run (not CI) | `python3 -I .planning/phases/08-codex-plugin-route/linux-run/hooks_list.py "$HOME/.cache/bbj-phase8/owner-H/home/.codex"` | ❌ W0 | ⬜ pending |
-| 08-05-03 | 05 | 2 | CODEX-01, CODEX-02, CODEX-05 | T-08-19, T-08-21 | owner trusts in /hooks (no bypass); sign-in tried in A and B; nothing chosen here; a `trusted: no` reply goes to 08-08 Q3 (retry or hold) | checkpoint:human-action | manual (owner.sh trust, login-a, login-b) | n/a | ⬜ pending |
-| 08-08-01 | 08 | 3 | CODEX-01, CODEX-02, CODEX-03 | T-08-30, T-08-32 | owner decides signin (no-block, add-block, rescope, hold); only without the variable, route (location, hold); only after `trusted: no`, trust (retry, hold); blocking-human, no auto_select | checkpoint:decision | manual (owner reply) | n/a | ⬜ pending |
-| 08-08-02 | 08 | 3 | CODEX-01, CODEX-02, CODEX-03 | T-08-30, T-08-31, T-08-32 | every rescope, hold or D-07 amendment written into ROADMAP.md and REQUIREMENTS.md (and 08-CONTEXT.md) with its date; trust yes, retried (hooks_list reads trusted) or hold, never open; no phase or requirement lost | record check | `grep -cE '^(signin: (no-block\|add-block\|rescope\|hold)\|trust: (yes\|retried\|hold))$' .planning/phases/08-codex-plugin-route/08-LINUX-RUN.md` plus the per-option marker counts of the task verify | ❌ W0 (new section) | ⬜ pending |
-| 08-08-03 | 08 | 3 | CODEX-01, CODEX-03 | T-08-23, T-08-24 | OAuth block only by owner choice, equal to the signed-in variant, public values only; location rule only by owner amendment of D-07 | unit (fakes) + record | `python3 -I tests/test_layout.py && sh tests/test_noroute_notice.sh` | ✅ | ⬜ pending |
-| 08-06-01 | 06 | 4 | CODEX-02, CODEX-05 | T-08-22 | starts only on `trust: yes` or `retried`; hook runs after a real trust without bypass; upgrade-trust observed | real Codex run (not CI) | `grep upgrade_asks_trust_again ~/.cache/bbj-phase8/owner-H/result.txt` (task verify) | ✅ after 08-05, 08-08 | ⬜ pending |
-| 08-06-02 | 06 | 4 | CODEX-06 | T-08-25 | real switch: one hook, one skill copy, one bbj-docs; double install recorded | real Codex run (not CI) | `grep -E '^(hooks_count_plugin\|remove_rc): ' ~/.cache/bbj-phase8/switch-a/result.txt` | ✅ after 08-04, 08-05 | ⬜ pending |
-| 08-07-01 | 07 | 5 | CODEX-05 | T-08-28 | page states only recorded facts; pins survive | text gates | `sh tests/test_install_pages.sh && python3 -I tests/test_release_text.py && sh tests/test_release_text_mutation.sh` | ✅ files, ❌ W0 pins | ⬜ pending |
-| 08-07-02 | 07 | 5 | CODEX-05, CODEX-06 | T-08-26, T-08-27, T-08-29 | no doc names the hook-trust bypass; switch documented with exit 3 cases; installer fallback shortened (D-15), pins kept (D-16) | text gates | `sh tests/test_install_pages.sh` | ✅ files, ❌ W0 pins | ⬜ pending |
-| 08-07-03 | 07 | 5 | CODEX-01..06 | T-08-30, T-08-32 | phase gate: strict validation, shellcheck, full suite; closes only on a recorded scope (signin, route and trust lines, re-scope or amendment markers, the retry reading) | CI entry point + record check | `sh tests/ci.sh` and the scope check of the task verify | ✅ | ⬜ pending |
+| 08-01-01 | 01 | 1 | CODEX-01, CODEX-02, CODEX-04 | T-08-01..04 | literal URL equals the docs_url default; no secret in the Codex file; hook runs from a cache path with a space | unit + integration (fakes) | `python3 -I tests/test_layout.py && sh tests/test_codex_patch.sh && sh tests/test_claude_plugin.sh` | ✅ | ✅ green |
+| 08-01-02 | 01 | 1 | CODEX-04 | T-08-01, T-08-02 | each drift (version, URL either side, host elsewhere, missing file, extra key, secret) fails its gate | mutation | `python3 -I tests/test_layout.py` (8 layout_mutation_ gates) | ✅ | ✅ green |
+| 08-02-01 | 02 | 1 | CODEX-03 | T-08-05, T-08-06 | plugin route names codex plugin add bbj-local@basis-bbj; root never printed | unit (fakes) | `sh tests/test_noroute_notice.sh`, plus the `static_*_bbj-check.sh` gates of `sh tests/test_static_guards.sh` | ✅ | ✅ green |
+| 08-02-02 | 02 | 1 | CODEX-03 | T-08-05, T-08-07 | exact command per route; empty and hostile roots; env restored; exit contract | unit (fakes) | `sh tests/test_noroute_notice.sh && sh tests/test_exit_contract.sh` | ✅ | ✅ green |
+| 08-03-01 | 03 | 1 | CODEX-06 | T-08-08..12 | --remove restores the pre-install home; never calls codex; no mkdir | integration (fake codex) | `sh tests/test_install_codex.sh`, plus the `static_*_install-codex.sh` gates of `sh tests/test_static_guards.sh` | ✅ | ✅ green |
+| 08-03-02 | 03 | 1 | CODEX-06 | T-08-09 | every installer-written form round-trips (managed, bbj-local, markers, legacy key, custom URL, CRLF, reinstall) | integration (fakes) | `sh tests/test_install_codex.sh`, plus the `static_*_install-codex.sh` gates | ✅ | ✅ green |
+| 08-04-01 | 04 | 2 | CODEX-06 | T-08-13, T-08-16 | refused combinations and paths exit 2 with nothing written | integration (fakes) | `sh tests/test_install_codex.sh` | ✅ | ✅ green |
+| 08-04-02 | 04 | 2 | CODEX-06 | T-08-14, T-08-15 | user forms kept byte for byte with exit 3; installer objects still removed; wave-1 closing gate on the merged 08-01, 08-02, 08-03 | integration (fakes) + full suite | `sh tests/test_install_codex.sh && sh tests/test_static_guards.sh`, then `sh tests/run.sh` | ✅ | ✅ green |
+| 08-05-01 | 05 | 2 | CODEX-01, CODEX-02, CODEX-03 | T-08-17, T-08-18, T-08-20 | throwaway homes only; env probe writes three variables only; fake model only | real Codex run (not CI) | `sh .planning/phases/08-codex-plugin-route/linux-run/run.sh selftest && sh .planning/phases/08-codex-plugin-route/linux-run/run.sh plugin "$HOME/.cache/bbj-phase8/verify-plugin"` | ✅ | ✅ green |
+| 08-05-02 | 05 | 2 | CODEX-03, CODEX-05 | T-08-17, T-08-21 | prepared homes; sign-in tried without completing; only public OAuth values | real Codex run (not CI) | `python3 -I .planning/phases/08-codex-plugin-route/linux-run/hooks_list.py "$HOME/.cache/bbj-phase8/owner-H/home/.codex"` | ✅ | ✅ green |
+| 08-05-03 | 05 | 2 | CODEX-01, CODEX-02, CODEX-05 | T-08-19, T-08-21 | owner trusts in /hooks (no bypass); sign-in tried in A and B; nothing chosen here; a `trusted: no` reply goes to 08-08 Q3 (retry or hold) | checkpoint:human-action | manual (owner.sh trust, login-a, login-b) | n/a | ✅ green |
+| 08-08-01 | 08 | 3 | CODEX-01, CODEX-02, CODEX-03 | T-08-30, T-08-32 | owner decides signin (no-block, add-block, rescope, hold); only without the variable, route (location, hold); only after `trusted: no`, trust (retry, hold); blocking-human, no auto_select | checkpoint:decision | manual (owner reply) | n/a | ✅ green |
+| 08-08-02 | 08 | 3 | CODEX-01, CODEX-02, CODEX-03 | T-08-30, T-08-31, T-08-32 | every rescope, hold or D-07 amendment written into ROADMAP.md and REQUIREMENTS.md (and 08-CONTEXT.md) with its date; trust yes, retried (hooks_list reads trusted) or hold, never open; no phase or requirement lost | record check | `grep -cE '^(signin: (no-block\|add-block\|rescope\|hold)\|trust: (yes\|retried\|hold))$' .planning/phases/08-codex-plugin-route/08-LINUX-RUN.md` plus the per-option marker counts of the task verify | ✅ | ✅ green |
+| 08-08-03 | 08 | 3 | CODEX-01, CODEX-03 | T-08-23, T-08-24 | OAuth block only by owner choice, equal to the signed-in variant, public values only; location rule only by owner amendment of D-07 | unit (fakes) + record | `python3 -I tests/test_layout.py && sh tests/test_noroute_notice.sh` | ✅ | ✅ green |
+| 08-06-01 | 06 | 4 | CODEX-02, CODEX-05 | T-08-22 | starts only on `trust: yes` or `retried`; hook runs after a real trust without bypass; upgrade-trust observed | real Codex run (not CI) | `grep upgrade_asks_trust_again ~/.cache/bbj-phase8/owner-H/result.txt` (task verify) | ✅ | ✅ green |
+| 08-06-02 | 06 | 4 | CODEX-06 | T-08-25 | real switch: one hook, one skill copy, one bbj-docs; double install recorded | real Codex run (not CI) | `grep -E '^(hooks_count_plugin\|remove_rc): ' ~/.cache/bbj-phase8/switch-a/result.txt` | ✅ | ✅ green |
+| 08-07-01 | 07 | 5 | CODEX-05 | T-08-28 | page states only recorded facts; pins survive | text gates | `sh tests/test_install_pages.sh && python3 -I tests/test_release_text.py && sh tests/test_release_text_mutation.sh` | ✅ | ✅ green |
+| 08-07-02 | 07 | 5 | CODEX-05, CODEX-06 | T-08-26, T-08-27, T-08-29 | no doc names the hook-trust bypass; switch documented with exit 3 cases; installer fallback shortened (D-15), pins kept (D-16) | text gates | `sh tests/test_install_pages.sh` | ✅ | ✅ green |
+| 08-07-03 | 07 | 5 | CODEX-01..06 | T-08-30, T-08-32 | phase gate: strict validation, shellcheck, full suite; closes only on a recorded scope (signin, route and trust lines, re-scope or amendment markers, the retry reading) | CI entry point + record check | `sh tests/ci.sh` and the scope check of the task verify | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -70,15 +70,15 @@ created: "2026-10-13"
 Existing infrastructure covers the framework (no install). Each new gate is created by the tracer
 task of its own plan, before any expansion task depends on it:
 
-- [ ] `plugins/bbj/.codex-plugin/plugin.json`, `plugins/bbj/.codex-mcp.json` — the files under test (08-01 Task 1)
-- [ ] `tests/test_layout.py` — `layout_codex_overlay_fields`, `layout_codex_mcp`, `layout_codex_url_equals_default`, the five-version set, the two-file host rule (08-01 Task 1); `layout_mutation_*` (08-01 Task 2) — CODEX-01, CODEX-04
-- [ ] `tests/test_codex_patch.sh` — `plugin_route_*` (08-01 Task 1) — CODEX-02
-- [ ] `tests/lib.sh` — `CLAUDE_PLUGIN_ROOT` in the hermetic unset (08-01 Task 1)
-- [ ] `tests/test_noroute_notice.sh` — the seven route gates (08-02) — CODEX-03
-- [ ] `tests/test_install_codex.sh` — `remove_*`, at least 27 gates (08-03, 08-04) — CODEX-06
-- [ ] `tests/test_install_pages.sh` — the new `codex_` and `readme_` pins, the `hook_trust_bypass` forbids, four quoted removal messages (08-07) — CODEX-05
-- [ ] `.planning/phases/08-codex-plugin-route/linux-run/` and `08-LINUX-RUN.md` — the real-run harness and record (08-05, 08-08, 08-06); planning files, not CI
-- [ ] the prefix block in `.claude/CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` — `plugin_route_`, `remove_` (08-07 Task 3)
+- [x] `plugins/bbj/.codex-plugin/plugin.json`, `plugins/bbj/.codex-mcp.json` — the files under test (08-01 Task 1)
+- [x] `tests/test_layout.py` — `layout_codex_overlay_fields`, `layout_codex_mcp`, `layout_codex_url_equals_default`, the five-version set, the two-file host rule (08-01 Task 1); `layout_mutation_*` (08-01 Task 2) — CODEX-01, CODEX-04
+- [x] `tests/test_codex_patch.sh` — `plugin_route_*` (08-01 Task 1) — CODEX-02
+- [x] `tests/lib.sh` — `CLAUDE_PLUGIN_ROOT` in the hermetic unset (08-01 Task 1)
+- [x] `tests/test_noroute_notice.sh` — the seven route gates (08-02) — CODEX-03
+- [x] `tests/test_install_codex.sh` — `remove_*`, at least 27 gates (08-03, 08-04) — CODEX-06
+- [x] `tests/test_install_pages.sh` — the new `codex_` and `readme_` pins, the `hook_trust_bypass` forbids, four quoted removal messages (08-07) — CODEX-05
+- [x] `.planning/phases/08-codex-plugin-route/linux-run/` and `08-LINUX-RUN.md` — the real-run harness and record (08-05, 08-08, 08-06); planning files, not CI
+- [x] the prefix block in `.claude/CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` — `plugin_route_`, `remove_` (08-07 Task 3)
 
 ---
 
@@ -103,6 +103,14 @@ task of its own plan, before any expansion task depends on it:
 - [x] Wave 0 covers all MISSING references (no `MISSING` sentinel is used; each gate is created in its own tracer task)
 - [x] No watch-mode flags
 - [x] Feedback latency < 130s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** {pending / approved YYYY-MM-DD}
+**Approval:** approved 2026-10-13 (validate-phase audit: every map command green on the merged phase, `sh tests/ci.sh` ok=898 fail=0; the real-Codex rows are recorded evidence in 08-LINUX-RUN.md, not CI gates)
+
+## Validation Audit 2026-10-13
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
