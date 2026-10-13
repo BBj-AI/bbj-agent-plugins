@@ -246,6 +246,9 @@ if command -v mkfifo > /dev/null 2>&1; then
     _w=$((_w + 1))
   done
   if kill -0 "$_pid" 2> /dev/null; then
+    # the find and cksum children blocked on the FIFO outlive a kill of the subshell: open the
+    # FIFO read-write once (it does not block) so a reader waiting in open() is released and sees EOF
+    ( exec 3<> "$H_C/bbj/pipe" ) 2> /dev/null
     kill "$_pid" 2> /dev/null
     gate homeguard_fifo_not_opened FAIL "home_snapshot blocked on a FIFO"
   elif grep -q '^O .*/bbj/pipe$' "$WORK/fifo_not_opened.snap"; then
@@ -267,9 +270,23 @@ chmod 755 "$H_C/bbj"
 if [ -r "$WORK/unreadable_dir_reported.snap" ] && grep -q '^E .*/\.codex/bbj$' "$WORK/unreadable_dir_reported.snap"; then
   gate homeguard_unreadable_dir_reported ok "find failure below bbj/ prints an E line"
 elif [ "$(id -u)" = 0 ]; then
-  gate homeguard_unreadable_dir_reported skip "running as root: chmod 000 does not hide a directory"
+  gate homeguard_unreadable_dir_reported skip "running as root: chmod 000 does not hide a directory (homeguard_find_failure_reported covers the same E line without chmod)"
 else
   gate homeguard_unreadable_dir_reported FAIL "no E line: $(tr '\n' ' ' < "$WORK/unreadable_dir_reported.snap")"
+fi
+
+# the same E line without relying on chmod, so it also runs as root (IN-04): a find that fails
+# (a fake first on PATH that exits 1) must give an E line for every watched path that exists
+mkhome find_failure_reported
+mkdir "$H_C/bbj" "$WORK/failfind"
+printf '#!/bin/sh\nexit 1\n' > "$WORK/failfind/find"
+chmod 755 "$WORK/failfind/find"
+( PATH=$WORK/failfind:$PATH; home_snapshot "$H_C" "$H_S" ) > "$WORK/find_failure_reported.snap"
+if grep -q '^E .*/\.codex/bbj$' "$WORK/find_failure_reported.snap" \
+  && grep -q '^E .*/\.codex/config\.toml$' "$WORK/find_failure_reported.snap"; then
+  gate homeguard_find_failure_reported ok "a failing find prints an E line for each existing watched path"
+else
+  gate homeguard_find_failure_reported FAIL "no E lines: $(tr '\n' ' ' < "$WORK/find_failure_reported.snap")"
 fi
 
 # ---- restoring the original bytes makes the snapshot identical again (content, not history) ----
