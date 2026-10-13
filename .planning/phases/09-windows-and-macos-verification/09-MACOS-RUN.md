@@ -383,6 +383,8 @@ Defects, by the rules of plan 09-07 Task 1, in route order. The tier-1 rule give
 
 No macOS defect was found in round 1, so no re-run is needed.
 
+decisions: none needed (no defects, 2026-10-14)
+
 The optional smoke readings (tier 2, no-route) are on record and carry no PLAT verdict (D-16).
 
 Sentence for the docs: Observed on macOS 27.0.1 with Claude Code 2.1.296, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), the bbjcpl route (tier 1) worked in both clients on the first round: bad files got `bbjcpl reported` feedback after Write, Edit and apply_patch, clean files were silent, and no defect was found.
