@@ -159,12 +159,12 @@ Plans:
   4. On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook each give tier-1 `bbjcpl` feedback for a bad file and silence for a clean one (PLAT-05)
   5. The phase records each run (OS, client and version, BBj version, route, outcome). Every defect found is either fixed in the shipped hook (script or `hooks.json`), plugin files or installer with a regression gate that runs in CI on fakes, or recorded as a known gap. The Linux suite stays green (PLAT-06)
 
-**Plans**: 1/8 plans executed
+**Plans**: 2/8 plans executed
 
 Plans:
 **Wave 1**
 - [x] 09-01-PLAN.md — PLAT-02: `FAKE_CYGDRIVE_ROOT` seam in the fake `cygpath` and nine `windows_*` gates in `tests/test_discovery.sh` (drive-letter home, file, `;`-joined `-P` with a space, forward slashes, Codex relative and absolute, three `-P` edges) (wave 1)
-- [ ] 09-02-PLAN.md — PLAT-01 to PLAT-05: owner-run `platform-run/smoke.sh` (`claude`, `codex`, `tier2`, `noroute`, `emit DIR`), traced compiler call, scrubbed result blocks, proven on Linux with the fake compiler (wave 1)
+- [x] 09-02-PLAN.md — PLAT-01 to PLAT-05: owner-run `platform-run/smoke.sh` (`claude`, `codex`, `tier2`, `noroute`, `emit DIR`), traced compiler call, scrubbed result blocks, proven on Linux with the fake compiler (wave 1)
 - [ ] 09-03-PLAN.md — PLAT-06: Windows and macOS runbooks with reply templates, record skeletons `09-WINDOWS-RUN.md` and `09-MACOS-RUN.md`, and `platform-run/check-records.sh` with selftest (wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -215,5 +215,5 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 |-------|-----------|----------------|--------|-----------|
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 9. Windows and macOS verification | v0.2.1 | 1/8 | In Progress | - |
+| 9. Windows and macOS verification | v0.2.1 | 2/8 | In Progress | - |
 | 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |
