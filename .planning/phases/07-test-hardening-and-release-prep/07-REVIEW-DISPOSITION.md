@@ -5,19 +5,19 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`home_snapshot` does not watch everything the installer writes, so leaked temp files and stray directories pass `real_home_untouched`"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Symlinks are recorded without their target, so retargeting or writing through a symlinked skill goes undetected"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`home_snapshot` swallows errors and misreads special names, so it can hang or silently omit entries"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`no_compiler_path` fails silently, so it can emit a PATH with no `sh` or `awk`"
   - id: WR-05
     severity: warning
@@ -37,30 +37,30 @@ findings:
     title: "The hard-coded gate count `11` in `release_mut_later_repinned` is brittle"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The gate-prefix list in `.claude/CLAUDE.md` contradicts its own rule and is not exact"
   - id: IN-05
     severity: info
     disposition: fixed
     title: "`home_diff` returns 1 with no output when `diff` itself fails"
-open: 5
+open: 0
 total: 10
-recorded: 2026-10-13T04:05:26.107Z
+recorded: 2026-10-13T04:05:55.354Z
 ---
 
 # Phase 07: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
+| WR-01 | warning | fixed | 07-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 07-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 07-REVIEW-FIX.md |
+| WR-04 | warning | fixed | 07-REVIEW-FIX.md |
 | WR-05 | warning | fixed | 07-REVIEW-FIX.md |
 | IN-01 | info | fixed | 07-REVIEW-FIX.md |
 | IN-02 | info | fixed | 07-REVIEW-FIX.md |
 | IN-03 | info | fixed | 07-REVIEW-FIX.md |
-| IN-04 | info | open | - |
+| IN-04 | info | fixed | 07-REVIEW-FIX.md |
 | IN-05 | info | fixed | 07-REVIEW-FIX.md |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
