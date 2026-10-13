@@ -323,7 +323,8 @@ Then `codex` in `<home>\bbj-p9`, `/hooks` to trust the hook, X1 (apply_patch cre
 Rule check, PLAT-03. cx-trusted is yes, but cx-add-bad and cx-update-bad are not feedback: Codex showed `Hook failed` with `hook exited with code 1`, and cx-add-clean failed the same way, so the hook never reached the script. The rule needs feedback for both bad cases and silence for the clean one, so it does not hold. The cause is in the readings: Codex starts the hook through powershell, `sh` is not on that PowerShell's PATH (ps-sh missing), and exit 2 is rewritten to 1 (ps-direct-exit 2, ps-wrapped-exit 1, ps-wrapped-keep-exit 2). That is W-1 under `## Defects and re-runs`.
 
 Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), the Codex plugin route installed and was trusted, but every apply_patch ended in `Hook failed` with `hook exited with code 1`, because Codex starts the hook through Windows PowerShell, where `sh` is not on the PATH.
-PLAT-03: defect, decision pending
+Fix status: W-1 (commandWindows) and W-3 (verbatim and backslash path forms) are built (see `## Defects and re-runs`); the Windows re-run is pending in plan 09-06.
+PLAT-03: defect, fix pending re-run
 
 ## Codex on Windows: spike 005 unknowns
 
@@ -332,7 +333,7 @@ Reading 2026-10-13, round 1
 The three unknowns of spike 005, each answered from the readings of `## Codex plugin route: bbjcpl` by the rules of plan 09-05 Task 1. Plan 09-06 replaces the second line after a re-run.
 
 unknown-sh: no (ps-sh missing, ps-wrapped-exit 1, cx-add-bad hook failed: hook exited with code 1)
-unknown-commandWindows: pending (plan 09-05 Task 2)
+unknown-commandWindows: shipped as `C:\PROGRA~1\Git\bin\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE`, re-run pending (plan 09-06)
 unknown-plugin-root: <home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0 (cx-hook-command: a drive letter with backslashes; the script part keeps a forward slash; /hooks printed a space after `C:`, which may be a display artefact and is not settled); sh accepted it: unknown (the hook failed in the launcher before sh ran; the same mixed form, `<checkout>\plugins\bbj/scripts/bbj-check.sh`, was accepted by sh under Claude Code in the cc-* readings)
 
 ## bbj-local: Claude Code
@@ -471,7 +472,8 @@ Command (runbook W9, Git Bash): `sh smoke.sh noroute`. Every compiler route is o
 The same-session second call stayed silent on the machine's file system (`exit_second: 0`, `notice_second: absent`, nothing on stdout or stderr). This is the concurrency edge of D-16; CI covers it with notice_concurrent_once. The rule needs notice_first present, notice_second absent and claim_file present. Here notice_first is absent and claim_file is absent: no notice was printed at all, so there was nothing to claim, and the silent second call proves nothing about the claim logic. The rule does not hold. By reading the hook, a notice is printed only when tier 2 ends in `curl` exit 7 (connection refused); any other curl exit leaves the call silent (W-2).
 
 Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1 and BBj 26.03 (owner-reported), with no compiler route and nothing listening on the tier 2 port, the hook printed no no-route notice and created no claim file, and both calls exited 0.
-PLAT-04: defect, decision pending
+Fix status: W-2 (longer tier-2 connect timeout under the Windows branch) is built (see `## Defects and re-runs`); the Windows re-run is pending in plan 09-06.
+PLAT-04: defect, fix pending re-run
 
 ## Installer route (optional)
 
@@ -516,6 +518,16 @@ answer W-3: fix
 
 Consequences stated to the owner with the options and carried into Task 3: the W-1 fix adds a `commandWindows` entry, which changes the hook definition Codex hashes (every existing Codex plugin install asks for hook trust again after the upgrade, which Phase 10 must say) and puts Claude Code on Windows into the re-run of plan 09-06 as well; the W-2 and W-3 fixes change the Windows branch of the hook (WIN=1 only).
 
+Fixes built in plan 09-05 Task 3, each with its gate written red first (the test commit failed on the planned assertion; the fix commit makes it pass). The Linux suite is green after the three fixes (see the SUMMARY of plan 09-05); no raw output of that run is quoted here.
+
+fix W-1: commandWindows `C:\PROGRA~1\Git\bin\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE` added to the one hook object of `plugins/bbj/hooks/hooks.json`, right after `command` (which is byte-identical to before); gates layout_hook_command_windows, layout_mutation_hook_command_windows, plugin_route_command_windows (red in a93928d, green in 2197273); `claude plugin validate --strict` passes with the new key; re-run needed: Codex on Windows and Claude Code on Windows (Claude Code may read commandWindows too; Open Question 4 of the research is unsettled)
+fix W-2: tier-2 `curl --connect-timeout` is 5 instead of 1 under the Windows branch (cygpath on PATH), 1 elsewhere; `--noproxy '*'`, `--proto =http`, the loopback-only URL, `-m 12` and `-N` untouched; gates tier2_connect_timeout_windows and tier2_connect_timeout_posix (red in fb4bc81, green in 950d8bf); the gate pins the argument, not the effect, because no fake models the Windows connect timing (the owner's D-10 category); re-run needed: Windows No-route notice smoke (`sh smoke.sh noroute`)
+fix W-3: `wpath_norm` in `plugins/bbj/scripts/bbj-check.sh` strips one leading `\\?\` or `//?/` and turns backslashes into slashes for the payload cwd and every header path, under the Windows branch only, before the drive-letter, containment and `..` checks; gates windows_codex_backslash_relative, windows_codex_verbatim_prefix, windows_codex_backslash_dotdot_skipped (red in 2745ab8, green in 16c863b); the dotdot gate puts its outside file where `sub\..\..\x.bbj` lands from the fake cwd, two levels up (the plan named a path one level too high); re-run needed: Codex on Windows (`sh smoke.sh codex`, the codex_verbatim case)
+
+re-run needed: Claude Code, Codex and the No-route notice smoke on Windows (plan 09-06)
+
+D-11 consequence, for Phase 10 to say: the new commandWindows entry changes the hook definition Codex hashes, so every existing Codex plugin install will be asked to trust the hook again after the upgrade. Undoing it would trigger the same prompt. The candidate string is an unverified candidate until the plan 09-06 re-run shows Codex running it.
+
 Observations (no decision asked here):
 
 obs-1: The exact P1 prompt made Claude Code write with a Bash shell command twice (bbj-p9 and "bbj test"), so the Write|Edit hook never saw the create; P2 used Edit and P3 used Write without prompting. A file written through Bash is not checked by design (matcher Write|Edit). Client behaviour, not a PLAT-01 defect; Phase 10 may say it.
@@ -525,7 +537,7 @@ obs-3: The relative backslash header `sub\f.bbj` works on real Windows (the file
 obs-4: With BBjServices running, the tier 2 smoke gave feedback and silence on this machine (see `## Tier 2 smoke`), so `curl` itself works from Git Bash against a live loopback listener. Only the closed-port path of W-2 is unexplained; the hypothesis of W-2 is about that path.
 
 Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), three defects are open: the Codex plugin hook does not start, the no-route notice was not printed, and the verbatim path form is skipped.
-PLAT-06: defect, decision pending
+PLAT-06: defect, fix pending re-run
 
 ## Owner replies
 
@@ -846,6 +858,6 @@ Round 1 readings with the amendment of 2026-10-13, consolidated by the rule of t
 
 - PLAT-01: met
 - PLAT-02: met
-- PLAT-03: defect, decision pending
-- PLAT-04: defect, decision pending
-- PLAT-06: defect, decision pending
+- PLAT-03: defect, fix pending re-run
+- PLAT-04: defect, fix pending re-run
+- PLAT-06: defect, fix pending re-run
