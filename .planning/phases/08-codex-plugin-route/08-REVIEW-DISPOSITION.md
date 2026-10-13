@@ -13,7 +13,7 @@ findings:
     title: "The Claude Code manifest sends the pre-registered OAuth client to whatever `docs_url` is set"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`codex mcp add` runs unattended with stdin attached, no timeout, and is documented to fail on the supported version"
   - id: WR-04
     severity: warning
@@ -47,9 +47,9 @@ findings:
     severity: info
     disposition: fixed
     title: "`--remove` pre-flight needs write permission on the files it only unlinks"
-open: 1
+open: 0
 total: 11
-recorded: 2026-10-13T16:59:14.730Z
+recorded: 2026-10-13T16:59:29.723Z
 ---
 
 # Phase 08: Code Review Disposition
@@ -58,7 +58,7 @@ recorded: 2026-10-13T16:59:14.730Z
 |---------|----------|-------------|--------|
 | WR-01 | warning | fixed | 08-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 08-REVIEW-FIX.md |
-| WR-03 | warning | open | - |
+| WR-03 | warning | fixed | 08-REVIEW-FIX.md |
 | WR-04 | warning | fixed | 08-REVIEW-FIX.md |
 | WR-05 | warning | fixed | 08-REVIEW-FIX.md |
 | WR-06 | warning | fixed | 08-REVIEW-FIX.md |
