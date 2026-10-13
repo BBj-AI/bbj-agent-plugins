@@ -94,7 +94,8 @@ run_shell() {
   # for this block only and restored after it; the farm keeps dash, bash and busybox reachable.
   _savehome=$BBJ_HOME
   _savepath=$PATH
-  PATH=$(no_compiler_path)
+  _np=$(no_compiler_path) || { gate contract_path_scrub FAIL "no_compiler_path could not build a PATH"; finish; }
+  PATH=$_np
   no_compiler_env
   fresh_state
   run_check "$(claude_payload Write "$WORK/proj/plain.bbj" "$WORK/proj")"

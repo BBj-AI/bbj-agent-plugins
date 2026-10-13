@@ -160,6 +160,25 @@ else
   gate pathscrub_no_work_drops_dir FAIL "got $_out"
 fi
 
+# a farm that cannot be built fails loudly: nothing on stdout, a reason on stderr, return 1 (a PATH
+# without sh or awk would let the no-route gates pass on a hook that cannot run). Two causes: no
+# mktemp dir (WORK points nowhere) and a ln that fails (shadowed by a function, as a filesystem
+# without symlinks would behave).
+_out=$(WORK=$WORK/missing_dir no_compiler_path "$U/cpl:$U/clean" 2> "$WORK/farm1.err")
+_rc1=$?
+_out2=$(
+  # shellcheck disable=SC2329 # no_compiler_path calls this shadow of ln; shellcheck cannot see that
+  ln() { return 1; }
+  no_compiler_path "$U/sh ared:$U/clean" 2> "$WORK/farm2.err"
+)
+_rc2=$?
+if [ "$_rc1" = 1 ] && [ -z "$_out" ] && [ -s "$WORK/farm1.err" ] \
+  && [ "$_rc2" = 1 ] && [ -z "$_out2" ] && [ -s "$WORK/farm2.err" ]; then
+  gate pathscrub_farm_failure_loud ok "mktemp failure and ln failure: rc 1, empty stdout, a message on stderr"
+else
+  gate pathscrub_farm_failure_loud FAIL "mktemp: rc $_rc1 out '$_out'; ln: rc $_rc2 out '$_out2'"
+fi
+
 # the caller's IFS and noglob state survive a direct (non-substitution) call
 _ifs=$IFS
 no_compiler_path "$U/cpl:$U/clean" > "$WORK/state.out"

@@ -20,7 +20,8 @@
 . "$(dirname "$0")/lib.sh"
 mkwork
 # MAINT-06, D-11, D-12: a compiler on the caller's PATH would be a route
-PATH=$(no_compiler_path)
+_np=$(no_compiler_path) || { gate notice_path_scrub FAIL "no_compiler_path could not build a PATH"; finish; }
+PATH=$_np
 no_compiler_env
 
 # plan 02-02 starts fake servers: kill them as well as removing WORK (as tests/test_tier2_fake.sh does)
@@ -573,7 +574,7 @@ unset BBJ_HOME FAKE_LOG FAKE_OUT FAKE_EXIT
 
 # ---- plan 02-02: the notice never appears for clean files, errors, failed routes, skipped files ----
 # MAINT-06, D-12: a compiler in /usr/bin or /bin would be a route
-SYSPATH=$(no_compiler_path /usr/bin:/bin)
+SYSPATH=$(no_compiler_path /usr/bin:/bin) || { gate notice_syspath_scrub FAIL "no_compiler_path could not build SYSPATH"; finish; }
 ORIGPATH=$PATH
 FAKE_CURL_LOG=$WORK/curl.log
 export FAKE_CURL_LOG
