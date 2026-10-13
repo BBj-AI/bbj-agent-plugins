@@ -66,6 +66,63 @@ client_id = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
 callback_url = "http://127.0.0.1:47613/callback"
 ```
 
-The full note, with the minimum client versions, the settings to avoid and what the user sees, is at
+The full note is at
 https://github.com/BBj-AI/bbj-lang-mcp/blob/main/release/PLUGIN-OAUTH-HANDOFF.md (that repository is private;
 every fact the plugin needs is in this todo).
+
+### Minimum client versions
+
+Tried floors, not tested floors: the lowest versions that signed in; versions below them are untested. The
+tested matrix is Claude Code 2.1.296 and Codex 0.162.1.
+
+| Client | Tried floor | Platform |
+|--------|-------------|----------|
+| Claude Code | `2.1.292` | Windows |
+| Claude Code | `2.1.293` | macOS |
+| Claude Code | `2.1.296` | Linux |
+| Codex | `0.157.1` | macOS |
+| Codex | `0.162.1` | Windows, Linux |
+
+### Settings to avoid
+
+- `required = true` in the Codex server entry: an expired or lapsed sign-in then blocks every new Codex task.
+- `oauth_resource`: `codex mcp login` then sends `resource` twice; leave it unset, Codex derives it.
+- A literal key in any config file: reference an environment variable.
+- A stored sign-in and a literal `X-Api-Key` on one Codex entry: the server answers HTTP 400 and Codex drops the
+  server without a message. `env_http_headers` did not reach interactive Codex sessions.
+
+### What the user sees
+
+- After the browser sign-in, the login page asks the user to confirm the application, once per sign-in. Expected
+  for a native client on a loopback callback; keep it.
+- No token: HTTP 401 with a `WWW-Authenticate: Bearer` challenge. Claude Code offers the sign-in; Codex drops the
+  server until `codex mcp login bbj`.
+- No active subscription: HTTP 200 with `isError` true, never 403, with this text (lapsed account):
+  `No active subscription. Your subscription ended on 2026-10-12. Tell the user to renew at https://bbj-ai.com/
+  first, then re-authenticate this server: Claude Code: run /mcp, pick bbj, choose re-authenticate. Codex: run
+  `codex mcp login bbj` (use the name this server has in your config if it is not bbj). Do not retry this call.`
+  An account never linked to a subscription gets `No subscription is linked to this account.` as the reason.
+- Renewal is silent: a token issued more than 60 seconds ago whose subscription is not active gets HTTP 401
+  `invalid_token` with `The access token no longer matches this account's subscription; refresh it and retry.`;
+  the client refreshes and the retried call is answered. Access token: 3600 seconds. Refresh token: 30 days,
+  rotating, 15 days idle. A subscription date is valid through the end of that UTC day.
+- Re-authenticate by hand: Claude Code `/mcp`, pick the server, re-authenticate; Codex `/mcp login <server>` or
+  `codex mcp login <server>`. Silent renewal in Claude Code needs `offline_access`.
+
+### Keys for CI and scripts
+
+An `X-Api-Key` header replaces the sign-in. The server operator issues one named key per caller and issues a
+`plugins-ci` key when this project asks. The key lives in an environment variable the config references, never as
+a literal. One credential per entry.
+
+### Where the current configuration departs (files unchanged since plugin commit 46f6d91)
+
+1. Client id is a constant in `plugins/bbj/.mcp.json` and `codex/install-codex.sh`: make it a setting (a plugin
+   user option, an installer flag or environment variable) with the id above as the default.
+2. `plugins/bbj/.mcp.json` sets no `oauth.scopes`: add `"scopes": "offline_access"`, otherwise users sign in
+   again every hour and renewal cannot be silent.
+3. `codex/install-codex.sh` writes a per-server `oauth.callback_port` with a `localhost` callback, which no
+   session has tried: the tried shape is the top-level `mcp_oauth_callback_port` plus `callback_url` on
+   `127.0.0.1`. Try the installer's output once with a real sign-in before relying on it.
+4. The server is named `bbj-docs`: a Codex model rewrote a hyphenated name and the refusal text tells the user
+   to pick `bbj`. Name it without a hyphen, ideally `bbj`.
