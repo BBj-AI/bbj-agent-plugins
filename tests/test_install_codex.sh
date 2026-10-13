@@ -2019,6 +2019,51 @@ else
   gate remove_left_docs_forms FAIL "failing sub-case(s):$RM_BAD"
 fi
 
+# a comment between the last installed table and a table of the user's leads into that table (WR-04): it is not
+# content of bbj-docs, so --remove takes the installed tables and keeps the comment and the user's table. Two
+# shapes: a user table follows, and the comment is the last thing in the file
+RM_NOTE='# my note about the next'
+rm_note_case() {
+  _rn_n=rmnote$1
+  rm_env "$_rn_n"
+  rm_user_cfg "$E_CODEX/config.toml"
+  cp "$E_CODEX/config.toml" "$WORK/$_rn_n.cfg0"
+  run_inst "$WITH_CODEX"
+  _rn_rc1=$RC
+  printf '\n%s\n' "$RM_NOTE" >> "$E_CODEX/config.toml"
+  if [ "$2" = table ]; then printf '[mcp_servers.zzz]\nurl = "https://example.invalid/mcp"\n' >> "$E_CODEX/config.toml"; fi
+  { cat "$WORK/$_rn_n.cfg0"; printf '\n%s\n' "$RM_NOTE"; if [ "$2" = table ]; then printf '[mcp_servers.zzz]\nurl = "https://example.invalid/mcp"\n'; fi; } > "$WORK/$_rn_n.expected"
+  run_inst "$WITH_CODEX" --remove
+  if [ "$_rn_rc1" = 0 ] && [ "$RC" = 0 ] && cmp -s "$E_CODEX/config.toml" "$WORK/$_rn_n.expected" && ! grep -F 'bbj-docs' "$E_CODEX/config.toml" > /dev/null; then :
+  else
+    RM_BAD="$RM_BAD $2(install $_rn_rc1, remove $RC)"
+  fi
+}
+RM_BAD=
+rm_note_case a table
+rm_note_case b eof
+if [ -z "$RM_BAD" ]; then
+  gate remove_keeps_comment_before_next_table ok "a comment after the last installed table, before a user table and at the end of the file: exit 0, the bbj-docs tables are gone, the comment and the user table are kept"
+else
+  gate remove_keeps_comment_before_next_table FAIL "failing sub-case(s):$RM_BAD"
+fi
+
+# a left-in-place report names the first offending line, once (WR-04): the comment inside the table (case b_comment)
+rm_env rmwhy
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+awk '{ print } /^url = / && !d { print "# my note on this server"; d = 1 }' "$E_CODEX/config.toml" > "$WORK/rmwhy.changed"
+cat "$WORK/rmwhy.changed" > "$E_CODEX/config.toml"
+RM_WHY_LINE=$(awk '$0 == "# my note on this server" { print NR; exit }' "$E_CODEX/config.toml")
+run_inst "$WITH_CODEX" --remove
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 3 ] && grep -F "left in place: line $RM_WHY_LINE of " "$WORK/out" > /dev/null \
+  && ! grep -F 'form this script did not write; left in place: it is in a form this script did not write' "$WORK/out" > /dev/null; then
+  gate remove_left_reason_names_line ok "a comment inside the bbj-docs table: left in place, the report names line $RM_WHY_LINE, no doubled sentence"
+else
+  gate remove_left_reason_names_line FAIL "exit $RC: $(grep -F 'bbj-docs:' "$WORK/out" | head -c 300)"
+fi
+
 # a bbj-local the installer did not write as its managed block: config.toml holds only the user content and that form
 rm_local_case() {
   _rl_n=rmlocal$1
