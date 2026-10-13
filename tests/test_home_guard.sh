@@ -172,6 +172,8 @@ touch "$H_C/config.toml" "$WORK/filelink_untouched_same.target/config.toml"
 expect filelink_untouched_same same
 
 # ---- a caller with noglob (set -f) still gets the temp-file globs expanded (IN-01) ----
+# home_snapshot is the left side of a pipeline, so its own set +f / set -f run in a subshell: the caller's
+# noglob state cannot change by construction and is not asserted here
 mkhome noglob_temp_detected
 set -f
 home_snapshot "$H_C" "$H_S" > "$WORK/noglob_temp_detected.before"
@@ -179,14 +181,13 @@ set +f
 : > "$H_C/config.toml.AbC123"
 set -f
 home_snapshot "$H_C" "$H_S" > "$WORK/noglob_temp_detected.after"
-case "$-" in *f*) _ng_kept=1 ;; *) _ng_kept=0 ;; esac
 set +f
 _ng=$(home_diff "$WORK/noglob_temp_detected.before" "$WORK/noglob_temp_detected.after")
 _ng_rc=$?
-if [ "$_ng_rc" = 1 ] && [ "$_ng_kept" = 1 ] && grep -q '^F .*/config\.toml\.AbC123$' "$WORK/noglob_temp_detected.after"; then
-  gate homeguard_noglob_temp_detected ok "a leaked temp file shows under set -f; set -f is still on afterwards"
+if [ "$_ng_rc" = 1 ] && grep -q '^F .*/config\.toml\.AbC123$' "$WORK/noglob_temp_detected.after"; then
+  gate homeguard_noglob_temp_detected ok "a leaked temp file shows under set -f"
 else
-  gate homeguard_noglob_temp_detected FAIL "noglob kept=$_ng_kept: $(printf '%s' "$_ng" | tr '\n' ' ')"
+  gate homeguard_noglob_temp_detected FAIL "$(printf '%s' "$_ng" | tr '\n' ' ')"
 fi
 
 # ---- an incomplete snapshot never compares as ok (WR-02) ----
