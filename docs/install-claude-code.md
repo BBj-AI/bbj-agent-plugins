@@ -8,7 +8,8 @@ a few minutes; nothing asks you a question, the defaults apply. For Codex, see
 ## Requirements
 
 - Claude Code 2.1.281 or later. The plugin was tested with Claude Code 2.1.296.
-- A network connection to the docs server (see the `docs_url` option below).
+- A network connection to the docs server (see the `docs_url` option below), and a browser for
+  the docs server's one-time sign-in.
 - BBj is optional. Without it you get the docs tools and the skills; with it the hook also checks
   the BBj code that Claude writes (see "Check routes").
 
@@ -78,6 +79,11 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
   check next to the docs server, as on the pre-production instance, the server also lists
   `bbj_check_syntax`, `bbj_format` and `bbj_denum`; their answers say `hosted check, stock BBj
   <version>`, a stock BBj rather than your own PREFIX, classpath and config.
+  The docs server asks for an OAuth sign-in. The plugin brings the pre-registered client
+  (`oauth.clientId` in its `.mcp.json`) and the callback port 47613. Claude Code receives the
+  sign-in at `http://localhost:47613/callback`, so port 47613 must be free while you sign in.
+  Until you sign in, `claude mcp list` shows `plugin:bbj:bbj-docs` with `Needs authentication`.
+  Run `/mcp` in Claude Code, choose `plugin:bbj:bbj-docs` and sign in, in the browser that opens.
 - Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (maintained in this repository).
 - A hook: after every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file Claude Code compiles
   the file and hands any compiler error back to Claude, which can then repair it. The hook has

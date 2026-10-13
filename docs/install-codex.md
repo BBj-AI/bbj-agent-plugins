@@ -14,7 +14,8 @@ file Codex writes through `apply_patch`. For Claude Code, see
 - Codex CLI with hooks and MCP support. The installer does not need `codex` on `PATH`: without it,
   it writes the server registration into `config.toml` itself.
 - A network connection to the docs server (default `https://mcp.bbj-ai.com/mcp`, the
-  pre-production instance until the go-live release).
+  pre-production instance until the go-live release), and a browser for the one-time sign-in to
+  the docs server.
 - BBj is optional. It is needed for the check, not for the docs tools or the skills.
 - A checkout of this repository.
 
@@ -49,12 +50,17 @@ what to do in that case. Running it a second time changes nothing.
 ## What it does
 
 1. **Registers the docs server** as `bbj-docs`: with `codex mcp add bbj-docs --url <url>` when
-   `codex` is on `PATH`, otherwise as a managed block in `config.toml`. It then approves the five
-   docs tools by name. What it leaves is:
+   `codex` is on `PATH`, otherwise as a managed block in `config.toml`. It then adds the OAuth
+   client of the docs server and approves the five docs tools by name. What it leaves is:
 
    ```toml
    [mcp_servers.bbj-docs]
    url = "https://mcp.bbj-ai.com/mcp"
+
+   [mcp_servers.bbj-docs.oauth]
+   client_id = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
+   callback_url = "http://localhost:47613/callback"
+   callback_port = 47613
 
    [mcp_servers.bbj-docs.tools.bbj_search]
    approval_mode = "approve"
@@ -78,9 +84,20 @@ what to do in that case. Running it a second time changes nothing.
    (the hosted check; its answers say "hosted check, stock BBj <version>"): they send your code
    to the server, so Codex asks you before each call. What the hosted server logs is in its
    data-handling statement, linked under "Check routes". If a `bbj-docs` table already exists,
-   the installer only adds the missing tool tables to it, and keeps a one-time backup,
+   the installer only adds the missing OAuth table and tool tables to it (the output says
+   `added the OAuth client to` the path of `config.toml`), and keeps a one-time backup,
    `config.toml.bbj-backup`. A docs tool you set to another `approval_mode` keeps your value and
    is named in the output.
+
+   The `oauth` table is the pre-registered OAuth client of the docs server, which accepts no other
+   client and only the callback on port 47613. The first use of `bbj-docs` opens a browser login,
+   and `codex mcp login bbj-docs` does it on demand; port 47613 must be free while you sign in. The
+   installer adds the table itself and does not pass the client to `codex mcp add`, which would
+   start the sign-in during the install. With `codex` on `PATH`, Codex CLI 0.162.1's `codex mcp
+   add` writes the `bbj-docs` table and then exits with an error, because the server refuses its
+   self-registration; the installer keeps that table and completes it. An OAuth entry of your own
+   for `bbj-docs` (another client, another port, or any other form) is left as it is, and the
+   output says `OAuth settings of its own`.
 
    **Upgrading from an earlier install.** Installers before 2026-10-09 wrote
    `default_tools_approval_mode = "approve"` into the `bbj-docs` table, which approved every tool
@@ -102,7 +119,7 @@ what to do in that case. Running it a second time changes nothing.
    `hooks.json` is never modified: the installer prints the block and you merge it yourself.
    Codex CLI 0.162.1 accepts the `commandWindows` key on Linux; if Codex rejects it on Windows,
    put `command_windows` in `config.toml` instead.
-6. **Prints the `AGENTS.md` snippet**, the trust step and the known gaps.
+6. **Prints the `AGENTS.md` snippet**, the trust step, the sign-in step and the known gaps.
 
 ## 2. Enable the local check (recommended where BBjServices 26.03+ runs)
 
