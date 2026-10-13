@@ -1949,6 +1949,19 @@ else
   gate remove_refuses_missing_home FAIL "exit $RC: $(head -c 200 "$WORK/err")"
 fi
 
+# the refusal message carries the path as given: a backslash sequence in it is printed, not expanded (IN-04). The
+# skills dir is a plain file here, so the pre-flight refuses it by name
+newenv rmbackslash
+mkdir -p "$E_CODEX"
+RM_BS_SK="$E_ROOT/no\\tsuch"
+: > "$RM_BS_SK"
+run_inst "$WITH_CODEX" --remove --skills-dir "$RM_BS_SK"
+if [ "$RC" = 2 ] && grep -F -e "install-codex: $RM_BS_SK is not a writable directory" "$WORK/err" > /dev/null; then
+  gate remove_refusal_prints_path_verbatim ok "a backslash-t in --skills-dir reaches the refusal message unexpanded"
+else
+  gate remove_refusal_prints_path_verbatim FAIL "exit $RC: $(head -c 200 "$WORK/err")"
+fi
+
 # the existing newline check runs in remove mode too
 rm_refused rmnewline
 RM_NL='
