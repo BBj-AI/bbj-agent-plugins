@@ -5,6 +5,8 @@
 #   sh owner.sh trust     open the Codex TUI in owner-H's project; trust the bbj plugin hook in /hooks
 #   sh owner.sh login-a   codex mcp login bbj-docs in owner-A (plugin as shipped, no OAuth block)
 #   sh owner.sh login-b   codex mcp login bbj-docs in owner-B (scratch copy with an OAuth block)
+# Extra arguments after the word go to codex mcp login, e.g. `sh owner.sh login-b --no-browser`
+# (prints the URL and accepts the callback URL pasted back, for a browser on another machine).
 #
 # HOME and CODEX_HOME point into the throwaway home, so the real ~/.codex and ~/.agents are not
 # touched. owner-H's config.toml names a loopback fake model provider: do not send a prompt, no
@@ -35,11 +37,13 @@ unset CLAUDE_PLUGIN_ROOT PLUGIN_ROOT CLAUDE_PLUGIN_DATA
 
 echo "owner.sh: throwaway home $NAME ($CODEX_HOME); the real ~/.codex is not used"
 
-case $1 in
+MODE=$1
+shift
+case $MODE in
   trust)
     cd "$DIR/proj" || exit 2
     echo "In Codex: type /hooks, pick 'BBj compile-only check', trust it, then quit. Do not send a prompt."
     codex ;;
   login-a | login-b)
-    codex mcp login bbj-docs ;;
+    codex mcp login "$@" bbj-docs ;;
 esac
