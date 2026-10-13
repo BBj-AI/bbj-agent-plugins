@@ -650,14 +650,15 @@ sync_server() {
       # Codex 0.156.1 cannot load tool tables without the server table, and its mcp add then fails
       say "$srv: $config holds tool tables of $srv but no $srv table, which Codex cannot load; adding the table in a managed block"
     elif [ "$srv_codex_add" = 1 ] && command -v codex > /dev/null 2>&1; then
-      if CODEX_HOME=$codex_home codex mcp add "$srv" --url "$srv_url" > /dev/null 2>&1; then
+      # stdin from /dev/null: an unattended installer must never wait on a prompt of codex (WR-03)
+      if CODEX_HOME=$codex_home codex mcp add "$srv" --url "$srv_url" < /dev/null > /dev/null 2>&1; then
         say "$srv: registered with codex mcp add $srv --url $srv_url"
       else
         # Codex CLI 0.162.1 writes the table and then exits 1 when its own OAuth sign-in fails
         # (the server takes only a pre-registered client); do not claim a block that is never written
         refresh
         if [ "$(an main)" = 1 ]; then
-          say "$srv: codex mcp add wrote the $srv table, then exited with an error (Codex CLI 0.162.1 does so when it tries to register itself with an OAuth server that takes only a pre-registered client); the table is kept and completed below"
+          say "$srv: codex mcp add wrote the $srv table, then exited with an error; the table is kept and completed below"
         else
           say "$srv: codex mcp add did not succeed; writing the block to config.toml instead"
         fi
