@@ -198,7 +198,15 @@ if [ -f "$CODEX_PAGE" ]; then
     '[mcp_servers.bbj-docs.oauth]' \
     'callback_port = 47613' \
     'http://localhost:47613/callback' \
-    'codex mcp login bbj-docs'
+    'codex mcp login bbj-docs' \
+    '## Install with the Codex plugin (recommended)' \
+    'codex plugin marketplace add BBj-AI/bbj-agent-plugins' \
+    'codex plugin add bbj@basis-bbj' \
+    'codex plugin add bbj-local@basis-bbj' \
+    'Verified on Linux with Codex CLI 0.162.1 on' \
+    '### Trust the hook in /hooks' \
+    'first use' \
+    'Observed on Linux with Codex CLI 0.162.1:'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
