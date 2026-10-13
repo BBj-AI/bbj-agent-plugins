@@ -81,7 +81,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. The four review-fix commits `b0a4c62`, `3a42ebf`, `b600ac4` and `172e6a5` are in the branch that becomes the 0.2.1 release tree, and the full suite passes with them (REL-05)
   5. The owner has decided the CONTENT_VERSION policy of `tests/test_release_text.py` and it is recorded with its reason. The policy says how the content gates (`upgrade_addressed`, `upgrade_quotes`, `not_run`) behave at version 0.2.1 so that the Phase 10 release run can reach skip=0. Today they print `skip` for any version other than 0.2.0 (REL-06)
 
-**Plans**: 5/5 plans complete
+**Plans**: 5/6 plans complete
 
 Plans:
 **Wave 1**
@@ -96,6 +96,9 @@ Plans:
 
 **Wave 4** *(gap closure, blocked on Wave 3 completion)*
 - [x] 07-05-PLAN.md — MAINT-08 gap: copy the IN-04 gate-prefix block from `.claude/CLAUDE.md` into `.planning/codebase/CONVENTIONS.md` byte for byte, then re-check it against a fresh suite transcript (wave 4)
+
+**Wave 5** *(gap closure, blocked on Wave 4 completion)*
+- [ ] 07-06-PLAN.md — MAINT-08 gap: add `oauth_` (quick task 261013-cpn) to the `test_install_codex.sh` entry of the gate-prefix block in `.planning/codebase/CONVENTIONS.md`, so it is byte-identical to `.claude/CLAUDE.md` again, then re-check it against a fresh suite transcript (wave 5)
 
 **Notes**: This phase lands first. The Windows and macOS machines of Phase 9 have `bbjcpl` on `PATH`, so without the scrub (review WR-01) the no-route gates fail there. A Codex daemon runs wherever Phase 8 works with real Codex. The review-fix commits change the install docs, the CHANGELOG and the release-text gates that Phases 8 and 10 rewrite, so they come in first. Tests use fakes only; nothing runs BBj.
 
