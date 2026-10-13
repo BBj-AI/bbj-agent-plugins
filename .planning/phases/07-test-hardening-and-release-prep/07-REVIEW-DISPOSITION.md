@@ -5,27 +5,27 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "A watched path that is a symlink to a regular file is recorded by target only, so a write through it goes undetected"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "An incomplete snapshot compares equal to itself, so `real_home_untouched` reports `ok` when part of the home could not be read"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The temp-file globs in `home_snapshot` silently stop expanding when the caller has `set -f`"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Directory modes are not recorded, and `readlink` is outside the POSIX tool list"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`TIER2_TEST_SYSPATH` is read from the ambient environment"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`homeguard_fifo_not_opened` leaves orphans on failure, and `homeguard_unreadable_dir_reported` skips as root"
   - id: WR-03
     severity: warning
@@ -43,21 +43,21 @@ findings:
     severity: info
     disposition: fixed
     title: "`home_diff` returns 1 with no output when `diff` itself fails"
-open: 6
+open: 0
 total: 10
-recorded: 2026-10-13T04:33:39.009Z
+recorded: 2026-10-13T06:43:14.784Z
 ---
 
 # Phase 07: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 07-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 07-REVIEW-FIX.md |
+| IN-01 | info | fixed | 07-REVIEW-FIX.md |
+| IN-02 | info | fixed | 07-REVIEW-FIX.md |
+| IN-03 | info | fixed | 07-REVIEW-FIX.md |
+| IN-04 | info | fixed | 07-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
