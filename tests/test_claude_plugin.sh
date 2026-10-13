@@ -86,10 +86,12 @@ state=$(plugin_state bbj)
 
 # ---- 3. the plugin's docs server --------------------------------------------------
 # The client settings reach Claude Code: this reads configuration only, so it needs no
-# network (quick 261013-cpn).
+# network (quick 261013-cpn). claude mcp get prints "client_id configured", never the id
+# itself, so the value is pinned only by layout_bbj_mcp (tests/test_layout.py); here a missing
+# or empty client id would print something else and fail.
 _get=$(cd "$WORK" && cc mcp get plugin:bbj:bbj-docs 2>&1)
-if printf '%s\n' "$_get" | grep -i 'oauth' | grep 'client_id' | grep 'callback_port 47613' > /dev/null; then
-  gate mcp_docs_oauth ok "claude mcp get shows client_id and callback_port 47613"
+if printf '%s\n' "$_get" | grep -i 'oauth' | grep 'client_id configured' | grep 'callback_port 47613' > /dev/null; then
+  gate mcp_docs_oauth ok "claude mcp get shows client_id configured and callback_port 47613 (the id itself is pinned by layout_bbj_mcp)"
 else
   gate mcp_docs_oauth FAIL "$(printf '%s' "$_get" | head -n 8 | tr '\n' ' ')"
 fi
@@ -97,12 +99,14 @@ fi
 # The hosted docs server asks for an OAuth sign-in, so a throwaway configuration that never
 # signed in shows "Needs authentication": the server answered with its OAuth challenge.
 # Before quick 261013-cpn this was the suite's one FAIL. mcp_docs_oauth above proves that
-# the client settings reach Claude Code.
+# the client settings reach Claude Code. Any HTTP 401 gives "Needs authentication" (a wrong
+# client id, a proxy), so this gate proves only that something answers; it is weaker than the
+# connected check it replaced, by design: CI has no sign-in (IN-05). "Disconnected" does not match.
 if curl -s -o /dev/null --connect-timeout 3 "https://$DOCS_HOST/mcp" 2> /dev/null; then
   mcp=$(cd "$WORK" && cc mcp list 2>&1)
-  _line=$(printf '%s\n' "$mcp" | grep -F "https://$DOCS_HOST/mcp" | grep -i -e 'connected' -e 'needs authentication' | grep -i -v 'fail')
+  _line=$(printf '%s\n' "$mcp" | grep -F "https://$DOCS_HOST/mcp" | grep -i -e '[[:space:]]connected' -e 'needs authentication' | grep -i -v 'fail')
   if [ -n "$_line" ]; then
-    gate mcp_docs_answers ok "bbj-docs at https://$DOCS_HOST/mcp answered: $(printf '%s' "$_line" | head -n 1)"
+    gate mcp_docs_answers ok "bbj-docs at https://$DOCS_HOST/mcp answered (nothing past the 401 challenge is proven): $(printf '%s' "$_line" | head -n 1)"
   else
     gate mcp_docs_answers FAIL "$(printf '%s' "$mcp" | head -n 6 | tr '\n' ' ')"
   fi
