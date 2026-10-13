@@ -1693,6 +1693,85 @@ else
   gate oauth_codex_never_logs_in FAIL "$(grep -i -E 'oauth|login' "$WORK/codex.all" | head -n 3 | tr '\n' ';')"
 fi
 
+# ---- Phase 8 (CODEX-06, D-01 to D-05): --remove undoes what the installer wrote ----
+# Every case has its own temp home; the installer is the real script, codex is the fake (or absent), and
+# the proof is a content snapshot of the Codex home and the skills dir before the install and after the
+# removal (home_snapshot), not a list of expected files.
+
+# rm_env NAME: a fresh home whose Codex home and skills dir exist before the install, as in a real home
+rm_env() {
+  newenv "$1"
+  mkdir -p "$E_CODEX" "$E_SKILLS"
+}
+
+# rm_user_cfg FILE: user content that ends in a non-blank line (a comment, a key, a blank line, a table)
+rm_user_cfg() {
+  printf '%s\n' '# my codex settings' 'model_reasoning_effort = "high"' '' '[projects."/src/x"]' 'trust_level = "trusted"' > "$1"
+}
+
+# rm_snap FILE: snapshot of the case's homes into FILE, without the backup line (the one file --remove keeps)
+rm_snap() {
+  home_snapshot "$E_CODEX" "$E_SKILLS" | grep -v -F "$E_CODEX/config.toml.bbj-backup" > "$1"
+}
+
+# rm_installed: 0 when the case's home holds an installer install (config entry, a skill, the script, hooks.json),
+# so an equal before/after snapshot is not an empty round trip
+rm_installed() {
+  grep -F '[mcp_servers.bbj-docs]' "$E_CODEX/config.toml" > /dev/null 2>&1 \
+    && [ -d "$E_SKILLS/bbj-programming" ] && [ -f "$E_CODEX/bbj/bbj-check.sh" ] && [ -f "$E_CODEX/hooks.json" ]
+}
+
+rm_env rmcodex
+rm_user_cfg "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/rmcodex.cfg0"
+rm_snap "$WORK/rmcodex.before"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+RM_LOG1=$(awk 'END { print NR }' "$E_LOG")
+rm_installed && RM_INSTALLED=1 || RM_INSTALLED=0
+run_inst "$WITH_CODEX" --remove
+RM_RC2=$RC
+cp "$WORK/out" "$WORK/rmcodex.out1"
+cp "$WORK/err" "$WORK/rmcodex.err1"
+RM_LOG2=$(awk 'END { print NR }' "$E_LOG")
+rm_snap "$WORK/rmcodex.after"
+if [ "$RM_RC1" = 0 ] && [ "$RM_INSTALLED" = 1 ] && [ "$RM_RC2" = 0 ] && _d=$(home_diff "$WORK/rmcodex.before" "$WORK/rmcodex.after"); then
+  gate remove_round_trip_codex ok "install with the fake codex, then --remove: the Codex home and the skills dir equal the pre-install content, except the added config.toml.bbj-backup"
+else
+  gate remove_round_trip_codex FAIL "install exit $RM_RC1 (installed=$RM_INSTALLED), remove exit $RM_RC2: ${_d:-$(head -c 300 "$WORK/rmcodex.err1")}"
+fi
+if cmp -s "$E_CODEX/config.toml.bbj-backup" "$WORK/rmcodex.cfg0"; then
+  gate remove_backup_kept ok "config.toml.bbj-backup is kept and equals the pre-install config.toml byte for byte"
+else
+  gate remove_backup_kept FAIL "the backup is missing or differs from the pre-install config.toml"
+fi
+if [ "$RM_LOG1" -gt 0 ] && [ "$RM_LOG1" = "$RM_LOG2" ]; then
+  gate remove_never_calls_codex ok "the fake codex log holds $RM_LOG1 lines after the install and the same after --remove"
+else
+  gate remove_never_calls_codex FAIL "codex log lines: $RM_LOG1 after the install, $RM_LOG2 after --remove"
+fi
+if grep -F -e 'codex plugin marketplace add BBj-AI/bbj-agent-plugins' "$WORK/rmcodex.out1" > /dev/null \
+  && grep -F -e 'codex plugin add bbj@basis-bbj' "$WORK/rmcodex.out1" > /dev/null && grep -F -e '/hooks' "$WORK/rmcodex.out1" > /dev/null; then
+  gate remove_prints_next_steps ok "the output names codex plugin marketplace add BBj-AI/bbj-agent-plugins, codex plugin add bbj@basis-bbj and /hooks"
+else
+  gate remove_prints_next_steps FAIL "$(tail -n 4 "$WORK/rmcodex.out1" | tr '\n' ';')"
+fi
+home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/rmcodex.afterfull"
+run_inst "$WITH_CODEX" --remove
+home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/rmcodex.after2"
+RM_NOTHING=$(grep -c 'nothing to remove' "$WORK/out")
+if [ "$RC" = 0 ] && cmp -s "$WORK/rmcodex.afterfull" "$WORK/rmcodex.after2" && [ "$RM_NOTHING" = 6 ]; then
+  gate remove_second_run_noop ok "a second --remove exits 0, changes nothing and says nothing to remove for the six objects"
+else
+  gate remove_second_run_noop FAIL "exit $RC, $RM_NOTHING nothing-to-remove lines: $(head -c 300 "$WORK/err"), $(home_diff "$WORK/rmcodex.afterfull" "$WORK/rmcodex.after2" | tr '\n' ';')"
+fi
+sh "$INSTALLER" --help > "$WORK/help.out" 2>&1
+if grep -F -e '--remove' "$WORK/help.out" > /dev/null; then
+  gate remove_usage ok "--help lists --remove"
+else
+  gate remove_usage FAIL "--help does not name --remove"
+fi
+
 # ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
 if [ -n "$REAL_CODEX" ]; then
   newenv realcodex

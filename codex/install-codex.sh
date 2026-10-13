@@ -46,7 +46,9 @@
 #      required, enabled or startup_timeout_sec. It goes through the same pass as bbj-docs, so
 #      the rules of step 1 apply: a rerun is byte-identical, missing tool tables and approval
 #      keys are added inside the markers and nothing is removed. A run without the flag keeps a
-#      managed block and refreshes it the same way (D-09); there is no removal flag (D-10): after
+#      managed block and refreshes it the same way (D-09); there is still no flag that removes
+#      bbj-local alone (D-10; --remove, R below, removes its managed block together with everything
+#      else this script wrote): after
 #      "codex mcp remove bbj-local" the lone end marker stays in config.toml as a comment, is
 #      tolerated and, with the flag, a fresh block follows it. A plain [mcp_servers.bbj-local]
 #      table whose url is exactly the fixed url gains the three approvals; any other form of
@@ -68,16 +70,41 @@
 #      exist; an existing hooks.json is never modified (exit 3 with the block to merge by hand).
 #   5. prints the AGENTS.md snippet, the /hooks trust step, the sign-in step (codex mcp login
 #      bbj-docs, once) and the known gaps.
+#   R. --remove (phase 8, CODEX-06; D-01 to D-04) undoes what this script wrote, for a user who
+#      switches to the Codex plugin route (codex plugin marketplace add, then codex plugin add):
+#      afterwards one hook, one copy of the skills and one bbj-docs server remain. It never calls
+#      codex and creates no directory; --docs-url, --skills-dir and --codex-home name the same
+#      places and the same url as the install did. It removes, each only in the exact form this
+#      script writes it:
+#        - config.toml: the [mcp_servers.bbj-docs] table with its [mcp_servers.bbj-docs.oauth]
+#          and tool tables, and the same for bbj-local, but only when its tables hold nothing this
+#          script does not write, bbj-docs sits at the --docs-url in effect (a registration at
+#          another url is also the documented Codex override of the plugin's server, so give the
+#          same --docs-url to remove it), and bbj-local sits in its managed block. The managed
+#          blocks go with their two marker lines and the one blank line this script put before the
+#          begin marker; the forms of versions up to 398aac5 (url plus the server-wide
+#          default_tools_approval_mode line) go too. Before the first change of config.toml,
+#          config.toml.bbj-backup is written when it does not exist.
+#        - the two skill directories, each only when diff -r finds it identical to the shipped copy
+#        - <codex home>/bbj/bbj-check.sh, and its directory when that is empty then
+#        - hooks.json, only when it is byte-identical to what step 4 writes
+#      Never touched: config.toml.bbj-backup, the hooks.state, [marketplaces] and [plugins] tables
+#      that Codex writes, the plugin cache, AGENTS.md, and config.toml itself. Whatever stays
+#      because it differs is named, and the exit code is 3. A second run changes nothing.
+#      Not atomic across objects: an interrupted run is finished by running it again.
 #
 # Options: --docs-url URL (default DEFAULT_DOCS_URL, the same value as the bbj plugin's
 # docs_url default; plain http only to 127.0.0.1, localhost or [::1]), --skills-dir DIR,
 # --codex-home DIR (default $CODEX_HOME or ~/.codex), --with-local (register bbj-local, step 1b),
-# --force, --help.
+# --force, --remove (undo what this script wrote, R), --help.
 # Exit codes: 0 done, 2 usage error or refusal, 3 finished with something left to merge or
 # decide by hand: bbj-docs or its tools named in config.toml in a form this script does not
 # edit, bbj-local named in a form it does not edit or with another url than the fixed one, a
 # default_tools_approval_mode that approves every tool, an existing hooks.json, a skill
-# directory that differs.
+# directory that differs. With --remove, exit 3 means something was left in place (named in the output)
+# because it differs from what this script writes: a bbj-docs or bbj-local entry in another form or
+# at another url, a skill directory that differs or is a symbolic link, a hooks.json that holds more
+# than this script's hook, a check-script directory that holds other files.
 #
 # Exit 2 before the first write means nothing was changed: the options are validated and every
 # destination (skills directory, <codex home>/bbj, config.toml) is created or checked up front.
@@ -129,7 +156,7 @@ refuse() {
 
 usage() {
   cat <<EOF
-Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--with-local] [--force]
+Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--with-local] [--force] [--remove]
 
   --docs-url URL     docs server URL (default $DEFAULT_DOCS_URL);
                      https anywhere, http only to 127.0.0.1, localhost or [::1]
@@ -141,6 +168,11 @@ Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-ho
                      registered anyway with a warning. Without the flag, and with no bbj-local in
                      config.toml, the probe only suggests this option when a bbj-ls answers
   --force            replace a skill directory that differs from the shipped one
+  --remove           undo what this script wrote (the bbj-docs and bbj-local entries of config.toml,
+                     the two skills when identical to the shipped copy, the check script, hooks.json
+                     when it holds only this hook), for a switch to the Codex plugin route; never
+                     calls codex; give the same --docs-url, --skills-dir and --codex-home as the
+                     install. Whatever differs from what this script writes stays and is named
   --help             this text
 
 Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran),
@@ -148,7 +180,8 @@ Exit: 0 done, 2 refused (nothing written unless the message names the steps that
         config.toml in a form this script does not edit, a default_tools_approval_mode that
         approves every tool, bbj-local named in a form this script does not edit or with
         another url than http://127.0.0.1:5009/mcp, an existing hooks.json, a skill directory
-        that differs.
+        that differs; with --remove: something left in place because it differs from what this
+        script writes.
 EOF
 }
 
@@ -159,6 +192,7 @@ skills_dir=
 codex_home=
 force=0
 with_local=0
+remove=0
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --docs-url) [ "$#" -ge 2 ] || refuse "--docs-url needs a value"; docs_url=$2; shift 2 ;;
@@ -166,6 +200,7 @@ while [ "$#" -gt 0 ]; do
     --codex-home) [ "$#" -ge 2 ] || refuse "--codex-home needs a value"; codex_home=$2; shift 2 ;;
     --with-local) with_local=1; shift ;;
     --force) force=1; shift ;;
+    --remove) remove=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) refuse "unknown option: $1 (see --help)" ;;
   esac
@@ -218,7 +253,12 @@ for f in "$src_script" "$snippet" "$src_skills/bbj-programming/SKILL.md" "$src_s
 done
 
 pending=0
-mkdir -p "$codex_home" || refuse "cannot create $codex_home"
+if [ "$remove" = 1 ]; then
+  # --remove (D-01) creates no directory: a Codex home that does not exist holds nothing to remove
+  [ -d "$codex_home" ] || refuse "$codex_home is not a directory; nothing to remove"
+else
+  mkdir -p "$codex_home" || refuse "cannot create $codex_home"
+fi
 codex_home=$(cd "$codex_home" && pwd) || refuse "cannot enter $codex_home"
 case "$codex_home" in
   *'$'*|*'`'*|*'"'*|*'\'*|*"'"*) refuse "$codex_home holds a character that is not allowed in a hook command (one of \$ \` \" \\ ')" ;;
@@ -229,13 +269,40 @@ config=$codex_home/config.toml
 # here changes nothing in config.toml, hooks.json or the skills
 script_dst=$codex_home/bbj/bbj-check.sh
 script_dir=$(dirname "$script_dst")
-mkdir -p "$skills_dir" || refuse "cannot create $skills_dir"
-mkdir -p "$script_dir" || refuse "cannot create $script_dir"
-for d in "$codex_home" "$script_dir" "$skills_dir"; do
-  [ -d "$d" ] && [ -w "$d" ] || refuse "$d is not a writable directory"
-done
+if [ "$remove" = 1 ]; then
+  # what an install would have written must be writable when it exists; nothing is created
+  for d in "$codex_home" "$script_dir" "$skills_dir"; do
+    [ ! -e "$d" ] || { [ -d "$d" ] && [ -w "$d" ]; } || refuse "$d is not a writable directory"
+  done
+else
+  mkdir -p "$skills_dir" || refuse "cannot create $skills_dir"
+  mkdir -p "$script_dir" || refuse "cannot create $script_dir"
+  for d in "$codex_home" "$script_dir" "$skills_dir"; do
+    [ -d "$d" ] && [ -w "$d" ] || refuse "$d is not a writable directory"
+  done
+fi
 [ ! -e "$config" ] || [ -w "$config" ] || refuse "$config is not writable"
 [ ! -e "$script_dst" ] || [ -w "$script_dst" ] || refuse "$script_dst is not writable"
+
+# the hooks.json block: one renderer for step 4 and for --remove (D-04), so the cmp of --remove compares
+# against the exact bytes the install writes
+# json_str VALUE: VALUE as the body of a JSON string
+json_str() {
+  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
+}
+hook_cmd="sh \"$script_dst\""
+hook_cmd_win=$hook_cmd
+if command -v cygpath > /dev/null 2>&1; then
+  w_sh=$(cygpath -w "$(command -v sh)")
+  w_script=$(cygpath -w "$script_dst")
+  hook_cmd_win="\"$w_sh\" \"$w_script\""
+fi
+hooks=$codex_home/hooks.json
+# render_hooks: the hooks.json this script writes, on stdout
+render_hooks() {
+  printf '{\n  "hooks": {\n    "PostToolUse": [\n      {\n        "matcher": "apply_patch|Edit|Write",\n        "hooks": [\n          {\n            "type": "command",\n            "command": "%s",\n            "commandWindows": "%s",\n            "timeout": 30\n          }\n        ]\n      }\n    ]\n  }\n}\n' \
+    "$(json_str "$hook_cmd")" "$(json_str "$hook_cmd_win")"
+}
 
 # ---- 1. the docs server: registration and the per-tool approval ----
 # analyze: one pass over config.toml (or nothing when it does not exist) for the server the
@@ -260,10 +327,15 @@ done
 #                oauth key); quick 261013-cpn
 #   oauth.client_id=  the client_id value of that table, "" when there is none
 #   tool.NAME=   missing | nokey | approve | other:VALUE, for each tool of srv_tools
+#   inblock=1|0  the main table header lies between a srv_begin line and the next srv_end line (--remove)
+#   closed=1|0   a srv_begin line is followed by a srv_end line (--remove)
+#   extra=1|0    a line of the server's main, oauth or tool tables is not one this script writes (a comment,
+#                a key other than url, the srv_old_key line, approval_mode and the three OAuth lines), or,
+#                between srv_begin and srv_end, a non-blank line lies outside those tables (--remove)
 analyze() {
   src=$config
   [ -f "$src" ] || src=/dev/null
-  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" -v begin="$srv_begin" \
+  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" -v begin="$srv_begin" -v mend="$srv_end" \
     -v oid="$srv_oauth_id" -v ourl="$srv_oauth_url" -v oport="$srv_oauth_port" '
     function val(l) {
       sub(/^[^=]*=/, "", l)
@@ -295,17 +367,26 @@ analyze() {
       all_hdr_re = "^[ \t]*\\[[ \t]*" q "mcp_servers" q "[ \t]*\\][ \t]*(#.*)?$"
       all_key_re = "^[ \t]*" q srv q "[ \t]*[.=]"
       dotted_re = "^[ \t]*" q "mcp_servers" q "[ \t]*[.=]"
+      mk_re = "^# (>>>|<<<) bbj-agent-plugins"
     }
     {
       line = $0
       sub(/\r$/, "", line)
-      if (line == begin) managed = 1
+      isbegin = 0
+      if (line == begin) {
+        managed = 1
+        inb = 1
+        xs = ""
+        etail = 0
+        isbegin = 1
+      }
       if (line ~ /^[ \t]*\[/) {
         sect = "other"
         name = ""
         if (line ~ main_re) {
           sect = "main"
           main = 1
+          if (inb) inblock = 1
         } else if (line ~ tool_re) {
           sect = "tool"
           name = line
@@ -360,6 +441,36 @@ analyze() {
           if (line ~ /^[ \t]*client_id[ \t]*=/) ocid = val(line)
         }
       }
+      # --remove (plan 08-03): closed, extra and inblock describe the tables of the server for the removal
+      # decision; the install path ignores them. xs is the table the current line belongs to, as sect,
+      # but reset by the begin marker; etail is set after the end marker of a complete block
+      if (isbegin) {
+        # the marker line itself
+      } else if (inb && line == mend) {
+        closed = 1
+        inb = 0
+        etail = 1
+      } else if (line ~ /^[ \t]*\[/) {
+        xs = sect
+        etail = 0
+        if (inb && xs != "main" && xs != "tool" && xs != "oauth") extra = 1
+      } else if (line !~ /^[ \t]*$/) {
+        if (line ~ mk_re && !inb) {
+          # a managed-block marker of either server ends a table and is not table content
+        } else if (etail) {
+          if (line !~ /^[ \t]*#/) extra = 1
+        } else if (xs == "main") {
+          if (!(line ~ /^[ \t]*url[ \t]*=/ || (old_key != "" && line == old_key))) extra = 1
+        } else if (xs == "tool") {
+          if (line !~ /^[ \t]*approval_mode[ \t]*=/) extra = 1
+        } else if (xs == "oauth") {
+          t2 = line
+          sub(/[ \t]+$/, "", t2)
+          if (t2 != want_id && t2 != want_url && t2 != want_port) extra = 1
+        } else if (inb) {
+          extra = 1
+        }
+      }
     }
     END {
       print "main=" (main ? 1 : 0)
@@ -375,6 +486,9 @@ analyze() {
       }
       print "oauth=" ostate
       print "oauth.client_id=" ocid
+      print "inblock=" (inblock ? 1 : 0)
+      print "extra=" (extra ? 1 : 0)
+      print "closed=" (closed ? 1 : 0)
       for (i = 1; i <= n; i++) print "tool." tl[i] "=" st[tl[i]]
     }' "$src"
 }
@@ -756,6 +870,237 @@ probe_local() {
   return 0
 }
 
+# ---- R. --remove: undo what this script wrote (phase 8, CODEX-06; D-01 to D-04) ----
+# remove_server: whether the server the srv_* globals name can be taken out of config.toml, in the exact
+# forms this script writes it. Sets rm_state (absent | remove | left), rm_why (the first rule that failed,
+# for left) and rm_what (what goes, for remove). It reads config.toml and writes nothing.
+rm_state=
+rm_why=
+rm_what=
+remove_server() {
+  refresh
+  state
+  rm_state=left
+  rm_why=
+  rm_what=
+  _rm_generic='it is in a form this script did not write'
+  if [ "$(an main)" = 0 ] && [ "$(an mention)" = 0 ] && [ "$(an anytool)" = 0 ]; then
+    if [ "$(an managed)" = 0 ]; then
+      rm_state=absent
+    elif [ "$(an closed)" = 0 ]; then
+      rm_why='its begin marker has no end marker'
+    elif [ "$(an extra)" = 0 ]; then
+      # markers only: the table between them was deleted by hand (the documented way to drop the registration)
+      rm_state=remove
+      rm_what='the managed block markers'
+    else
+      rm_why=$_rm_generic
+    fi
+    return 0
+  fi
+  if [ "$(an main)" != 1 ]; then rm_why=$_rm_generic; return 0; fi
+  # D-03: bbj-local is removed only as the managed block; a hand-registered one is the user's
+  if [ "$srv_fixed_url" = 1 ] && [ "$(an managed)" != 1 ]; then
+    rm_why='it is outside the managed block (registered by hand)'
+    return 0
+  fi
+  if [ "$foreign" != 0 ] || [ "$tools_foreign" != 0 ] || [ "$(an extra)" != 0 ]; then rm_why=$_rm_generic; return 0; fi
+  case "$(an dstate)" in
+    none|ours) ;;
+    *) rm_why='it sets default_tools_approval_mode in a form this script did not write'; return 0 ;;
+  esac
+  # RESEARCH A11: a registration at another url is also the documented Codex override of the plugin's server
+  if [ "$srv_fixed_url" = 0 ]; then
+    if [ -z "$(an url)" ]; then rm_why='it has no url'; return 0; fi
+    if [ "$(an url)" != "$docs_url" ]; then
+      rm_why="its url is $(an url), not the --docs-url in effect ($docs_url); rerun with --docs-url $(an url) to remove it"
+      return 0
+    fi
+  fi
+  _rm_na=0
+  for _t in $srv_tools; do
+    case "$(an "tool.$_t")" in
+      approve) _rm_na=$((_rm_na + 1)) ;;
+      missing) ;;
+      *) rm_why="its tool table $_t is not approval_mode = \"approve\" as this script writes it"; return 0 ;;
+    esac
+  done
+  if [ "$(an anytool)" != "$_rm_na" ]; then rm_why='it has a tool table this script does not write'; return 0; fi
+  case "$(an oauth)" in
+    missing|ours) ;;
+    *) rm_why='its OAuth table is not the one this script writes'; return 0 ;;
+  esac
+  if [ "$(an managed)" = 1 ] && { [ "$(an inblock)" != 1 ] || [ "$(an closed)" != 1 ]; }; then
+    rm_why='its table does not lie inside one complete managed block'
+    return 0
+  fi
+  rm_state=remove
+  rm_what="[mcp_servers.$srv]"
+  [ "$(an oauth)" != ours ] || rm_what="$rm_what, [mcp_servers.$srv.oauth]"
+  [ "$(an anytool)" = 0 ] || rm_what="$rm_what, $(an anytool) tool table(s)"
+  [ "$(an managed)" != 1 ] || rm_what="$rm_what, the managed block markers"
+  return 0
+}
+
+# remove_tables: one awk pass over config.toml for the server the srv_* globals name (remove_server said
+# remove): drops the managed block from its begin to its end marker line when there is one, and, outside
+# a block, every [mcp_servers.SRV], [mcp_servers.SRV.oauth] and [mcp_servers.SRV.tools.NAME] table, header
+# and body up to the next header or managed-block marker. Blank lines are buffered: a removed header or
+# begin marker takes the one blank line before it (the one this script wrote); blanks inside a removed
+# region go; a kept line emits the blanks before it. A trailing CR is ignored when comparing and kept when
+# printing, so a CRLF file stays CRLF. Written in place like the install side (a symlinked config.toml
+# keeps its link and mode).
+remove_tables() {
+  if [ -f "$config" ] && [ ! -f "$config.bbj-backup" ]; then
+    cp "$config" "$config.bbj-backup" || refuse "cannot write $config.bbj-backup"
+    wrote="$wrote config.toml(backup)"
+    say "config.toml: backup written to $config.bbj-backup"
+  fi
+  tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
+  # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
+  if awk -v srv="$srv" -v begin="$srv_begin" -v mend="$srv_end" -v managed="$(an managed)" '
+      function flush(   i) {
+        for (i = 1; i <= nb; i++) print bl[i]
+        nb = 0
+      }
+      BEGIN {
+        key = "(\"" srv "\"|" srv ")"
+        main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
+        tool_re = "^\\[mcp_servers\\." key "\\.tools\\.[A-Za-z0-9_-]+\\][ \t]*(#.*)?$"
+        oauth_re = "^\\[mcp_servers\\." key "\\.oauth\\][ \t]*(#.*)?$"
+        mk_re = "^# (>>>|<<<) bbj-agent-plugins"
+      }
+      {
+        line = $0
+        sub(/\r$/, "", line)
+        if (inblk) {
+          if (line == mend) inblk = 0
+          next
+        }
+        if (managed == 1 && line == begin) {
+          if (inskip) nb = 0
+          else if (nb > 0) nb--
+          flush()
+          inskip = 0
+          inblk = 1
+          next
+        }
+        if (line ~ /^[ \t]*\[/) {
+          if (line ~ main_re || line ~ oauth_re || line ~ tool_re) {
+            if (inskip) nb = 0
+            else if (nb > 0) nb--
+            flush()
+            inskip = 1
+            next
+          }
+          if (inskip) { nb = 0; inskip = 0 }
+          flush()
+          print
+          next
+        }
+        if (inskip) {
+          if (line ~ mk_re) { nb = 0; inskip = 0; print; next }
+          next
+        }
+        if (line ~ /^[ \t]*$/) { bl[++nb] = $0; next }
+        flush()
+        print
+      }
+      END { if (!inskip && !inblk) flush() }
+    ' "$config" > "$tmp" && cat "$tmp" > "$config"; then
+    rm -f "$tmp"
+    wrote="$wrote config.toml"
+  else
+    rm -f "$tmp"
+    refuse "cannot update $config"
+  fi
+}
+
+# remove_all: the whole remove mode; it ends in exit 0, or exit 3 when something was left in place because it
+# differs from what this script writes. It calls no other program of Codex and creates no directory (D-01).
+remove_all() {
+  say "Removing what install-codex.sh wrote under $codex_home and $skills_dir; codex is not called."
+  if [ ! -f "$config" ]; then
+    say "config.toml: $config does not exist; nothing to remove"
+  else
+    for _which in use_docs use_local; do
+      "$_which"
+      remove_server
+      case "$rm_state" in
+        remove)
+          remove_tables
+          say "$srv: removed from $config: $rm_what"
+          ;;
+        left)
+          say "$srv: $config holds $srv in a form this script did not write; left in place: $rm_why"
+          pending=1
+          ;;
+        *) say "$srv: not in $config; nothing to remove" ;;
+      esac
+    done
+  fi
+  for s in bbj-programming bbj-web-programming; do
+    dst=$skills_dir/$s
+    if [ -L "$dst" ]; then
+      say "skill $s: $dst is a symbolic link; left in place"
+      pending=1
+    elif [ ! -e "$dst" ]; then
+      say "skill $s: $dst not found; nothing to remove"
+    elif [ -d "$dst" ] && diff -r "$src_skills/$s" "$dst" > /dev/null 2>&1; then
+      [ -n "$skills_dir" ] && rm -rf -- "$dst" || refuse "cannot remove $dst"
+      wrote="$wrote skill:$s"
+      say "skill $s: removed $dst (identical to the shipped copy)"
+    else
+      say "skill $s: $dst differs from the shipped copy; left in place. Copy out what you want to keep, delete the directory, and run --remove again"
+      pending=1
+    fi
+  done
+  if [ -L "$script_dir" ]; then
+    say "check script: $script_dir is a symbolic link; left in place"
+    pending=1
+  else
+    if [ -e "$script_dst" ] || [ -L "$script_dst" ]; then
+      rm -f -- "$script_dst" || refuse "cannot remove $script_dst"
+      wrote="$wrote check-script"
+      say "check script: removed $script_dst"
+    else
+      say "check script: $script_dst not found; nothing to remove"
+    fi
+    if [ -d "$script_dir" ] && ! rmdir "$script_dir" 2> /dev/null; then
+      say "check script: $script_dir holds other files; left in place"
+      pending=1
+    fi
+  fi
+  if [ -L "$hooks" ]; then
+    say "hooks.json: $hooks is a symbolic link; left in place"
+    pending=1
+  elif [ ! -e "$hooks" ]; then
+    say "hooks.json: $hooks not found; nothing to remove"
+  else
+    tmp=$(mktemp "$codex_home/hooks.json.XXXXXX") || refuse "cannot create a temp file in $codex_home"
+    render_hooks > "$tmp"
+    if cmp -s "$tmp" "$hooks"; then
+      rm -f "$hooks" || { rm -f "$tmp"; refuse "cannot remove $hooks"; }
+      wrote="$wrote hooks.json"
+      say "hooks.json: removed $hooks (it held only the hook this script writes)"
+    else
+      say "hooks.json: $hooks holds more than the hook this script writes; left in place. Delete this PostToolUse entry from it by hand (its script $script_dst is gone):"
+      cat "$tmp"
+      pending=1
+    fi
+    rm -f "$tmp"
+  fi
+  say "Kept: $config.bbj-backup if it exists (your backup) and Codex's own hooks.state entries in config.toml (a stale trust entry is harmless)."
+  say "Next: codex plugin marketplace add BBj-AI/bbj-agent-plugins, then codex plugin add bbj@basis-bbj, then open /hooks in Codex and trust the BBj check hook."
+  say "$STATUS_LINE"
+  [ "$pending" = 0 ] || exit 3
+  exit 0
+}
+
+if [ "$remove" = 1 ]; then
+  remove_all
+fi
+
 use_docs
 sync_server
 
@@ -844,21 +1189,9 @@ fi
 chmod 755 "$script_dst"
 
 # ---- 4. hooks.json: written only when absent ----
-# json_str VALUE: VALUE as the body of a JSON string
-json_str() {
-  printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g'
-}
-hook_cmd="sh \"$script_dst\""
-hook_cmd_win=$hook_cmd
-if command -v cygpath > /dev/null 2>&1; then
-  w_sh=$(cygpath -w "$(command -v sh)")
-  w_script=$(cygpath -w "$script_dst")
-  hook_cmd_win="\"$w_sh\" \"$w_script\""
-fi
-hooks=$codex_home/hooks.json
+# (render_hooks, above, prints the block: --remove compares an existing file against the same bytes)
 tmp=$(mktemp "$codex_home/hooks.json.XXXXXX") || refuse "cannot create a temp file in $codex_home"
-printf '{\n  "hooks": {\n    "PostToolUse": [\n      {\n        "matcher": "apply_patch|Edit|Write",\n        "hooks": [\n          {\n            "type": "command",\n            "command": "%s",\n            "commandWindows": "%s",\n            "timeout": 30\n          }\n        ]\n      }\n    ]\n  }\n}\n' \
-  "$(json_str "$hook_cmd")" "$(json_str "$hook_cmd_win")" > "$tmp"
+render_hooks > "$tmp"
 if [ ! -e "$hooks" ]; then
   mv "$tmp" "$hooks" || { rm -f "$tmp"; refuse "cannot write $hooks"; }
   say "hooks.json: written to $hooks (PostToolUse, matcher apply_patch|Edit|Write, timeout 30)"
