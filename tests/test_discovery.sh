@@ -2,6 +2,8 @@
 # tests/test_discovery.sh -- plan 19-01 Task 3: where the check script finds BBj, and which
 # -P list it builds. Every home holds a fake compiler whose logged ARG0 names the home that
 # ran; nothing is compiled or run.
+# Phase 9 (plan 09-01, PLAT-02, D-12): drive-letter, backslash and space paths through the fake
+# cygpath seam FAKE_CYGDRIVE_ROOT.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -171,5 +173,50 @@ case "$_t" in
   "W:$WORK/proj/sub/f.bbj") gate windows_target ok "$_t" ;;
   *) gate windows_target FAIL "$_t" ;;
 esac
+
+# Windows branch with drive-letter input (phase 9, plan 09-01, PLAT-02, D-04, D-12): the fake
+# cygpath maps C:\... below $WORK/drive (FAKE_CYGDRIVE_ROOT)
+mkdir -p "$WORK/drive/bbx/bin" "$WORK/drive/Users/x/bbj test/sub"
+cp "$REPO/tests/fake-bin/bbjcpl" "$WORK/drive/bbx/bin/bbjcpl.exe"
+chmod 755 "$WORK/drive/bbx/bin/bbjcpl.exe"
+: > "$WORK/drive/Users/x/bbj test/sub/f.bbj"
+unset CLAUDE_PROJECT_DIR
+FAKE_CYGDRIVE_ROOT=$WORK/drive
+export FAKE_CYGDRIVE_ROOT
+CLAUDE_PLUGIN_OPTION_BBJ_HOME='C:\bbx'
+export CLAUDE_PLUGIN_OPTION_BBJ_HOME
+
+# wcall FILE CWD: a Claude Code Write of FILE with payload cwd CWD, fresh call log
+wcall() {
+  : > "$FAKE_LOG"
+  run_check "$(claude_payload Write "$1" "$2")"
+}
+# wtarget: the file argument (last argument) of the last logged compiler call
+wtarget() {
+  awk '/^CALL$/ { na = 0; next } /^ARG0 / { print a[na]; next } { a[++na] = $0 }' "$FAKE_LOG" | tail -n 1
+}
+WANT_T="W:$WORK/drive/Users/x/bbj test/sub/f.bbj"
+WANT_P="-PW:$WORK/drive/Users/x/bbj test/sub;W:$WORK/drive/Users/x/bbj test"
+
+wcall 'C:\Users\x\bbj test\sub\f.bbj' 'C:\Users\x\bbj test'
+ran "$WORK/drive/bbx/bin/bbjcpl.exe" windows_drive_home
+_t=$(wtarget)
+_n=$(grep -c '^CALL$' "$FAKE_LOG")
+if [ "$_t" = "$WANT_T" ] && [ "$_n" = 1 ]; then
+  gate windows_drive_file ok "$_t"
+else
+  gate windows_drive_file FAIL "target '$_t', want '$WANT_T'; calls $_n, want 1"
+fi
+_n=$(grep -c '^-P' "$FAKE_LOG")
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_n" = 1 ] && [ "$_p" = "$WANT_P" ]; then
+  gate windows_space_p_list ok "$_p"
+else
+  gate windows_space_p_list FAIL "got $_n line(s), last '$_p', want '$WANT_P'"
+fi
+
+unset FAKE_CYGDRIVE_ROOT CLAUDE_PLUGIN_OPTION_BBJ_HOME
+PATH=$BASEPATH
+export PATH
 
 finish
