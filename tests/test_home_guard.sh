@@ -275,6 +275,26 @@ else
   gate homeguard_unreadable_dir_reported FAIL "no E line: $(tr '\n' ' ' < "$WORK/unreadable_dir_reported.snap")"
 fi
 
+# a symlink to a regular file that cannot be read gets a U line, so a write behind it is not silent (IN-01;
+# root reads anyway)
+mkhome unreadable_target_reported
+mkdir "$WORK/unreadable_target_reported.target"
+printf 'x\n' > "$WORK/unreadable_target_reported.target/config.toml"
+rm -f "$H_C/config.toml"
+ln -s "$WORK/unreadable_target_reported.target/config.toml" "$H_C/config.toml"
+chmod 000 "$WORK/unreadable_target_reported.target/config.toml"
+home_snapshot "$H_C" "$H_S" > "$WORK/unreadable_target_reported.snap"
+chmod 644 "$WORK/unreadable_target_reported.target/config.toml"
+if grep -q '^L .*/\.codex/config\.toml -> ' "$WORK/unreadable_target_reported.snap" \
+  && grep -q '^U .*/\.codex/config\.toml$' "$WORK/unreadable_target_reported.snap" \
+  && ! grep -q '^T ' "$WORK/unreadable_target_reported.snap"; then
+  gate homeguard_unreadable_target_reported ok "a link to an unreadable regular file: L line and U line, no T line"
+elif [ "$(id -u)" = 0 ]; then
+  gate homeguard_unreadable_target_reported skip "running as root: chmod 000 does not hide a file"
+else
+  gate homeguard_unreadable_target_reported FAIL "$(tr '\n' ' ' < "$WORK/unreadable_target_reported.snap")"
+fi
+
 # the same E line without relying on chmod, so it also runs as root (IN-04): a find that fails
 # (a fake first on PATH that exits 1) must give an E line for every watched path that exists
 mkhome find_failure_reported

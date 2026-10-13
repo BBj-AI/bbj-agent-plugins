@@ -226,13 +226,15 @@ no_compiler_env() {
 #   F <mode> <crc> <size> <path>   regular file (permission string and cksum of the content, never a time)
 #   T <crc> <size> <path>   content behind a symlink to a regular file (WR-01: a write through the link)
 #   D <mode> <path>   directory (permission string; IN-02)    L <path> -> <target>   symlink
-#   U <path>   unreadable file
+#   U <path>   unreadable file, or a symlink whose regular target is unreadable
 #   O <path>   other (FIFO, socket, device; never opened)    - <path>   absent
 #   E <path>   find failed below this watched path (an unreadable directory); the walk is incomplete
 #   H <path> present|absent   the Codex home and the skills dir themselves (the installer mkdir -p's both)
 # Content, never mtime (D-09): a touch changes nothing, an edited, added or removed file does. Only
 # the paths below are read, so daemon files (logs_*.sqlite*, state_*.sqlite, history.jsonl,
-# sessions/, log/, tmp/) and credential files (auth.json) are never opened. The watched set is the
+# sessions/, log/, tmp/) and credential files (auth.json) are never opened, with one exception: a
+# symlink below a watched path is followed for a T line, so the cksum of a regular file it points at
+# is read even when that file lies outside the watched set (IN-01). The watched set is the
 # installer's whole write set: config.toml, config.toml.bbj-backup, hooks.json, bbj/, the two skill
 # directories, the mktemp files the installer leaves in the Codex home when it dies between
 # mktemp and mv (config.toml.XXXXXX, hooks.json.XXXXXX), and the two parent directories. A glob
@@ -276,6 +278,9 @@ home_snapshot() {
               # the content behind a file link: a write through the link changes this and nothing else
               if [ -f "$_f" ] && [ -r "$_f" ]; then
                 printf "T %s %s\n" "$(cksum < "$_f")" "$_f"
+              elif [ -f "$_f" ]; then
+                # a regular target that cannot be read: say so, a write behind the link is not silent
+                printf "U %s\n" "$_f"
               fi
             elif [ -d "$_f" ]; then
               printf "D %s %s\n" "$(ls -ld "$_f" | awk "{ print \$1 }")" "$_f"
