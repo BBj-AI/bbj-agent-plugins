@@ -1,8 +1,22 @@
 #!/bin/sh
 # Fake cygpath for the Windows-branch test: "-u ARG" prints ARG unchanged, "-w ARG" prints
 # "W:" followed by ARG, so a test can see which paths went through the conversion.
+# Phase 9 (plan 09-01, PLAT-02, D-12) adds the seam FAKE_CYGDRIVE_ROOT, which is off unless the
+# variable is set and non-empty. With the seam on, "-u" maps C:\a\b and C:/a/b to <root>/a/b
+# (drive letter dropped, backslashes turned into slashes); it models nothing else of the real
+# cygpath (no case folding, no /cygdrive, no -m or -d). Without the seam the output is unchanged.
 case "$1" in
-  -u) printf '%s\n' "$2" ;;
+  -u)
+    case "$2" in
+      [A-Za-z]:[\\/]*)
+        if [ -n "${FAKE_CYGDRIVE_ROOT:-}" ]; then
+          printf '%s%s\n' "$FAKE_CYGDRIVE_ROOT" "$(printf '%s' "${2#?:}" | tr '\\' '/')"
+          exit 0
+        fi
+        ;;
+    esac
+    printf '%s\n' "$2"
+    ;;
   -w) printf 'W:%s\n' "$2" ;;
   *) exit 1 ;;
 esac
