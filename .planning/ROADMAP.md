@@ -63,7 +63,7 @@ Spike 004 (Copilot CLI) belongs to the next milestone.
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 7: Test hardening and release prep** - Suite green with `bbjcpl` on `PATH` and a running Codex daemon; 0.2.0 review fixes in the release tree; CONTENT_VERSION policy decided (completed 2026-10-12)
-- [ ] **Phase 8: Codex plugin route** - Codex installs `bbj` and the opt-in `bbj-local` from the `basis-bbj` marketplace with a working docs URL and the unchanged hook; installer kept as fallback; gated in CI on fakes
+- [x] **Phase 8: Codex plugin route** - Codex installs `bbj` and the opt-in `bbj-local` from the `basis-bbj` marketplace with a working docs URL and the unchanged hook; installer kept as fallback; gated in CI on fakes (completed 2026-10-13)
 - [ ] **Phase 9: Windows and macOS verification** - Owner runs of the Claude Code plugin and the Codex plugin route on Windows and macOS; every defect fixed with a CI gate on fakes or recorded as a known gap
 - [ ] **Phase 10: Install wording and release 0.2.1** - Per-client, per-platform, per-route wording backed by the recorded runs and pinned by gates; 0.2.1 merged, tagged and published
 
@@ -115,7 +115,7 @@ Plans:
   5. `docs/install-codex.md` leads with the plugin route and keeps `install-codex.sh` as a documented fallback for this release. It covers the two install commands, the `/hooks` trust step, the first-use tool prompts, the `BBJ_HOME` note, and whether a plugin upgrade asks for hook trust again, as observed on Linux (CODEX-05)
   6. A user who installed with `install-codex.sh` (0.1.0 or 0.2.0) switches to the plugin route by documented steps or an installer option and ends with exactly one hook entry, one copy of the skills and one `bbj-docs` server: no double check, no double feedback, and the installer's `[mcp_servers.bbj-docs]` table no longer overriding the plugin's server. Verified once on Linux in a throwaway Codex home (CODEX-06)
 
-**Plans**: 8/8 plans executed
+**Plans**: 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -192,6 +192,6 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
-| 8. Codex plugin route | v0.2.1 | 8/8 | In Progress | - |
+| 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 9. Windows and macOS verification | v0.2.1 | 0/TBD | Not started | - |
 | 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |
