@@ -4,7 +4,9 @@
 # key order captured from Codex CLI codex-cli 0.162.1 (plan 02-05); the raw payloads below
 # also cover other orders. Parsing assertions use a fake compiler and its argv
 # log; when a real compiler exists one end-to-end gate also runs it (bbjcpl -t -N -X,
-# compile-only). Nothing here runs BBj.
+# compile-only). Phase 8 (CODEX-02, D-14) adds the plugin-route gates, prefix plugin_route_: the
+# command string of plugins/bbj/hooks/hooks.json runs with CLAUDE_PLUGIN_ROOT set to a fake Codex
+# plugin-cache path. Nothing here runs BBj.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -156,6 +158,87 @@ BBJ_HOME=$WORK/home2 run_check "$(codex_payload "$PROJ" "$(patch '*** Add File: 
 run_check "$(codex_payload "$PROJ" "$(patch '*** Update File: early.bbj' '*** Update File: ./early.bbj' '*** Update File: early.bbj')")"
 [ "$(calls_list)" = "$PROJ/early.bbj" ] \
   && gate duplicates_once ok "early.bbj, ./early.bbj and early.bbj give one call" || gate duplicates_once FAIL "calls: $(calls_list)"
+
+# ---- the plugin route (CODEX-02, D-14): hooks.json command under a fake Codex cache path ----
+# Codex runs the hook command of the plugin with CLAUDE_PLUGIN_ROOT set to its plugin cache,
+# $CODEX_HOME/plugins/cache/basis-bbj/bbj/<version>/ (spike 001 saw this shape in hooks/list). The
+# parent directory name holds a space on purpose, and the trailing slash is D-14's: the command then
+# expands to .../<version>//scripts/bbj-check.sh, a double slash that a real path resolves. The copy
+# lives under mkwork ($TMPDIR); the rule that keeps throwaway Codex homes out of /tmp is about homes
+# where real Codex runs. No Codex runs here: only sh and the fake bbjcpl read the copy.
+# The earlier block that sets BBJ_HOME as a prefix on run_check can persist under dash (Pitfall 4),
+# so the three variables are set and exported again.
+BBJ_HOME=$WORK/home
+FAKE_LOG=$WORK/calls.log
+FAKE_OUT=$WORK/canned.txt
+export BBJ_HOME FAKE_LOG FAKE_OUT
+if ! command -v python3 > /dev/null 2>&1; then
+  if [ "${CI:-}" = true ]; then
+    gate plugin_route_command FAIL "python3 missing under CI=true"
+  else
+    gate plugin_route_command skip "no python3 to read hooks.json and the overlay version"
+  fi
+else
+  ROUTE_CMD=$(python3 -I -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d["hooks"]["PostToolUse"][0]["hooks"][0]["command"])' "$REPO/plugins/bbj/hooks/hooks.json" 2> /dev/null)
+  ROUTE_VER=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$REPO/plugins/bbj/.codex-plugin/plugin.json" 2> /dev/null)
+  if [ -z "$ROUTE_CMD" ] || [ -z "$ROUTE_VER" ]; then
+    gate plugin_route_command FAIL "no command in hooks.json or no version in the overlay (command='$ROUTE_CMD' version='$ROUTE_VER')"
+  else
+    CACHE="$WORK/codex home/plugins/cache/basis-bbj/bbj/$ROUTE_VER/"
+    mkdir -p "$CACHE" "$PROJ/route"
+    cp -R "$REPO/plugins/bbj/." "$CACHE"
+    : > "$WORK/empty.txt"
+    _missing=
+    for _f in .codex-plugin/plugin.json .codex-mcp.json hooks/hooks.json scripts/bbj-check.sh; do
+      [ -f "$CACHE$_f" ] || _missing="$_missing $_f"
+    done
+    [ -z "$_missing" ] \
+      && gate plugin_route_cache_layout ok "the cache copy holds the overlay, .codex-mcp.json, hooks.json and the script" \
+      || gate plugin_route_cache_layout FAIL "missing in the copy:$_missing"
+
+    # a bad file: exit 2, header names the absolute file, one compiler call that carries -N
+    printf 'print "a"   rem same line\n' > "$PROJ/route/bad.bbj"
+    codex_payload "$PROJ" "$(patch '*** Add File: route/bad.bbj' "$BADLINE")" > "$WORK/route_bad.json"
+    : > "$FAKE_LOG"
+    CLAUDE_PLUGIN_ROOT="$CACHE" sh -c "$ROUTE_CMD" < "$WORK/route_bad.json" > "$WORK/route_out" 2> "$WORK/route_err"
+    _rc=$?
+    [ "$_rc" = 2 ] && [ "$(head -n 1 "$WORK/route_err")" = "bbjcpl reported 1 error(s) in $PROJ/route/bad.bbj:" ] && [ ! -s "$WORK/route_out" ] \
+      && gate plugin_route_bad ok "exit 2, header names the file, stdout empty, root holds a space and a trailing slash" \
+      || gate plugin_route_bad FAIL "exit $_rc, first line: $(head -n 1 "$WORK/route_err"), stdout bytes: $(wc -c < "$WORK/route_out")"
+    if [ "$(calls_list)" = "$PROJ/route/bad.bbj" ] && grep -x -e '-N' "$FAKE_LOG" > /dev/null; then
+      gate plugin_route_dash_n ok "one compiler call with the absolute file, and -N"
+    else
+      gate plugin_route_dash_n FAIL "calls: $(calls_list); -N present: $(grep -cx -e '-N' "$FAKE_LOG")"
+    fi
+
+    # a clean file: the compiler prints nothing, so exit 0 and silence
+    printf 'print "a"; rem ok\n' > "$PROJ/route/clean.bbj"
+    codex_payload "$PROJ" "$(patch '*** Add File: route/clean.bbj' '+print "a"; rem ok')" > "$WORK/route_clean.json"
+    : > "$FAKE_LOG"
+    FAKE_OUT="$WORK/empty.txt" CLAUDE_PLUGIN_ROOT="$CACHE" sh -c "$ROUTE_CMD" < "$WORK/route_clean.json" > "$WORK/route_out" 2> "$WORK/route_err"
+    _rc=$?
+    _calls=$(grep -c '^CALL$' "$FAKE_LOG")
+    [ "$_rc" = 0 ] && [ ! -s "$WORK/route_out" ] && [ ! -s "$WORK/route_err" ] && [ "$_calls" = 1 ] \
+      && gate plugin_route_clean ok "exit 0, stdout and stderr empty, one compiler call" \
+      || gate plugin_route_clean FAIL "exit $_rc, compiler calls $_calls, stderr: $(head -n 1 "$WORK/route_err")"
+
+    # a patch that names no BBj file: silent, no compiler call
+    printf 'notes\n' > "$PROJ/route/notes.md"
+    codex_payload "$PROJ" "$(patch '*** Add File: route/notes.md' '+notes')" > "$WORK/route_notes.json"
+    : > "$FAKE_LOG"
+    CLAUDE_PLUGIN_ROOT="$CACHE" sh -c "$ROUTE_CMD" < "$WORK/route_notes.json" > "$WORK/route_out" 2> "$WORK/route_err"
+    _rc=$?
+    _calls=$(grep -c '^CALL$' "$FAKE_LOG")
+    [ "$_rc" = 0 ] && [ "$_calls" = 0 ] && [ ! -s "$WORK/route_out" ] && [ ! -s "$WORK/route_err" ] \
+      && gate plugin_route_no_bbj_silent ok "no .bbj, .src or .bbx file in the patch: exit 0, silent, no compiler call" \
+      || gate plugin_route_no_bbj_silent FAIL "exit $_rc, compiler calls $_calls, stderr: $(head -n 1 "$WORK/route_err")"
+
+    # the prefix assignments above never reached the test shell
+    [ -z "${CLAUDE_PLUGIN_ROOT+x}" ] \
+      && gate plugin_route_env_clean ok "CLAUDE_PLUGIN_ROOT is unset in the test shell" \
+      || gate plugin_route_env_clean FAIL "CLAUDE_PLUGIN_ROOT leaked into the test shell"
+  fi
+fi
 
 # ---- the real compiler, when there is one ----
 if [ -x "$BBJ_TEST_HOME/bin/bbjcpl" ]; then

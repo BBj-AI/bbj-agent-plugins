@@ -39,7 +39,9 @@
 # list, no BBj environment variable is set, and the loopback check URL is a closed port,
 # so no test reaches a real BBj or a real bbj-ls unless it opts in explicitly. mkwork also
 # points BBJ_CHECK_STATE_DIR at $WORK/state (HOOK-02, D-18), so the once-per-session marker
-# of the no-route notice never reaches the real temp directory.
+# of the no-route notice never reaches the real temp directory. Claude Code and the Codex plugin
+# route export CLAUDE_PLUGIN_ROOT to a hook, so it is unset here too: a value inherited from the
+# caller must never turn an installer-route gate into a plugin-route one (Phase 8, Pitfall 4).
 
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 SCRIPT=${SCRIPT:-$REPO/plugins/bbj/scripts/bbj-check.sh}
@@ -47,7 +49,7 @@ SHELL_UNDER_TEST=${SHELL_UNDER_TEST:-sh}
 
 BBJ_CHECK_DEFAULT_HOMES=
 export BBJ_CHECK_DEFAULT_HOMES
-unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR
+unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR CLAUDE_PLUGIN_ROOT
 BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp
 export BBJ_LOCAL_MCP_URL
 
@@ -251,7 +253,12 @@ no_compiler_env() {
 home_snapshot() {
   _hs_c=$1
   _hs_s=$2
-  # D-08: the paths codex/install-codex.sh can write; Phase 8 adds its plugin-route paths here
+  # D-08: the paths codex/install-codex.sh can write. Phase 8 decision (Claude's discretion in
+  # 08-CONTEXT.md, recorded there, dated, under the locked Phase 7 D-08 line): no plugin-route path
+  # is added. $CODEX_HOME/plugins/ and the [marketplaces] and [plugins] tables of config.toml are
+  # written by Codex itself, change whenever the owner uses Codex, and no suite test writes them.
+  # The installer's write set is unchanged, and its --remove (plans 08-03, 08-04) deletes only
+  # inside that set.
   {
     # the temp-file globs below need globbing: noglob from the caller is lifted here and put back
     # at the end of the block, so leaked temp files are never silently unwatched (IN-01)

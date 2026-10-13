@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "bbj-docs": {
+      "type": "http",
+      "url": "https://mcp.bbj-ai.com/mcp"
+    }
+  }
+}
