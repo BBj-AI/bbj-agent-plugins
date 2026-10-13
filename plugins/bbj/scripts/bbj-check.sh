@@ -100,7 +100,9 @@
 # that capture: session_id, turn_id, transcript_path, cwd, hook_event_name, model,
 # permission_mode, tool_name, tool_input, tool_response, tool_use_id (transcript_path null,
 # tool_response a plain string, the "*** Add File: " path absolute); session_id before
-# tool_input, read with jget pre and, failing that, jget all.
+# tool_input, read with jget pre and, failing that, jget all. On the Windows branch (cygpath on
+# PATH) the cwd and every header path first lose one leading verbatim prefix and have their
+# backslashes turned into slashes, before the containment and ".." checks (phase 9, D-12).
 #
 # A path that is itself a symlink is skipped silently (a link to another file must not make
 # the hook read or send that file); the same applies to every path a patch names.
@@ -557,12 +559,24 @@ check_file() {
   return 0
 }
 
+# wpath_norm PATH: prints PATH for the Windows branch of codex_patch (phase 9, D-12, W-3): one
+# leading verbatim prefix (backslash backslash ? backslash, or its slash form) is dropped and every
+# backslash becomes a slash, so the drive-letter, containment and ".." checks that follow see one
+# spelling. Prints only; the caller checks the result.
+wpath_norm() {
+  case "$1" in
+    '\\?\'*|'//?/'*) set -- "${1#????}" ;;
+  esac
+  printf '%s' "$1" | tr '\\' '/'
+}
+
 # codex_patch: the apply_patch branch (see the header). Reads the globals input, hd, WIN;
 # sets cwd. Checks every BBj file the patch headers name, once each.
 codex_patch() {
   cwd=$(printf '%s' "$hd" | jget pre cwd)
   [ -n "$cwd" ] || cwd=$(printf '%s' "$input" | jget all cwd)
   [ -n "$cwd" ] || exit 0
+  if [ "$WIN" = 1 ]; then cwd=$(wpath_norm "$cwd"); fi
   case "$cwd" in
     [A-Za-z]:*) if [ "$WIN" = 1 ]; then cwd=$(cygpath -u "$cwd"); fi ;;
   esac
@@ -598,6 +612,7 @@ codex_patch() {
       *) rest= ;;
     esac
     [ -n "$_p" ] || continue
+    if [ "$WIN" = 1 ]; then _p=$(wpath_norm "$_p"); fi
     case "$_p" in
       [A-Za-z]:*) if [ "$WIN" = 1 ]; then _p=$(cygpath -u "$_p"); fi ;;
     esac
