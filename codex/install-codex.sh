@@ -14,9 +14,14 @@
 #      bbj_search, bbj_fetch_page, bbj_lookup, bbj_reserved_word and bbj_examples (they only
 #      read). Nothing else of bbj-docs is approved, and no server-wide default is written: the
 #      server may also list the hosted check tools bbj_check_syntax, bbj_format and bbj_denum,
-#      which send your code to the server and keep Codex's normal prompt. An existing table
-#      only gains the missing tool tables; config.toml.bbj-backup is written once before the
-#      first change to an existing file. A docs tool you set to another approval_mode keeps it
+#      which send your code to the server and keep Codex's normal prompt. The script also
+#      writes [mcp_servers.bbj-docs.oauth] with client_id, callback_url and callback_port of the
+#      pre-registered OAuth client of the hosted docs server (quick 261013-cpn), right after the
+#      bbj-docs table body (inside the managed block when there is one). It never goes through
+#      codex mcp add for this: the client-id option of that command starts the sign-in at once
+#      and waits for a browser. An OAuth entry of your own for bbj-docs is left alone and named.
+#      An existing table only gains the missing OAuth table and tool tables;
+#      config.toml.bbj-backup is written once before the first change to an existing file. A docs tool you set to another approval_mode keeps it
 #      and is named in the output. Upgrade: versions up to 398aac5 wrote
 #      default_tools_approval_mode = "approve" into the bbj-docs table, which approved every
 #      tool of the server; a rerun removes exactly that line and says so. Any other
@@ -60,7 +65,8 @@
 #      any plugin cache.
 #   4. writes <codex home>/hooks.json with an apply_patch matcher, only when that file does not
 #      exist; an existing hooks.json is never modified (exit 3 with the block to merge by hand).
-#   5. prints the AGENTS.md snippet, the /hooks trust step and the known gaps.
+#   5. prints the AGENTS.md snippet, the /hooks trust step, the sign-in step (codex mcp login
+#      bbj-docs, once) and the known gaps.
 #
 # Options: --docs-url URL (default DEFAULT_DOCS_URL, the same value as the bbj plugin's
 # docs_url default; plain http only to 127.0.0.1, localhost or [::1]), --skills-dir DIR,
@@ -85,6 +91,14 @@ MARK_END='# <<< bbj-agent-plugins (managed) <<<'
 # the five read-only docs tools of bbj-docs, approved by name; one list, also checked against
 # the tool bullets of AGENTS-snippet.md by the test suite
 DOCS_TOOLS='bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples'
+# the pre-registered OAuth client of the hosted docs server (quick 261013-cpn): its auth server
+# accepts only this client and only a callback on port 47613. Codex needs both callback keys:
+# the port alone makes Codex CLI 0.162.1 append a random path to a 127.0.0.1 redirect, which the
+# auth server rejects, and the url alone does not fix the listener port. The test suite reads
+# these three lines (tests/test_layout.py), one value each.
+OAUTH_CLIENT_ID=oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t
+OAUTH_CALLBACK_PORT=47613
+OAUTH_CALLBACK_URL=http://localhost:47613/callback
 # the local check server bbj-local (plan 01-04, LOCAL-02): the bbj-ls of a running BBjServices.
 # Its three tools run on this machine and are approved by name only for this fixed loopback url
 # (D-12); the registration never follows BBJ_LOCAL_MCP_URL (D-17)
@@ -239,11 +253,17 @@ done
 #   managed=1|0  a line equals the begin marker srv_begin (a lone end marker is a comment: 0)
 #   url=VALUE    the url key of the main table (last one), "" when there is none
 #   anytool=N    how many [mcp_servers.SRV.tools.NAME] tables there are
+#   oauth=       missing | ours | other: the [mcp_servers.SRV.oauth] table is absent, is exactly one
+#                table with the three lines of the pre-registered client (srv_oauth_*), or is anything
+#                else (own values, extra keys, twice, quoted or spaced header, an inline or dotted
+#                oauth key); quick 261013-cpn
+#   oauth.client_id=  the client_id value of that table, "" when there is none
 #   tool.NAME=   missing | nokey | approve | other:VALUE, for each tool of srv_tools
 analyze() {
   src=$config
   [ -f "$src" ] || src=/dev/null
-  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" -v begin="$srv_begin" '
+  awk -v srv="$srv" -v tools="$srv_tools" -v sq="'" -v old_key="$srv_old_key" -v begin="$srv_begin" \
+    -v oid="$srv_oauth_id" -v ourl="$srv_oauth_url" -v oport="$srv_oauth_port" '
     function val(l) {
       sub(/^[^=]*=/, "", l)
       sub(/[ \t]*#.*$/, "", l)
@@ -260,6 +280,11 @@ analyze() {
       main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
       tool_re = "^\\[mcp_servers\\." key "\\.tools\\.[A-Za-z0-9_-]+\\][ \t]*(#.*)?$"
       tool_pre = "^\\[mcp_servers\\." key "\\.tools\\."
+      oauth_re = "^\\[mcp_servers\\." key "\\.oauth\\][ \t]*(#.*)?$"
+      okey_re = "^[ \t]*[\"" sq "]?oauth[\"" sq "]?[ \t]*[.=]"
+      want_id = "client_id = \"" oid "\""
+      want_url = "callback_url = \"" ourl "\""
+      want_port = "callback_port = " oport
       # WR-02: only a definition of the server counts as a mention, never the name inside a path or a value
       # (a [projects."/src/bbj-local"] trust table is not a server): a header whose key under mcp_servers is
       # exactly SRV (any spelling of the quotes and spaces); under [mcp_servers] itself a key that starts
@@ -290,9 +315,14 @@ analyze() {
             if (st[name] != "missing") tfor = 1
             st[name] = "nokey"
           }
+        } else if (line ~ oauth_re) {
+          sect = "oauth"
+          mention = 1
+          oauth_n++
         } else if (line ~ def_hdr_re) {
           mention = 1
           if (line ~ /tools/) tfor = 1
+          if (line ~ /oauth/) oauth_odd = 1
         } else if (line ~ all_hdr_re) {
           sect = "servers"
         }
@@ -301,6 +331,7 @@ analyze() {
             || (line ~ dotted_re && (sect == "" || sect == "servers")))) {
           mention = 1
           if (line ~ /tools/) tfor = 1
+          if (line ~ /oauth/) oauth_odd = 1
         }
         if (sect == "main") {
           if (line ~ /^[ \t]*default_tools_approval_mode[ \t]*=/) {
@@ -309,6 +340,7 @@ analyze() {
             else dstate = (v == "approve") ? "approve" : "other:" v
           }
           if (line ~ tools_re) tfor = 1
+          if (line ~ okey_re) oauth_odd = 1
           if (line ~ /^[ \t]*url[ \t]*=/) url = val(line)
         } else if (sect == "tool" && (name in st)) {
           if (line ~ /^[ \t]*approval_mode[ \t]*=/) {
@@ -317,6 +349,14 @@ analyze() {
           } else if (line ~ /approval_mode/) {
             tfor = 1
           }
+        } else if (sect == "oauth" && line !~ /^[ \t]*$/) {
+          t = line
+          sub(/[ \t]+$/, "", t)
+          if (t == want_id) { if (o_id) oauth_extra = 1; o_id = 1 }
+          else if (t == want_url) { if (o_url) oauth_extra = 1; o_url = 1 }
+          else if (t == want_port) { if (o_port) oauth_extra = 1; o_port = 1 }
+          else oauth_extra = 1
+          if (line ~ /^[ \t]*client_id[ \t]*=/) ocid = val(line)
         }
       }
     }
@@ -328,6 +368,12 @@ analyze() {
       print "tfor=" (tfor ? 1 : 0)
       print "dstate=" dstate
       print "anytool=" anytool + 0
+      ostate = "missing"
+      if (oauth_n > 0 || oauth_odd) {
+        ostate = (oauth_n == 1 && !oauth_odd && !oauth_extra && o_id && o_url && o_port) ? "ours" : "other"
+      }
+      print "oauth=" ostate
+      print "oauth.client_id=" ocid
       for (i = 1; i <= n; i++) print "tool." tl[i] "=" st[tl[i]]
     }' "$src"
 }
@@ -361,9 +407,17 @@ print_tools() {
     printf '\n[mcp_servers.%s.tools.%s]\n%s\n' "$srv" "$_t" "$TOOL_KEY"
   done
 }
+# print_oauth: the OAuth client table to put into config.toml by hand (nothing for a server
+# without a pre-registered client: bbj-local, quick 261013-cpn)
+print_oauth() {
+  [ -n "$srv_oauth_id" ] || return 0
+  printf '\n[mcp_servers.%s.oauth]\nclient_id = "%s"\ncallback_url = "%s"\ncallback_port = %s\n' \
+    "$srv" "$srv_oauth_id" "$srv_oauth_url" "$srv_oauth_port"
+}
 # print_block URL: the whole server entry to put into config.toml by hand
 print_block() {
   printf '%s\n' "[mcp_servers.$srv]" "url = \"$1\""
+  print_oauth
   print_tools
 }
 
@@ -385,6 +439,10 @@ state() {
   miss=$(tools_in_state missing)
   nokey=$(tools_in_state nokey)
   dstate=$(an dstate)
+  # quick 261013-cpn: the pre-registered OAuth client is added only when the table is missing
+  oauth_state=$(an oauth)
+  oauth_miss=0
+  if [ -n "$srv_oauth_id" ] && [ "$oauth_state" = missing ]; then oauth_miss=1; fi
 }
 
 # server parameters (POSIX sh has no local, so every server pass sets the same globals and
@@ -394,7 +452,8 @@ state() {
 # registration goes through "codex mcp add"; srv_label, srv_untouched and srv_approved_note the
 # words of the messages (LOCAL-01); srv_fixed_url 1 when the url is part of the identity of the
 # server and tools are approved only at exactly that url (bbj-local, D-12), 0 when the user's own
-# url is kept (bbj-docs)
+# url is kept (bbj-docs); srv_oauth_id, srv_oauth_url and srv_oauth_port the pre-registered OAuth
+# client written as [mcp_servers.SRV.oauth] ("" for none, quick 261013-cpn)
 use_docs() {
   srv=bbj-docs
   srv_tools=$DOCS_TOOLS
@@ -404,6 +463,9 @@ use_docs() {
   srv_old_key=$OLD_KEY_LINE
   srv_codex_add=1
   srv_fixed_url=0
+  srv_oauth_id=$OAUTH_CLIENT_ID
+  srv_oauth_url=$OAUTH_CALLBACK_URL
+  srv_oauth_port=$OAUTH_CALLBACK_PORT
   srv_label='the five docs tools'
   srv_untouched='config.toml was not modified.'
   srv_approved_note='(the hosted check tools bbj_check_syntax, bbj_format and bbj_denum send your code to the server)'
@@ -421,6 +483,10 @@ use_local() {
   srv_old_key=
   srv_codex_add=0
   srv_fixed_url=1
+  # bbj-local is a loopback server without sign-in: nothing about OAuth is written, reported or printed
+  srv_oauth_id=
+  srv_oauth_url=
+  srv_oauth_port=
   srv_label='the three bbj-ls tools'
   srv_untouched='the bbj-local entry was not modified.'
   srv_approved_note="(the three bbj-ls tools run on this machine, against this installation's own PREFIX, classpath and config; nothing leaves it)"
@@ -432,7 +498,7 @@ sync_server() {
   state
   need_change=0
   if [ "$foreign" = 0 ] && [ "$tools_foreign" = 0 ]; then
-    if [ "$(an main)" = 0 ] || [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ]; then need_change=1; fi
+    if [ "$(an main)" = 0 ] || [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ] || [ "$oauth_miss" = 1 ]; then need_change=1; fi
   fi
   if [ "$need_change" = 1 ] && [ -f "$config" ] && [ ! -f "$config.bbj-backup" ]; then
     cp "$config" "$config.bbj-backup" || refuse "cannot write $config.bbj-backup"
@@ -448,7 +514,14 @@ sync_server() {
       if CODEX_HOME=$codex_home codex mcp add "$srv" --url "$srv_url" > /dev/null 2>&1; then
         say "$srv: registered with codex mcp add $srv --url $srv_url"
       else
-        say "$srv: codex mcp add did not succeed; writing the block to config.toml instead"
+        # Codex CLI 0.162.1 writes the table and then exits 1 when its own OAuth sign-in fails
+        # (the server takes only a pre-registered client); do not claim a block that is never written
+        refresh
+        if [ "$(an main)" = 1 ]; then
+          say "$srv: codex mcp add wrote the $srv table, then exited with an error (Codex CLI 0.162.1 does so when it tries to register itself with an OAuth server that takes only a pre-registered client); the table is kept and completed below"
+        else
+          say "$srv: codex mcp add did not succeed; writing the block to config.toml instead"
+        fi
       fi
     fi
   fi
@@ -471,6 +544,7 @@ sync_server() {
       say "Check that it approves these five tools by name, or add the tables by hand:"
     fi
     print_tools
+    if [ "$oauth_miss" = 1 ]; then print_oauth; fi
     [ "$dstate" != ours ] || say "Also remove the line $srv_old_key from the $srv table by hand: an earlier version of this script wrote it and it approves every tool of $srv, including bbj_check_syntax, bbj_format and bbj_denum."
     pending=1
   elif [ "$(an main)" = 0 ] && [ "$(an managed)" = 1 ]; then
@@ -552,28 +626,45 @@ sync_server() {
         other:*) say "$srv: tool $_t has approval_mode $(an "tool.$_t" | sed 's/^other://') (yours); left as is" ;;
       esac
     done
+    if [ -n "$srv_oauth_id" ] && [ "$oauth_state" = other ]; then
+      # like a tool's own approval_mode, this is the user's choice: no pending, no exit 3
+      _cid=$(an oauth.client_id)
+      _cidtxt=
+      [ -z "$_cid" ] || _cidtxt=" (client_id $_cid)"
+      say "$srv: $config holds OAuth settings of its own for $srv$_cidtxt; left as is (the pre-registered client is client_id $srv_oauth_id with callback $srv_oauth_url)"
+    fi
   fi
 
   if [ "$foreign" = 0 ] && [ "$tools_foreign" = 0 ] && [ "$(an main)" = 1 ] \
-    && { [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ]; }; then
+    && { [ "$dstate" = ours ] || [ -n "$miss" ] || [ -n "$nokey" ] || [ "$oauth_miss" = 1 ]; }; then
     drop=0
     [ "$dstate" = ours ] && drop=1
     tmp=$(mktemp "$codex_home/config.toml.XXXXXX") || refuse "cannot create a temp file in $codex_home"
     _cr=$(config_cr)
     # shellcheck disable=SC2094  # awk reads $config and writes $tmp; the copy back happens after awk ends
-    if awk -v srv="$srv" -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$srv_old_key" -v tool_key="$TOOL_KEY" -v mark_end="$srv_end" -v cr="$_cr" '
+    if awk -v srv="$srv" -v miss="$miss" -v nokey="$nokey" -v drop="$drop" -v old_key="$srv_old_key" -v tool_key="$TOOL_KEY" -v mark_end="$srv_end" -v cr="$_cr" \
+      -v oauth_add="$oauth_miss" -v oid="$srv_oauth_id" -v ourl="$srv_oauth_url" -v oport="$srv_oauth_port" '
         # the missing tool tables go at the end of the server table body, before the blank
         # lines and comments that lead into the next table (or the end marker)
         function flush_main(atheader,   i, n, names) {
           if (!inmain) return
           inmain = 0
           n = split(miss, names, " ")
+          # quick 261013-cpn: the OAuth client goes first; the four lines are byte-equal to the
+          # want_* strings of analyze, so a rerun reads them as ours
+          if (oauth_add == 1) {
+            printf "%s\n", cr
+            printf "%s%s\n", "[mcp_servers." srv ".oauth]", cr
+            printf "%s%s\n", "client_id = \"" oid "\"", cr
+            printf "%s%s\n", "callback_url = \"" ourl "\"", cr
+            printf "%s%s\n", "callback_port = " oport, cr
+          }
           for (i = 1; i <= n; i++) {
             printf "%s\n", cr
             printf "%s%s\n", "[mcp_servers." srv ".tools." names[i] "]", cr
             printf "%s%s\n", tool_key, cr
           }
-          if (n > 0 && atheader && !hasblank) printf "%s\n", cr
+          if ((n > 0 || oauth_add == 1) && atheader && !hasblank) printf "%s\n", cr
           for (i = 1; i <= nb; i++) print buf[i]
           nb = 0
           hasblank = 0
@@ -618,6 +709,9 @@ sync_server() {
       wrote="$wrote config.toml"
       if [ "$drop" = 1 ]; then
         say "$srv: removed the line $srv_old_key from $config (an earlier version of this script wrote it; it approved every tool of $srv, including the hosted check tools)"
+      fi
+      if [ "$oauth_miss" = 1 ]; then
+        say "$srv: added the OAuth client to $config: [mcp_servers.$srv.oauth] with client_id $srv_oauth_id, callback_url $srv_oauth_url and callback_port $srv_oauth_port"
       fi
       approved="$miss $nokey"
       approved=$(printf '%s' "$approved" | sed -e 's/^ *//' -e 's/ *$//' -e 's/  */, /g')
@@ -779,6 +873,7 @@ say "----8<----"
 say ""
 say "Trust step: Codex skips a hook it did not manage until you review it. Start Codex, open /hooks, and approve the BBj check hook."
 say "The review is pinned to a hash of the script: a changed bbj-check.sh asks again. This script cannot approve it for you."
+say "Sign-in step: the docs server bbj-docs asks for an OAuth sign-in (pre-registered client $OAUTH_CLIENT_ID). Run codex mcp login bbj-docs once; a browser opens, and the sign-in returns to $OAUTH_CALLBACK_URL, so port $OAUTH_CALLBACK_PORT must be free while you sign in."
 say ""
 say "Known gaps:"
 say "- OpenAI calls hooks \"a useful guardrail, not a complete enforcement boundary\"."

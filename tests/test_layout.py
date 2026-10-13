@@ -86,6 +86,26 @@ gate("bbj_mcp",
                                         "callbackPort": OAUTH_PORT}}},
      "mcpServers=%r" % (servers,))
 
+# the Codex installer holds the same client as the plugin: one id, one port, the loopback callback
+# built from that port (quick 261013-cpn). Plain startswith parsing of the three literal lines.
+oauth_inst = {}
+try:
+    with open(os.path.join(ROOT, "codex/install-codex.sh"), encoding="utf-8") as f:
+        for line in f.read().splitlines():
+            for key in ("OAUTH_CLIENT_ID", "OAUTH_CALLBACK_PORT", "OAUTH_CALLBACK_URL"):
+                if line.startswith(key + "="):
+                    oauth_inst[key] = line[len(key) + 1:]
+except OSError:
+    pass
+oauth_plugin = servers.get("bbj-docs", {}).get("oauth", {}) if isinstance(servers, dict) else {}
+gate("oauth_codex_matches_plugin",
+     oauth_inst.get("OAUTH_CLIENT_ID") == OAUTH_CLIENT_ID
+     and oauth_inst.get("OAUTH_CLIENT_ID") == oauth_plugin.get("clientId")
+     and oauth_inst.get("OAUTH_CALLBACK_PORT") == str(OAUTH_PORT)
+     and oauth_inst.get("OAUTH_CALLBACK_PORT") == str(oauth_plugin.get("callbackPort"))
+     and oauth_inst.get("OAUTH_CALLBACK_URL") == "http://localhost:%d/callback" % OAUTH_PORT,
+     "installer=%r plugin=%r" % (oauth_inst, oauth_plugin))
+
 # userConfig
 uc = bbj.get("userConfig", {})
 docs = uc.get("docs_url", {})
