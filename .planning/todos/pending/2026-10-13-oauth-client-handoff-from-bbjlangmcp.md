@@ -93,8 +93,9 @@ tested matrix is Claude Code 2.1.296 and Codex 0.162.1.
 
 ### What the user sees
 
-- After the browser sign-in, the login page asks the user to confirm the application, once per sign-in. Expected
-  for a native client on a loopback callback; keep it.
+- After the browser sign-in, the login page can ask the user to confirm the application ("Authorize App").
+  Expected for a native client on a loopback callback; keep it. It was shown for Codex and not for Claude Code
+  in the 2026-10-13 Linux sessions, so do not depend on it being shown or absent.
 - No token: HTTP 401 with a `WWW-Authenticate: Bearer` challenge. Claude Code offers the sign-in; Codex drops the
   server until `codex mcp login bbj`.
 - No active subscription: HTTP 200 with `isError` true, never 403, with this text (lapsed account):
@@ -102,9 +103,11 @@ tested matrix is Claude Code 2.1.296 and Codex 0.162.1.
   first, then re-authenticate this server: Claude Code: run /mcp, pick bbj, choose re-authenticate. Codex: run
   `codex mcp login bbj` (use the name this server has in your config if it is not bbj). Do not retry this call.`
   An account never linked to a subscription gets `No subscription is linked to this account.` as the reason.
-- Renewal is silent: a token issued more than 60 seconds ago whose subscription is not active gets HTTP 401
-  `invalid_token` with `The access token no longer matches this account's subscription; refresh it and retry.`;
-  the client refreshes and the retried call is answered. Access token: 3600 seconds. Refresh token: 30 days,
+- Renewal is silent: a token issued more than 60 seconds ago whose own date says the subscription is not active
+  gets HTTP 401 `invalid_token` with `The access token no longer matches this account's subscription; refresh it
+  and retry.`; the client refreshes and the retried call is answered (or refused if still lapsed). The server
+  reads only the date in the token, so a lapse reaches a client whose token still carries a valid date only when
+  that access token expires, up to 3600 seconds later. Access token: 3600 seconds. Refresh token: 30 days,
   rotating, 15 days idle. A subscription date is valid through the end of that UTC day.
 - Re-authenticate by hand: Claude Code `/mcp`, pick the server, re-authenticate; Codex `/mcp login <server>` or
   `codex mcp login <server>`. Silent renewal in Claude Code needs `offline_access`.
@@ -126,3 +129,17 @@ a literal. One credential per entry.
    `127.0.0.1`. Try the installer's output once with a real sign-in before relying on it.
 4. The server is named `bbj-docs`: a Codex model rewrote a hyphenated name and the refusal text tells the user
    to pick `bbj`. Name it without a hyphen, ideally `bbj`.
+
+### Verified on pre-production
+
+Checked on 2026-10-13 (UTC) against the hosted pre-production server, on Linux, with Codex 0.162.1 on the recipe
+above and Claude Code 2.1.296 on the entry above (with `offline_access`). One test account signed in to both
+clients with the paste flow (`--no-browser`). Confirmed: both entries sign in as written; an account whose date
+has passed gets the refusal text above, with the date in it, as the tool result of an error (never HTTP 403), and
+the model quotes it in both clients; after the date was extended, the next call more than 60 seconds after the last
+token issue was answered with a cited page, without a sign-in prompt and without a manual login (each client
+refreshed inside the call); after the date was moved back, calls were answered until the access token passed its
+3600 seconds, then refused after a silent refresh. Corrected from the spike's note: the confirm page is not shown
+on every sign-in (Codex yes, Claude Code no), and a lapse reaches a client at its next token refresh, not after 60
+seconds. A scripted `codex exec` needs `</dev/null`, otherwise it waits on standard input. Not tried: macOS and
+Windows in this round.
