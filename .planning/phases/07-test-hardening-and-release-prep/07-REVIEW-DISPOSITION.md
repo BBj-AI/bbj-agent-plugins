@@ -5,27 +5,27 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The `home_incomplete` branch in the consumer is not guarded by any gate (carried)"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The hosted OAuth client is bound to every `docs_url`, not only to the hosted docs server"
   - id: IN-01
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`home_snapshot` reads files outside the watched set through symlinks, and misses an unreadable link target (carried)"
   - id: IN-02
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`homeguard_noglob_temp_detected` asserts that noglob is still on, which cannot fail (carried)"
   - id: IN-03
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`run.sh` leaves its temp files behind when the run is interrupted (carried, pre-existing)"
   - id: IN-04
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Temp-file globs are exactly six characters wide and also match user files; the gate text says `config.toml.*` (carried)"
   - id: IN-05
     severity: info
@@ -55,21 +55,21 @@ findings:
     severity: warning
     disposition: fixed
     title: "`pathscrub_shared_dir_keeps_tools` and `pathscrub_exe_names` cannot detect a missing `.exe` removal"
-open: 6
+open: 0
 total: 13
-recorded: 2026-10-13T11:22:05.456Z
+recorded: 2026-10-13T11:22:22.604Z
 ---
 
 # Phase 07: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| IN-01 | info | open | - |
-| IN-02 | info | open | - |
-| IN-03 | info | open | - |
-| IN-04 | info | open | - |
+| WR-01 | warning | fixed | 07-REVIEW-FIX.md |
+| WR-02 | warning | fixed | 07-REVIEW-FIX.md |
+| IN-01 | info | fixed | 07-REVIEW-FIX.md |
+| IN-02 | info | fixed | 07-REVIEW-FIX.md |
+| IN-03 | info | fixed | 07-REVIEW-FIX.md |
+| IN-04 | info | fixed | 07-REVIEW-FIX.md |
 | IN-05 | info | fixed | 07-REVIEW-FIX.md |
 | IN-06 | info | fixed | 07-REVIEW-FIX.md |
 | IN-07 | info | fixed | 07-REVIEW-FIX.md |
