@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 9
 current_phase_name: Windows and macOS verification
 status: executing
-stopped_at: Completed 09-02-PLAN.md
-last_updated: "2026-10-13T19:01:27.720Z"
+stopped_at: Completed 09-03-PLAN.md
+last_updated: "2026-10-13T19:11:52.422Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 9 execution started
-state_head: 10c07104b67dbac4637c3377063931a72f67a78c
+state_head: 1a07638a719b68fcc768a0f1c2e1471e5d83f259
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 16
+  completed_plans: 17
   percent: 50
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 9 (Windows and macOS verification) — EXECUTING
-Plan: 3 of 8
+Plan: 4 of 8
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 9 execution started
 
@@ -122,6 +122,7 @@ Progress: [█████░░░░░] 50%
 | Phase 08 P07 | 36 min | 3 tasks | 5 files |
 | Phase 09 P01 | 8 min | 2 tasks | 2 files |
 | Phase 09 P02 | 4 min | 2 tasks | 1 files |
+| Phase 09 P03 | 7 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -154,6 +155,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 09]: 09-01: FAKE_CYGDRIVE_ROOT seam models only drive letter plus backslash or slash; real cygpath behaviour is left to the owner's smoke run
 - [Phase 09]: 09-01: relative Codex header with backslash and the verbatim prefix are not pinned (candidate defects for 09-05)
 - [Phase 09]: 09-02: smoke.sh derives compiler/p_list/target only when the hook shell is bash; dash xtrace is unquoted so the raw compiler_call line is kept
+- [Phase 09]: Plan 09-03: check-records.sh enforces the one-directional summary rule (a summary met needs every section line met or fixed and re-run met); the first-other-verdict consolidation stays a convention stated in the record intro — Keeps the checker to the plan's contract so later plans' verify commands cannot trip on text-equality of summary lines
 
 ### Pending Todos
 
@@ -185,8 +187,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T19:01:27.635Z
-Stopped at: Completed 09-02-PLAN.md
+Last session: 2026-10-13T19:11:47.258Z
+Stopped at: Completed 09-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
