@@ -159,7 +159,29 @@ Plans:
   4. On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook each give tier-1 `bbjcpl` feedback for a bad file and silence for a clean one (PLAT-05)
   5. The phase records each run (OS, client and version, BBj version, route, outcome). Every defect found is either fixed in the shipped hook (script or `hooks.json`), plugin files or installer with a regression gate that runs in CI on fakes, or recorded as a known gap. The Linux suite stays green (PLAT-06)
 
-**Plans**: TBD
+**Plans**: 8 plans
+
+Plans:
+**Wave 1**
+- [ ] 09-01-PLAN.md — PLAT-02: `FAKE_CYGDRIVE_ROOT` seam in the fake `cygpath` and nine `windows_*` gates in `tests/test_discovery.sh` (drive-letter home, file, `;`-joined `-P` with a space, forward slashes, Codex relative and absolute, three `-P` edges) (wave 1)
+- [ ] 09-02-PLAN.md — PLAT-01 to PLAT-05: owner-run `platform-run/smoke.sh` (`claude`, `codex`, `tier2`, `noroute`, `emit DIR`), traced compiler call, scrubbed result blocks, proven on Linux with the fake compiler (wave 1)
+- [ ] 09-03-PLAN.md — PLAT-06: Windows and macOS runbooks with reply templates, record skeletons `09-WINDOWS-RUN.md` and `09-MACOS-RUN.md`, and `platform-run/check-records.sh` with selftest (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 09-04-PLAN.md — PLAT-01 to PLAT-04: Linux dry run of the owner path, the first owner decision (how the commit reaches the machines: bundle, direct or push; D-03), then the Windows pass (checkpoint) (wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 09-05-PLAN.md — PLAT-01 to PLAT-04, PLAT-06: Windows record by rule, the spike 005 answers, owner fix-or-gap decision per defect (D-10, D-11 `commandWindows` table), and the chosen fixes with red-first gates and `sh tests/ci.sh` (wave 3, checkpoint)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 09-06-PLAN.md — PLAT-01 to PLAT-06: owner pass 2: re-run of the fixed Windows routes (D-09) and the macOS pass; final Windows verdicts (wave 4, checkpoint)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 09-07-PLAN.md — PLAT-05, PLAT-06: macOS record by the tier-1 rule, owner fix-or-gap decision per defect, and the chosen fixes with gates (wave 5, checkpoint)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 09-08-PLAN.md — PLAT-05, PLAT-06: macOS re-run when a fix shipped, both records in final mode, `sh tests/ci.sh`, phase boundary check (wave 6, checkpoint)
+
 **Notes**:
 - The owner runs these steps by hand on their own machines: Windows (Git for Windows, BBj with `bbjcpl`, Claude Code, Codex CLI) and Mac (BBj with `bbjcpl` must be installed first).
 - Evidence is recorded in the same way as the v0.2.0 Phase 6 UAT.
