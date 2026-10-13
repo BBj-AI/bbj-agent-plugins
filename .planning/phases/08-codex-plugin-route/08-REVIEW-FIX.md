@@ -53,7 +53,7 @@ at a server that accepts the shipped client; README and the Codex page state tha
 URL fixed in it and that another docs server on Codex needs the installer with `--docs-url`. `.mcp.json` and the
 layout gate are unchanged.
 
-### WR-03: `codex mcp add` runs unattended with stdin attached
+### WR-03: `codex mcp add` runs unattended with stdin attached, no timeout, and is documented to fail on the supported version
 
 **Files modified:** `codex/install-codex.sh`
 **Commit:** 2af914e
