@@ -90,11 +90,24 @@ mkdir -p "$U/cpl" "$U/sh ared" "$U/win" "$U/clean" "$U/clean2"
 cp "$WORK/cplbin/bbjcpl" "$WORK/cplbin/bbjcplw" "$U/cpl/"
 cp "$WORK/cplbin/bbjcpl" "$U/sh ared/bbjcpl"
 : > "$U/sh ared/bbjcplw.exe"
+: > "$U/sh ared/bbjcpl.exe"
+cp "$WORK/cplbin/bbjcplw" "$U/sh ared/bbjcplw"
 printf '#!/bin/sh\necho "mytool ran"\n' > "$U/sh ared/mytool"
 : > "$U/win/bbjcpl.exe"
 printf '#!/bin/sh\nexit 0\n' > "$U/clean/tool1"
 printf '#!/bin/sh\nexit 0\n' > "$U/clean2/tool2"
-chmod 755 "$U/cpl/bbjcpl" "$U/cpl/bbjcplw" "$U/sh ared/bbjcpl" "$U/sh ared/mytool" "$U/clean/tool1" "$U/clean2/tool2"
+# the .exe fixtures are executable too: command -v only reports executable files, so a farm that
+# kept one would otherwise pass the gates below (the Git for Windows case, WR-05)
+chmod 755 "$U/cpl/bbjcpl" "$U/cpl/bbjcplw" "$U/sh ared/bbjcpl" "$U/sh ared/bbjcplw" \
+  "$U/sh ared/bbjcpl.exe" "$U/sh ared/bbjcplw.exe" "$U/win/bbjcpl.exe" \
+  "$U/sh ared/mytool" "$U/clean/tool1" "$U/clean2/tool2"
+
+# farm_holds DIR: prints the compiler names that DIR still holds as a file or a link (none: empty)
+farm_holds() {
+  for _fh_n in bbjcpl bbjcpl.exe bbjcplw bbjcplw.exe; do
+    if [ -e "$1/$_fh_n" ] || [ -L "$1/$_fh_n" ]; then printf '%s ' "$_fh_n"; fi
+  done
+}
 
 # a directory that only holds the compiler is gone
 _out=$(no_compiler_path "$U/cpl:$U/clean")
@@ -108,19 +121,28 @@ fi
 # a shared directory (with a space in its name) keeps its other tools through the farm
 _out=$(no_compiler_path "$U/sh ared:$U/clean")
 _ran=$(PATH=$_out "$_sh" -c 'mytool')
-_f=$(PATH=$_out "$_sh" -c 'command -v bbjcpl; command -v bbjcplw.exe')
+_f=$(PATH=$_out "$_sh" -c 'command -v bbjcpl; command -v bbjcpl.exe; command -v bbjcplw; command -v bbjcplw.exe')
 case "$_out" in "$WORK"/pathfarm.*) _first=1 ;; *) _first=0 ;; esac
-if [ "$_ran" = "mytool ran" ] && [ -z "$_f" ] && [ "$_first" = 1 ]; then
-  gate pathscrub_shared_dir_keeps_tools ok "mytool still runs, the compiler names are gone"
+_held=$(farm_holds "${_out%%:*}")
+if [ "$_ran" = "mytool ran" ] && [ -z "$_f" ] && [ -z "$_held" ] && [ "$_first" = 1 ]; then
+  gate pathscrub_shared_dir_keeps_tools ok "mytool still runs, none of the four compiler names is in the farm"
 else
-  gate pathscrub_shared_dir_keeps_tools FAIL "ran '$_ran', found '$_f', output $_out"
+  gate pathscrub_shared_dir_keeps_tools FAIL "ran '$_ran', found '$_f', farm holds '$_held', output $_out"
 fi
 
 # the .exe names count
 _out=$(no_compiler_path "$U/win:$U/clean")
+_f=$(PATH=$_out "$_sh" -c 'command -v bbjcpl; command -v bbjcpl.exe')
 case ":$_out:" in
   *":$U/win:"*) gate pathscrub_exe_names FAIL "kept $U/win: $_out" ;;
-  *) gate pathscrub_exe_names ok "a directory with only bbjcpl.exe is replaced" ;;
+  *)
+    _held=$(farm_holds "${_out%%:*}")
+    if [ -z "$_f" ] && [ -z "$_held" ]; then
+      gate pathscrub_exe_names ok "a directory with only bbjcpl.exe is replaced by a farm without it"
+    else
+      gate pathscrub_exe_names FAIL "found '$_f', farm holds '$_held', output $_out"
+    fi
+    ;;
 esac
 
 # clean directories keep their place and text
