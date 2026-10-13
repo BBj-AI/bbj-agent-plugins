@@ -1,6 +1,6 @@
 # bbj-agent-plugins
 
-The `basis-bbj` marketplace for Claude Code, version 0.2.0, with two plugins:
+The `basis-bbj` marketplace for Claude Code and Codex, version 0.2.0, with two plugins:
 
 - `bbj`: the BBj docs MCP server (`bbj-docs`), the two BBj skills (`bbj-programming`,
   `bbj-web-programming`) and a check hook that compiles every BBj file the agent writes.
@@ -12,28 +12,37 @@ The `basis-bbj` marketplace for Claude Code, version 0.2.0, with two plugins:
   stays the hook's first route (it also checks types); `bbj-local` checks syntax only. Claude
   Code users enable it as described in
   [the install page](docs/install-claude-code.md); Codex users run
-  `sh codex/install-codex.sh --with-local`.
+  `codex plugin add bbj-local@basis-bbj`, or `sh codex/install-codex.sh --with-local` with the
+  installer script.
 
 ## Install
 
     claude plugin marketplace add BBj-AI/bbj-agent-plugins
     claude plugin install bbj@basis-bbj
 
+For Codex, add the marketplace and the plugin, then trust the hook in `/hooks`:
+
+    codex plugin marketplace add BBj-AI/bbj-agent-plugins
+    codex plugin add bbj@basis-bbj
+
 The docs server URL is the plugin option `docs_url` (default: the pre-production instance
 `https://mcp.bbj-ai.com/mcp` until the go-live release). The option `bbj_home`
 names the BBj installation for the check hook; left empty, the hook looks at `BBJ_HOME`,
 `BBJHOME`, `PATH` and the usual install locations.
 
-The docs server asks for a one-time OAuth sign-in. The plugin and the Codex installer configure
-the pre-registered client for it (callback port 47613); sign in with `/mcp` in Claude Code or
-`codex mcp login bbj-docs` in Codex.
+The docs server asks for a one-time OAuth sign-in. The Claude Code plugin, the Codex plugin and
+the Codex installer configure the pre-registered client for it (callback port 47613); sign in with
+`/mcp` in Claude Code or `codex mcp login bbj-docs` in Codex. On the Codex plugin route the sign-in
+completed on Linux with a copy of the plugin that carries that client; without it, Codex's dynamic
+client registration is refused by the hosted server.
 
 Install pages, one per client:
 
 - [Claude Code](docs/install-claude-code.md): setup, options, check routes, what is not covered,
   Windows.
-- [Codex](docs/install-codex.md): the installer script and the hook. Verified on Linux; not
-  yet run on Windows or macOS.
+- [Codex](docs/install-codex.md): the plugin route (`codex plugin add bbj@basis-bbj`), the
+  installer script as the fallback, and the hook. Verified on Linux;
+  not yet run on Windows or macOS.
 
 Release notes and what each version was tested against: [CHANGELOG.md](CHANGELOG.md).
 
