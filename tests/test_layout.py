@@ -1,6 +1,8 @@
 """tests/test_layout.py -- plan 19-03: pins every manifest value the requirements fix.
 Plan 01-01 (VEND-01, VEND-03): the skills are ordinary repository files; the hosted-host rule
 covers them (D-02) and the lock and hash test stay removed.
+Quick 261013-cpn: the bbj-docs entry carries the pre-registered OAuth client; the Codex
+installer holds the same client (layout_oauth_codex_matches_plugin).
 
 stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate layout_<name> ok|FAIL <detail>
@@ -20,6 +22,8 @@ ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
 VERSION = "0.2.0"
 DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
+OAUTH_CLIENT_ID = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
+OAUTH_PORT = 47613
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 LOCAL_URL = "http://127.0.0.1:5009/mcp"
 # assembled from pieces so this file never names what it searches for (self-scan convention)
@@ -72,9 +76,14 @@ gate("versions", all(v == VERSION for v in versions), "versions=%r want all %s" 
 gate("license", bbj.get("license") == "Apache-2.0" and local.get("license") == "Apache-2.0",
      "bbj=%r bbj-local=%r" % (bbj.get("license"), local.get("license")))
 
-# bbj .mcp.json: exactly one http server at ${user_config.docs_url}
+# bbj .mcp.json: exactly one http server at ${user_config.docs_url}. The entry carries the
+# pre-registered OAuth client of the hosted docs server (quick 261013-cpn); dict equality
+# also rejects a string port and any extra key such as a client secret.
 servers = bbj_mcp.get("mcpServers", {})
-gate("bbj_mcp", servers == {"bbj-docs": {"type": "http", "url": "${user_config.docs_url}"}},
+gate("bbj_mcp",
+     servers == {"bbj-docs": {"type": "http", "url": "${user_config.docs_url}",
+                              "oauth": {"clientId": OAUTH_CLIENT_ID,
+                                        "callbackPort": OAUTH_PORT}}},
      "mcpServers=%r" % (servers,))
 
 # userConfig

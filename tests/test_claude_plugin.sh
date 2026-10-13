@@ -4,7 +4,9 @@
 #   1. claude plugin validate --strict on the marketplace root and on the plugins
 #   2. install bbj@basis-bbj from the LOCAL directory marketplace into a throwaway
 #      CLAUDE_CONFIG_DIR; the user's own configuration is never touched
-#   3. claude mcp list shows the plugin's bbj-docs server (skip when the host is unreachable)
+#   3. claude mcp get shows the OAuth client of the plugin's bbj-docs server; claude mcp list
+#      shows the server answering, connected or with its OAuth challenge "Needs authentication"
+#      (skip when the host is unreachable; quick 261013-cpn)
 #   4. the command string of hooks.json, run with sh -c under a plugin root whose path
 #      contains a space, exits 2 on a bad .bbj and 0 silently on a clean one
 #
@@ -83,15 +85,29 @@ state=$(plugin_state bbj)
   || gate list_bbj_still_enabled FAIL "bbj state: '${state:-not listed}'"
 
 # ---- 3. the plugin's docs server --------------------------------------------------
+# The client settings reach Claude Code: this reads configuration only, so it needs no
+# network (quick 261013-cpn).
+_get=$(cd "$WORK" && cc mcp get plugin:bbj:bbj-docs 2>&1)
+if printf '%s\n' "$_get" | grep -i 'oauth' | grep 'client_id' | grep 'callback_port 47613' > /dev/null; then
+  gate mcp_docs_oauth ok "claude mcp get shows client_id and callback_port 47613"
+else
+  gate mcp_docs_oauth FAIL "$(printf '%s' "$_get" | head -n 8 | tr '\n' ' ')"
+fi
+
+# The hosted docs server asks for an OAuth sign-in, so a throwaway configuration that never
+# signed in shows "Needs authentication": the server answered with its OAuth challenge.
+# Before quick 261013-cpn this was the suite's one FAIL. mcp_docs_oauth above proves that
+# the client settings reach Claude Code.
 if curl -s -o /dev/null --connect-timeout 3 "https://$DOCS_HOST/mcp" 2> /dev/null; then
   mcp=$(cd "$WORK" && cc mcp list 2>&1)
-  if printf '%s\n' "$mcp" | grep -F "https://$DOCS_HOST/mcp" | grep -i 'connected' | grep -v -i 'fail' > /dev/null; then
-    gate mcp_docs_connected ok "bbj-docs at https://$DOCS_HOST/mcp connected"
+  _line=$(printf '%s\n' "$mcp" | grep -F "https://$DOCS_HOST/mcp" | grep -i -e 'connected' -e 'needs authentication' | grep -i -v 'fail')
+  if [ -n "$_line" ]; then
+    gate mcp_docs_answers ok "bbj-docs at https://$DOCS_HOST/mcp answered: $(printf '%s' "$_line" | head -n 1)"
   else
-    gate mcp_docs_connected FAIL "$(printf '%s' "$mcp" | head -n 6 | tr '\n' ' ')"
+    gate mcp_docs_answers FAIL "$(printf '%s' "$mcp" | head -n 6 | tr '\n' ' ')"
   fi
 else
-  gate mcp_docs_connected skip "$DOCS_HOST is not reachable from this host"
+  gate mcp_docs_answers skip "$DOCS_HOST is not reachable from this host"
 fi
 
 # ---- 4. the hook command from hooks.json, through a root with a space --------------
