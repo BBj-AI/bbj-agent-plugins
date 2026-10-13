@@ -29,13 +29,13 @@ This report replaces the one on disk from the earlier round, whose findings reus
 
 ## Fixed Issues
 
-### WR-01: The `home_incomplete` branch in the consumer is not guarded by any gate
+### WR-01: The `home_incomplete` branch in the consumer is not guarded by any gate (carried)
 
 **Files modified:** `tests/test_home_guard.sh`
 **Commit:** 7988ca1
 **Applied fix:** New static gate `homeguard_install_codex_checks_incomplete`. It requires the `home_incomplete "$WORK/home.before" "$WORK/home.after"` line and the `home_diff` line in the non-comment code of `test_install_codex.sh`, and that the first comes before the second (the review's recommended fix).
 
-### WR-02: The hosted OAuth client is bound to every `docs_url`
+### WR-02: The hosted OAuth client is bound to every `docs_url`, not only to the hosted docs server
 
 **Files modified:** `codex/install-codex.sh`, `tests/test_install_codex.sh`, `docs/install-claude-code.md`, `docs/install-codex.md`, `CHANGELOG.md`
 **Commit:** 40199a7
@@ -46,7 +46,7 @@ This report replaces the one on disk from the earlier round, whose findings reus
 - Plugin: `.mcp.json` is static JSON, so there is no conditional. `docs/install-claude-code.md` now states that the client and port belong to the hosted server only and to remove the `oauth` block or override the entry for another `docs_url`. `docs/install-codex.md` and `CHANGELOG.md` state the installer behaviour.
 - `tests/test_layout.py`, `tests/test_install_pages.sh`, `tests/test_release_text.py` and `tests/test_release_text_mutation.sh` stay green.
 
-### IN-01: `home_snapshot` reads files outside the watched set through symlinks (carried)
+### IN-01: `home_snapshot` reads files outside the watched set through symlinks, and misses an unreadable link target (carried)
 
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
 **Commit:** 075d86f
@@ -54,19 +54,19 @@ This report replaces the one on disk from the earlier round, whose findings reus
 - Done: the `home_snapshot` header now says a symlink target is read for its `T` line even outside the watched set. A symlink to an unreadable regular file now also prints `U <path>`. New gate `homeguard_unreadable_target_reported` (runs as non-root, skips as root).
 - Not done: restricting `T` to targets under a watched root. A link inside `bbj/` or a skill directory that points outside is exactly the write-through case the `T` line catches (the installer's `cp` onto such a link would write the target), so restricting it would reopen that hole. Documenting the read was the safe half of the fix.
 
-### IN-02: `homeguard_noglob_temp_detected` asserts that noglob is still on, which cannot fail
+### IN-02: `homeguard_noglob_temp_detected` asserts that noglob is still on, which cannot fail (carried)
 
 **Files modified:** `tests/test_home_guard.sh`
 **Commit:** efbcb45
 **Applied fix:** Dropped `_ng_kept` and the claim from the detail text. A comment says the caller's noglob state cannot change by construction. The `config.toml.AbC123` check is kept.
 
-### IN-03: `run.sh` leaves its temp files behind when the run is interrupted
+### IN-03: `run.sh` leaves its temp files behind when the run is interrupted (carried, pre-existing)
 
 **Files modified:** `tests/run.sh`
 **Commit:** ce64915
 **Applied fix:** `trap 'rm -f "$OUT" "$OUT.gates"' EXIT` and `trap 'exit 1' INT TERM HUP`. I checked with a stub test and a TERM signal under `sh`, `dash` and `bash`: no temp file is left.
 
-### IN-04: Temp-file globs are exactly six characters wide; the gate text says `config.toml.*`
+### IN-04: Temp-file globs are exactly six characters wide and also match user files; the gate text says `config.toml.*` (carried)
 
 **Files modified:** `tests/test_install_codex.sh`, `tests/lib.sh`
 **Commit:** 58be8c3
