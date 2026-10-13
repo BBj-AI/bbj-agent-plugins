@@ -1,9 +1,9 @@
 ---
 status: complete
 phase: 07-test-hardening-and-release-prep
-source: [07-01-SUMMARY.md, 07-02-SUMMARY.md, 07-03-SUMMARY.md, 07-04-SUMMARY.md]
+source: [07-01-SUMMARY.md, 07-02-SUMMARY.md, 07-03-SUMMARY.md, 07-04-SUMMARY.md, 07-05-SUMMARY.md, 07-06-SUMMARY.md]
 started: 2026-10-13T06:46:26Z
-updated: 2026-10-13T08:08:42.715Z
+updated: 2026-10-13T11:26:06.477Z
 ---
 
 ## Current Test
@@ -98,10 +98,34 @@ result: pass
 source: automated
 coverage_id: 07-04 D3
 
+### 15. Gate-prefix block in CONVENTIONS.md is a byte copy of the IN-04 block in .claude/CLAUDE.md; neighbours and all other lines unchanged
+expected: Gate-prefix block in CONVENTIONS.md is a byte copy of the IN-04 block in .claude/CLAUDE.md; neighbours and all other lines unchanged
+result: pass
+source: automated
+coverage_id: 07-05 D1
+
+### 16. Synced block matches the prefixes and file sections of a fresh sh tests/run.sh transcript at HEAD
+expected: Synced block matches the prefixes and file sections of a fresh sh tests/run.sh transcript at HEAD
+result: pass
+source: automated
+coverage_id: 07-05 D2
+
+### 17. Gate-prefix block in CONVENTIONS.md lists oauth_ for test_install_codex.sh and is a byte copy of the .claude/CLAUDE.md block; exactly one line changed
+expected: Gate-prefix block in CONVENTIONS.md lists oauth_ for test_install_codex.sh and is a byte copy of the .claude/CLAUDE.md block; exactly one line changed
+result: pass
+source: automated
+coverage_id: 07-06 D1
+
+### 18. Synced block, oauth_ included, matches the prefixes and file sections of a fresh sh tests/run.sh transcript at HEAD
+expected: Synced block, oauth_ included, matches the prefixes and file sections of a fresh sh tests/run.sh transcript at HEAD
+result: pass
+source: automated
+coverage_id: 07-06 D2
+
 ## Summary
 
-total: 14
-passed: 14
+total: 18
+passed: 18
 issues: 0
 pending: 0
 skipped: 0
