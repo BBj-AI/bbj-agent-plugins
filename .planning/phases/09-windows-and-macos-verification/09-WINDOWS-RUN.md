@@ -44,7 +44,7 @@ Filled from the round 1 reply (the env-* keys, `checkout-commit`, `date`) and th
 | Codex CLI | codex-cli 0.162.1 |
 | BBj (owner-reported) | BBj 26.03 (relnotes.htm in `C:\bbx` says "RELNOTES for BBj 26.03"; installer package cache 2603) |
 | BBj home and compiler files | `C:\bbx`; BBjCpl.exe, BBjCpl.exe.manifest, BBjCplw.exe, BBjCplw.exe.manifest |
-| BBjServices | not running (no BBjServices.exe process and no Windows service registered; only BASISLicenseService runs) |
+| BBjServices | running for W8 only (amended reply 2026-10-13): not running during W0 to W7, started by hand afterwards; not registered as a Windows service, BBjServices.exe process present, bbj-ls answers on 127.0.0.1:5009 |
 | Checkout commit | 977135c (equals the transferred commit) |
 | Install source | transfer: push (`origin` branch `gsd/planning-setup`) |
 | Date | 2026-10-13 |
@@ -339,41 +339,103 @@ unknown-plugin-root: <home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0 (cx-hook-co
 
 Reading 2026-10-13, round 1
 
-Commands (runbook W8): `claude mcp list` before; the install, enable and L1 steps need BBjServices with bbj-ls on 127.0.0.1:5009 and were not run (D-15). The opt-in half stands: bbj-local is absent before the enable step. Readings:
+Commands (runbook W8): `claude mcp list` before; `claude plugin install bbj-local@basis-bbj`, `claude plugin enable bbj-local@basis-bbj`, `claude mcp list` after, and L1 (a bad line checked with bbj_check_syntax) in a Claude Code session. When the owner first replied, BBjServices was not running, so only the before reading was sent (D-15). Readings as first replied:
 
         env-bbjservices: not running (no BBjServices.exe process and no Windows service registered; only BASISLicenseService runs)
         local-cc-before: absent
         local-cc-after: not run (BBjServices is not running)
         local-cc-check-syntax: not run (BBjServices is not running)
 
-Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292 and BBj 26.03 (owner-reported), the bbj-local plugin is not installed or listed until the user adds it, and its connection was not run because BBjServices is not running on this machine.
-PLAT-04: not run (BBjServices not running: no BBjServices.exe process and no Windows service registered; only BASISLicenseService runs)
+Amendment 2026-10-13 (BBjServices started after W7; same round, same date, same checkout commit 977135c): the owner started BBjServices by hand and completed W8. The amended reply replaces these four keys, as follows:
+
+        env-bbjservices: running (for W8 only; it was not running during W0 to W7 and was started by hand afterwards; not registered as a Windows service, BBjServices.exe process present, bbj-ls answers on 127.0.0.1:5009)
+        local-cc-after: plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - ✔ Connected (claude plugin install bbj-local@basis-bbj printed "This plugin is disabled by default — enable it with: claude plugin enable bbj-local@basis-bbj"; claude plugin enable answered "Successfully enabled plugin: bbj-local (scope: project)" although the install was scope user; claude plugin list then shows both bbj and bbj-local enabled, Read from <checkout>; the PowerShell console rendered the check mark as √)
+        local-cc-check-syntax: {"summary":"1 error found. Checked against the local installation's PREFIX, classpath and config (BBj 26.03).","environmentLabel":"local installation, BBj 26.03","bbjVersion":"26.03","diagnostics":[{"line":1,"column":1,"endLine":1,"endColumn":25,"severity":"error","category":"SyntaxError","categories":["SyntaxError"],"message":"syntax error"}]} (Claude Code showed "Called plugin:bbj-local:bbj-local" and quoted this JSON as the answer)
+
+Rule check, PLAT-04 (D-13). local-cc-before is absent, local-cc-after is a connected line for plugin:bbj-local:bbj-local at http://127.0.0.1:5009/mcp, and the bbj_check_syntax answer holds the syntax error (one SyntaxError diagnostic at line 1, column 1; the summary names the local installation and BBj 26.03). The rule holds. Client observations, not plugin defects: the install printed that the plugin is disabled by default (the opt-in half), and `claude plugin enable` answered with scope: project although the install was scope user.
+
+Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292 and BBj 26.03 (owner-reported), the bbj-local plugin is not listed until the user installs and enables it, and with BBjServices running `claude mcp list` then showed plugin:bbj-local:bbj-local at http://127.0.0.1:5009/mcp as connected and bbj_check_syntax returned one SyntaxError diagnostic.
+PLAT-04: met
 
 ## bbj-local: Codex
 
 Reading 2026-10-13, round 1
 
-Commands (runbook W8): `codex mcp list` before; `codex plugin add bbj-local@basis-bbj`, the second list and L1 need BBjServices and were not run (D-15). The opt-in half stands: bbj-local is absent before the plugin add. `codex mcp list` in the Codex route section shows only bbj-docs. Readings:
+Commands (runbook W8): `codex mcp list` before; `codex plugin add bbj-local@basis-bbj`, the second list and L1 in Codex. When the owner first replied, BBjServices was not running, so only the before reading was sent (D-15). Readings as first replied:
 
         env-bbjservices: not running (no BBjServices.exe process and no Windows service registered; only BASISLicenseService runs)
         local-cx-before: absent
         local-cx-after: not run (BBjServices is not running)
         local-cx-check-syntax: not run (BBjServices is not running)
 
-Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), bbj-local is absent from `codex mcp list` until the user runs `codex plugin add bbj-local@basis-bbj`, and its connection was not run because BBjServices is not running on this machine.
-PLAT-04: not run (BBjServices not running: no BBjServices.exe process and no Windows service registered; only BASISLicenseService runs)
+Amendment 2026-10-13 (BBjServices started after W7; same round, same date, same checkout commit 977135c): the owner started BBjServices by hand and completed W8. The amended reply replaces these keys, as follows:
+
+        env-bbjservices: running (for W8 only; it was not running during W0 to W7 and was started by hand afterwards; not registered as a Windows service, BBjServices.exe process present, bbj-ls answers on 127.0.0.1:5009)
+        local-cx-after: bbj-local  http://127.0.0.1:5009/mcp  -  enabled  Unsupported (codex plugin add bbj-local@basis-bbj: "Added plugin `bbj-local` from marketplace `basis-bbj`", installed root <home>\.codex\plugins\cache\basis-bbj\bbj-local\0.2.0; the Auth column reads Unsupported)
+        local-cx-check-syntax: 1 error found. Checked against the local installation's PREFIX, classpath and config (BBj 26.03). / line 1, column 1: [SyntaxError] syntax error (Codex showed "Called bbj-local.bbj_check_syntax" with those two lines as the tool result and repeated them as the answer; Codex rendered the result as text, Claude Code as JSON)
+
+Rule check, PLAT-04 (D-13). local-cx-before is absent. The runbook names the line `bbj-local  http://127.0.0.1:5009/mcp  -  enabled  Unsupported` as the Codex form of the after reading (Codex does not probe the server; the Linux record of phase 8 reads the same), and local-cx-after is that line. The bbj_check_syntax answer holds the syntax error (line 1, column 1, SyntaxError). The rule holds. Codex rendered the tool result as text where Claude Code showed JSON.
+
+Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), bbj-local is absent from `codex mcp list` until the user runs `codex plugin add bbj-local@basis-bbj`, after which it is listed as enabled at http://127.0.0.1:5009/mcp and bbj_check_syntax returned one SyntaxError at line 1, column 1.
+PLAT-04: met
 
 ## Tier 2 smoke
 
 Reading 2026-10-13, round 1
 
-Command (runbook W8, Git Bash): `sh smoke.sh tier2`. The smoke needs a running bbj-ls on the loopback port and was not run (D-15). Result block as pasted:
+Command (runbook W8, Git Bash): `sh smoke.sh tier2`. When the owner first replied, BBjServices was not running and the smoke was not run (D-15). Result block as first pasted:
 
         --- smoke tier2 ---
         not run (BBjServices is not running)
 
-Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1 and BBj 26.03 (owner-reported), the tier 2 route of the hook (curl to bbj-ls on the loopback port) was not run because BBjServices is not running on this machine.
-PLAT-04: not run (BBjServices not running: no BBjServices.exe process and no Windows service registered; only BASISLicenseService runs)
+Amendment 2026-10-13 (BBjServices started after W7; same round, same date, same checkout commit 977135c): with BBjServices running, the owner ran the smoke. It reaches tier 2 only (bbj_home none, discovery_source PATH, no compiler call). Result block as pasted:
+
+        --- smoke tier2 ---
+        smoke: tier2
+        date: 2026-10-13
+        platform: MINGW64_NT-10.0-19045 3.6.5-22c95533.x86_64
+        shell: 5.2.37(1)-release
+        hook_shell_version: 5.2.37(1)-release
+        cygpath: yes
+        checkout_commit: 977135c
+        hook_script: <checkout>/plugins/bbj/scripts/bbj-check.sh
+        hook_script_cksum: 239352305
+        script_identical_to_checkout: yes
+        hooks_json_identical_to_checkout: yes
+        hooks_json_command: sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"
+        bbj_home: none
+        discovery_source: PATH
+
+        bbj_home_used: none (every compiler route is off for this subcommand)
+        curl: /mingw64/bin/curl
+        bbj_local_url: http://127.0.0.1:5009/mcp
+
+        case: tier2_bad
+        file_as_sent: <work>\t2\sub\bad.bbj
+        cwd_as_sent: <work>\t2
+        compiler_call: none
+        derived: none (no compiler call)
+        dash_n: no
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbj-local reported 1 error(s) in <work>/t2/sub/bad.bbj:
+        outcome: feedback
+
+        case: tier2_clean
+        file_as_sent: <work>\t2\sub\clean.bbj
+        cwd_as_sent: <work>\t2
+        compiler_call: none
+        derived: none (no compiler call)
+        dash_n: no
+        exit: 0
+        stdout_bytes: 0
+        first_feedback_line: none
+        outcome: silent
+
+Rule check, PLAT-04 (D-14). tier2_bad ends with outcome feedback (exit 2, first line `bbj-local reported 1 error(s)`), tier2_clean with outcome silent (exit 0), and both have stdout_bytes 0 and no compiler call. The rule holds.
+
+Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1 and BBj 26.03 (owner-reported), the tier 2 route of the hook (curl from Git Bash to bbj-ls on 127.0.0.1:5009) printed `bbj-local reported 1 error(s)` for a bad file with exit 2 and stayed silent with exit 0 for a clean file.
+PLAT-04: met
 
 ## No-route notice smoke
 
@@ -451,6 +513,8 @@ Observations (no decision asked here):
 obs-1: The exact P1 prompt made Claude Code write with a Bash shell command twice (bbj-p9 and "bbj test"), so the Write|Edit hook never saw the create; P2 used Edit and P3 used Write without prompting. A file written through Bash is not checked by design (matcher Write|Edit). Client behaviour, not a PLAT-01 defect; Phase 10 may say it.
 obs-2: The plugin's hooks.json holds only `command`, no `commandWindows`, so W-1 has nothing to fall back on; the installer route's `commandWindows` is a PowerShell parse error as written (see `## Installer route (optional)`).
 obs-3: The relative backslash header `sub\f.bbj` works on real Windows (the file test normalises the separator). The same normalisation means a header like `sub\..\..\x.bbj` would pass the hook's string-based `..` check; this is by code reading, not a reading from the machine, and the path-form fix of W-3 would close it.
+
+obs-4: With BBjServices running, the tier 2 smoke gave feedback and silence on this machine (see `## Tier 2 smoke`), so `curl` itself works from Git Bash against a live loopback listener. Only the closed-port path of W-2 is unexplained; the hypothesis of W-2 is about that path.
 
 Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), three defects are open: the Codex plugin hook does not start, the no-route notice was not printed, and the verbatim path form is skipped.
 PLAT-06: defect, decision pending
@@ -716,12 +780,64 @@ Reading 2026-10-13, round 1
         exit_second: 0
         notice_second: absent
 
+Amendment 2026-10-13 (BBjServices started after W7; same round, same date, same checkout commit 977135c)
+
+The owner's amended reply (the same round) changes these keys against the reply above. Everything else is byte-identical to the first reply, including the noroute block (notice_first absent, claim_file absent). The tier2 block now holds a real run.
+
+        env-bbjservices: running (for W8 only; it was not running during W0 to W7 and was started by hand afterwards; not registered as a Windows service, BBjServices.exe process present, bbj-ls answers on 127.0.0.1:5009)
+        local-cc-after: plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - ✔ Connected (claude plugin install bbj-local@basis-bbj printed "This plugin is disabled by default — enable it with: claude plugin enable bbj-local@basis-bbj"; claude plugin enable answered "Successfully enabled plugin: bbj-local (scope: project)" although the install was scope user; claude plugin list then shows both bbj and bbj-local enabled, Read from <checkout>; the PowerShell console rendered the check mark as √)
+        local-cc-check-syntax: {"summary":"1 error found. Checked against the local installation's PREFIX, classpath and config (BBj 26.03).","environmentLabel":"local installation, BBj 26.03","bbjVersion":"26.03","diagnostics":[{"line":1,"column":1,"endLine":1,"endColumn":25,"severity":"error","category":"SyntaxError","categories":["SyntaxError"],"message":"syntax error"}]} (Claude Code showed "Called plugin:bbj-local:bbj-local" and quoted this JSON as the answer)
+        local-cx-after: bbj-local  http://127.0.0.1:5009/mcp  -  enabled  Unsupported (codex plugin add bbj-local@basis-bbj: "Added plugin `bbj-local` from marketplace `basis-bbj`", installed root <home>\.codex\plugins\cache\basis-bbj\bbj-local\0.2.0; the Auth column reads Unsupported)
+        local-cx-check-syntax: 1 error found. Checked against the local installation's PREFIX, classpath and config (BBj 26.03). / line 1, column 1: [SyntaxError] syntax error (Codex showed "Called bbj-local.bbj_check_syntax" with those two lines as the tool result and repeated them as the answer; Codex rendered the result as text, Claude Code as JSON)
+
+        --- smoke tier2 ---
+        smoke: tier2
+        date: 2026-10-13
+        platform: MINGW64_NT-10.0-19045 3.6.5-22c95533.x86_64
+        shell: 5.2.37(1)-release
+        hook_shell_version: 5.2.37(1)-release
+        cygpath: yes
+        checkout_commit: 977135c
+        hook_script: <checkout>/plugins/bbj/scripts/bbj-check.sh
+        hook_script_cksum: 239352305
+        script_identical_to_checkout: yes
+        hooks_json_identical_to_checkout: yes
+        hooks_json_command: sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"
+        bbj_home: none
+        discovery_source: PATH
+
+        bbj_home_used: none (every compiler route is off for this subcommand)
+        curl: /mingw64/bin/curl
+        bbj_local_url: http://127.0.0.1:5009/mcp
+
+        case: tier2_bad
+        file_as_sent: <work>\t2\sub\bad.bbj
+        cwd_as_sent: <work>\t2
+        compiler_call: none
+        derived: none (no compiler call)
+        dash_n: no
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbj-local reported 1 error(s) in <work>/t2/sub/bad.bbj:
+        outcome: feedback
+
+        case: tier2_clean
+        file_as_sent: <work>\t2\sub\clean.bbj
+        cwd_as_sent: <work>\t2
+        compiler_call: none
+        derived: none (no compiler call)
+        dash_n: no
+        exit: 0
+        stdout_bytes: 0
+        first_feedback_line: none
+        outcome: silent
+
 ## Verdicts
 
-Round 1 readings, consolidated by the rule of the intro. Interim values stay until the re-runs of plan 09-06.
+Round 1 readings with the amendment of 2026-10-13, consolidated by the rule of the intro. PLAT-04 is met for both bbj-local sections and the tier 2 smoke; the no-route notice smoke (W-2) is the first section line that is not met. Interim values stay until the re-runs of plan 09-06.
 
 - PLAT-01: met
 - PLAT-02: met
 - PLAT-03: defect, decision pending
-- PLAT-04: not run (BBjServices not running: no BBjServices.exe process and no Windows service registered; only BASISLicenseService runs)
+- PLAT-04: defect, decision pending
 - PLAT-06: defect, decision pending
