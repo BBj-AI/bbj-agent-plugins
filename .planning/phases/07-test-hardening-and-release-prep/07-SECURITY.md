@@ -12,7 +12,7 @@ created: "2026-10-13"
 
 > Per-phase security contract: threat register, accepted risks, and audit trail.
 
-Register origin: authored at plan time (all five PLAN.md files carry a `<threat_model>` block; 07-05 is the gap-closure plan). Classification depth: L1 (grep-level evidence against HEAD `286fa2e`, re-checked against `cbbce95` for the 07-05 threats), sufficient at ASVS level 1. Block threshold: high.
+Register origin: authored at plan time (all six PLAN.md files carry a `<threat_model>` block; 07-05 and 07-06 are the gap-closure plans). Classification depth: L1 (grep-level evidence against HEAD `286fa2e`, re-checked against `cbbce95` for the 07-05 threats and against `046195f` for the 07-06 threats), sufficient at ASVS level 1. Block threshold: high.
 
 ---
 
@@ -32,7 +32,7 @@ Register origin: authored at plan time (all five PLAN.md files carry a `<threat_
 | local branch main → gsd/planning-setup | main is updated while another branch is checked out; it must not be rewound or forced | git refs |
 | suite transcript → project notes | The prefix list is copied from test output into instructions that agents follow | gate-name prefixes |
 | .planning/codebase/CONVENTIONS.md → .claude/CLAUDE.md | A /gsd-map-codebase regeneration copies the source into the GSD:conventions block, which agents follow as project instructions | gate-prefix block text |
-| suite transcript → 07-05-SUMMARY.md | Output of a run that reads the real ~/.codex (real_home_untouched) is summarised into a committed file | SUMMARY line, INVENTORY_OK line, gate names |
+| suite transcript → 07-05-SUMMARY.md and 07-06-SUMMARY.md | Output of a run that reads the real ~/.codex (real_home_untouched) and the hosted docs server (mcp_docs_ gates) is summarised into a committed file | SUMMARY line, INVENTORY_OK line, gate names |
 
 ---
 
@@ -57,13 +57,17 @@ Register origin: authored at plan time (all five PLAN.md files carry a `<threat_
 | T-07-15 | Tampering | IN-04 correction in .claude/CLAUDE.md | low | mitigate | `git diff --numstat e39b4bc -- .claude/CLAUDE.md` prints nothing at audit; 07-05 commits 320ef16 and bea3db9 touch only .planning/ files; prohibition 1 of 07-05-PLAN.md forbids writing that file | closed |
 | T-07-16 | Repudiation | a later one-sided edit of either copy | low | accept | Accepted risk R-07-04: no repository gate reads .planning/ (0 files under tests/ and .github/ mention CONVENTIONS, CLAUDE.md or .planning; NO_TEST_READS_DOCS); the byte compare is 07-05's verify and part of phase verification | closed |
 | T-07-17 | Information Disclosure | Task 2 suite transcript (includes real_home_untouched over the real ~/.codex) | low | mitigate | Transcript written to a mktemp directory and removed; no run.out is tracked or left untracked; 07-05-SUMMARY.md carries no raw gate lines and no cksum lines, only the SUMMARY and INVENTORY_OK lines; home_snapshot prints checksums, never content | closed |
-| T-07-SC | Tampering | npm/pip/cargo installs | high | mitigate | No package-manager install in any of the five plans; `git diff 12b7ddd HEAD --name-only` touches no package manifest or lockfile (.github/ci-tools unchanged) and adds no npm/pip/cargo install command; the 07-05 commits change only .planning/ files | closed |
+| T-07-18 | Tampering | Shell-tests line of the gate-prefix block in .planning/codebase/CONVENTIONS.md | low | mitigate | Line copied from .claude/CLAUDE.md by anchor with sed, never retyped (07-06-SUMMARY.md Task 1); re-run at audit against HEAD 046195f: the two 5-line ranges `cmp` equal (BLOCKS_IDENTICAL) and `git diff --numstat 320ef16 -- .planning/codebase/CONVENTIONS.md` prints 1 added, 1 deleted (SCOPE_OK); commit 9ca8bb1 touches only that file | closed |
+| T-07-19 | Tampering | .claude/CLAUDE.md (project instructions agents load) | low | mitigate | `git diff --numstat 9bb58bc -- .claude/CLAUDE.md` prints nothing at audit; the 07-06 commits 9ca8bb1 and a13f8e5 touch only .planning/ files; prohibition 1 of 07-06-PLAN.md forbids writing that file | closed |
+| T-07-20 | Repudiation | a later one-sided edit of either copy (Phase 8 will add prefixes) | low | accept | Accepted risk R-07-05: no repository gate reads .planning/ (NO_TEST_READS_DOCS re-printed by 07-06 Task 2); the byte compare is 07-06's verify and part of phase verification; 07-06-SUMMARY.md Known follow-ups tells Phase 8 to edit both files in one commit | closed |
+| T-07-21 | Information Disclosure | 07-06 Task 2 suite transcript (real_home_untouched over the real ~/.codex; mcp_docs_ gates against the hosted server) | low | mitigate | Transcript written to a mktemp directory outside the repo and removed; no run.out is tracked or untracked at audit; 07-06-SUMMARY.md carries no raw gate lines and no cksum lines, only the SUMMARY and INVENTORY_OK lines and gate names; home_snapshot prints checksums, never content | closed |
+| T-07-SC | Tampering | npm/pip/cargo installs | high | mitigate | No package-manager install in any of the six plans; `git diff 12b7ddd HEAD --name-only` touches no package manifest or lockfile (.github/ci-tools unchanged) and adds no npm/pip/cargo install command; the 07-05 and 07-06 commits change only .planning/ files | closed |
 
 *Status: open · closed · open — below high threshold (non-blocking)*
 *Severity: critical > high > medium > low — only open threats at or above workflow.security_block_on count toward threats_open*
 *Disposition: mitigate (implementation required) · accept (documented risk) · transfer (third-party)*
 
-Summary flags from all five SUMMARY.md files: "None" (no new network, auth, file-access or schema surface in the phase; 07-05-SUMMARY.md reports T-07-14 to T-07-17 mitigations held).
+Summary flags from all six SUMMARY.md files: "None" (no new network, auth, file-access or schema surface in the phase; 07-05-SUMMARY.md reports T-07-14 to T-07-17 mitigations held, 07-06-SUMMARY.md reports T-07-18 to T-07-21 mitigations held).
 
 ---
 
@@ -75,6 +79,7 @@ Summary flags from all five SUMMARY.md files: "None" (no new network, auth, file
 | R-07-02 | T-07-09 | A Codex session that trusts a new project rewrites config.toml; that is a real content change and real_home_untouched fails by design. Recorded in the home_snapshot comment and 07-03 must_haves | plan 07-03 (D-09) | 2026-10-12 |
 | R-07-03 | T-07-13 | Prose can drift again; a prefix-sync gate was rejected (CI must not run the suite twice, .planning/ is stripped from the PR branch). Drift is caught by the verifier, as it was for fix e39b4bc (07-VERIFICATION.md gap, closed by plan 07-05) | plan 07-04 (MAINT-08 discretion) | 2026-10-12 |
 | R-07-04 | T-07-16 | A later one-sided edit of CONVENTIONS.md or .claude/CLAUDE.md is not caught by a repository gate, because .planning/ is stripped from the PR branch and such a gate would FAIL there under CI=true. The byte compare lives in 07-05's verify and in phase verification | plan 07-05 (recorded MAINT-08 decision, STATE.md) | 2026-10-13 |
+| R-07-05 | T-07-20 | Same residual as R-07-04 after quick task 261013-cpn reproduced it (oauth_ added to .claude/CLAUDE.md only): no repository gate may read .planning/, so a one-sided edit of either copy is caught only by 07-06's byte compare and by phase verification. Phase 8, which adds prefixes, must edit both files in one commit (07-06-SUMMARY.md Known follow-ups) | plan 07-06 (recorded MAINT-08 decision, STATE.md) | 2026-10-13 |
 
 *Accepted risks do not resurface in future audit runs.*
 
@@ -85,8 +90,9 @@ Summary flags from all five SUMMARY.md files: "None" (no new network, auth, file
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-13 | 14 | 14 | 0 | /gsd-secure-phase 07 (orchestrator, L1 short-circuit: register authored at plan time, asvs_level 1) |
+| 2026-10-13 | 22 | 22 | 0 | /gsd-secure-phase 07 --auto after the 07-06 gap closure (orchestrator, L1 short-circuit: register authored at plan time, asvs_level 1) |
 
-Note: T-07-SC appears in all five plans with the same text and is counted once; 17 plan-specific threats plus T-07-SC gives 18 after the 07-05 gap closure (14 before it).
+Note: T-07-SC appears in all six plans with the same text and is counted once; 21 plan-specific threats plus T-07-SC gives 22 after the 07-06 gap closure (18 after 07-05, 14 before it).
 
 ---
 
@@ -97,7 +103,7 @@ Note: T-07-SC appears in all five plans with the same text and is counted once; 
 - [x] `threats_open: 0` confirmed
 - [x] `status: verified` set in frontmatter
 
-**Approval:** verified 2026-10-13
+**Approval:** verified 2026-10-13, re-verified 2026-10-13 after the 07-06 gap closure
 
 ## Security Audit 2026-10-13
 
@@ -105,4 +111,12 @@ Note: T-07-SC appears in all five plans with the same text and is counted once; 
 |---|---|
 | Threats found | 18 |
 | Closed | 18 |
+| Open | 0 |
+
+## Security Audit 2026-10-13
+
+| Metric | Count |
+|---|---|
+| Threats found | 22 |
+| Closed | 22 |
 | Open | 0 |
