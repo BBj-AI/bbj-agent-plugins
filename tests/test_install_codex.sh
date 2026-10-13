@@ -47,7 +47,7 @@ cp "$REPO/tests/fake-bin/codex" "$WORK/fbcodex/codex"
 cp "$REPO/tests/fake-bin/cygpath" "$WORK/fbcyg/cygpath"
 cp "$REPO/tests/fake-bin/bbjcpl" "$WORK/fbcpl/bbjcpl"
 cp "$REPO/tests/fake-bin/bbj" "$WORK/fbcpl/bbj"
-for _t in sh cat cp mv mkdir rm diff cmp mktemp chmod dirname basename tr tail head awk sed grep printf ls wc sort uniq date pwd; do
+for _t in sh cat cp mv mkdir rm rmdir diff cmp mktemp chmod dirname basename tr tail head awk sed grep printf ls wc sort uniq date pwd; do
   _c=$(PATH=$SYSPATH command -v "$_t")
   [ -n "$_c" ] && ln -s "$_c" "$WORK/farm/$_t"
 done
@@ -1770,6 +1770,140 @@ if grep -F -e '--remove' "$WORK/help.out" > /dev/null; then
   gate remove_usage ok "--help lists --remove"
 else
   gate remove_usage FAIL "--help does not name --remove"
+fi
+
+# ---- --remove for every form the installer writes (CODEX-06, D-02, D-03) ----
+# rm_cycle ENV PATHVALUE ARGS...: a pre-install snapshot, an install with ARGS under PATHVALUE, then --remove under
+# the same PATHVALUE and the same ARGS minus nothing (--remove takes the install's --docs-url, never --with-local).
+# Sets RM_RC1 and RM_RC2 (exit codes), RM_INSTALLED (1 when the install left an install behind) and the files
+# $WORK/ENV.before, $WORK/ENV.after (snapshots without the backup line) and $WORK/ENV.cfg0 (the user config).
+rm_cycle() {
+  _rc_env=$1
+  _rc_path=$2
+  shift 2
+  rm_env "$_rc_env"
+  rm_user_cfg "$E_CODEX/config.toml"
+  cp "$E_CODEX/config.toml" "$WORK/$_rc_env.cfg0"
+  rm_snap "$WORK/$_rc_env.before"
+  run_inst "$_rc_path" "$@"
+  RM_RC1=$RC
+  rm_installed && RM_INSTALLED=1 || RM_INSTALLED=0
+  _rc_url=
+  for _rc_a in "$@"; do
+    case "$_rc_a" in http://*) _rc_url=$_rc_a ;; esac
+  done
+  if [ -n "$_rc_url" ]; then run_inst "$_rc_path" --remove --docs-url "$_rc_url"; else run_inst "$_rc_path" --remove; fi
+  RM_RC2=$RC
+  rm_snap "$WORK/$_rc_env.after"
+}
+
+# rm_equal NAME OKTEXT: the gate for a cycle that must end at the pre-install home
+rm_equal() {
+  if [ "$RM_RC1" = 0 ] && [ "$RM_INSTALLED" = 1 ] && [ "$RM_RC2" = 0 ] && _d=$(home_diff "$WORK/$1.before" "$WORK/$1.after") \
+    && cmp -s "$E_CODEX/config.toml" "$WORK/$1.cfg0"; then
+    gate "$2" ok "$3"
+  else
+    gate "$2" FAIL "install exit $RM_RC1 (installed=$RM_INSTALLED), remove exit $RM_RC2: ${_d:-$(head -c 300 "$WORK/err")} $(tr '\n' ';' < "$E_CODEX/config.toml" 2> /dev/null | head -c 300)"
+  fi
+}
+
+rm_cycle rmmanaged "$NO_CODEX"
+rm_equal rmmanaged remove_round_trip_managed "no codex: the managed bbj-docs block, its marker lines and the blank line before it are gone; config.toml equals the pre-install bytes"
+
+rm_cycle rmlocal "$NO_CODEX" --with-local
+rm_equal rmlocal remove_round_trip_with_local "no codex, --with-local: both managed blocks are gone; config.toml equals the pre-install bytes"
+
+# markers only: the documented manual removal (delete the lines between the markers) leaves four marker lines
+rm_env rmmarkers
+rm_user_cfg "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/rmmarkers.cfg0"
+rm_snap "$WORK/rmmarkers.before"
+run_inst "$NO_CODEX" --with-local
+RM_RC1=$RC
+awk '
+  $0 == "# >>> bbj-agent-plugins (managed) >>>" || $0 == "# >>> bbj-agent-plugins bbj-local (managed) >>>" { print; skip = 1; next }
+  $0 == "# <<< bbj-agent-plugins (managed) <<<" || $0 == "# <<< bbj-agent-plugins bbj-local (managed) <<<" { skip = 0 }
+  !skip { print }
+' "$E_CODEX/config.toml" > "$WORK/rmmarkers.hollow"
+cat "$WORK/rmmarkers.hollow" > "$E_CODEX/config.toml"
+RM_MARKERS=$(grep -c -e '^# [<>][<>][<>] bbj-agent-plugins' "$E_CODEX/config.toml")
+run_inst "$NO_CODEX" --remove
+RM_RC2=$RC
+rm_snap "$WORK/rmmarkers.after"
+if [ "$RM_RC1" = 0 ] && [ "$RM_MARKERS" = 4 ] && [ "$RM_RC2" = 0 ] && _d=$(home_diff "$WORK/rmmarkers.before" "$WORK/rmmarkers.after") \
+  && cmp -s "$E_CODEX/config.toml" "$WORK/rmmarkers.cfg0"; then
+  gate remove_markers_only ok "four marker lines and nothing between them (the manual removal): --remove deletes the markers and the blank lines before them; config.toml equals the pre-install bytes"
+else
+  gate remove_markers_only FAIL "install exit $RM_RC1, $RM_MARKERS markers, remove exit $RM_RC2: ${_d:-$(head -c 300 "$WORK/err")} $(tr '\n' ';' < "$E_CODEX/config.toml" | head -c 300)"
+fi
+
+# the form of versions up to 398aac5: url and default_tools_approval_mode, no tool tables, no OAuth table
+rm_env rmoldkey
+rm_user_cfg "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/rmoldkey.cfg0"
+{
+  cat "$WORK/rmoldkey.cfg0"
+  printf '\n[mcp_servers.bbj-docs]\nurl = "%s"\ndefault_tools_approval_mode = "approve"\n' "$DEFAULT_URL"
+} > "$E_CODEX/config.toml"
+run_inst "$NO_CODEX" --remove
+if [ "$RC" = 0 ] && cmp -s "$E_CODEX/config.toml" "$WORK/rmoldkey.cfg0" && ! grep -F 'bbj-docs' "$E_CODEX/config.toml" > /dev/null; then
+  gate remove_old_key_form ok "the table with url and the server-wide approval line (versions up to 398aac5) is removed; config.toml holds only the user content"
+else
+  gate remove_old_key_form FAIL "exit $RC: $(tr '\n' ';' < "$E_CODEX/config.toml" | head -c 300) $(head -c 200 "$WORK/err")"
+fi
+
+# a registration at another url stays unless --remove gets the same --docs-url
+CUSTOM_URL=http://127.0.0.1:7777/mcp
+rm_env rmcustom
+rm_user_cfg "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/rmcustom.cfg0"
+run_inst "$WITH_CODEX" --docs-url "$CUSTOM_URL"
+RM_RC1=$RC
+cp "$E_CODEX/config.toml" "$WORK/rmcustom.installed"
+run_inst "$WITH_CODEX" --remove
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 3 ] && cmp -s "$E_CODEX/config.toml" "$WORK/rmcustom.installed" \
+  && grep -F "rerun with --docs-url $CUSTOM_URL" "$WORK/out" > /dev/null \
+  && [ ! -e "$E_SKILLS/bbj-programming" ] && [ ! -e "$E_SKILLS/bbj-web-programming" ] && [ ! -e "$E_CODEX/bbj/bbj-check.sh" ] && [ ! -e "$E_CODEX/hooks.json" ]; then
+  gate remove_custom_url_left ok "a bbj-docs table at $CUSTOM_URL is left in place (byte-identical), named with the rerun hint, exit 3; skills, script and hooks.json are removed"
+else
+  gate remove_custom_url_left FAIL "install exit $RM_RC1, remove exit $RC: $(head -c 400 "$WORK/out" | tr '\n' ';')"
+fi
+run_inst "$WITH_CODEX" --remove --docs-url "$CUSTOM_URL"
+if [ "$RC" = 0 ] && cmp -s "$E_CODEX/config.toml" "$WORK/rmcustom.cfg0"; then
+  gate remove_custom_url_with_flag ok "--remove with the same --docs-url removes the table; config.toml equals the pre-install bytes"
+else
+  gate remove_custom_url_with_flag FAIL "exit $RC: $(tr '\n' ';' < "$E_CODEX/config.toml" | head -c 300)"
+fi
+
+# a CRLF config.toml: the block the installer appends is CRLF, and its removal leaves the original bytes
+rm_env rmcrlf
+printf '# my codex settings\r\nmodel_reasoning_effort = "high"\r\n\r\n[projects."/src/x"]\r\ntrust_level = "trusted"\r\n' > "$E_CODEX/config.toml"
+cp "$E_CODEX/config.toml" "$WORK/rmcrlf.cfg0"
+run_inst "$NO_CODEX"
+RM_RC1=$RC
+rm_installed && RM_INSTALLED=1 || RM_INSTALLED=0
+run_inst "$NO_CODEX" --remove
+if [ "$RM_RC1" = 0 ] && [ "$RM_INSTALLED" = 1 ] && [ "$RC" = 0 ] && cmp -s "$E_CODEX/config.toml" "$WORK/rmcrlf.cfg0"; then
+  gate remove_crlf_config ok "CRLF config.toml with an appended managed block: --remove restores the original bytes"
+else
+  gate remove_crlf_config FAIL "install exit $RM_RC1 (installed=$RM_INSTALLED), remove exit $RC: $(od -c "$E_CODEX/config.toml" | head -n 6 | tr '\n' ';')"
+fi
+
+# install, remove, install: the second install equals the first, backup included
+rm_env rmagain
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/rmagain.s1"
+run_inst "$WITH_CODEX" --remove
+RM_RC2=$RC
+run_inst "$WITH_CODEX"
+RM_RC3=$RC
+home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/rmagain.s2"
+if [ "$RM_RC1" = 0 ] && [ "$RM_RC2" = 0 ] && [ "$RM_RC3" = 0 ] && _d=$(home_diff "$WORK/rmagain.s1" "$WORK/rmagain.s2"); then
+  gate remove_reinstall_equals_first ok "install, --remove, install: the second home equals the first, config.toml.bbj-backup included"
+else
+  gate remove_reinstall_equals_first FAIL "exits $RM_RC1 $RM_RC2 $RM_RC3: $_d"
 fi
 
 # ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
