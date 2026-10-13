@@ -1,9 +1,10 @@
 #!/bin/sh
 # tests/test_path_scrub.sh -- plan 07-02 (MAINT-06; decisions D-11 to D-13 of phase 7): proves the
 # PATH scrub of the no-route tests is load-bearing. With a fake bbjcpl and bbjcplw first on PATH,
-# tests/test_noroute_notice.sh and tests/test_exit_contract.sh must stay green (the scrub hides the
-# compiler from the hook); the same two files run from a copy of tests/ whose no_compiler_path is
-# a no-op must go red (removing the scrub is caught). The helper's own properties are unit gates.
+# tests/test_noroute_notice.sh, tests/test_exit_contract.sh and tests/test_tier2_fake.sh must stay
+# green (the scrub hides the compiler from the hook); the same files run from a copy of tests/
+# whose no_compiler_path is a no-op must go red (removing the scrub is caught). The third file
+# scrubs /usr/bin:/bin, so its TIER2_TEST_SYSPATH seam puts the fake compiler directory in front. The helper's own properties are unit gates.
 # Nested runs keep their output under $WORK, so every stdout line here is a gate line (prefix
 # pathscrub_) and tests/run.sh counts nothing else.
 # Nothing here runs BBj: the compilers on PATH are copies of tests/fake-bin/bbjcpl, a logger that
@@ -43,6 +44,10 @@ green() {
 
 green noroute_notice test_noroute_notice.sh '^gate notice_text_claude ok '
 green exit_contract test_exit_contract.sh '^gate contract_[a-z]*_no_route ok '
+TIER2_TEST_SYSPATH=$WORK/cplbin:/usr/bin:/bin
+export TIER2_TEST_SYSPATH
+green tier2_fake test_tier2_fake.sh '^gate url_refused_remote_http ok '
+unset TIER2_TEST_SYSPATH
 
 # a copy of tests/ whose no_compiler_path does nothing: removing the scrub must be caught. The
 # copy's REPO is $WORK/mut (fake-bin and fake_mcp.py are found inside it); it has no plugins/,
@@ -69,6 +74,10 @@ mutant() {
 
 mutant noroute_notice test_noroute_notice.sh '^gate notice_text_claude FAIL '
 mutant exit_contract test_exit_contract.sh '^gate contract_[a-z]*_no_route FAIL '
+TIER2_TEST_SYSPATH=$WORK/cplbin:/usr/bin:/bin
+export TIER2_TEST_SYSPATH
+mutant tier2_fake test_tier2_fake.sh '^gate url_refused_remote_http FAIL '
+unset TIER2_TEST_SYSPATH
 
 # no_compiler_env clears every other discovery source, in the calling shell
 _env=$(
