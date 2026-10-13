@@ -221,12 +221,12 @@ notice() {
   case "$1" in
     apply_patch)
       if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
-        _how='To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or run codex plugin add bbj-local@basis-bbj (BBjServices 26.03+ running on this machine).'
+        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. codex plugin add bbj-local@basis-bbj only gives the model the local bbj_check_syntax tool; the hook does not need it.'
       else
-        _how='To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or rerun install-codex.sh --with-local (BBjServices 26.03+ running on this machine).'
+        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. install-codex.sh --with-local only registers the local bbj_check_syntax tool for the model; the hook does not need it.'
       fi
       ;;
-    *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or enable the bbj-local@basis-bbj plugin (BBjServices 26.03+ running on this machine).' ;;
+    *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or start BBjServices 26.03+ on this machine so that bbj-ls answers. The bbj-local@basis-bbj plugin only gives the model the local bbj_check_syntax tool; the hook does not need it.' ;;
   esac
   _txt="$_files $_were written but not compile-checked: $_why1; $_why2. $_later. $_how"
   _txt="$_txt Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
