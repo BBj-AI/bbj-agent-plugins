@@ -12,7 +12,7 @@
 . "$(dirname "$0")/lib.sh"
 mkwork
 
-unset FAKE_LOG FAKE_OUT FAKE_STDOUT FAKE_EXIT FAKE_CURL_EXIT
+unset FAKE_LOG FAKE_OUT FAKE_STDOUT FAKE_EXIT FAKE_CURL_EXIT TIER2_TEST_SYSPATH
 
 # two copies of the fake compiler, named as the hook looks for them
 mkdir "$WORK/cplbin"
