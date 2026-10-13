@@ -304,3 +304,30 @@ home_diff() {
   printf '%s\n' "$_hd_out" | grep -e '^<' -e '^>' | head -n 3
   return 1
 }
+
+# home_incomplete BEFORE AFTER: returns 0 and prints the reason when a comparison of the two
+# snapshot files would prove nothing, 1 and nothing when both are complete (WR-02). A snapshot is
+# incomplete when it is missing, empty (every real one holds the two H lines, so empty means the walk
+# produced nothing, for example a PATH without sort) or holds an E line (a find failure: everything
+# below that path was skipped on both sides, so an identical pair is no evidence).
+home_incomplete() {
+  for _hi_f in "$1" "$2"; do
+    if [ ! -s "$_hi_f" ]; then
+      printf 'the snapshot %s is missing or empty' "$_hi_f"
+      return 0
+    fi
+  done
+  _hi_e=$(grep -h '^E ' "$1" "$2" | LC_ALL=C sort -u | head -n 3 | tr '\n' ' ')
+  if [ -n "$_hi_e" ]; then
+    printf 'the walk could not read: %s' "$_hi_e"
+    return 0
+  fi
+  return 1
+}
+
+# home_incomplete_status: the gate status for an incomplete snapshot. An unreadable directory is an
+# environment fact, so it is skip; under CI=true a prerequisite that is missing is a FAIL (the
+# project rule for tests/run.sh and tests/ci.sh).
+home_incomplete_status() {
+  if [ "${CI:-}" = true ]; then echo FAIL; else echo skip; fi
+}

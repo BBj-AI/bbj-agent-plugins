@@ -163,6 +163,39 @@ mkfilelinkhome filelink_untouched_same
 touch "$H_C/config.toml" "$WORK/filelink_untouched_same.target/config.toml"
 expect filelink_untouched_same same
 
+# ---- an incomplete snapshot never compares as ok (WR-02) ----
+# the same E line in both snapshots makes them identical; home_incomplete must still say so
+mkhome incomplete_e_line
+printf 'E %s/bbj\n' "$H_C" > "$WORK/incomplete_e_line.a"
+cp "$WORK/incomplete_e_line.a" "$WORK/incomplete_e_line.b"
+_ie=$(home_incomplete "$WORK/incomplete_e_line.a" "$WORK/incomplete_e_line.b")
+_ier=$?
+# empty snapshots (a walk that produced nothing) and a missing file are incomplete too
+: > "$WORK/incomplete_empty.a"
+: > "$WORK/incomplete_empty.b"
+_iz=$(home_incomplete "$WORK/incomplete_empty.a" "$WORK/incomplete_empty.b")
+_izr=$?
+_im=$(home_incomplete "$WORK/incomplete_e_line.before" "$WORK/incomplete_e_line.nonexistent")
+_imr=$?
+# a complete pair is not incomplete
+home_incomplete "$WORK/incomplete_e_line.before" "$WORK/incomplete_e_line.before" > /dev/null
+_icr=$?
+if [ "$_ier" = 0 ] && [ "$_izr" = 0 ] && [ "$_imr" = 0 ] && [ "$_icr" = 1 ] \
+  && printf '%s' "$_ie" | grep -q '/bbj'; then
+  gate homeguard_incomplete_snapshot ok "an E line, an empty and a missing snapshot are incomplete; a complete pair is not"
+else
+  gate homeguard_incomplete_snapshot FAIL "e=$_ier($_ie) empty=$_izr($_iz) missing=$_imr($_im) complete=$_icr"
+fi
+
+# the status: skip locally, FAIL under CI=true
+_cis=$(CI=true home_incomplete_status)
+_loc=$(unset CI; home_incomplete_status)
+if [ "$_cis" = FAIL ] && [ "$_loc" = skip ]; then
+  gate homeguard_incomplete_status ok "incomplete is skip locally and FAIL under CI=true"
+else
+  gate homeguard_incomplete_status FAIL "CI=true gave '$_cis', unset gave '$_loc'"
+fi
+
 # ---- odd names and file types: a newline in a name, a FIFO, an unreadable directory ----
 mkhome newline_name_detected
 mkdir "$H_C/bbj"
