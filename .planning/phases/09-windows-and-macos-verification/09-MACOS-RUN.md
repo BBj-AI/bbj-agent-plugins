@@ -54,7 +54,17 @@ Status: awaiting the owner's run.
 
 ## Install source
 
-Status: awaiting the owner's run.
+transfer: push
+
+Remote and branch: `origin` (`git@github.com:BBj-AI/bbj-agent-plugins.git`), branch `gsd/planning-setup`. Same method the owner chose on 2026-10-13 in plan 09-04 Task 2 for Windows (D-03 amended for this phase in `09-CONTEXT.md`); the Mac uses it too. Only that branch is pushed, never `main`, never a tag, never forced.
+
+Clone command for the Mac: `git clone -b gsd/planning-setup git@github.com:BBj-AI/bbj-agent-plugins.git <checkout>` (SSH form). Without an SSH key on the Mac, the HTTPS form of the same remote works the same way: `git clone -b gsd/planning-setup https://github.com/BBj-AI/bbj-agent-plugins.git <checkout>`.
+
+Update command for a later round: `git -C <checkout> pull origin gsd/planning-setup`. The branch is pushed again before each round.
+
+Commit transferred: the tip of `origin/gsd/planning-setup` named by the short sha in the hand-over message. The sha the owner reads back from `git -C <checkout> rev-parse --short HEAD` is recorded as `checkout-commit` in the Run environment table and must equal it.
+
+Linux dry run 2026-10-13: a clone from a bundle of 00448fe ran smoke.sh claude with the fake compiler (exit 2, -N present) and check-records.sh selftest (ok); suite SUMMARY: ok=921 fail=0 skip=0
 
 ## Smoke run
 
