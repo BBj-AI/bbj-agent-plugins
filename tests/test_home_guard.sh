@@ -120,6 +120,29 @@ home_snapshot "$H_C" "$H_S" > "$WORK/homes_created_detected.before"
 mkdir -p "$H_C" "$H_S"
 expect homes_created_detected differ
 
+# ---- a symlinked skill dir (a maintainer's checkout) is watched through the link and by target ----
+# mklinkhome NAME: like mkhome, but bbj-web-programming is a symlink to a directory under $WORK
+mklinkhome() {
+  mkdir -p "$WORK/$1.target1" "$WORK/$1.target2"
+  printf '# web\n' > "$WORK/$1.target1/SKILL.md"
+  mkdir -p "$WORK/$1/.agents/skills"
+  ln -s "$WORK/$1.target1" "$WORK/$1/.agents/skills/bbj-web-programming"
+  mkhome "$1"
+}
+
+mklinkhome link_retarget_detected
+rm "$H_S/bbj-web-programming"
+ln -s "$WORK/link_retarget_detected.target2" "$H_S/bbj-web-programming"
+expect link_retarget_detected differ
+
+mklinkhome link_write_through_detected
+printf '# edited\n' > "$H_S/bbj-web-programming/SKILL.md"
+expect link_write_through_detected differ
+
+mklinkhome link_untouched_same
+touch "$H_S/bbj-web-programming/SKILL.md"
+expect link_untouched_same same
+
 # ---- restoring the original bytes makes the snapshot identical again (content, not history) ----
 mkhome restore_same
 cp "$H_C/config.toml" "$WORK/config.saved"
