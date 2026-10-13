@@ -1906,6 +1906,83 @@ else
   gate remove_reinstall_equals_first FAIL "exits $RM_RC1 $RM_RC2 $RM_RC3: $_d"
 fi
 
+# ---- --remove refusals: exit 2 before any write (CODEX-06, D-01, D-03; T-08-13, T-08-16) ----
+# rm_refused ENV: the home after a fake-codex install holds a skill that differs from the shipped copy,
+# so a refusal that wrongly went on to remove would be seen as a change of the snapshot
+rm_refused() {
+  rm_env "$1"
+  rm_user_cfg "$E_CODEX/config.toml"
+  run_inst "$WITH_CODEX"
+  RM_RC1=$RC
+  printf '# my own note\n' >> "$E_SKILLS/bbj-programming/SKILL.md"
+  home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/$1.before"
+  RM_LOG1=$(awk 'END { print NR }' "$E_LOG")
+}
+
+rm_refused rmwithlocal
+run_inst "$WITH_CODEX" --remove --with-local
+home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/rmwithlocal.after"
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 2 ] && grep -F -e '--remove and --with-local cannot be combined' "$WORK/err" > /dev/null \
+  && _d=$(home_diff "$WORK/rmwithlocal.before" "$WORK/rmwithlocal.after") && [ "$(awk 'END { print NR }' "$E_LOG")" = "$RM_LOG1" ]; then
+  gate remove_refuses_with_local ok "--remove --with-local: exit 2, the message names the combination, the home snapshot is unchanged, codex not called"
+else
+  gate remove_refuses_with_local FAIL "install exit $RM_RC1, exit $RC: ${_d:-$(head -c 200 "$WORK/err")}"
+fi
+
+rm_refused rmforce
+run_inst "$WITH_CODEX" --remove --force
+home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/rmforce.after"
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 2 ] && grep -F -e '--remove does not take --force' "$WORK/err" > /dev/null \
+  && _d=$(home_diff "$WORK/rmforce.before" "$WORK/rmforce.after") && grep -F 'my own note' "$E_SKILLS/bbj-programming/SKILL.md" > /dev/null; then
+  gate remove_refuses_force ok "--remove --force: exit 2, the message says a differing skill directory is the user's, the home snapshot is unchanged and the edited skill is still there"
+else
+  gate remove_refuses_force FAIL "install exit $RM_RC1, exit $RC: ${_d:-$(head -c 200 "$WORK/err")}"
+fi
+
+# a Codex home that does not exist holds nothing to remove: refused, and no directory is created for it
+newenv rmmissing
+run_inst "$WITH_CODEX" --remove --codex-home "$E_ROOT/no such home" --skills-dir "$E_ROOT/no such skills"
+if [ "$RC" = 2 ] && grep -F -e 'is not a directory; nothing to remove' "$WORK/err" > /dev/null \
+  && [ ! -e "$E_ROOT/no such home" ] && [ ! -e "$E_ROOT/no such skills" ] && [ ! -e "$E_HOME/.codex" ] && [ ! -e "$E_HOME/.agents" ]; then
+  gate remove_refuses_missing_home ok "--remove with a missing Codex home: exit 2 'is not a directory; nothing to remove', no directory created"
+else
+  gate remove_refuses_missing_home FAIL "exit $RC: $(head -c 200 "$WORK/err")"
+fi
+
+# the existing newline check runs in remove mode too
+rm_refused rmnewline
+RM_NL='
+'
+run_inst "$WITH_CODEX" --remove --skills-dir "$E_ROOT/sk${RM_NL}x"
+home_snapshot "$E_CODEX" "$E_SKILLS" > "$WORK/rmnewline.after"
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 2 ] && grep -F -e 'a directory name holds a newline' "$WORK/err" > /dev/null \
+  && _d=$(home_diff "$WORK/rmnewline.before" "$WORK/rmnewline.after") && [ ! -e "$E_ROOT/sk${RM_NL}x" ]; then
+  gate remove_refuses_newline ok "--remove with a newline in --skills-dir: exit 2, nothing changed"
+else
+  gate remove_refuses_newline FAIL "install exit $RM_RC1, exit $RC: ${_d:-$(head -c 200 "$WORK/err")}"
+fi
+
+# a Codex home and a skills dir whose names hold a space: install, then --remove, ends at the pre-install home
+newenv rmspace
+RM_SP_CODEX="$E_ROOT/codex home"
+RM_SP_SKILLS="$E_ROOT/skills dir"
+mkdir -p "$RM_SP_CODEX" "$RM_SP_SKILLS"
+rm_user_cfg "$RM_SP_CODEX/config.toml"
+cp "$RM_SP_CODEX/config.toml" "$WORK/rmspace.cfg0"
+home_snapshot "$RM_SP_CODEX" "$RM_SP_SKILLS" | grep -v -F "$RM_SP_CODEX/config.toml.bbj-backup" > "$WORK/rmspace.before"
+run_inst "$WITH_CODEX" --codex-home "$RM_SP_CODEX" --skills-dir "$RM_SP_SKILLS"
+RM_RC1=$RC
+[ -d "$RM_SP_SKILLS/bbj-programming" ] && [ -f "$RM_SP_CODEX/bbj/bbj-check.sh" ] && [ -f "$RM_SP_CODEX/hooks.json" ] && RM_INSTALLED=1 || RM_INSTALLED=0
+run_inst "$WITH_CODEX" --remove --codex-home "$RM_SP_CODEX" --skills-dir "$RM_SP_SKILLS"
+RM_RC2=$RC
+home_snapshot "$RM_SP_CODEX" "$RM_SP_SKILLS" | grep -v -F "$RM_SP_CODEX/config.toml.bbj-backup" > "$WORK/rmspace.after"
+if [ "$RM_RC1" = 0 ] && [ "$RM_INSTALLED" = 1 ] && [ "$RM_RC2" = 0 ] && _d=$(home_diff "$WORK/rmspace.before" "$WORK/rmspace.after") \
+  && cmp -s "$RM_SP_CODEX/config.toml" "$WORK/rmspace.cfg0"; then
+  gate remove_codex_home_with_space ok "a Codex home and a skills dir with a space in the name: install, then --remove, ends at the pre-install snapshot (the backup line aside)"
+else
+  gate remove_codex_home_with_space FAIL "install exit $RM_RC1 (installed=$RM_INSTALLED), remove exit $RM_RC2: ${_d:-$(head -c 300 "$WORK/err")}"
+fi
+
 # ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
 if [ -n "$REAL_CODEX" ]; then
   newenv realcodex
