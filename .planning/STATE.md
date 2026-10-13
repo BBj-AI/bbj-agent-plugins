@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 08
 current_phase_name: Codex plugin route
 status: executing
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-10-13T14:30:23.596Z"
+stopped_at: Completed 08-04-PLAN.md
+last_updated: "2026-10-13T14:50:24.841Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 08 execution started
-state_head: 21dbc7dda9cc94bad3af6e68a534e892b824c8e6
+state_head: a6e2b6197586bd030f0ec5197e7e1beb598ebb65
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 14
-  completed_plans: 9
+  completed_plans: 10
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 ## Current Position
 
 Phase: 08 (Codex plugin route) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 08 execution started
 
@@ -114,6 +114,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 08 P01 | 2 min | 2 tasks | 5 files |
 | Phase 08 P02 | 9 min | 2 tasks | 2 files |
 | Phase 08 P03 | 12 min | 2 tasks | 2 files |
+| Phase 08 P04 | 16 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -136,6 +137,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 08]: 08-02: D-07 route detection kept as locked: apply_patch with non-empty CLAUDE_PLUGIN_ROOT is the plugin route; the variable is only tested, never printed (plugin-route notice wording provisional until plan 08-08, A3)
 - [Phase 08]: 08-03: --remove deletes a bbj-docs table only at the --docs-url in effect; a custom-url registration is left with exit 3 and a rerun hint (RESEARCH A11)
 - [Phase 08]: 08-03: comments or unknown keys inside a server's tables make --remove leave the whole server in place; an unterminated begin marker is left (closed=0)
+- [Phase 08]: 08-04: --remove --force is refused with exit 2 (D-03 over RESEARCH A10); a differing skill directory is never deleted by the installer
+- [Phase 08]: 08-04: the two --remove refusals (--with-local, --force) sit right after the option loop, before any filesystem access
 
 ### Pending Todos
 
@@ -166,8 +169,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T14:30:23.538Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-10-13T14:50:24.775Z
+Stopped at: Completed 08-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
