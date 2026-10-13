@@ -46,6 +46,10 @@ First release of the `basis-bbj` marketplace.
   `bbj nocheck (reason)`. The fence lint runs in CI; the live check needs a local BBj. The number of
   `bbj nocheck` blocks may not grow (it is 0).
 - Install pages: [Claude Code](docs/install-claude-code.md), [Codex](docs/install-codex.md).
+- Release note for the Codex plugin route: `codex plugin marketplace add BBj-AI/bbj-agent-plugins`
+  clones the default branch, so the Codex plugin files are available through it only once this
+  release is merged to that branch; from any other branch use a local checkout
+  (`codex plugin marketplace add /path/to/bbj-agent-plugins`).
 
 ### Upgrading
 

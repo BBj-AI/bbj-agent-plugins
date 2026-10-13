@@ -61,6 +61,8 @@ check_common() {
   # check_common NAME FILE: the claims no page may make
   forbid "$1" "$2" 'bbj-mcp\.basis\.cloud' go_live_host
   forbid "$1" "$2" 'subagent[^.]*not (covered|checked)' subagent_not_covered
+  # WR-06: a pre-merge caveat is a release note (CHANGELOG.md), not install-page text that goes stale on merge
+  forbid "$1" "$2" 'until this release|release is merged to it|this release is on github' release_time_caveat
 }
 
 # the hook now speaks when no check route exists (plan 02-03, HOOK-02): no text may say it stays silent
@@ -292,6 +294,7 @@ if [ -f "$README" ]; then
     need "$n" "$README" "$p"
   done
   forbid "$n" "$README" "$HOOK_TRUST_BYPASS" hook_trust_bypass
+  forbid "$n" "$README" 'until this release|release is merged to it|this release is on github' release_time_caveat
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$README" "$NOROUTE_SILENCE" noroute_silence
 fi
