@@ -218,6 +218,20 @@ else
   gate homeguard_diff_reports FAIL "same rc=$_r0 out='$_d0'; changed rc=$_r1 lines=$_n1 other='$_bad1'"
 fi
 
+# ---- home_diff with a snapshot file that is missing says so instead of printing nothing ----
+mkhome diff_missing_file
+_dm=$(home_diff "$WORK/diff_missing_file.before" "$WORK/diff_missing_file.nonexistent")
+_rm=$?
+case "$_dm" in
+  *"home_diff: cannot compare"*) _dm_msg=1 ;;
+  *) _dm_msg=0 ;;
+esac
+if [ "$_rm" = 1 ] && [ "$_dm_msg" = 1 ]; then
+  gate homeguard_diff_missing_file ok "a missing snapshot file: rc 1 and a message naming the problem"
+else
+  gate homeguard_diff_missing_file FAIL "rc=$_rm out='$_dm'"
+fi
+
 # ---- static: test_install_codex.sh uses the helper and no mtime comparison is left ----
 _target=$REPO/tests/test_install_codex.sh
 _code=$(grep -v '^[[:space:]]*#' "$_target")

@@ -280,9 +280,21 @@ home_snapshot() {
 }
 
 # home_diff BEFORE AFTER: returns 0 and prints nothing when the two snapshot files are identical;
-# otherwise prints the first three changed lines ("<" before, ">" after) and returns 1.
+# otherwise prints the first three changed lines ("<" before, ">" after) and returns 1. A missing
+# or unreadable snapshot file, or a diff that fails, prints "home_diff: cannot compare ..." and
+# returns 1, so the caller never reports an empty "changed:" (IN-05).
 home_diff() {
   cmp -s "$1" "$2" && return 0
-  diff "$1" "$2" | grep -e '^<' -e '^>' | head -n 3
+  if [ ! -r "$1" ] || [ ! -r "$2" ]; then
+    printf 'home_diff: cannot compare %s and %s (missing or unreadable snapshot)\n' "$1" "$2"
+    return 1
+  fi
+  _hd_out=$(diff "$1" "$2")
+  _hd_rc=$?
+  if [ "$_hd_rc" -gt 1 ]; then
+    printf 'home_diff: cannot compare %s and %s (diff exit %s)\n' "$1" "$2" "$_hd_rc"
+    return 1
+  fi
+  printf '%s\n' "$_hd_out" | grep -e '^<' -e '^>' | head -n 3
   return 1
 }
