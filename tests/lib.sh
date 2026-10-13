@@ -243,6 +243,8 @@ no_compiler_env() {
 # and writing through it both show, and a symlink to a regular file also gets a T line with the
 # cksum of what it points at, so a write through that link shows too. File content is never
 # printed, only its cksum values. Pass the real homes or fake ones; this helper only reads.
+# The two temp globs are exactly six characters wide, so they also match a user file of that width
+# (config.toml.backup): a harmless false FAIL, not a missed change (IN-04).
 # Accepted residual risk: Codex itself rewrites config.toml when a session trusts a new project or
 # changes a TUI option. That is a real content change and fails real_home_untouched by design, so do
 # not open Codex in a new project during a suite run (0.2.0 D-18 advice, narrowed).
