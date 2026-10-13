@@ -223,6 +223,22 @@ print(count)
 ' "$1" || echo error
 }
 
+# skill_names: the names of the two BBj skills as codex debug prompt-input lists them (one per entry)
+skill_names() {
+  codex debug prompt-input "x" 2> /dev/null | python3 -I -c '
+import json, re, sys
+names = []
+for message in json.load(sys.stdin):
+    for part in message.get("content") or []:
+        text = part.get("text", "") if isinstance(part, dict) else ""
+        for line in text.split("\n"):
+            found = re.match(r"- ((?:bbj:)?bbj-(?:web-)?programming): ", line)
+            if found:
+                names.append(found.group(1))
+print(" ".join(names))
+' || echo error
+}
+
 # compiler_calls: how many times the fake compiler ran
 compiler_calls() {
   if [ -f "$OUT/bbjcpl.log" ]; then
@@ -611,6 +627,7 @@ snap_state() {
   hooks_read "$1"
   res "skills_programming_$1" "$(skill_count bbj-programming)"
   res "skills_web_$1" "$(skill_count bbj-web-programming)"
+  res "skill_names_$1" "$(skill_names)"
   res "docs_servers_$1" "$(codex mcp list 2> /dev/null | awk '$1 == "bbj-docs"' | wc -l | tr -d ' ')"
   res "docs_url_$1" "$(codex mcp list 2> /dev/null | awk '$1 == "bbj-docs" { printf "%s ", $2 }' | sed 's/ *$//')"
   res "mcp_list_$1" "$(codex mcp list 2> /dev/null | awk 'NF { $1 = $1; printf "%s | ", $0 }')"
@@ -659,7 +676,7 @@ scenario_switch() {
   snap_state installer
   if [ "$_order" = a ]; then
     run_installer remove --remove
-    res remove_lines "$(grep -E 'removed from|left in place|nothing to remove' "$OUT/remove.txt" | tr '\n' '|')"
+    res remove_lines "$(grep -E 'removed|left in place|nothing to remove' "$OUT/remove.txt" | tr '\n' '|')"
     config_residue remove
     snap_state after_remove
     must marketplace_add codex plugin marketplace add "$REPO"
@@ -676,7 +693,7 @@ scenario_switch() {
     analyze_requests "$OUT" double_
     res double_feedback_occurrences "$(feedback_count "$OUT")"
     run_installer remove --remove
-    res remove_lines "$(grep -E 'removed from|left in place|nothing to remove' "$OUT/remove.txt" | tr '\n' '|')"
+    res remove_lines "$(grep -E 'removed|left in place|nothing to remove' "$OUT/remove.txt" | tr '\n' '|')"
     config_residue remove
     snap_state after_remove
   fi

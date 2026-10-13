@@ -45,6 +45,16 @@ Other safety facts of these runs:
 - The checkout was not modified: `git diff --quiet HEAD -- plugins .claude-plugin` exited 0 after
   all runs. The trust bypass flag appears only in `run.sh`, in the scripted exec runs.
 
+Plan 08-06 comparison: `run.sh realhome <home>/.cache/bbj-phase8/realhome.before-0806` was taken
+before the first run of plan 08-06 and `realhome.after-0806` after the last one (the post-trust
+run, the upgrade run, and the switch runs in orders a and b, each run twice). `home_diff
+realhome.before-0806 realhome.after-0806` returned 0 and printed nothing: the real `~/.codex` and
+`~/.agents/skills` are identical (`config.toml` mode 0600, 367 bytes; `~/.agents` absent). Every
+run of plan 08-06 had HOME and CODEX_HOME below `<home>/.cache/bbj-phase8/` (owner-H, switch-a,
+switch-b), so the installer's default `~/.codex` and `~/.agents/skills` were throwaway too. No
+daemon-written change had to be named. After the runs no `codex`, `app-server` or
+`fake_responses` process of these runs was left, and nothing listened on 18765 or 47613.
+
 ## Env probe
 
 Route: plugin. Command: `sh run.sh envprobe <home>/.cache/bbj-phase8/envprobe`. A scratch copy of
@@ -524,3 +534,112 @@ server.
 Sentence for the docs:
 
 Observed on Linux with Codex CLI 0.162.1: after a plugin upgrade that changed only the version (the hook definition unchanged), Codex still listed the hook as trusted with an unchanged hash and the check ran without a new trust in /hooks.
+
+## Switch from the installer
+
+Date: 2026-10-13 (plan 08-06 Task 2; CODEX-06, D-05, D-06). Route: installer, then plugin. Real
+Codex 0.162.1 and the real `codex/install-codex.sh` with its `--remove` (plans 08-03 and 08-04),
+each order in a fresh throwaway home (`<home>/.cache/bbj-phase8/switch-a` and `switch-b`; HOME
+and CODEX_HOME both pointed there, so the installer's defaults `~/.codex` and `~/.agents/skills`
+landed in it). `codex` stayed on PATH, so the installer used `codex mcp add`. The commands:
+`sh run.sh switch <dir>` with `ORDER=a` or `ORDER=b`. Each order was run twice; the numbers
+below are from the last run of each, and the first run read the same. No trust was given in these
+homes, so every hook reads `untrusted` here (the double-install run used the trust bypass flag,
+scripted throwaway run only).
+
+### Order a (D-05): installer, `--remove`, then the plugin
+
+| Step | Hook entries (`hooks/list`) | Skills in `debug prompt-input` | `bbj-docs` in `mcp list` |
+|------|-----------------------------|--------------------------------|--------------------------|
+| after `install-codex.sh` (rc 0) | 1, source `user` | `bbj-programming`, `bbj-web-programming` (1 each) | 1, `https://mcp.bbj-ai.com/mcp`, Auth `Not logged in` |
+| after `install-codex.sh --remove` (rc 0) | 0 | none | none (`No MCP servers configured yet.`) |
+| after `codex plugin marketplace add <checkout>` and `codex plugin add bbj@basis-bbj` | 1, source `plugin` | `bbj:bbj-programming`, `bbj:bbj-web-programming` (1 each) | 1, `https://mcp.bbj-ai.com/mcp`, Auth `Not logged in` |
+
+        install_rc: 0
+        remove_rc: 0
+        hooks_count_plugin: 1
+        skills_programming_plugin: 1
+        skills_web_plugin: 1
+        docs_servers_plugin: 1
+        docs_url_plugin: https://mcp.bbj-ai.com/mcp
+
+The installer's own output on the fresh home said that `codex mcp add` wrote the `bbj-docs` table
+and then exited with an error, that the table was kept and completed (OAuth client, five approved
+tools), and that no bbj-ls answered at the closed probe port so `bbj-local` was not registered. It
+exited 0.
+
+`--remove` output (home shortened, paths below `<switch-a>/home`):
+
+        Removing what install-codex.sh wrote under <switch-a>/home/.codex and <switch-a>/home/.agents/skills; codex is not called.
+        config.toml: backup written to <switch-a>/home/.codex/config.toml.bbj-backup
+        bbj-docs: removed from <switch-a>/home/.codex/config.toml: [mcp_servers.bbj-docs], [mcp_servers.bbj-docs.oauth], 5 tool table(s)
+        bbj-local: not in <switch-a>/home/.codex/config.toml; nothing to remove
+        skill bbj-programming: removed <switch-a>/home/.agents/skills/bbj-programming (identical to the shipped copy)
+        skill bbj-web-programming: removed <switch-a>/home/.agents/skills/bbj-web-programming (identical to the shipped copy)
+        check script: removed <switch-a>/home/.codex/bbj/bbj-check.sh
+        hooks.json: removed <switch-a>/home/.codex/hooks.json (it held only the hook this script writes)
+        Kept: <switch-a>/home/.codex/config.toml.bbj-backup if it exists (your backup) and Codex's own hooks.state entries in config.toml (a stale trust entry is harmless).
+        Next: codex plugin marketplace add BBj-AI/bbj-agent-plugins, then codex plugin add bbj@basis-bbj, then open /hooks in Codex and trust the BBj check hook.
+
+`config.toml` left behind (A9, Pitfall 9): in order a the installer's tables were the only content
+of the file, so after `--remove` it was an **empty file** (0 bytes, 0 lines; tomllib reads it, no
+`mcp_servers` table, no residual blank line or key). `config.toml.bbj-backup` (the installer's
+tables, written by `--remove` before its first change) stays. After the two plugin commands
+`config.toml` held only what Codex wrote: `[marketplaces.basis-bbj]` (`source_type = "local"`,
+`source = <checkout>`) and `[plugins."bbj@basis-bbj"]` with `enabled = true`. The check script
+directory `<codex home>/bbj` and `hooks.json` were gone, the skills directory held no BBj skill.
+
+### Order b (D-06): installer, then the plugin (double install), then `--remove`
+
+| Step | Hook entries | Skills | `bbj-docs` in `mcp list` |
+|------|--------------|--------|--------------------------|
+| after `install-codex.sh` (rc 0) | 1, source `user` | 1 each (`bbj-programming`, `bbj-web-programming`) | 1 |
+| plugin commands added (**double install**) | **2**: source `user` and source `plugin`, different hashes | **2 each**: `bbj-programming bbj-web-programming bbj:bbj-programming bbj:bbj-web-programming` | **1** (one line, `https://mcp.bbj-ai.com/mcp`) |
+| after `install-codex.sh --remove` (rc 0) | 1, source `plugin` | 1 each (`bbj:` names) | 1, `https://mcp.bbj-ai.com/mcp` |
+
+The double install, one bad-file `apply_patch` with the bypass flag (scripted throwaway run), fake
+compiler `argv` log:
+
+        double_exec_rc: 0
+        double_compiler_calls: 2
+        double_dash_n: yes
+        double_requests_posted: 2
+        double_feedback_reached_model: yes
+        double_feedback_occurrences: 2
+
+The compiler ran **twice** for the one file (`-t -N -X -P<proj> <proj>/bad.bbj`, both calls with
+`-N`), matching the two hook entries (the installer's `<codex home>/bbj/bbj-check.sh` and the
+plugin cache copy; keys `<codex home>/hooks.json:post_tool_use:0:0` and
+`bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0`, two different hashes), and the model's next
+request carried the feedback **twice**. What happens when only one of the two hooks is trusted was
+not run. Skills show up twice (a bare and a `bbj:` entry each). `codex mcp list` showed one `bbj-docs` line:
+the installer's registration and the plugin's server share the name. Which of the two definitions
+(the installer's `config.toml` table with its OAuth client and approvals, or the plugin's
+`.codex-mcp.json`) Codex used for that one line was **not determined** by this run.
+
+`--remove` in the double state exited 0 with the same output lines as in order a. It removed the
+installer's `bbj-docs` tables, both skill directories, the check script and `hooks.json`, and
+left the plugin's hook, skills and server in place: one hook entry, one copy of each skill, one
+`bbj-docs`. The `config.toml` left behind had no `mcp_servers` table; it held Codex's own tables
+(`[marketplaces.basis-bbj]`, `[plugins."bbj@basis-bbj"]` and a `[projects."<proj>"]` entry with
+`trust_level = "trusted"` that `codex exec` wrote), 7 non-blank lines in 9, with no blank line at
+the start or the end of the file.
+
+        remove_rc: 0
+        hooks_count_double: 2
+        double_compiler_calls: 2
+        hooks_count_after_remove: 1
+        skills_programming_after_remove: 1
+        skills_web_after_remove: 1
+        docs_servers_after_remove: 1
+
+Not run here: the same switch on macOS or Windows, `--remove` with `--docs-url` at another url,
+`--with-local` installs, and the switch with the hook already trusted (the trust entries of an
+installer hook stay in `config.toml` as stale `hooks.state` entries, which `--remove` leaves, by
+design).
+
+### Sentences for the docs
+
+Observed on Linux with Codex CLI 0.162.1, installing with install-codex.sh and then adding the plugin without removing the installer's files: `/hooks` lists two hook entries and one write of a bad BBj file runs the check twice, so the model receives the feedback twice, each BBj skill is listed twice, and `codex mcp list` shows one `bbj-docs` server.
+
+Observed on Linux with Codex CLI 0.162.1, after `install-codex.sh --remove` followed by `codex plugin marketplace add` and `codex plugin add bbj@basis-bbj`: exactly one hook entry, one copy of each BBj skill and one `bbj-docs` server at https://mcp.bbj-ai.com/mcp remain, and the `config.toml` holds no `mcp_servers` table.
