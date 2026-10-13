@@ -29,19 +29,19 @@ findings:
     title: "Temp-file globs are exactly six characters wide and also match user files; the gate text says `config.toml.*` (carried)"
   - id: IN-05
     severity: info
-    disposition: open
+    disposition: fixed
     title: "`mcp_docs_answers` is weaker than the gate it replaced, and `mcp_docs_oauth` does not check the value"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: fixed
     title: "An ambient `FAKE_CODEX_EXIT` changes every fake-codex case"
   - id: IN-07
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The Codex page pins the OAuth wording but not the client id"
   - id: IN-08
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Installer header comment gained overlong, badly wrapped lines"
   - id: WR-03
     severity: warning
@@ -55,9 +55,9 @@ findings:
     severity: warning
     disposition: fixed
     title: "`pathscrub_shared_dir_keeps_tools` and `pathscrub_exe_names` cannot detect a missing `.exe` removal"
-open: 10
+open: 6
 total: 13
-recorded: 2026-10-13T10:57:36.719Z
+recorded: 2026-10-13T11:22:05.456Z
 ---
 
 # Phase 07: Code Review Disposition
@@ -70,10 +70,10 @@ recorded: 2026-10-13T10:57:36.719Z
 | IN-02 | info | open | - |
 | IN-03 | info | open | - |
 | IN-04 | info | open | - |
-| IN-05 | info | open | - |
-| IN-06 | info | open | - |
-| IN-07 | info | open | - |
-| IN-08 | info | open | - |
+| IN-05 | info | fixed | 07-REVIEW-FIX.md |
+| IN-06 | info | fixed | 07-REVIEW-FIX.md |
+| IN-07 | info | fixed | 07-REVIEW-FIX.md |
+| IN-08 | info | fixed | 07-REVIEW-FIX.md |
 | WR-03 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
 | WR-04 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
