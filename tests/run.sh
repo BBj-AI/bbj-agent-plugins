@@ -13,7 +13,10 @@ unset TIER2_TEST_SYSPATH
 
 TESTS=$(cd "$(dirname "$0")" && pwd)
 OUT=$(mktemp "${TMPDIR:-/tmp}/bbjplug-run.XXXXXX") || exit 1
-trap 'rm -f "$OUT"' EXIT
+# both temp files go on every way out, an interrupt included (IN-03): the INT/TERM/HUP trap turns a signal
+# into an exit so the EXIT trap runs
+trap 'rm -f "$OUT" "$OUT.gates"' EXIT
+trap 'exit 1' INT TERM HUP
 
 BAD=0
 for t in "$TESTS"/test_*.sh; do
