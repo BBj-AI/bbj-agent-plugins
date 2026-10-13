@@ -78,6 +78,11 @@ dynamic client registration and the hosted server refuses it (`dynamic client re
 disabled`). The sign-in itself was not repeated on a fresh install of the plugin as it ships;
 `codex mcp list` on that install read `Not logged in`, as expected before the sign-in.
 
+The pre-registered client belongs to the hosted docs server, and the plugin has that server's URL
+fixed in it (Codex plugins have no options). To use another docs server on Codex, install with the
+script instead and give `--docs-url`; the script writes the OAuth table only for the hosted URL, so
+the other server's own registration is used.
+
 ### Tool prompts on first use
 
 The plugin ships no tool approvals, so Codex asks before the first call of each tool: the five

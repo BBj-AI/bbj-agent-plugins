@@ -36,6 +36,11 @@ the Codex installer configure the pre-registered client for it (callback port 47
 completed on Linux with a copy of the plugin that carries that client; without it, Codex's dynamic
 client registration is refused by the hosted server.
 
+That client belongs to the hosted docs server. The `docs_url` option of the Claude Code plugin must
+point at a server that accepts this client; for any other server see the sign-in notes in
+`docs/install-claude-code.md`. The Codex plugin has the hosted URL fixed in it; for another docs
+server on Codex use the installer script with `--docs-url` (`docs/install-codex.md`).
+
 Install pages, one per client:
 
 - [Claude Code](docs/install-claude-code.md): setup, options, check routes, what is not covered,
