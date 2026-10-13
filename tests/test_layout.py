@@ -111,11 +111,17 @@ gate("bbj_mcp",
                                         "callbackPort": OAUTH_PORT}}},
      "mcpServers=%r" % (servers,))
 
-# D-11: the Codex file registers bbj-docs at the literal docs URL. Dict equality also rejects any
-# extra key such as a client secret, header or token; no oauth object until plan 08-08 decides.
+# D-11: the Codex file registers bbj-docs at the literal docs URL. Plan 08-08 (owner decision
+# "signin: add-block", 2026-10-13): without a pre-registered client the hosted server refuses
+# dynamic client registration on the plugin route, so the file carries the public client id and
+# the registered loopback callback, the object the Linux owner pass signed in with. Dict equality
+# also rejects any extra key such as a client secret, header or token.
 codex_servers = codex_mcp.get("mcpServers", {})
 gate("codex_mcp",
-     codex_servers == {"bbj-docs": {"type": "http", "url": DOCS_DEFAULT}},
+     codex_servers == {"bbj-docs": {"type": "http", "url": DOCS_DEFAULT,
+                                    "oauth": {"clientId": OAUTH_CLIENT_ID,
+                                              "callbackUrl": "http://localhost:%d/callback" % OAUTH_PORT,
+                                              "callbackPort": OAUTH_PORT}}},
      "mcpServers=%r" % (codex_servers,))
 
 # the Codex installer holds the same client as the plugin: one id, one port, the loopback callback
