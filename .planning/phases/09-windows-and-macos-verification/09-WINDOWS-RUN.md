@@ -735,6 +735,7 @@ re-run result W-3: met. `smoke codex` makes the compiler call for the verbatim f
 No known gap and no fix-again: every W-N is fixed and its re-run met. The D-11 consequence stands for Phase 10 to say: the new commandWindows entry changes the hook definition Codex hashes, and the first Windows reading shows Codex asking for trust again after the upgrade.
 
 Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292, Codex CLI 0.162.1 and BBj 26.03 (owner-reported, as read in round 1), the three defects of round 1 (the Codex plugin hook did not start, the no-route notice was not printed, and the verbatim path form was skipped) were fixed and the re-run of 2026-10-14 met each of them.
+Closed 2026-10-14: 3 defect(s) found, 3 fixed with gates (W-1: layout_hook_command_windows, layout_mutation_hook_command_windows, plugin_route_command_windows; W-2: tier2_connect_timeout_windows, tier2_connect_timeout_posix; W-3: windows_codex_backslash_relative, windows_codex_verbatim_prefix, windows_codex_backslash_dotdot_skipped), 0 known gap(s); final tree d4f751e (the last commit before this closing commit); tests/ci.sh fail=0.
 PLAT-06: met
 
 ## Owner replies

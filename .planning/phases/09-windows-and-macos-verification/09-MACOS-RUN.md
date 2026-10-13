@@ -390,6 +390,7 @@ re-run: none needed (2026-10-14)
 The optional smoke readings (tier 2, no-route) are on record and carry no PLAT verdict (D-16).
 
 Sentence for the docs: Observed on macOS 27.0.1 with Claude Code 2.1.296, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), the bbjcpl route (tier 1) worked in both clients on the first round: bad files got `bbjcpl reported` feedback after Write, Edit and apply_patch, clean files were silent, and no defect was found.
+Closed 2026-10-14: 0 defect(s) found, 0 fixed with gates (none needed), 0 known gap(s); final tree d4f751e (the last commit before this closing commit); tests/ci.sh fail=0.
 PLAT-06: met
 
 ## Owner replies
