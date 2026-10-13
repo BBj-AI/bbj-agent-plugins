@@ -852,6 +852,146 @@ The owner's amended reply (the same round) changes these keys against the reply 
         first_feedback_line: none
         outcome: silent
 
+Reading 2026-10-14, round 2
+
+        round: 2
+        date: 2026-10-14
+        checkout-commit: d598854
+        rerun-routes: cc, cx, other: noroute
+        cx-retrust-asked: yes (Codex asked to trust the hook again at the start of the session, before /hooks was opened; the changed hooks.json has a new hash)
+        cache-identical: yes (SMOKE_ROOT=<codex home>/plugins/cache/basis-bbj/bbj/0.2.0 after codex plugin add bbj@basis-bbj: script_identical_to_checkout: yes, hooks_json_identical_to_checkout: yes, hook_script_cksum 2633573576, same as the checkout; the cached hooks.json carries the new commandWindows string)
+        if-still-failing: n/a (cx now gives feedback on X1 and X2 and is silent on X3; noroute notice present; codex_verbatim compiles)
+        cx-marketplace-add: ok (not repeated this round; the basis-bbj marketplace from round 1 still points at <checkout>, and codex plugin add refreshed the cache from it)
+        cx-plugin-add: ok (codex plugin add bbj@basis-bbj: "Added plugin `bbj` from marketplace `basis-bbj`", Installed plugin root <home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0)
+        cx-mcp-list: bbj-docs   https://mcp.bbj-ai.com/mcp  -  enabled  OAuth (bbj-local  http://127.0.0.1:5009/mcp  -  enabled  Unsupported is still listed from round 1's W8)
+        cx-trusted: yes (trusted when asked at session start)
+        cx-hook-command: C:\PROGRA~1\Git\bin\sh.exe "<home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0/scripts/bbj-check.sh"; exit $LASTEXITCODE (from /hooks; Codex now shows the commandWindows string with ${CLAUDE_PLUGIN_ROOT} expanded to the cache path)
+        cx-add-bad: feedback (Codex showed "Added bad.bbj (+1 -0)" then "• Blocked by hook" with: bbjcpl reported 1 error(s) in <home>/bbj-p9-cx/bad.bbj: / <home>\bbj-p9-cx\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol. The file was created. The agent then re-read the file, tried a PowerShell byte dump that failed with MethodInvocationNotSupportedInConstrainedLanguage, made a no-op "Edited bad.bbj (+0 -0)" that triggered the same hook feedback again, and finished with the line unchanged.)
+        cx-update-bad: feedback (Codex showed "Edited bad.bbj (+1 -1)" then "• Blocked by hook" with: bbjcpl reported 1 error(s) in <home>/bbj-p9-cx/bad.bbj: / <home>\bbj-p9-cx\bad.bbj: error at line 10 (1): print "b"   rem same line / bbj_lookup gives exact syntax for a named symbol.)
+        cx-add-clean: silent (Codex showed "Added clean.bbj (+1 -0)" and no hook line; Q answered "The tool returned exactly: {} No BBj check hook text was returned.")
+        cx-feedback: bbjcpl reported 1 error(s) in <home>/bbj-p9-cx/bad.bbj:
+        cc-plugin-list: other: bbj@basis-bbj and bbj-local@basis-bbj both listed, Version 0.2.0, Read from <checkout>\plugins\bbj and <checkout>\plugins\bbj-local, Scope user, both enabled (bbj-local stays enabled from round 1's W8 with BBjServices running). claude mcp list: plugin:bbj:bbj-docs ... ! Needs authentication (it was Connected after round 1's sign-in), plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - ✔ Connected.
+        cc-write-bad: feedback after "use the write tool" (the exact P1 again went through Bash with no hook text; the Write rerun showed: PostToolUse:Write hook returned blocking error [sh "<checkout>\plugins\bbj/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in <home>/bbj-p9/bad.bbj: / <home>\bbj-p9\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol. / This hook comes from the bbj@basis-bbj plugin. Claude Code still runs the "command" field, sh "...", not commandWindows: the bracketed command it prints is unchanged from round 1, so the W-1 hooks.json change is read without harm and ignored by Claude Code.)
+        cc-edit-bad: feedback (Edit tool; PostToolUse:Edit hook returned blocking error [sh "<checkout>\plugins\bbj/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in <home>/bbj-p9/bad.bbj: / <home>\bbj-p9\bad.bbj: error at line 10 (1): print "b"   rem same line / bbj_lookup gives exact syntax for a named symbol. / This hook comes from the bbj@basis-bbj plugin.)
+        cc-write-clean: silent (Write tool; "Wrote 1 line to clean.bbj", no hook text)
+        cc-space-write-bad: feedback after "use the write tool" (the exact P1 again went through Bash with no hook text; the Write rerun showed: PostToolUse:Write hook returned blocking error [sh "<checkout>\plugins\bbj/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in <home>/bbj test/bad.bbj: / <home>\bbj test\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol. / This hook comes from the bbj@basis-bbj plugin.)
+        cc-feedback: bbjcpl reported 1 error(s) in <home>/bbj-p9/bad.bbj:
+        notes: (1) Pre-check of W-1 outside Codex: the cached commandWindows string, run exactly the way Codex launches hooks (powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command) with CLAUDE_PLUGIN_ROOT set to the cache root and codex-bad.json on stdin, printed the bbjcpl feedback and exited 2; with claude-clean.json it printed nothing and exited 0. (2) smoke noroute now prints notice_first: present with the notice "<work>/nr/sub/bad.bbj was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9 ..." and notice_second: absent (round 1 had notice_first: absent). (3) smoke codex case codex_verbatim now makes the compiler call and exits 2 with feedback (round 1: compiler_call none, exit 0). (4) The clock passed midnight during the smoke runs: smoke codex says 2026-10-13, smoke noroute 2026-10-14. (5) BBjServices was running during this round.
+
+        --- smoke codex ---
+        smoke: codex
+        date: 2026-10-13
+        platform: MINGW64_NT-10.0-19045 3.6.5-22c95533.x86_64
+        shell: 5.2.37(1)-release
+        hook_shell_version: 5.2.37(1)-release
+        cygpath: yes
+        checkout_commit: d598854
+        hook_script: <checkout>/plugins/bbj/scripts/bbj-check.sh
+        hook_script_cksum: 2633573576
+        script_identical_to_checkout: yes
+        hooks_json_identical_to_checkout: yes
+        hooks_json_command: sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"
+        bbj_home: C:\bbx
+        discovery_source: SMOKE_BBJ_HOME
+
+        case: codex_abs_backslash
+        file_as_sent: <work>\cx\sub\bad.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_abs_fwd
+        file_as_sent: <work>/cx/sub/bad.bbj
+        cwd_as_sent: <work>/cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_rel_fwd
+        file_as_sent: sub/bad.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_rel_backslash
+        file_as_sent: sub\bad.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_verbatim
+        file_as_sent: \\?\<work>\cx\sub\bad.bbj
+        cwd_as_sent: \\?\<work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+        note: informational (RESEARCH Pitfall 2)
+
+        case: codex_clean
+        file_as_sent: sub/clean.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\clean.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\clean.bbj
+        dash_n: yes
+        exit: 0
+        stdout_bytes: 0
+        first_feedback_line: none
+
+        --- smoke noroute ---
+        smoke: noroute
+        date: 2026-10-14
+        platform: MINGW64_NT-10.0-19045 3.6.5-22c95533.x86_64
+        shell: 5.2.37(1)-release
+        hook_shell_version: 5.2.37(1)-release
+        cygpath: yes
+        checkout_commit: d598854
+        hook_script: <checkout>/plugins/bbj/scripts/bbj-check.sh
+        hook_script_cksum: 2633573576
+        script_identical_to_checkout: yes
+        hooks_json_identical_to_checkout: yes
+        hooks_json_command: sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"
+        bbj_home: none
+        discovery_source: PATH
+
+        bbj_home_used: none (every compiler route is off for this subcommand)
+        state_dir: <work>\state.1
+        exit_first: 0
+        notice_first: present
+        notice_excerpt: <work>/nr/sub/bad.bbj was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9. Later BBj files in this session are
+        claim_file: present
+        exit_second: 0
+        notice_second: absent
+
 ## Verdicts
 
 Round 1 readings with the amendment of 2026-10-13, consolidated by the rule of the intro. PLAT-04 is met for both bbj-local sections and the tier 2 smoke; the no-route notice smoke (W-2) is the first section line that is not met. Interim values stay until the re-runs of plan 09-06.
