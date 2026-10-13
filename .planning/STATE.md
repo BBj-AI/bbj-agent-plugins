@@ -3,18 +3,18 @@ gsd_state_version: "1.0"
 milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
 current_phase: 07
-current_phase_name: test-hardening-and-release-prep
+current_phase_name: Test hardening and release prep
 status: executing
-stopped_at: Phase 07 complete, ready to plan Phase 08
-last_updated: "2026-10-13T10:38:12.277Z"
+stopped_at: Completed 07-06-PLAN.md
+last_updated: "2026-10-13T10:50:08.925Z"
 last_activity: 2026-10-13
-last_activity_desc: Phase 07 complete, transitioned to Phase 08
-state_head: 3e4f2791d1e4c9509d63fb9f5cde36982d348a88
+last_activity_desc: Phase 07 execution started
+state_head: 9ca8bb1c6140ad5176a7d34d12bc7cc3b8ebf11d
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 25
 ---
 
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 
 ## Current Position
 
-Phase: 07 (test-hardening-and-release-prep) — READY TO EXECUTE
-Plan: Not started
+Phase: 07 (Test hardening and release prep) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-10-13 - Completed quick task 261013-cpn: Point bbj-docs at mcp.bbj-ai.com with OAuth client settings in Claude Code and Codex
+Last activity: 2026-10-13 — Phase 07 execution started
 
 Progress: [███░░░░░░░] 25%
 
@@ -110,6 +110,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 07 P03 | 12 min | 2 tasks | 3 files |
 | Phase 07 P04 | 6 min | 2 tasks | 2 files |
 | Phase 07 P05 | 9 min | 2 tasks | 1 files |
+| Phase 07 P06 | 3 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 07]: No gate-prefix sync gate (MAINT-08) — CI must not run the suite twice, .planning/ is stripped from the PR branch, and variable-built gate names defeat a static check
 - [Phase 07]: Release tree is gsd/planning-setup; review-fix commits proven by ancestry (REL-05, D-01); local main fast-forwarded to origin/main with no push (D-02) — Phase 10 PR carries the commits to main
 - [Phase 07]: 07-05: close the CONVENTIONS.md gate-prefix gap by copying the IN-04 block from .claude/CLAUDE.md (no overrides entry, no repository sync gate)
+- [Phase 07]: 07-06: close the oauth_ gap by copying the CLAUDE.md line into CONVENTIONS.md (no overrides entry, no repository sync gate)
 
 ### Pending Todos
 
@@ -156,8 +158,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T08:49:53.663Z
-Stopped at: Phase 07 complete, ready to plan Phase 08
+Last session: 2026-10-13T10:50:08.883Z
+Stopped at: Completed 07-06-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
