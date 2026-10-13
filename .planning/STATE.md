@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 08
 current_phase_name: Codex plugin route
 status: executing
-stopped_at: Completed 08-05-PLAN.md
-last_updated: "2026-10-13T15:10:13.709Z"
+stopped_at: Completed 08-08-PLAN.md
+last_updated: "2026-10-13T15:30:16.948Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 08 execution started
-state_head: 855bb1d31238a9838b88a1414a8ba6f2d9a5a5ae
+state_head: 50c39370d079fdad5e696ccdf578a9a11c03b380
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 12
   percent: 25
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 ## Current Position
 
 Phase: 08 (Codex plugin route) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 08 execution started
 
@@ -116,6 +116,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 08 P03 | 12 min | 2 tasks | 2 files |
 | Phase 08 P04 | 16 min | 2 tasks | 2 files |
 | Phase 08 P05 | multi-session | 3 tasks | 5 files |
+| Phase 08 P08 | 30 min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 08]: 08-03: comments or unknown keys inside a server's tables make --remove leave the whole server in place; an unterminated begin marker is left (closed=0)
 - [Phase 08]: 08-04: --remove --force is refused with exit 2 (D-03 over RESEARCH A10); a differing skill directory is never deleted by the installer
 - [Phase 08]: 08-04: the two --remove refusals (--with-local, --force) sit right after the option loop, before any filesystem access
+- [Phase 08]: 08-08: owner chose signin add-block; Codex plugin .codex-mcp.json ships the public OAuth client (clientId, callbackUrl, callbackPort 47613); D-07 holds; hook trust yes
 
 ### Pending Todos
 
@@ -170,8 +172,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T15:10:13.653Z
-Stopped at: Completed 08-05-PLAN.md
+Last session: 2026-10-13T15:30:16.878Z
+Stopped at: Completed 08-08-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
