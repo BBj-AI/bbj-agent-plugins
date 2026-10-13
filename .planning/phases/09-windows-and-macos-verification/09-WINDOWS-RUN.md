@@ -44,10 +44,10 @@ Filled from the round 1 reply (the env-* keys, `checkout-commit`, `date`) and th
 | Codex CLI | codex-cli 0.162.1 |
 | BBj (owner-reported) | BBj 26.03 (relnotes.htm in `C:\bbx` says "RELNOTES for BBj 26.03"; installer package cache 2603) |
 | BBj home and compiler files | `C:\bbx`; BBjCpl.exe, BBjCpl.exe.manifest, BBjCplw.exe, BBjCplw.exe.manifest |
-| BBjServices | running for W8 only (amended reply 2026-10-13): not running during W0 to W7, started by hand afterwards; not registered as a Windows service, BBjServices.exe process present, bbj-ls answers on 127.0.0.1:5009 |
-| Checkout commit | 977135c (equals the transferred commit) |
+| BBjServices | running for W8 only (amended reply 2026-10-13): not running during W0 to W7, started by hand afterwards; not registered as a Windows service, BBjServices.exe process present, bbj-ls answers on 127.0.0.1:5009; running during round 2 (round 2 note 5) |
+| Checkout commit | 977135c in round 1, d598854 in round 2 (each equals the transferred commit) |
 | Install source | transfer: push (`origin` branch `gsd/planning-setup`) |
-| Date | 2026-10-13 |
+| Date | 2026-10-13 (round 1), 2026-10-14 (round 2) |
 
 ## Install source
 
@@ -263,6 +263,101 @@ space-path: <work>\bbj test\sub\bad.bbj: as expected (the claude_space_write_bad
 
 Codex forms, read off the `codex` block: the absolute backslash, absolute forward-slash, relative forward-slash and relative backslash forms each gave one compiler call with `-N` (exit 2 and feedback; the relative backslash form prints its header with a mixed slash, `<work>/cx/sub\bad.bbj`, but the compiler target is the correct `<work>\cx\sub\bad.bbj`). The verbatim form (`\\?\` prefix on cwd and file) gave no compiler call, exit 0, nothing on stderr; the smoke marks it informational (RESEARCH Pitfall 2) and it is recorded as W-3 under `## Defects and re-runs`. Both `root_form_forward` and `root_form_backslash` of the `claude` block exit 2, so the hook accepts a CLAUDE_PLUGIN_ROOT in either slash style.
 
+Reading 2026-10-14, round 2
+
+Re-run after the fixes W-1 to W-3 (checkout d598854): `sh smoke.sh codex` only, from the Codex cache root as the runbook's re-run step says; the `claude` block was not repeated. The block's own date reads 2026-10-13 because the clock passed midnight during the owner's run. Result block as the owner pasted it (placeholders by D-07):
+
+        --- smoke codex ---
+        smoke: codex
+        date: 2026-10-13
+        platform: MINGW64_NT-10.0-19045 3.6.5-22c95533.x86_64
+        shell: 5.2.37(1)-release
+        hook_shell_version: 5.2.37(1)-release
+        cygpath: yes
+        checkout_commit: d598854
+        hook_script: <checkout>/plugins/bbj/scripts/bbj-check.sh
+        hook_script_cksum: 2633573576
+        script_identical_to_checkout: yes
+        hooks_json_identical_to_checkout: yes
+        hooks_json_command: sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"
+        bbj_home: C:\bbx
+        discovery_source: SMOKE_BBJ_HOME
+
+        case: codex_abs_backslash
+        file_as_sent: <work>\cx\sub\bad.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_abs_fwd
+        file_as_sent: <work>/cx/sub/bad.bbj
+        cwd_as_sent: <work>/cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_rel_fwd
+        file_as_sent: sub/bad.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_rel_backslash
+        file_as_sent: sub\bad.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+
+        case: codex_verbatim
+        file_as_sent: \\?\<work>\cx\sub\bad.bbj
+        cwd_as_sent: \\?\<work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\bad.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\bad.bbj
+        dash_n: yes
+        exit: 2
+        stdout_bytes: 0
+        first_feedback_line: bbjcpl reported 1 error(s) in <work>/cx/sub/bad.bbj:
+        note: informational (RESEARCH Pitfall 2)
+
+        case: codex_clean
+        file_as_sent: sub/clean.bbj
+        cwd_as_sent: <work>\cx
+        compiler_call: /c/bbx/bin/bbjcpl -t -N -X '-P<work>\cx\sub;<work>\cx' '<work>\cx\sub\clean.bbj'
+        compiler: /c/bbx/bin/bbjcpl
+        p_list: <work>\cx\sub;<work>\cx
+        target: <work>\cx\sub\clean.bbj
+        dash_n: yes
+        exit: 0
+        stdout_bytes: 0
+        first_feedback_line: none
+
+Codex forms, round 2: all five path forms now give one compiler call with `-N` and exit 2 with feedback. The verbatim form (`\\?\` prefix on cwd and file) makes the compiler call on target `<work>\cx\sub\bad.bbj` (round 1: `compiler_call: none`, exit 0), and the relative backslash form prints its header as `<work>/cx/sub/bad.bbj` (round 1: `<work>/cx/sub\bad.bbj`). `codex_clean` exits 0 with no feedback. The header says `script_identical_to_checkout: yes` and `hooks_json_identical_to_checkout: yes` (hook_script_cksum 2633573576 against 239352305 in round 1: the script changed with W-2 and W-3). That is the re-run reading of W-3.
+
 ## Claude Code: bbjcpl route
 
 Reading 2026-10-13, round 1
@@ -287,7 +382,26 @@ Rule check, PLAT-01. cc-write-bad has two attempts. The exact P1 prompt was answ
 
 Rule check, PLAT-02. The smoke `claude` blocks show the compiler under the drive-letter home, dash_n yes, a `;`-joined `-P` list of Windows-form entries, a Windows-form target, and the space kept in the claude_space_write_bad target (all four lines read `as expected` under `## Smoke run`); cc-space-write-bad is feedback from a real Write in the project path with a space. The rule holds.
 
-Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292 and BBj 26.03 (owner-reported), the bbj plugin installed from a local clone with the plugin option bbj_home set to C:\bbx printed `bbjcpl reported 1 error(s)` after the Write tool and after the Edit tool on a bad .bbj file, also in a project path with a space, and stayed silent for a clean file.
+Sentence after round 1: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292 and BBj 26.03 (owner-reported), the bbj plugin installed from a local clone with the plugin option bbj_home set to C:\bbx printed `bbjcpl reported 1 error(s)` after the Write tool and after the Edit tool on a bad .bbj file, also in a project path with a space, and stayed silent for a clean file.
+
+Reading 2026-10-14, round 2
+
+Re-run because the W-1 fix added a `commandWindows` entry to the hook definition and Claude Code might read it too (checkout d598854; runbook W3 and W4, the same prompts). bbj-local stayed installed and enabled from round 1 with BBjServices running, so `cc-plugin-list` lists both plugins. Readings as the owner replied:
+
+        cc-plugin-list: other: bbj@basis-bbj and bbj-local@basis-bbj both listed, Version 0.2.0, Read from <checkout>\plugins\bbj and <checkout>\plugins\bbj-local, Scope user, both enabled (bbj-local stays enabled from round 1's W8 with BBjServices running). claude mcp list: plugin:bbj:bbj-docs ... ! Needs authentication (it was Connected after round 1's sign-in), plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - ✔ Connected.
+        cc-write-bad: feedback after "use the write tool" (the exact P1 again went through Bash with no hook text; the Write rerun showed: PostToolUse:Write hook returned blocking error [sh "<checkout>\plugins\bbj/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in <home>/bbj-p9/bad.bbj: / <home>\bbj-p9\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol. / This hook comes from the bbj@basis-bbj plugin. Claude Code still runs the "command" field, sh "...", not commandWindows: the bracketed command it prints is unchanged from round 1, so the W-1 hooks.json change is read without harm and ignored by Claude Code.)
+        cc-edit-bad: feedback (Edit tool; PostToolUse:Edit hook returned blocking error [sh "<checkout>\plugins\bbj/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in <home>/bbj-p9/bad.bbj: / <home>\bbj-p9\bad.bbj: error at line 10 (1): print "b"   rem same line / bbj_lookup gives exact syntax for a named symbol. / This hook comes from the bbj@basis-bbj plugin.)
+        cc-write-clean: silent (Write tool; "Wrote 1 line to clean.bbj", no hook text)
+        cc-space-write-bad: feedback after "use the write tool" (the exact P1 again went through Bash with no hook text; the Write rerun showed: PostToolUse:Write hook returned blocking error [sh "<checkout>\plugins\bbj/scripts/bbj-check.sh"]: bbjcpl reported 1 error(s) in <home>/bbj test/bad.bbj: / <home>\bbj test\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol. / This hook comes from the bbj@basis-bbj plugin.)
+        cc-feedback: bbjcpl reported 1 error(s) in <home>/bbj-p9/bad.bbj:
+
+Rule check, PLAT-01 (round 2). cc-write-bad is feedback after the Write tool whose first line starts `bbjcpl reported`, cc-edit-bad is feedback with the same first line, cc-write-clean is silent. The exact P1 prompt again went through a Bash shell write (no hook text), as in round 1 (obs-1); the Write rerun is the reading. The rule holds.
+
+Rule check, PLAT-02 (round 2). cc-space-write-bad is feedback from a real Write in the project path with a space, with the space kept in both path forms of the header. The `claude` smoke block was not repeated; the cc-* readings ran the checkout's script at d598854 (changed since round 1 in the Windows branch for W-2 and W-3) and gave feedback and silence again. The rule holds.
+
+Does Claude Code on Windows read `commandWindows`? (RESEARCH Open Question 4.) It does not use it: the command Claude Code prints in the hook feedback, `sh "<checkout>\plugins\bbj/scripts/bbj-check.sh"`, is unchanged from round 1, so Claude Code still runs the `command` field and ignores `commandWindows` without harm. This is an answer, not a defect.
+
+Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292 and BBj 26.03 (owner-reported, as read in round 1), the bbj plugin with its hooks.json carrying a `commandWindows` entry still ran the `command` field (`sh "..."`) under Claude Code on Windows and ignored `commandWindows` without harm: it printed `bbjcpl reported 1 error(s)` after the Write tool and after the Edit tool on a bad .bbj file, also in a project path with a space, and stayed silent for a clean file.
 PLAT-01: met
 PLAT-02: met
 
@@ -322,9 +436,39 @@ Then `codex` in `<home>\bbj-p9`, `/hooks` to trust the hook, X1 (apply_patch cre
 
 Rule check, PLAT-03. cx-trusted is yes, but cx-add-bad and cx-update-bad are not feedback: Codex showed `Hook failed` with `hook exited with code 1`, and cx-add-clean failed the same way, so the hook never reached the script. The rule needs feedback for both bad cases and silence for the clean one, so it does not hold. The cause is in the readings: Codex starts the hook through powershell, `sh` is not on that PowerShell's PATH (ps-sh missing), and exit 2 is rewritten to 1 (ps-direct-exit 2, ps-wrapped-exit 1, ps-wrapped-keep-exit 2). That is W-1 under `## Defects and re-runs`.
 
-Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), the Codex plugin route installed and was trusted, but every apply_patch ended in `Hook failed` with `hook exited with code 1`, because Codex starts the hook through Windows PowerShell, where `sh` is not on the PATH.
-Fix status: W-1 (commandWindows) and W-3 (verbatim and backslash path forms) are built (see `## Defects and re-runs`); the Windows re-run is pending in plan 09-06.
-PLAT-03: defect, fix pending re-run
+Sentence after round 1: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), the Codex plugin route installed and was trusted, but every apply_patch ended in `Hook failed` with `hook exited with code 1`, because Codex starts the hook through Windows PowerShell, where `sh` is not on the PATH.
+Fix status after round 1: W-1 (commandWindows) and W-3 (verbatim and backslash path forms) are built (see `## Defects and re-runs`); the Windows re-run is pending in plan 09-06.
+
+Reading 2026-10-14, round 2
+
+Re-run after the fixes W-1 (`commandWindows`) and W-3 (path forms), checkout d598854. Steps of the runbook's re-run section: the clone updated, `codex plugin add bbj@basis-bbj` run again against the round 1 marketplace (still pointing at `<checkout>`), the cache compared with the checkout through the smoke header (`cache-identical: yes`), then Codex with /hooks and X1, X2 and X3 on files in `<home>\bbj-p9-cx`. BBjServices was running during this round and plays no part in the bbjcpl route. Readings as the owner replied:
+
+        cx-retrust-asked: yes (Codex asked to trust the hook again at the start of the session, before /hooks was opened; the changed hooks.json has a new hash)
+        cache-identical: yes (SMOKE_ROOT=<codex home>/plugins/cache/basis-bbj/bbj/0.2.0 after codex plugin add bbj@basis-bbj: script_identical_to_checkout: yes, hooks_json_identical_to_checkout: yes, hook_script_cksum 2633573576, same as the checkout; the cached hooks.json carries the new commandWindows string)
+        cx-marketplace-add: ok (not repeated this round; the basis-bbj marketplace from round 1 still points at <checkout>, and codex plugin add refreshed the cache from it)
+        cx-plugin-add: ok (codex plugin add bbj@basis-bbj: "Added plugin `bbj` from marketplace `basis-bbj`", Installed plugin root <home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0)
+        cx-mcp-list: bbj-docs   https://mcp.bbj-ai.com/mcp  -  enabled  OAuth (bbj-local  http://127.0.0.1:5009/mcp  -  enabled  Unsupported is still listed from round 1's W8)
+        cx-trusted: yes (trusted when asked at session start)
+        cx-hook-command: C:\PROGRA~1\Git\bin\sh.exe "<home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0/scripts/bbj-check.sh"; exit $LASTEXITCODE (from /hooks; Codex now shows the commandWindows string with ${CLAUDE_PLUGIN_ROOT} expanded to the cache path)
+        cx-add-bad: feedback (Codex showed "Added bad.bbj (+1 -0)" then "• Blocked by hook" with: bbjcpl reported 1 error(s) in <home>/bbj-p9-cx/bad.bbj: / <home>\bbj-p9-cx\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol. The file was created. The agent then re-read the file, tried a PowerShell byte dump that failed with MethodInvocationNotSupportedInConstrainedLanguage, made a no-op "Edited bad.bbj (+0 -0)" that triggered the same hook feedback again, and finished with the line unchanged.)
+        cx-update-bad: feedback (Codex showed "Edited bad.bbj (+1 -1)" then "• Blocked by hook" with: bbjcpl reported 1 error(s) in <home>/bbj-p9-cx/bad.bbj: / <home>\bbj-p9-cx\bad.bbj: error at line 10 (1): print "b"   rem same line / bbj_lookup gives exact syntax for a named symbol.)
+        cx-add-clean: silent (Codex showed "Added clean.bbj (+1 -0)" and no hook line; Q answered "The tool returned exactly: {} No BBj check hook text was returned.")
+        cx-feedback: bbjcpl reported 1 error(s) in <home>/bbj-p9-cx/bad.bbj:
+        if-still-failing: n/a (cx now gives feedback on X1 and X2 and is silent on X3; noroute notice present; codex_verbatim compiles)
+
+Pre-check by the owner, outside Codex (round 2 note 1): the cached commandWindows string, launched the way Codex launches hooks (powershell -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command) with CLAUDE_PLUGIN_ROOT set to the cache root, printed the bbjcpl feedback and exited 2 for a bad payload, and printed nothing and exited 0 for a clean one.
+
+re-trust after upgrade: yes (observed on Windows, commandWindows changed the hook definition)
+
+The detail behind that line: Codex asked to trust the hook again at the start of the session, before /hooks was opened, because the changed hooks.json has a new hash. This is the first reading of a changed hook definition on Windows; the Phase 8 observation covers Linux and an unchanged hooks.json. It is recorded as observed, for Phase 10 (CONTEXT "Specific Ideas").
+
+Rule check, PLAT-03 (round 2). cx-trusted is yes (after the re-trust prompt), cx-add-bad and cx-update-bad are feedback whose first line starts `bbjcpl reported`, and cx-add-clean is silent. The hook now reaches the script through Codex's PowerShell launcher, and the exit code 2 arrives as feedback ("Blocked by hook") instead of "Hook failed". The rule holds. Client behaviour, not plugin defects: after the feedback the agent re-read the file, tried a PowerShell byte dump that Codex's constrained language refused, and made a no-op edit that triggered the same hook feedback again.
+
+Limit for Phase 10: the shipped string names Git for Windows at its default `C:\Program Files\Git` (short path `PROGRA~1`); a machine with Git elsewhere is not covered by this reading.
+
+Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Codex CLI 0.162.1 and BBj 26.03 (owner-reported, as read in round 1), after the plugin's hooks.json gained a `commandWindows` entry that names Git's sh.exe by its short path, the Codex plugin route ran the hook through Windows PowerShell and printed `bbjcpl reported 1 error(s)` for a bad .bbj file after apply_patch (create and update) and stayed silent for a clean file, and Codex asked to trust the changed hook again.
+Fix status: W-1 (commandWindows) and W-3 (verbatim and backslash path forms) fixed in 2197273 and 16c863b; the Windows re-run of 2026-10-14 met (see `## Defects and re-runs`).
+PLAT-03: defect, fixed in 2197273, re-run met
 
 ## Codex on Windows: spike 005 unknowns
 
@@ -333,8 +477,12 @@ Reading 2026-10-13, round 1
 The three unknowns of spike 005, each answered from the readings of `## Codex plugin route: bbjcpl` by the rules of plan 09-05 Task 1. Plan 09-06 replaces the second line after a re-run.
 
 unknown-sh: no (ps-sh missing, ps-wrapped-exit 1, cx-add-bad hook failed: hook exited with code 1)
-unknown-commandWindows: shipped as `C:\PROGRA~1\Git\bin\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE`, re-run pending (plan 09-06)
-unknown-plugin-root: <home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0 (cx-hook-command: a drive letter with backslashes; the script part keeps a forward slash; /hooks printed a space after `C:`, which may be a display artefact and is not settled); sh accepted it: unknown (the hook failed in the launcher before sh ran; the same mixed form, `<checkout>\plugins\bbj/scripts/bbj-check.sh`, was accepted by sh under Claude Code in the cc-* readings)
+unknown-commandWindows: honoured (re-run met with C:\PROGRA~1\Git\bin\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE)
+unknown-plugin-root: <home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0 (cx-hook-command: a drive letter with backslashes; the script part keeps a forward slash; /hooks printed a space after `C:`, which may be a display artefact and is not settled); sh accepted it: yes (round 2, 2026-10-14: Git's sh.exe ran the script given in the mixed form `<home>\.codex\plugins\cache\basis-bbj\bbj\0.2.0/scripts/bbj-check.sh` and the hook returned the bbjcpl feedback; in round 1 this could not be told, because the hook failed in the launcher before sh ran; the same mixed form was accepted by sh under Claude Code in the cc-* readings; the round 2 /hooks line shows no space after `C:`)
+
+Reading 2026-10-14, round 2
+
+The re-run (checkout d598854) settles the second line and adds to the third, both replaced in place above. `unknown-commandWindows` is honoured: Codex ran the shipped string through its PowerShell launcher (the round 2 `cx-hook-command` shows it with `${CLAUDE_PLUGIN_ROOT}` expanded to the cache path), apply_patch on a bad file ended in the bbjcpl feedback and a clean file stayed silent. `unknown-sh` stays as read in round 1: `sh` is still not on that PowerShell's PATH; the shipped string does not need it, because it names Git's sh.exe by its short path.
 
 ## bbj-local: Claude Code
 
@@ -471,9 +619,43 @@ Command (runbook W9, Git Bash): `sh smoke.sh noroute`. Every compiler route is o
 
 The same-session second call stayed silent on the machine's file system (`exit_second: 0`, `notice_second: absent`, nothing on stdout or stderr). This is the concurrency edge of D-16; CI covers it with notice_concurrent_once. The rule needs notice_first present, notice_second absent and claim_file present. Here notice_first is absent and claim_file is absent: no notice was printed at all, so there was nothing to claim, and the silent second call proves nothing about the claim logic. The rule does not hold. By reading the hook, a notice is printed only when tier 2 ends in `curl` exit 7 (connection refused); any other curl exit leaves the call silent (W-2).
 
-Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1 and BBj 26.03 (owner-reported), with no compiler route and nothing listening on the tier 2 port, the hook printed no no-route notice and created no claim file, and both calls exited 0.
-Fix status: W-2 (longer tier-2 connect timeout under the Windows branch) is built (see `## Defects and re-runs`); the Windows re-run is pending in plan 09-06.
-PLAT-04: defect, fix pending re-run
+Sentence after round 1: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1 and BBj 26.03 (owner-reported), with no compiler route and nothing listening on the tier 2 port, the hook printed no no-route notice and created no claim file, and both calls exited 0.
+Fix status after round 1: W-2 (longer tier-2 connect timeout under the Windows branch) is built (see `## Defects and re-runs`); the Windows re-run is pending in plan 09-06.
+
+Reading 2026-10-14, round 2
+
+Command (runbook W9, Git Bash, checkout d598854): `sh smoke.sh noroute`. Every compiler route is off and the tier 2 URL is the closed port 9. Result block as pasted:
+
+        --- smoke noroute ---
+        smoke: noroute
+        date: 2026-10-14
+        platform: MINGW64_NT-10.0-19045 3.6.5-22c95533.x86_64
+        shell: 5.2.37(1)-release
+        hook_shell_version: 5.2.37(1)-release
+        cygpath: yes
+        checkout_commit: d598854
+        hook_script: <checkout>/plugins/bbj/scripts/bbj-check.sh
+        hook_script_cksum: 2633573576
+        script_identical_to_checkout: yes
+        hooks_json_identical_to_checkout: yes
+        hooks_json_command: sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"
+        bbj_home: none
+        discovery_source: PATH
+
+        bbj_home_used: none (every compiler route is off for this subcommand)
+        state_dir: <work>\state.1
+        exit_first: 0
+        notice_first: present
+        notice_excerpt: <work>/nr/sub/bad.bbj was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9. Later BBj files in this session are
+        claim_file: present
+        exit_second: 0
+        notice_second: absent
+
+Rule check, PLAT-04 (D-16, round 2). The rule needs notice_first present, notice_second absent and claim_file present. All three hold, and both calls exit 0 with nothing on stdout: the first call printed the notice (`<work>/nr/sub/bad.bbj was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9. ...`), it left the claim file, and the second call in the same session stayed silent. The rule holds. The W-2 hypothesis (a closed loopback port is reported only after about 2 s on Windows, so a 1 s connect timeout ended in exit 28 and no notice) is consistent with this result; the re-run shows the 5 s timeout works and does not measure the connect timing.
+
+Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1 and BBj 26.03 (owner-reported, as read in round 1), with no compiler route and nothing listening on the tier 2 port, the hook printed the no-route notice once (`was written but not compile-checked: no bbjcpl found; no bbj-ls answering on 127.0.0.1:9`), left its claim file, stayed silent on the second call in the same session, and both calls exited 0.
+Fix status: W-2 (longer tier-2 connect timeout under the Windows branch) fixed in 950d8bf; the Windows re-run of 2026-10-14 met (see `## Defects and re-runs`).
+PLAT-04: defect, fixed in 950d8bf, re-run met
 
 ## Installer route (optional)
 
@@ -536,8 +718,24 @@ obs-3: The relative backslash header `sub\f.bbj` works on real Windows (the file
 
 obs-4: With BBjServices running, the tier 2 smoke gave feedback and silence on this machine (see `## Tier 2 smoke`), so `curl` itself works from Git Bash against a live loopback listener. Only the closed-port path of W-2 is unexplained; the hypothesis of W-2 is about that path.
 
-Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), three defects are open: the Codex plugin hook does not start, the no-route notice was not printed, and the verbatim path form is skipped.
-PLAT-06: defect, fix pending re-run
+Sentence after round 1: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292, Codex CLI 0.162.1 and BBj 26.03 (owner-reported), three defects are open: the Codex plugin hook does not start, the no-route notice was not printed, and the verbatim path form is skipped.
+
+Reading 2026-10-14, round 2
+
+Linux suite before the record of this round, at HEAD 6524307 (plugins, tests and codex are unchanged since d598854, the commit the owner re-ran):
+
+        SUMMARY: ok=921 fail=0 skip=0
+
+Re-run results by defect, from the owner's reply of 2026-10-14 (checkout d598854, `if-still-failing: n/a`):
+
+re-run result W-1: met. Codex now gives feedback for create and update of a bad file and stays silent for a clean one (cx-add-bad, cx-update-bad, cx-add-clean); /hooks shows the commandWindows string with the cache path expanded. Fixed in 2197273. Codex asked for hook trust again (`re-trust after upgrade: yes`). Claude Code on Windows still runs the `command` field and ignores `commandWindows` without harm (RESEARCH Open Question 4 answered, not a defect).
+re-run result W-2: met. `smoke noroute` now prints the notice once (notice_first present, claim_file present, notice_second absent). Fixed in 950d8bf. The machine confirms the effect, not the connect timing (the hypothesis in the W-2 line stays a hypothesis).
+re-run result W-3: met. `smoke codex` makes the compiler call for the verbatim form (exit 2 with feedback; round 1: no call, exit 0), and the relative backslash header reads `<work>/cx/sub/bad.bbj`. Fixed in 16c863b. The `sub\..\..\x.bbj` case of obs-3 is covered by the Linux gate only; no reading of it was taken on the machine.
+
+No known gap and no fix-again: every W-N is fixed and its re-run met. The D-11 consequence stands for Phase 10 to say: the new commandWindows entry changes the hook definition Codex hashes, and the first Windows reading shows Codex asking for trust again after the upgrade.
+
+Sentence for the docs: Observed on Microsoft Windows [Version 10.0.19045.6466] with Git for Windows 2.52.0.windows.1, Claude Code 2.1.292, Codex CLI 0.162.1 and BBj 26.03 (owner-reported, as read in round 1), the three defects of round 1 (the Codex plugin hook did not start, the no-route notice was not printed, and the verbatim path form was skipped) were fixed and the re-run of 2026-10-14 met each of them.
+PLAT-06: met
 
 ## Owner replies
 
@@ -994,10 +1192,10 @@ Reading 2026-10-14, round 2
 
 ## Verdicts
 
-Round 1 readings with the amendment of 2026-10-13, consolidated by the rule of the intro. PLAT-04 is met for both bbj-local sections and the tier 2 smoke; the no-route notice smoke (W-2) is the first section line that is not met. Interim values stay until the re-runs of plan 09-06.
+Round 1 readings with the amendment of 2026-10-13 and the round 2 re-run of 2026-10-14, consolidated by the rule of the intro. Every section line is `met` or fixed and re-run met, so each requirement reads `met`: PLAT-03 (Codex plugin route, fixed in 2197273, re-run met), PLAT-04 (No-route notice smoke, fixed in 950d8bf, re-run met; both bbj-local sections and the tier 2 smoke were met in round 1) and PLAT-06 (the three defects W-1, W-2 and W-3 fixed in 2197273, 950d8bf and 16c863b, each with a re-run that met). PLAT-05 is the macOS requirement and is not in this record.
 
 - PLAT-01: met
 - PLAT-02: met
-- PLAT-03: defect, fix pending re-run
-- PLAT-04: defect, fix pending re-run
-- PLAT-06: defect, fix pending re-run
+- PLAT-03: met
+- PLAT-04: met
+- PLAT-06: met
