@@ -232,6 +232,24 @@ else
     [ "$_rc" = 0 ] && [ "$_calls" = 0 ] && [ ! -s "$WORK/route_out" ] && [ ! -s "$WORK/route_err" ] \
       && gate plugin_route_no_bbj_silent ok "no .bbj, .src or .bbx file in the patch: exit 0, silent, no compiler call" \
       || gate plugin_route_no_bbj_silent FAIL "exit $_rc, compiler calls $_calls, stderr: $(head -n 1 "$WORK/route_err")"
+
+    # D-11 of phase 9: a Windows override of the hook command may exist, but the gates above run
+    # 'command' (the Codex plugin route on Linux and macOS). The override must name the same script
+    # and must differ from 'command'; the invariant is that the two strings reach one script.
+    ROUTE_CMD_WIN=$(python3 -I -c 'import json,sys; print(json.load(open(sys.argv[1]))["hooks"]["PostToolUse"][0]["hooks"][0].get("commandWindows", ""))' "$REPO/plugins/bbj/hooks/hooks.json" 2> /dev/null)
+    case "$ROUTE_CMD_WIN" in
+      *'${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh'*)
+        case "$ROUTE_CMD" in
+          *'${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh'*)
+            [ "$ROUTE_CMD_WIN" != "$ROUTE_CMD" ] \
+              && gate plugin_route_command_windows ok "commandWindows names the same script as command and differs from it; the gates above still run command" \
+              || gate plugin_route_command_windows FAIL "commandWindows equals command"
+            ;;
+          *) gate plugin_route_command_windows FAIL "command does not name the script: $ROUTE_CMD" ;;
+        esac
+        ;;
+      *) gate plugin_route_command_windows FAIL "no commandWindows naming the script in hooks.json (found: '$ROUTE_CMD_WIN')" ;;
+    esac
   fi
 fi
 

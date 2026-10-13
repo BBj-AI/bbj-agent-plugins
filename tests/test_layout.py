@@ -31,6 +31,12 @@ DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
 OAUTH_CLIENT_ID = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
 OAUTH_PORT = 47613
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
+# D-11 of phase 9: Codex's Windows override of the hook command, as the owner chose it for W-1 (the
+# 8.3 path of Git for Windows' sh.exe, unquoted, because Codex starts the hook through Windows
+# PowerShell where sh is not on the PATH and where a quoted first token is a parse error; the
+# trailing exit keeps exit code 2, which a PowerShell -Command wrapper rewrites to 1). This pins
+# text, not behaviour: PowerShell cannot run in CI. The plan 09-06 re-run on Windows shows it works.
+HOOK_COMMAND_WINDOWS = 'C:\\PROGRA~1\\Git\\bin\\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE'
 # D-10: the seven identity fields the Codex overlay copies from the Claude manifest, and the
 # relative path of its MCP file
 SHARED_FIELDS = ("name", "version", "description", "author", "homepage", "license", "keywords")
@@ -172,6 +178,10 @@ gate("hook_command",
      len(hook_list) == 1 and hook_list[0].get("type") == "command"
      and hook_list[0].get("command") == HOOK_COMMAND,
      "hooks=%r" % (hook_list,))
+gate("hook_command_windows",
+     len(hook_list) == 1 and hook_list[0].get("commandWindows") == HOOK_COMMAND_WINDOWS
+     and hook_list[0].get("command") == HOOK_COMMAND,
+     "commandWindows=%r" % (hook_list[0].get("commandWindows") if len(hook_list) == 1 else None,))
 gate("hook_timeout", len(hook_list) == 1 and hook_list[0].get("timeout") == 30,
      "timeout=%r" % (hook_list[0].get("timeout") if hook_list else None,))
 gate("hook_events_only_post_tool_use", list(hooks.get("hooks", {})) == ["PostToolUse"],
@@ -387,6 +397,13 @@ if len(sys.argv) == 1:
                                                     "client" + "Secret": "not-a-real-value"}
         edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
 
+    HOOKS_FILE = "plugins/bbj/hooks/hooks.json"
+
+    def drop_command_windows(dst):
+        def fn(d):
+            d["hooks"]["PostToolUse"][0]["hooks"][0].pop("commandWindows", None)
+        edit_json(os.path.join(dst, HOOKS_FILE), fn)
+
     mutation_case("control", [], lambda dst: None, [])
     mutation_case("overlay_version", [CODEX_MANIFEST], set_overlay_version, ["versions"])
     mutation_case("codex_url", [CODEX_MCP_FILE], slash_codex_url, ["codex_url_equals_default"])
@@ -396,5 +413,6 @@ if len(sys.argv) == 1:
                   ["codex_overlay_fields", "codex_mcp"])
     mutation_case("overlay_extra_key", [CODEX_MANIFEST], overlay_extra_key, ["codex_overlay_fields"])
     mutation_case("codex_secret", [CODEX_MCP_FILE], codex_secret, ["codex_mcp"])
+    mutation_case("hook_command_windows", [HOOKS_FILE], drop_command_windows, ["hook_command_windows"])
 
 sys.exit(1 if failed else 0)
