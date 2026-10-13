@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 9
 current_phase_name: Windows and macOS verification
 status: executing
-stopped_at: Phase 9 context gathered
-last_updated: "2026-10-13T18:44:57.897Z"
+stopped_at: Completed 09-01-PLAN.md
+last_updated: "2026-10-13T18:55:45.591Z"
 last_activity: 2026-10-13
-last_activity_desc: Phase 08 verified (UAT 38/38, re-verification passed), ready to plan Phase 9
-state_head: e5b7f0d807515f4f41d215e5b8d4866ed1234c5d
+last_activity_desc: Phase 9 execution started
+state_head: b045667f3da45ff8c064cb5379749f7659addc0b
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 14
+  completed_plans: 15
   percent: 50
 ---
 
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 
 ## Current Position
 
-Phase: 9 (Windows and macOS verification) — READY TO EXECUTE
-Plan: Not started
+Phase: 9 (Windows and macOS verification) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
-Last activity: 2026-10-13 — Phase 08 verified (UAT 38/38, re-verification passed), ready to plan Phase 9
+Last activity: 2026-10-13 — Phase 9 execution started
 
 Progress: [█████░░░░░] 50%
 
@@ -120,6 +120,7 @@ Progress: [█████░░░░░] 50%
 | Phase 08 P08 | 30 min | 3 tasks | 3 files |
 | Phase 08 P06 | 10 min | 2 tasks | 2 files |
 | Phase 08 P07 | 36 min | 3 tasks | 5 files |
+| Phase 09 P01 | 8 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -149,6 +150,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 08]: 08-06: with the installer files and the plugin both present, hooks/list shows two hook entries, each skill is listed twice, the compiler runs twice and feedback arrives twice, mcp list shows one bbj-docs; after install-codex.sh --remove one hook, one copy of each skill and one bbj-docs remain
 - [Phase 08]: 08-07: the double-install paragraph states which bbj-docs definition Codex used as not determined, as 08-LINUX-RUN.md records it; the plugin-scoped approval key is labelled untried
 - [Phase 08]: 08-07: the Codex page leads with the plugin route; the installer fallback is 122 lines; the hook-trust bypass flag is forbidden by name stem on the page and README
+- [Phase 09]: 09-01: FAKE_CYGDRIVE_ROOT seam models only drive letter plus backslash or slash; real cygpath behaviour is left to the owner's smoke run
+- [Phase 09]: 09-01: relative Codex header with backslash and the verbatim prefix are not pinned (candidate defects for 09-05)
 
 ### Pending Todos
 
@@ -180,9 +183,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T17:41:37.016Z
-Stopped at: Phase 9 context gathered
-Resume file: .planning/phases/09-windows-and-macos-verification/09-CONTEXT.md
+Last session: 2026-10-13T18:55:45.516Z
+Stopped at: Completed 09-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
