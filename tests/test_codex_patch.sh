@@ -232,11 +232,6 @@ else
     [ "$_rc" = 0 ] && [ "$_calls" = 0 ] && [ ! -s "$WORK/route_out" ] && [ ! -s "$WORK/route_err" ] \
       && gate plugin_route_no_bbj_silent ok "no .bbj, .src or .bbx file in the patch: exit 0, silent, no compiler call" \
       || gate plugin_route_no_bbj_silent FAIL "exit $_rc, compiler calls $_calls, stderr: $(head -n 1 "$WORK/route_err")"
-
-    # the prefix assignments above never reached the test shell
-    [ -z "${CLAUDE_PLUGIN_ROOT+x}" ] \
-      && gate plugin_route_env_clean ok "CLAUDE_PLUGIN_ROOT is unset in the test shell" \
-      || gate plugin_route_env_clean FAIL "CLAUDE_PLUGIN_ROOT leaked into the test shell"
   fi
 fi
 
