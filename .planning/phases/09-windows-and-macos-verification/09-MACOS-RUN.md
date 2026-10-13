@@ -385,6 +385,7 @@ No macOS defect was found in round 1, so no re-run is needed.
 
 decisions: none needed (no defects, 2026-10-14)
 fixes: none (2026-10-14)
+re-run: none needed (2026-10-14)
 
 The optional smoke readings (tier 2, no-route) are on record and carry no PLAT verdict (D-16).
 
