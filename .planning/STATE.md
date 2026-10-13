@@ -4,17 +4,17 @@ milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
 current_phase: 08
 current_phase_name: Codex plugin route
-status: executing
-stopped_at: Completed 08-06-PLAN.md
-last_updated: "2026-10-13T15:40:36.083Z"
+status: verifying
+stopped_at: Completed 08-07-PLAN.md
+last_updated: "2026-10-13T15:54:13.944Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 08 execution started
-state_head: ec3d5605f662ac4a7f4b753fb34e3b3819fbae14
+state_head: 973cb686a5f76e4dece4009eaef8abf4333d1eb1
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
   percent: 25
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 
 Phase: 08 (Codex plugin route) — EXECUTING
 Plan: 8 of 8
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-13 — Phase 08 execution started
 
 Progress: [███░░░░░░░] 25%
@@ -118,6 +118,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 08 P05 | multi-session | 3 tasks | 5 files |
 | Phase 08 P08 | 30 min | 3 tasks | 3 files |
 | Phase 08 P06 | 10 min | 2 tasks | 2 files |
+| Phase 08 P07 | 36 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -145,6 +146,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 08]: 08-08: owner chose signin add-block; Codex plugin .codex-mcp.json ships the public OAuth client (clientId, callbackUrl, callbackPort 47613); D-07 holds; hook trust yes
 - [Phase 08]: 08-06: a version-only plugin upgrade (0.2.0 to 0.2.0-test, hooks.json unchanged, local marketplace, codex plugin add) kept the hook trusted with an unchanged hash and the hook ran; docs may state only that, with the other upgrade cases recorded as not run
 - [Phase 08]: 08-06: with the installer files and the plugin both present, hooks/list shows two hook entries, each skill is listed twice, the compiler runs twice and feedback arrives twice, mcp list shows one bbj-docs; after install-codex.sh --remove one hook, one copy of each skill and one bbj-docs remain
+- [Phase 08]: 08-07: the double-install paragraph states which bbj-docs definition Codex used as not determined, as 08-LINUX-RUN.md records it; the plugin-scoped approval key is labelled untried
+- [Phase 08]: 08-07: the Codex page leads with the plugin route; the installer fallback is 122 lines; the hook-trust bypass flag is forbidden by name stem on the page and README
 
 ### Pending Todos
 
@@ -175,8 +178,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T15:40:36.012Z
-Stopped at: Completed 08-06-PLAN.md
+Last session: 2026-10-13T15:54:13.883Z
+Stopped at: Completed 08-07-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

@@ -115,7 +115,7 @@ Plans:
   5. `docs/install-codex.md` leads with the plugin route and keeps `install-codex.sh` as a documented fallback for this release. It covers the two install commands, the `/hooks` trust step, the first-use tool prompts, the `BBJ_HOME` note, and whether a plugin upgrade asks for hook trust again, as observed on Linux (CODEX-05)
   6. A user who installed with `install-codex.sh` (0.1.0 or 0.2.0) switches to the plugin route by documented steps or an installer option and ends with exactly one hook entry, one copy of the skills and one `bbj-docs` server: no double check, no double feedback, and the installer's `[mcp_servers.bbj-docs]` table no longer overriding the plugin's server. Verified once on Linux in a throwaway Codex home (CODEX-06)
 
-**Plans**: 7/8 plans executed
+**Plans**: 8/8 plans executed
 
 Plans:
 **Wave 1**
@@ -134,7 +134,7 @@ Plans:
 - [x] 08-06-PLAN.md — CODEX-02, CODEX-05, CODEX-06: the hook after a real trust, the upgrade-trust observation, the real installer-to-plugin switch (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 08-07-PLAN.md — CODEX-05, CODEX-06: `docs/install-codex.md` with the plugin route first, the switch section and the installer as fallback; README; pins; prefix block; phase gate `sh tests/ci.sh` (wave 5)
+- [x] 08-07-PLAN.md — CODEX-05, CODEX-06: `docs/install-codex.md` with the plugin route first, the switch section and the installer as fallback; README; pins; prefix block; phase gate `sh tests/ci.sh` (wave 5)
 
 **Notes**:
 - This phase must land before Phase 9: Phase 9 verifies the plugin route on Windows and macOS by following the steps documented here.
@@ -192,6 +192,6 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
-| 8. Codex plugin route | v0.2.1 | 7/8 | In Progress | - |
+| 8. Codex plugin route | v0.2.1 | 8/8 | In Progress | - |
 | 9. Windows and macOS verification | v0.2.1 | 0/TBD | Not started | - |
 | 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |
