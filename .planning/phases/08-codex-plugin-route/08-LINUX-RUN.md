@@ -247,3 +247,101 @@ check (the screen could not be read, only terminal colour queries came back). Th
 Codex's managed app-server daemon inside owner-H; both daemon processes were stopped and owner-H
 was rebuilt with `run.sh prepare-trust`, so the home the owner receives is the clean state above.
 The real `~/.codex` was not involved (see "Real home untouched").
+
+## Owner pass
+
+Date: 2026-10-13. Route: plugin. The owner ran `owner.sh trust`, `owner.sh login-a` and
+`owner.sh login-b` in the throwaway homes owner-H, owner-A and owner-B. Nothing is chosen here:
+plan 08-08 takes the decisions (OAuth block in `.codex-mcp.json`, CODEX-01 scope, the D-07
+question, which the probe has already answered in favour of D-07).
+
+The owner's reply to the checkpoint, verbatim:
+
+> I did b. trusted: yes B: signed in now.
+
+The owner had reported step A (sign-in without an OAuth block) earlier, as a failure with the
+message "dynamic client registration is disabled"; that earlier report reached this record
+through the checkpoint hand-over, not as a separate verbatim line. Together, in the format the
+checkpoint asked for:
+
+> trusted: yes; A: failed: dynamic client registration is disabled; B: signed in
+
+The three answers:
+
+trusted: yes
+A: failed: dynamic client registration is disabled
+B: signed in
+
+### What the owner observed
+
+- **A (plugin as it ships, no OAuth block).** `codex mcp login bbj-docs` printed
+  `Error: Registration failed: Dynamic registration failed: Registration failed: HTTP 400 Bad
+  Request: {"statusCode":400,"error":"Bad Request","message":"dynamic client registration is
+  disabled"}`. This is the same error the preparation run of owner-A read before the human step.
+- **B (scratch copy with the OAuth block).** `codex mcp login bbj-docs` printed the authorization
+  URL on `login.bbj-ai.com` with client id `oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t` and redirect
+  `http://localhost:47613/callback`. The owner's browser was on another machine, so the owner
+  completed the flow through the `--no-browser` path (`owner.sh login-b --no-browser`, which
+  passes the flag to `codex mcp login`) and pasted the callback URL back. The login process has
+  exited and port 47613 is closed. One owner-side caveat: the callback listener was on the
+  headless machine and the browser elsewhere, so the sign-in was finished by pasting the
+  callback URL, not by the browser reaching `localhost:47613` itself.
+
+### Readings taken after the reply
+
+`hooks_list.py` on owner-H (run with the real HOME, since the script refuses a CODEX_HOME that is
+not under `$HOME/.cache/bbj-phase8/`; the app server it starts gets HOME and CODEX_HOME of the
+throwaway home):
+
+        key=bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0 source=plugin trustStatus=trusted
+        currentHash=sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+        command=sh "<home>/.cache/bbj-phase8/owner-H/home/.codex/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"
+
+`grep -w trusted` on that key line matches (count 1), so this is `trusted` and not `untrusted`.
+The hash is the same one that read `untrusted` before the human step. In owner-H's
+`config.toml` the trust is stored as
+
+        [hooks.state."bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0"]
+        trusted_hash = "sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297"
+
+so trust is a per-hook key plus the content hash, in the Codex home's `config.toml`. That is the
+state plan 08-06's post-trust run and its upgrade run will exercise (a changed hook hash).
+
+`codex mcp list` (HOME and CODEX_HOME at the throwaway homes):
+
+        owner-A:
+        Name      Url                         Bearer Token Env Var  Status   Auth
+        bbj-docs  https://mcp.bbj-ai.com/mcp  -                     enabled  Not logged in
+
+        owner-B:
+        Name      Url                         Bearer Token Env Var  Status   Auth
+        bbj-docs  https://mcp.bbj-ai.com/mcp  -                     enabled  OAuth
+
+So the Auth column separates the two: `Not logged in` in A (no sign-in was possible) and `OAuth`
+in B (a stored OAuth login, versus `Not logged in` for B before the human step). The sign-in
+facts for 08-08, as read, not chosen: Codex 0.162.1 accepts the `oauth` keys in a plugin MCP file
+(assumptions A1 and A2 hold on the loading side); with those keys, and with the hosted server's
+pre-registered client, the sign-in completes; without them it cannot start, because the hosted
+server refuses dynamic client registration.
+
+Other facts from this pass:
+
+- The Codex TUI rewrote owner-H's `config.toml` on start: `model` went from `gpt-5.5` to
+  `gpt-6-sol` (a `[notice.model_migrations]` entry) and a `[tui]` section appeared. The provider
+  stayed `fake` at `127.0.0.1:18765` (nothing listens there now), no prompt was sent by the
+  executor, and no billed model is configured in that home.
+- The TUI started Codex's managed app-server daemon inside owner-H again. After the readings above
+  the two daemon processes (`app-server --listen unix://` and `app-server daemon pid-update-loop`,
+  both from `owner-H/home/.codex/packages/app-server-daemon/`) were stopped; no `bbj-phase8`
+  process is running and nothing listens on 47613.
+- Port 5009 has a listener on this machine now (a `java` process, the owner's BBjServices). It is
+  not part of these runs and was not started or touched by them; the earlier statement under
+  "bbj-local opt-in" that nothing listened on 5009 describes the time of that run.
+
+### Real home untouched, after the owner pass
+
+`run.sh realhome <home>/.cache/bbj-phase8/realhome.after-owner`, then `home_diff realhome.before
+realhome.after-owner` returned 0 and printed nothing: the real `~/.codex` and
+`~/.agents/skills` are identical to the snapshot taken before the first run of this plan
+(`config.toml` mode 0600, 367 bytes; `~/.agents/skills` absent; the other watched paths absent).
+No daemon-written change had to be named.
