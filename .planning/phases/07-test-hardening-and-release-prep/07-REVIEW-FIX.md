@@ -1,172 +1,137 @@
 ---
 phase: 07-test-hardening-and-release-prep
-fixed_at: 2026-10-13T04:02:19Z
-review: .planning/phases/07-test-hardening-and-release-prep/07-REVIEW.md
-review_path: /home/coder/repos/bbj-agent-plugins/.planning/phases/07-test-hardening-and-release-prep/07-REVIEW.md
+fixed_at: 2026-10-13T06:40:25Z
+review: re-review after the ten fix(07) commits
+review_path: .planning/phases/07-test-hardening-and-release-prep/07-REVIEW.md
 fix_scope: all
 iteration: 1
-findings_in_scope: 10
-fixed: 10
+findings_in_scope: 6
+fixed: 6
 skipped: 0
 status: all_fixed
 ---
 
-# Phase 7: Code Review Fix Report
+# Phase 7: Code Review Fix Report (re-review round)
 
-**Fixed at:** 2026-10-13T04:02:19Z
+**Fixed at:** 2026-10-13T06:40:25Z
 **Source review:** `.planning/phases/07-test-hardening-and-release-prep/07-REVIEW.md`
-**Iteration:** 1
+**Iteration:** 1 (this report replaces the one for the earlier round of ten findings, which stay fixed)
 
 **Summary:**
-- Findings in scope: 10 (WR-01..WR-05, IN-01..IN-05)
-- Fixed: 10
+- Findings in scope: 6 (WR-01, WR-02, IN-01 to IN-04)
+- Fixed: 6
 - Skipped: 0
 
-## Landing on `gsd/planning-setup`
-
-The fixer ran in a worktree on a temp branch based on `59a764d`. While it ran, the phase 08
-context commits landed on `gsd/planning-setup` (`.planning/` files only, no overlap). The
-orchestrator replayed those two docs commits on top of the ten fix commits, so the fix hashes
-below are the ones on `gsd/planning-setup`; the temp branch was deleted. The full suite on the
-combined tree: `SUMMARY: ok=803 fail=0 skip=0`.
-
-## Verification
-
-- **Where it ran:** the isolated git worktree
-  `.claude/worktrees/rf-07-2624046-1791863129` (now removed), on branch `gsd-reviewfix/07-2624046`.
-  Nothing needs `node_modules`, so the results are reproducible from a normal checkout of that branch.
-- `shellcheck -s sh tests/*.sh` (repo `.shellcheckrc`): clean.
-- `sh tests/test_home_guard.sh` also under dash, bash and busybox sh: all gates ok.
-- `sh tests/test_path_scrub.sh` also under dash, bash and busybox sh: all gates ok.
-- `sh tests/test_install_codex.sh`, `test_noroute_notice.sh`, `test_exit_contract.sh`,
-  `test_tier2_fake.sh`, `test_release_text_mutation.sh`: 0 FAIL.
-- `sh tests/run.sh` at the final commit: `SUMMARY: ok=803 fail=0 skip=0`.
-- The new gates were checked against the previous helper where that is meaningful: the four
-  WR-01 gates, the two WR-02 gates and the FIFO gate (WR-03) fail (the FIFO case hangs the
-  suite) against the old `home_snapshot`; dropping the `.exe` removals from `no_compiler_path`
-  turns the two WR-05 gates red; removing the scrub turns `test_tier2_fake.sh` red (IN-02).
-- Nothing wrote to the real `~/.codex` or `~/.agents`; all new fixtures live under `$WORK`.
+None of the six is classified as a logic error that needs human sign-off beyond the new gates. Each new
+gate was shown to fail without its fix (WR-01, IN-01) or was exercised by hand (IN-02 fallback, IN-04
+orphan release).
 
 ## Fixed Issues
 
-### WR-01: `home_snapshot` does not watch everything the installer writes, so leaked temp files and stray directories pass `real_home_untouched`
-
-**Disposition:** fixed
-**Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`, `tests/test_install_codex.sh`
-**Commit:** a2c2b64
-**Applied fix:** The watch list now also holds `config.toml.??????` and `hooks.json.??????` (the
-installer's mktemp leftovers; a glob with no match stays literal and prints as an absent path).
-`H <path> present|absent` lines record the existence of the Codex home and the skills dir. File
-lines carry the permission string (`F <mode> <crc> <size> <path>`, mode from `ls -ld`), so a
-`chmod` shows. The `real_home_untouched` gate message and the helper header no longer overstate
-the list. New gates: `homeguard_temp_config_leaked_detected`, `homeguard_temp_hooks_leaked_detected`,
-`homeguard_config_chmod_detected`, `homeguard_homes_created_detected`.
-
-### WR-02: Symlinks are recorded without their target, so retargeting or writing through a symlinked skill goes undetected
+### WR-01: A watched path that is a symlink to a regular file was recorded by target only
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
-**Commit:** 15369c6
-**Applied fix:** A symlink is printed as `L <path> -> <target>` (via `readlink`), and a watched
-top-level path is walked with `find -H`, so a symlink to a skill directory is descended into.
-Retargeting the link and editing a file through it both change the snapshot. New gates:
-`homeguard_link_retarget_detected`, `homeguard_link_write_through_detected`,
-`homeguard_link_untouched_same`.
+**Commit:** 764c4c7
+**Applied fix:** The `home_snapshot` classifier now prints, after the `L <path> -> <target>` line, a
+`T <crc> <size> <path>` line with the cksum of what the link resolves to when that is a readable regular
+file. A write through a dotfiles-style `config.toml` link now changes the snapshot. The header comment
+documents the `T` line. New gates `homeguard_filelink_write_through_detected` (expects `differ`) and
+`homeguard_filelink_untouched_same` (touch on link and target, expects `same`). With `tests/lib.sh`
+stashed to the old version the write-through gate fails, so the gate is load-bearing.
 
-### WR-03: `home_snapshot` swallows errors and misreads special names, so it can hang or silently omit entries
+### WR-02: An incomplete snapshot compared equal to itself, so `real_home_untouched` reported `ok`
+
+**Disposition:** fixed
+**Files modified:** `tests/lib.sh`, `tests/test_install_codex.sh`, `tests/test_home_guard.sh`
+**Commit:** fe03ce6
+**Applied fix:** Two new helpers in `tests/lib.sh`. `home_incomplete BEFORE AFTER` returns 0 and prints a
+reason when either snapshot is missing or empty, or holds an `E` line. `home_incomplete_status` returns
+`skip`, or `FAIL` when `CI=true`. `tests/test_install_codex.sh` now checks `home_incomplete` before
+`home_diff` and gates `real_home_untouched` with that status instead of `ok`. The two `home_snapshot`
+calls on the real homes are unchanged, so `homeguard_install_codex_uses_helper` still holds. New gates
+`homeguard_incomplete_snapshot` (an `E` line in both snapshots, an empty pair, a missing file, and a
+complete pair) and `homeguard_incomplete_status` (skip locally, FAIL under `CI=true`).
+
+### IN-01: The temp-file globs silently stopped expanding under `set -f`
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
-**Commit:** d46f7e8
-**Applied fix:** The `find | while read` loop is replaced by `find -H ... -exec sh -c '...' sh {} +`,
-so names arrive as arguments and a newline in a name cannot split an entry. Only regular files
-are opened (`[ -f ]`); FIFOs, sockets and devices print as `O <path>` (a FIFO used to block
-`cksum` forever, which I reproduced as a hung suite). A non-zero `find` exit adds `E <path>`
-instead of being discarded. New gates: `homeguard_newline_name_detected`,
-`homeguard_fifo_not_opened` (background run with a 5 s watchdog), `homeguard_unreadable_dir_reported`
-(skips when run as root, where `chmod 000` hides nothing).
+**Commit:** 873973d
+**Applied fix:** `home_snapshot` records whether noglob was set, runs `set +f` inside its block, and puts
+`set -f` back at the end, the same idiom `no_compiler_path` uses. New gate
+`homeguard_noglob_temp_detected` takes both snapshots under `set -f`, leaks a `config.toml.AbC123`, expects
+`differ` with an `F` line for it, and checks that `set -f` is still on afterwards. It fails on the old
+`home_snapshot`.
 
-### WR-04: `no_compiler_path` fails silently, so it can emit a PATH with no `sh` or `awk`
-
-**Disposition:** fixed
-**Files modified:** `tests/lib.sh`, `tests/test_path_scrub.sh`, `tests/test_noroute_notice.sh`,
-`tests/test_exit_contract.sh`, `tests/test_tier2_fake.sh`
-**Commit:** ab30fb5
-**Applied fix:** A failed `cd`, `mktemp -d` or `ln -s` now makes the helper print a reason on
-stderr, print nothing on stdout and return 1. (I did not use the "farm must be non-empty / hold sh"
-check from the review: a directory that only holds the compilers legitimately yields an empty
-farm, so the failing step itself is the correct signal.) The four call sites check the status
-(`_np=$(no_compiler_path) || { gate ... FAIL; finish; }` and then `PATH=$_np`) so a failure can
-no longer leave an empty PATH. New gate: `pathscrub_farm_failure_loud` (mktemp failure and a
-shadowed `ln`).
-
-### WR-05: `pathscrub_shared_dir_keeps_tools` and `pathscrub_exe_names` cannot detect a missing `.exe` removal
-
-**Disposition:** fixed
-**Files modified:** `tests/test_path_scrub.sh`
-**Commit:** a8a4dc0
-**Applied fix:** The `.exe` fixtures are `chmod 755`, the shared directory now holds all four
-compiler names, and a `farm_holds DIR` helper makes both gates assert directly that the farm
-directory contains no file or link named `bbjcpl`, `bbjcpl.exe`, `bbjcplw` or `bbjcplw.exe`
-(first PATH entry of the output), besides the `command -v` checks. Mutation check done as above.
-
-### IN-01: `no_compiler_path` turns an unset `IFS` into an empty `IFS`, and skips `..`-prefixed names
-
-**Disposition:** fixed
-**Files modified:** `tests/lib.sh`, `tests/test_path_scrub.sh`
-**Commit:** 7ba025a
-**Applied fix:** The helper records `${IFS+set}`, works with the default IFS value when it was
-unset, and runs `unset IFS` at the end. The farm glob gains `"$_ncp_abs"/..?*`. New gates:
-`pathscrub_unset_ifs_restored`, `pathscrub_dotdot_name_linked`.
-
-### IN-02: The PATH scrub of `test_tier2_fake.sh` has no load-bearing proof
-
-**Disposition:** fixed
-**Files modified:** `tests/test_path_scrub.sh`, `tests/test_tier2_fake.sh`
-**Commit:** 8be3be0
-**Applied fix:** The reviewer's plain `green`/`mutant` lines would not have worked: the file
-scrubs a hard-coded `/usr/bin:/bin`, which the fake compiler directory is not part of, so the
-mutant stayed green (I tried it). `test_tier2_fake.sh` now reads `TIER2_TEST_SYSPATH` (default
-`/usr/bin:/bin`); `test_path_scrub.sh` sets it to `$WORK/cplbin:/usr/bin:/bin` for the nested
-runs. New gates: `pathscrub_green_tier2_fake` and `pathscrub_mutation_tier2_fake` (the mutant
-turns `url_refused_remote_http` and others red).
-
-### IN-03: The hard-coded gate count `11` in `release_mut_later_repinned` is brittle
-
-**Disposition:** fixed
-**Files modified:** `tests/test_release_text_mutation.sh`
-**Commit:** e10b5fb
-**Applied fix:** The count of `^gate release_` lines of the unchanged copy is stored as
-`_nclean`; the re-pinned case requires `_nall = _nclean` (and `_nclean > 0`). The message prints
-the actual count.
-
-### IN-04: The gate-prefix list in `.claude/CLAUDE.md` contradicts its own rule and is not exact
-
-**Disposition:** fixed
-**Files modified:** `.claude/CLAUDE.md`
-**Commit:** e39b4bc
-**Applied fix:** The "one new prefix of its own" promise is replaced by the facts (`installer_`
-is printed by two files; `ci_` and `release_` are string prefixes of `ci_guard_` and
-`release_mut_`) and the advice to pick a prefix no existing gate name starts with.
-`tier2_syntax_only` is added to the `test_tier2_live.sh` entry, and `test_discovery.sh` is listed
-once (`order_` plus free-form names). The same sentence still exists in the generated
-`.planning/codebase/CONVENTIONS.md`; I left that analysis file alone.
-
-### IN-05: `home_diff` returns 1 with no output when `diff` itself fails
+### IN-02: Directory modes were not recorded; `readlink` is outside POSIX
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
-**Commit:** f475d95
-**Applied fix:** `home_diff` prints `home_diff: cannot compare A and B (...)` and returns 1 when
-a snapshot file is missing or unreadable or `diff` exits above 1. New gate:
-`homeguard_diff_missing_file`.
+**Commit:** 48a9d8e
+**Applied fix:** The `D` line is now `D <mode> <path>`, with the permission string from `ls -ld`, and the
+header says so. The classifier checks `command -v readlink` once and otherwise cuts the target from the
+`ls -ld` line with `sed "s/.* -> //"`, so retarget detection survives a missing `readlink`. New gate
+`homeguard_dir_chmod_detected` (755 to 700 on `bbj/`). The fallback was checked by hand with a PATH that
+holds only symlinks to `find`, `sh`, `sort`, `ls`, `awk`, `sed`, `cksum`, `cat`, `grep`, `head`, `tr`: the
+two retargeted snapshots printed different `L` lines.
 
-## Skipped Issues
+### IN-03: `TIER2_TEST_SYSPATH` was read from the ambient environment
 
-None.
+**Disposition:** fixed
+**Files modified:** `tests/test_path_scrub.sh`, `tests/run.sh`
+**Commit:** fc2a435
+**Applied fix:** Added `TIER2_TEST_SYSPATH` to the `unset` line at the top of `tests/test_path_scrub.sh`
+and an `unset TIER2_TEST_SYSPATH` at the top of `tests/run.sh` (with a comment), so a variable exported in
+the developer's shell reaches neither the nested runs nor `tests/test_tier2_fake.sh` under the runner.
+Checked by running `test_path_scrub.sh` with `TIER2_TEST_SYSPATH=/nonexistent` exported: all 19 gates ok.
+
+### IN-04: `homeguard_fifo_not_opened` left orphans on failure; `homeguard_unreadable_dir_reported` skipped as root
+
+**Disposition:** fixed
+**Files modified:** `tests/test_home_guard.sh`
+**Commit:** 2d23bf9
+**Applied fix:** Chose from the review's alternatives:
+- FIFO: on the failure path the test now opens the FIFO read-write once in a subshell
+  (`( exec 3<> "$H_C/bbj/pipe" )`), which does not block and releases a reader waiting in `open()` with an
+  EOF, then kills the background subshell. Checked by hand on a mutated copy of `lib.sh` that opens every
+  non-directory: the gate failed as designed and no `cksum` or `find` process was left behind.
+- Root: a second technique that works as root. New gate `homeguard_find_failure_reported` puts a fake
+  `find` that exits 1 first on PATH and requires an `E` line for each existing watched path. The
+  `chmod 000` gate keeps its `skip` as root, with a message pointing to the new gate, because the same
+  `E` contract is now covered there and a CI FAIL for being root would be a false alarm.
+
+## Verification
+
+Run in the main checkout (`/home/coder/repos/bbj-agent-plugins`, `workflow.use_worktrees` was off, no
+worktree). The numbers are reproducible from this tree.
+
+Per fix, before each commit:
+- `shellcheck -s sh tests/lib.sh tests/test_home_guard.sh` (plus `tests/test_install_codex.sh` for WR-02,
+  `tests/run.sh tests/test_path_scrub.sh` for IN-03): clean.
+- `sh`, `dash`, `bash` and `busybox sh` each ran `tests/test_home_guard.sh` after every fix touching it:
+  no failing gate.
+- `sh`, `dash`, `bash` and `busybox sh` each ran `tests/test_install_codex.sh` after WR-02: exit 0,
+  `real_home_untouched` ok.
+- `dash`, `bash` and `busybox sh` ran `tests/test_path_scrub.sh` after IN-03: no failing gate.
+
+After the last fix:
+- `shellcheck -s sh tests/*.sh tests/fake-bin/*`: no output.
+- `sh tests/run.sh`:
+
+```
+SUMMARY: ok=810 fail=0 skip=0
+```
+
+(803 before this round; 7 new `homeguard_` gates: `filelink_write_through_detected`,
+`filelink_untouched_same`, `incomplete_snapshot`, `incomplete_status`, `noglob_temp_detected`,
+`dir_chmod_detected`, `find_failure_reported`. No new gate prefix.)
+
+Nothing here ran BBj or touched the real `~/.codex` or `~/.agents`; every fixture lives under `$WORK` or
+the scratchpad. `.planning/config.json` and `.planning/state.json` were left alone and unstaged.
 
 ---
 
-_Fixed: 2026-10-13T04:02:19Z_
+_Fixed: 2026-10-13T06:40:25Z_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
