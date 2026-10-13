@@ -43,9 +43,8 @@ The plugin brings the docs server `bbj-docs` at `https://mcp.bbj-ai.com/mcp`, th
 does not bring `bbj-local`; see "Enable the local check (bbj-local)" below.
 
 Observed on Linux: `codex plugin marketplace add BBj-AI/bbj-agent-plugins` resolves and clones the
-default branch of the GitHub repository. That branch holds no Codex plugin files until this
-release is merged to it, so until then the shorthand would install the plugin without them, and
-without the docs server URL. Until this release is on GitHub, use a local checkout instead:
+default branch of the GitHub repository. To install from a local checkout instead, for example of
+another branch:
 
 ```bash
 codex plugin marketplace add /path/to/bbj-agent-plugins
@@ -134,7 +133,7 @@ Give the same `--codex-home DIR`, `--skills-dir DIR` and `--docs-url URL` as the
 used them. `--remove` removes only what the installer wrote, in the forms it writes them: the
 `bbj-docs` and `bbj-local` entries of `config.toml`, the two skill directories when identical to
 the shipped copies, the copied check script, and `hooks.json` when it holds only the installer's
-hook. It never calls `codex`, creates nothing, and a second run changes nothing. Exit codes: `0`
+hook. It never calls `codex`, creates no directory, and a second run changes nothing. Exit codes: `0`
 everything removed; `2` refused before anything was written (`--remove` with `--with-local` or
 `--force`, or a Codex home or destination that is not a directory you can write); `3` something was
 left in place because it differs from what the installer writes. The output names each object and
