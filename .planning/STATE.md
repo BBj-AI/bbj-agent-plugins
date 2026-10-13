@@ -2,20 +2,20 @@
 gsd_state_version: "1.0"
 milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
-current_phase: 09
-current_phase_name: Windows and macOS verification
-status: executing
-stopped_at: Completed 09-08-PLAN.md
-last_updated: "2026-10-13T23:04:51.399Z"
+current_phase: 10
+current_phase_name: Install wording and release 0.2.1
+status: planning
+stopped_at: Phase 09 complete, ready to plan Phase 10
+last_updated: "2026-10-13T23:20:04.003Z"
 last_activity: 2026-10-14
-last_activity_desc: Plan 09-06 complete
-state_head: e3aaa30ceebfcacb78670af9c0c776ff0eefb736
+last_activity_desc: Phase 09 complete, transitioned to Phase 10
+state_head: dc44ee4105f97093484ed0418bd5cf45290db82e
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 22
   completed_plans: 22
-  percent: 50
+  percent: 75
 ---
 
 # Project State
@@ -29,18 +29,18 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 
 ## Current Position
 
-Phase: 09 (Windows and macOS verification) — EXECUTING
-Plan: 8 of 8 (09-06 complete; next 09-07 macOS record)
-Status: Ready to execute plan 09-07
-Last activity: 2026-10-14 — plan 09-06 complete (Windows closed, macOS round 1 recorded)
+Phase: 10 — Install wording and release 0.2.1
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-13 — Phase 09 complete, transitioned to Phase 10
 
-Progress: [█████░░░░░] 50%
+Progress: [████████░░] 75%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 57
+- Total plans completed: 65
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -56,6 +56,7 @@ Progress: [█████░░░░░] 50%
 | 6 | 8 | - | - |
 | 07 | 6 | - | - |
 | 08 | 8 | - | - |
+| 09 | 8 | - | - |
 
 **Recent Trend:**
 
@@ -201,7 +202,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-13T23:04:51.306Z
-Stopped at: Completed 09-08-PLAN.md
+Stopped at: Phase 09 complete, ready to plan Phase 10
 Resume file: None
 
 ## Operator Next Steps

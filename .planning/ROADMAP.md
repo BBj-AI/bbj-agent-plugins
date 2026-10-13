@@ -64,7 +64,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 7: Test hardening and release prep** - Suite green with `bbjcpl` on `PATH` and a running Codex daemon; 0.2.0 review fixes in the release tree; CONTENT_VERSION policy decided (completed 2026-10-12)
 - [x] **Phase 8: Codex plugin route** - Codex installs `bbj` and the opt-in `bbj-local` from the `basis-bbj` marketplace with a working docs URL and the unchanged hook; installer kept as fallback; gated in CI on fakes (completed 2026-10-13)
-- [ ] **Phase 9: Windows and macOS verification** - Owner runs of the Claude Code plugin and the Codex plugin route on Windows and macOS; every defect fixed with a CI gate on fakes or recorded as a known gap
+- [x] **Phase 9: Windows and macOS verification** - Owner runs of the Claude Code plugin and the Codex plugin route on Windows and macOS; every defect fixed with a CI gate on fakes or recorded as a known gap (completed 2026-10-13)
 - [ ] **Phase 10: Install wording and release 0.2.1** - Per-client, per-platform, per-route wording backed by the recorded runs and pinned by gates; 0.2.1 merged, tagged and published
 
 ## Phase Details
@@ -159,7 +159,7 @@ Plans:
   4. On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook each give tier-1 `bbjcpl` feedback for a bad file and silence for a clean one (PLAT-05)
   5. The phase records each run (OS, client and version, BBj version, route, outcome). Every defect found is either fixed in the shipped hook (script or `hooks.json`), plugin files or installer with a regression gate that runs in CI on fakes, or recorded as a known gap. The Linux suite stays green (PLAT-06)
 
-**Plans**: 8/8 plans executed
+**Plans**: 8/8 plans complete
 
 Plans:
 **Wave 1**
@@ -215,5 +215,5 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 |-------|-----------|----------------|--------|-----------|
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 9. Windows and macOS verification | v0.2.1 | 8/8 | In Progress | - |
+| 9. Windows and macOS verification | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |
