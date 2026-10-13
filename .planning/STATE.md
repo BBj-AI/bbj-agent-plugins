@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 9
 current_phase_name: Windows and macOS verification
 status: executing
-stopped_at: "Phase 9 plan 09-05 Task 2: blocking-human decision checkpoint, owner answers W-1/W-2/W-3 with fix | fix-alt | gap | capture"
-last_updated: "2026-10-13T21:13:44.388Z"
+stopped_at: Completed 09-05-PLAN.md
+last_updated: "2026-10-13T21:29:09.618Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 9 execution started
-state_head: 8c38c81f9f0ae431b7224b2036dedcdc5c500a57
+state_head: 588000320fb68992f7834cabf90f5ddbf4410ba8
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 18
+  completed_plans: 19
   percent: 50
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 9 (Windows and macOS verification) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-10-13 — Phase 9 execution started
 
@@ -124,6 +124,7 @@ Progress: [█████░░░░░] 50%
 | Phase 09 P02 | 4 min | 2 tasks | 1 files |
 | Phase 09 P03 | 7 min | 2 tasks | 5 files |
 | Phase 09 P04 | 110 min | 3 tasks | 2 files |
+| Phase 09 P05 | 40min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,9 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 09]: 09-02: smoke.sh derives compiler/p_list/target only when the hook shell is bash; dash xtrace is unquoted so the raw compiler_call line is kept
 - [Phase 09]: Plan 09-03: check-records.sh enforces the one-directional summary rule (a summary met needs every section line met or fixed and re-run met); the first-other-verdict consolidation stays a convention stated in the record intro — Keeps the checker to the plan's contract so later plans' verify commands cannot trip on text-equality of summary lines
 - [Phase 09]: D-03 amended by the owner (09-04 Task 2): transfer is push. gsd/planning-setup is pushed to origin before each Phase 9 run round; main and tags are never touched and no push is forced. — The owner chose push in a blocking-human decision; a clone from GitHub cannot see local-only commits (smoke script, fixes), and every later round (Windows re-run, Mac) uses the same method.
+- [Phase 09]: 09-05: owner chose fix for W-1, W-2, W-3 (typed 'W-1 W-2 W3 fill all three', normalized to fix each)
+- [Phase 09]: 09-05 W-1: commandWindows C:\PROGRA~1\Git\bin\sh.exe + quoted script + '; exit $LASTEXITCODE' shipped as unverified candidate; Codex plugin installs re-ask hook trust after upgrade (Phase 10 must say)
+- [Phase 09]: 09-05 W-2/W-3: tier-2 curl connect timeout 5 s and codex_patch wpath_norm (verbatim prefix + backslashes) under WIN=1 only; both await plan 09-06 re-run
 
 ### Pending Todos
 
@@ -189,9 +193,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T21:13:44.312Z
-Stopped at: Phase 9 plan 09-05 Task 2: blocking-human decision checkpoint, owner answers W-1/W-2/W-3 with fix | fix-alt | gap | capture
-Resume file: .planning/phases/09-windows-and-macos-verification/09-05-PLAN.md
+Last session: 2026-10-13T21:29:09.541Z
+Stopped at: Completed 09-05-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
