@@ -155,12 +155,16 @@ run_check() {
 # farm under $WORK that links all of that directory's other entries, so sh, awk, curl and the
 # like stay reachable. Without WORK the directory is dropped. Clean directories keep their place
 # and text, empty entries are dropped, and the caller's IFS and noglob state are unchanged.
-# Always call it as PATH=$(no_compiler_path ...); only no-route tests use it (MAINT-06, D-11, D-12).
+# Always call it in a command substitution; only no-route tests use it (MAINT-06, D-11, D-12). If a
+# farm cannot be built (cd, mktemp or ln -s fails) it prints why on stderr, prints nothing on
+# stdout and returns 1, so the caller must check: _np=$(no_compiler_path) || { gate ... FAIL; finish; }
+# and only then PATH=$_np. An empty PATH would otherwise make a no-route gate pass on a dead hook.
 no_compiler_path() {
   _ncp_in=${1-$PATH}
   _ncp_ifs=$IFS
   case "$-" in *f*) _ncp_noglob=1 ;; *) _ncp_noglob=0 ;; esac
   _ncp_out=
+  _ncp_rc=0
   set -f
   IFS=:
   for _ncp_d in $_ncp_in; do
@@ -174,21 +178,29 @@ no_compiler_path() {
       continue
     fi
     [ -n "${WORK:-}" ] || continue
-    _ncp_abs=$(cd "$_ncp_d" 2> /dev/null && pwd) || continue
-    _ncp_farm=$(mktemp -d "$WORK/pathfarm.XXXXXX" 2> /dev/null) || continue
+    # a farm that cannot be built must not turn into a PATH without sh, awk or curl: no-route
+    # gates that assert silence would pass on a hook that cannot run at all. Fail loudly instead.
+    _ncp_abs=$(cd "$_ncp_d" 2> /dev/null && pwd) || { _ncp_rc=1; break; }
+    _ncp_farm=$(mktemp -d "$WORK/pathfarm.XXXXXX" 2> /dev/null) || { _ncp_rc=1; break; }
     IFS=$_ncp_ifs
     set +f
     for _ncp_e in "$_ncp_abs"/* "$_ncp_abs"/.[!.]*; do
       [ -e "$_ncp_e" ] || [ -L "$_ncp_e" ] || continue
-      ln -s "$_ncp_e" "$_ncp_farm/${_ncp_e##*/}" 2> /dev/null
+      ln -s "$_ncp_e" "$_ncp_farm/${_ncp_e##*/}" 2> /dev/null || { _ncp_rc=1; break; }
     done
     set -f
     IFS=:
+    [ "$_ncp_rc" = 0 ] || break
     rm -f "$_ncp_farm/bbjcpl" "$_ncp_farm/bbjcpl.exe" "$_ncp_farm/bbjcplw" "$_ncp_farm/bbjcplw.exe"
     _ncp_out=${_ncp_out:+$_ncp_out:}$_ncp_farm
   done
   IFS=$_ncp_ifs
   [ "$_ncp_noglob" = 1 ] || set +f
+  if [ "$_ncp_rc" != 0 ]; then
+    printf 'no_compiler_path: cannot build a tool farm for %s under %s (cd, mktemp or ln -s failed)\n' \
+      "$_ncp_d" "${WORK:-}" >&2
+    return 1
+  fi
   printf '%s' "$_ncp_out"
 }
 
