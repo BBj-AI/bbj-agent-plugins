@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-10-13T21:31:59.646Z",
+  "phase": "09",
+  "phase_name": "Windows and macOS verification",
+  "phase_dir": ".planning/phases/09-windows-and-macos-verification",
+  "plan": 6,
+  "task": 1,
+  "total_tasks": 3,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": "09-01", "name": "FAKE_CYGDRIVE_ROOT seam and nine windows_* gates", "status": "done", "commit": "ec8302a"},
+    {"id": "09-02", "name": "platform-run/smoke.sh owner smoke driver", "status": "done", "commit": "abf65bb"},
+    {"id": "09-03", "name": "check-records.sh, record skeletons, Windows and macOS runbooks", "status": "done", "commit": "5c2d028"},
+    {"id": "09-04", "name": "Linux dry run, owner transfer decision (push, D-03 amended), Windows round-1 reply recorded", "status": "done", "commit": "09ffd8c"},
+    {"id": "09-05", "name": "Windows record sections, spike 005 answers, owner decisions fix/fix/fix, three fixes with gates", "status": "done", "commit": "eaf258d"}
+  ],
+  "remaining_tasks": [
+    {"id": "09-06", "name": "Wave 4: Windows re-run of the fixed routes (round 2) and the macOS owner pass; blocking-human checkpoints", "status": "not_started"},
+    {"id": "09-07", "name": "Wave 5: macOS record, fix-or-gap per macOS defect, chosen fixes", "status": "not_started"},
+    {"id": "09-08", "name": "Wave 6: macOS re-run if a fix shipped, final record checks, scope-fence check, phase close", "status": "not_started"}
+  ],
+  "blockers": [
+    {"description": "Plan 09-06 needs the owner on the Windows machine (round-2 re-run of Codex plugin route, Claude Code, no-route smoke on the fixed commit) and on the Mac with BBj + bbjcpl installed", "type": "human_action", "workaround": "none; the runs are the phase's evidence"}
+  ],
+  "async_jobs": [],
+  "human_actions_pending": [
+    {"action": "Windows round 2: pull origin/gsd/planning-setup on the Windows checkout (transfer method is push; the branch must be pushed first, it is 15 commits ahead of origin at pause), re-install/upgrade the bbj plugin in Codex and Claude Code, re-trust the hook in Codex /hooks (commandWindows changed the hook hash), re-run X1-X3, P1-P3 and smoke noroute, paste the round-2 reply", "context": "09-05 verdicts for PLAT-03, PLAT-04 (no-route smoke) and PLAT-06 read 'defect, fix pending re-run'", "blocking": true},
+    {"action": "macOS pass per platform-run/macos-runbook.md M0-M8 (BBj with bbjcpl must be installed on the Mac first)", "context": "PLAT-05", "blocking": true}
+  ],
+  "decisions": [
+    {"decision": "transfer: push — D-03 amended 2026-10-13 by the owner (plan 09-04 Task 2); gsd/planning-setup is pushed before each owner round, never main, never a tag, never forced", "rationale": "GitHub was 37 commits behind; the owner chose push over bundle/direct", "phase": "09"},
+    {"decision": "W-1 fix: commandWindows added to plugins/bbj/hooks/hooks.json: C:\\PROGRA~1\\Git\\bin\\sh.exe \"${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh\"; exit $LASTEXITCODE (candidate until the 09-06 re-run); existing Codex plugin installs must re-trust the hook; Phase 10 must say so", "rationale": "Codex on Windows launches hooks through powershell; sh is not on its PATH and exit 2 is rewritten to 1", "phase": "09"},
+    {"decision": "W-2 fix: tier-2 curl --connect-timeout 5 s under WIN=1 (1 s elsewhere); gate pins the argument only", "rationale": "No-route notice never fired on Windows; hypothesis: closed loopback port reports refused only after ~2 s (exit 28, not 7); unconfirmed until the round-2 noroute smoke", "phase": "09"},
+    {"decision": "W-3 fix: wpath_norm in codex_patch strips one \\\\?\\ or //?/ prefix and converts backslashes before the containment and .. checks (Windows branch only)", "rationale": "Smoke codex_verbatim case was silently skipped; Codex produces the \\\\?\\ form on Windows", "phase": "09"},
+    {"decision": "Executors run sequentially on the main tree (isolation none) for this phase; the dispatch-isolation sentinel must be re-recorded per plan with --phase 09 --plan 09-NN --force-isolation none before each Agent() dispatch", "rationale": "HEAD is ahead of origin/HEAD so the worktree base-check degrades the run; executors that run dispatch-isolation themselves overwrite the sentinel", "phase": "09"},
+    {"decision": "Executor prompts list the contract files (execute-plan.md, git-integration.md, summary.md, checkpoints.md, executor-examples.md, tdd.md when applicable) as mandatory absolute-path Reads instead of inlining ~130 KB per dispatch", "rationale": "context-budget rule 2 vs the inline-embed note; executors have Read", "phase": "09"}
+  ],
+  "uncommitted_files": [" M .planning/config.json", "?? .planning/milestone.lock", "?? .planning/state.json"],
+  "next_action": "Run /gsd-execute-phase 9 (auto-chain flag is set in config; it resumes at plan 09-06, Wave 4). Before dispatching 09-06: push gsd/planning-setup to origin (owner-authorized transfer method; 15 commits ahead at pause), re-record the sentinel (dispatch-isolation --phase 09 --plan 09-06 --force-isolation none), then dispatch gsd-executor sequentially; it stops at the first blocking-human checkpoint (Windows round-2 runbook with the new sha), which the orchestrator presents to the owner.",
+  "context_notes": "Waves 1-3 of 6 complete (5/8 plans). Suite at pause: ok=921 fail=0 skip=0 (913 before 09-05). Windows record 09-WINDOWS-RUN.md: PLAT-01 met, PLAT-02 met, PLAT-03/04(no-route smoke)/06 'defect, fix pending re-run', PLAT-04 bbj-local + tier2 met after the owner's amendment (BBjServices started after W7). Spike 005 answers recorded (unknown-sh: no; unknown-commandWindows: pending re-run; unknown-plugin-root: backslash drive path, sh acceptance unknown). Owner's amended round-1 reply is in scratchpad windows-round1-reply-amended.txt and in the record. The owner wrote 'W-1 W-2 W3 fill all three', normalized to fix for each. Key-links checks for 09-04/09-05 report 'source file not found' because the plans' from: fields are prose, advisory only. The post-merge test gate is sh tests/run.sh (no Makefile/package.json at root); bash -c wrappers with rm inside trip the Claude Code safety check, run the script directly."
+}
