@@ -24,6 +24,10 @@ The docs server URL is the plugin option `docs_url` (default: the pre-production
 names the BBj installation for the check hook; left empty, the hook looks at `BBJ_HOME`,
 `BBJHOME`, `PATH` and the usual install locations.
 
+The docs server asks for a one-time OAuth sign-in. The plugin and the Codex installer configure
+the pre-registered client for it (callback port 47613); sign in with `/mcp` in Claude Code or
+`codex mcp login bbj-docs` in Codex.
+
 Install pages, one per client:
 
 - [Claude Code](docs/install-claude-code.md): setup, options, check routes, what is not covered,

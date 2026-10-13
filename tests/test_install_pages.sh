@@ -16,6 +16,8 @@
 #   - the no-route notice wording (plan 02-03, HOOK-02): "once per session" on README, both pages and the
 #     installer, "not compile-checked" on both pages, and the old claim that the hook stays silent when
 #     no check route exists is forbidden on all four (NOROUTE_SILENCE),
+#   - the OAuth sign-in of bbj-docs (quick 261013-cpn): port 47613 and the sign-in steps on both pages,
+#     and the installer messages the Codex page quotes about the OAuth table.
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
 
 . "$(dirname "$0")/lib.sh"
@@ -91,7 +93,10 @@ if [ -f "$CLAUDE_PAGE" ]; then
     '## 3. Enable the local check' \
     'claude plugin enable bbj-local@basis-bbj' \
     'once per session' \
-    'not compile-checked'
+    'not compile-checked' \
+    '47613' \
+    'Needs authentication' \
+    'oauth.clientId'
   do
     need "$n" "$CLAUDE_PAGE" "$p"
   done
@@ -188,7 +193,11 @@ if [ -f "$CODEX_PAGE" ]; then
     'BBJ_LOCAL_MCP_URL' \
     'tools/list' \
     'once per session' \
-    'not compile-checked'
+    'not compile-checked' \
+    '[mcp_servers.bbj-docs.oauth]' \
+    'callback_port = 47613' \
+    'http://localhost:47613/callback' \
+    'codex mcp login bbj-docs'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
@@ -218,12 +227,14 @@ if [ -f "$CODEX_PAGE" ]; then
     'not probed: curl not found' \
     'is not a loopback http URL' \
     'registering it anyway' \
-    'already registered in'
+    'already registered in' \
+    'added the OAuth client to' \
+    'OAuth settings of its own'
   do
     grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
     grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
   done
-  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "six quoted fragments, each on the page and on a non-comment installer line"
+  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "eight quoted fragments, each on the page and on a non-comment installer line"
 fi
 
 # ---- README: the local check, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
