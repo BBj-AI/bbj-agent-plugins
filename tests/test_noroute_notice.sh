@@ -202,6 +202,77 @@ else
   gate notice_codex_plugin_route_no_other_steps FAIL "no valid notice object"
 fi
 
+# route_run ROOT PAYLOAD: one hook call in a fresh session with CLAUDE_PLUGIN_ROOT exported as ROOT,
+# then unset again. Set, export, call and unset are separate statements: a prefix assignment before a
+# shell function persists in dash (Pitfall 4). Sets RTEXT (the notice text) and RNR (notice_text's
+# status, 0 only for the one valid object).
+route_run() {
+  CLAUDE_PLUGIN_ROOT=$1
+  export CLAUDE_PLUGIN_ROOT
+  fresh_state
+  run_check "$2"
+  unset CLAUDE_PLUGIN_ROOT
+  RTEXT=$(notice_text "$WORK/stdout")
+  RNR=$?
+}
+
+CODEX_ADD=$(codex_payload "$CPROJ" "$(patch '*** Add File: a.bbj' '+print "a"')")
+
+# installer route (D-08): the variable is unset, the 0.2.0 wording stays
+fresh_state
+run_check "$CODEX_ADD"
+RTEXT=$(notice_text "$WORK/stdout")
+_nr=$?
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ] \
+  && printf '%s' "$RTEXT" | grep -F 'rerun install-codex.sh --with-local' > /dev/null \
+  && printf '%s' "$RTEXT" | grep -F 'bbjcpl on PATH' > /dev/null \
+  && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null \
+  && ! printf '%s' "$RTEXT" | grep -F 'enable the bbj-local@basis-bbj plugin' > /dev/null; then
+  gate notice_codex_installer_route ok "unset CLAUDE_PLUGIN_ROOT gives the install-codex.sh wording"
+else
+  gate notice_codex_installer_route FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
+fi
+
+# Claude Code keeps its wording, also with the variable set as Claude Code sets it for a plugin hook
+route_run "$WORK/plug" "$(claude_payload Write "$FILE" "$WORK/proj")"
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$RNR" = 0 ] \
+  && printf '%s' "$RTEXT" | grep -F 'enable the bbj-local@basis-bbj plugin' > /dev/null \
+  && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null \
+  && ! printf '%s' "$RTEXT" | grep -F 'install-codex.sh' > /dev/null; then
+  gate notice_claude_route_command ok "Claude Code text with CLAUDE_PLUGIN_ROOT set"
+else
+  gate notice_claude_route_command FAIL "exit $RC, notice_text $RNR: $(head -c 160 "$WORK/stdout")"
+fi
+
+# CODEX-03 edge (empty input): exported but empty counts as unset
+route_run '' "$CODEX_ADD"
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$RNR" = 0 ] \
+  && printf '%s' "$RTEXT" | grep -F 'rerun install-codex.sh --with-local' > /dev/null \
+  && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null; then
+  gate notice_codex_empty_root ok "empty CLAUDE_PLUGIN_ROOT gives the installer wording"
+else
+  gate notice_codex_empty_root FAIL "exit $RC, notice_text $RNR: $(head -c 160 "$WORK/stdout")"
+fi
+
+# CODEX-03 edge (encoding, T-08-05): a root with a quote, a backslash, a space and UTF-8 bytes is
+# only tested, never printed. $WORK itself is not a forbidden fragment: the notice names the patched
+# file, which lives under $WORK; the unique directory below and the hostile characters are the proof.
+_u=$(printf '\303\274')
+route_run "$WORK/rootmark/hq\"x\\y z$_u" "$CODEX_ADD"
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$RNR" = 0 ] \
+  && printf '%s' "$RTEXT" | grep -F 'codex plugin add bbj-local@basis-bbj' > /dev/null; then
+  holds_none notice_codex_plugin_root_not_printed "$RTEXT" 'rootmark' "$WORK/rootmark" 'hq"x' 'x\y' "$_u"
+else
+  gate notice_codex_plugin_root_not_printed FAIL "exit $RC, notice_text $RNR: $(head -c 160 "$WORK/stdout")"
+fi
+
+# none of the route gates leaves the variable set in this shell
+if [ -z "${CLAUDE_PLUGIN_ROOT+x}" ]; then
+  gate notice_plugin_root_restored ok "CLAUDE_PLUGIN_ROOT is unset after the route gates"
+else
+  gate notice_plugin_root_restored FAIL "CLAUDE_PLUGIN_ROOT is still set"
+fi
+
 fresh_state
 run_check "$(claude_payload Edit "$FILE" "$WORK/proj")"
 ETEXT=$(notice_text "$WORK/stdout")
