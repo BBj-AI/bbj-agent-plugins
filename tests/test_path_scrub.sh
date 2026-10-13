@@ -217,4 +217,28 @@ else
   gate pathscrub_shell_state_restored FAIL "ifs_ok=$_ifs_ok globbing_on=$_glob_off noglob_kept=$_glob_kept"
 fi
 
+# an unset IFS stays unset (not turned into an empty one) after a direct call
+_ifs_unset=$(
+  unset IFS
+  no_compiler_path "$U/cpl:$U/clean" > "$WORK/unset_ifs.out"
+  printf '%s' "${IFS+set}"
+)
+if [ -z "$_ifs_unset" ]; then
+  gate pathscrub_unset_ifs_restored ok "IFS is still unset after the call"
+else
+  gate pathscrub_unset_ifs_restored FAIL "IFS is set (to an empty or other value) after the call"
+fi
+
+# entries whose names start with two dots reach the farm
+mkdir -p "$U/dots"
+cp "$WORK/cplbin/bbjcpl" "$U/dots/bbjcpl"
+printf '#!/bin/sh\nexit 0\n' > "$U/dots/..dd"
+chmod 755 "$U/dots/..dd"
+_out=$(no_compiler_path "$U/dots")
+if [ -e "${_out%%:*}/..dd" ] || [ -L "${_out%%:*}/..dd" ]; then
+  gate pathscrub_dotdot_name_linked ok "..dd is in the farm"
+else
+  gate pathscrub_dotdot_name_linked FAIL "..dd is missing from ${_out%%:*}"
+fi
+
 finish

@@ -161,7 +161,15 @@ run_check() {
 # and only then PATH=$_np. An empty PATH would otherwise make a no-route gate pass on a dead hook.
 no_compiler_path() {
   _ncp_in=${1-$PATH}
-  _ncp_ifs=$IFS
+  # an unset IFS stays unset: it is restored by unset, not by an assignment of the default value
+  if [ "${IFS+set}" = set ]; then
+    _ncp_ifs=$IFS
+    _ncp_ifs_was_set=1
+  else
+    _ncp_ifs=$(printf ' \t\nx')
+    _ncp_ifs=${_ncp_ifs%x}
+    _ncp_ifs_was_set=0
+  fi
   case "$-" in *f*) _ncp_noglob=1 ;; *) _ncp_noglob=0 ;; esac
   _ncp_out=
   _ncp_rc=0
@@ -184,7 +192,7 @@ no_compiler_path() {
     _ncp_farm=$(mktemp -d "$WORK/pathfarm.XXXXXX" 2> /dev/null) || { _ncp_rc=1; break; }
     IFS=$_ncp_ifs
     set +f
-    for _ncp_e in "$_ncp_abs"/* "$_ncp_abs"/.[!.]*; do
+    for _ncp_e in "$_ncp_abs"/* "$_ncp_abs"/.[!.]* "$_ncp_abs"/..?*; do
       [ -e "$_ncp_e" ] || [ -L "$_ncp_e" ] || continue
       ln -s "$_ncp_e" "$_ncp_farm/${_ncp_e##*/}" 2> /dev/null || { _ncp_rc=1; break; }
     done
@@ -195,6 +203,7 @@ no_compiler_path() {
     _ncp_out=${_ncp_out:+$_ncp_out:}$_ncp_farm
   done
   IFS=$_ncp_ifs
+  [ "$_ncp_ifs_was_set" = 1 ] || unset IFS
   [ "$_ncp_noglob" = 1 ] || set +f
   if [ "$_ncp_rc" != 0 ]; then
     printf 'no_compiler_path: cannot build a tool farm for %s under %s (cd, mktemp or ln -s failed)\n' \
