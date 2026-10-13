@@ -44,8 +44,9 @@
 # exits 0 and writes ONE line to stdout, the only stdout write of the script:
 #     {"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"<text>"}}
 # The text names the files that were written but not compile-checked, the reasons (D-09),
-# that later BBj files of the session are not checked either, how to enable a check (two
-# texts, by tool_name: D-06), the hosted check as the agent's fallback with its disclosure
+# that later BBj files of the session are not checked either, how to enable a check (three
+# texts: by tool_name, D-06, and for apply_patch by whether CLAUDE_PLUGIN_ROOT is non-empty, the
+# Codex plugin route or the install-codex.sh route: D-07, D-08 of phase 8), the hosted check as the agent's fallback with its disclosure
 # (D-08: it sends the code to a server, so the user must be told; the hook itself never calls
 # it and the text names no address), and asks the agent to tell the user (D-07). It is its own
 # message class and never uses the error header above (D-12). File names are reduced to
@@ -124,6 +125,8 @@
 # launcher bbjcpl finds its BBj home from its own path, so a symlink to it breaks: symlinks
 # are resolved and the real path is called. BBJ_CHECK_STATE_DIR (default ${TMPDIR:-/tmp}) is
 # the directory of the notice's once-per-session marker, a test seam (D-18).
+# CLAUDE_PLUGIN_ROOT (set by Claude Code and by the Codex plugin route, absent on the install-codex.sh
+# route) is read only to choose the notice's enable step; it is never printed.
 # With Git for Windows (cygpath on PATH) paths are converted: the compiler and -P get
 # Windows paths and the -P list is joined with ";".
 # Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname, tr, mkdir.
@@ -212,9 +215,17 @@ notice() {
   fi
   _later='Later BBj files in this session are not checked either unless a check is enabled'
   if [ "$_fresh" = 1 ]; then _later="$_later, and this notice is not repeated"; fi
-  # the enable steps are the only text that differs by tool (D-06)
+  # the enable steps differ by tool (D-06 of phase 2) and, for apply_patch, by route: Codex sets
+  # CLAUDE_PLUGIN_ROOT for a plugin hook, the installer's hooks.json sets nothing (D-07, D-08 of
+  # phase 8). The variable is only tested for non-empty, never printed or interpolated.
   case "$1" in
-    apply_patch) _how='To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or rerun install-codex.sh --with-local (BBjServices 26.03+ running on this machine).' ;;
+    apply_patch)
+      if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+        _how='To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or run codex plugin add bbj-local@basis-bbj (BBjServices 26.03+ running on this machine).'
+      else
+        _how='To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or rerun install-codex.sh --with-local (BBjServices 26.03+ running on this machine).'
+      fi
+      ;;
     *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or enable the bbj-local@basis-bbj plugin (BBjServices 26.03+ running on this machine).' ;;
   esac
   _txt="$_files $_were written but not compile-checked: $_why1; $_why2. $_later. $_how"
