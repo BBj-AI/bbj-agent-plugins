@@ -248,6 +248,10 @@ home_snapshot() {
   _hs_s=$2
   # D-08: the paths codex/install-codex.sh can write; Phase 8 adds its plugin-route paths here
   {
+    # the temp-file globs below need globbing: noglob from the caller is lifted here and put back
+    # at the end of the block, so leaked temp files are never silently unwatched (IN-01)
+    case "$-" in *f*) _hs_nf=1 ;; *) _hs_nf=0 ;; esac
+    set +f
     for _hs_d in "$_hs_c" "$_hs_s"; do
       if [ -d "$_hs_d" ]; then printf 'H %s present\n' "$_hs_d"; else printf 'H %s absent\n' "$_hs_d"; fi
     done
@@ -282,6 +286,7 @@ home_snapshot() {
         printf -- '- %s\n' "$_hs_p"
       fi
     done
+    [ "$_hs_nf" = 0 ] || set -f
   } | LC_ALL=C sort
 }
 
