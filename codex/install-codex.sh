@@ -1062,6 +1062,11 @@ remove_all() {
       pending=1
     elif [ ! -e "$dst" ]; then
       say "skill $s: $dst not found; nothing to remove"
+    elif [ -d "$dst" ] && [ "$(cd "$dst" 2> /dev/null && pwd -P)" = "$(cd "$src_skills/$s" 2> /dev/null && pwd -P)" ]; then
+      # WR-01: --skills-dir that reaches this checkout's own skills (directly or through a symlinked parent) is
+      # trivially identical to itself; deleting it would delete the source
+      say "skill $s: $dst is the shipped directory of this checkout; left in place"
+      pending=1
     elif [ -d "$dst" ] && diff -r "$src_skills/$s" "$dst" > /dev/null 2>&1; then
       [ -n "$skills_dir" ] && rm -rf -- "$dst" || refuse "cannot remove $dst"
       wrote="$wrote skill:$s"
