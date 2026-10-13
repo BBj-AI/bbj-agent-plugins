@@ -20,8 +20,19 @@
 #     environment, never through a command-line variable, which would read the backslash sequences
 #     of C:\Users as escapes.
 #
-# Usage: sh smoke.sh claude
-#   claude is the only subcommand so far; the others are added by Task 2 of the plan.
+# Usage: sh smoke.sh claude | codex | tier2 | noroute | emit DIR
+#   claude    Claude Code Write and Edit payloads in the client's path form, a project path with a
+#             space, and the hooks.json command string run with the plugin root in each form
+#             (PLAT-01, PLAT-02); discovery source: the bbj_home option (D-04)
+#   codex     Codex apply_patch payloads in the path forms Codex might send (PLAT-03, PLAT-05);
+#             discovery source: BBJ_HOME, or PATH when no home is given (D-04)
+#   tier2     every compiler route off, loopback bbj-ls as the only route: outcome feedback, silent,
+#             notice or other for a bad and a clean file (PLAT-04, D-14)
+#   noroute   every route off: the once-per-session notice, its claim file, and that a second call
+#             stays silent (D-16)
+#   emit DIR  writes claude-bad.json, claude-clean.json and codex-bad.json (and the files they name)
+#             into DIR for the PowerShell probes of the Windows runbook; refuses a DIR that exists
+#             and is not empty
 #
 # Inputs (environment):
 #   SMOKE_BBJ_HOME   BBj installation directory given to the hook (default: the plugin option
@@ -171,12 +182,22 @@ header() {
   } | scrub
 }
 
-# mkproj DIR: DIR/sub/bad.bbj (the real compiler reports "error at line 10 (1)") and
-# DIR/sub/clean.bbj; the two fixtures of tests/test_real_compiler.sh.
+# The two fixtures of tests/test_real_compiler.sh: the real compiler reports "error at line 10 (1)"
+# for the first and nothing for the second.
+BAD_LINE='print "a"   rem same line'
+CLEAN_LINE='print "a"; rem ok'
+
+# mkproj DIR: DIR/sub/bad.bbj and DIR/sub/clean.bbj
 mkproj() {
   mkdir -p "$1/sub" || return 1
-  printf '%s\n' 'print "a"   rem same line' > "$1/sub/bad.bbj"
-  printf '%s\n' 'print "a"; rem ok' > "$1/sub/clean.bbj"
+  printf '%s\n' "$BAD_LINE" > "$1/sub/bad.bbj"
+  printf '%s\n' "$CLEAN_LINE" > "$1/sub/clean.bbj"
+}
+
+# ptext HEADER-PATH [CONTENT]: an apply_patch text that adds HEADER-PATH with one line of CONTENT
+# (default the bad line); lines joined by newlines, no trailing newline.
+ptext() {
+  printf '*** Begin Patch\n*** Add File: %s\n+%s\n*** End Patch' "$1" "${2-$BAD_LINE}"
 }
 
 # tokens: stdin is one xtrace line; prints one argument per line. Single quotes group (and are
@@ -197,6 +218,11 @@ tokens() {
     }'
 }
 
+# CASE_NOTE (a note line for the next block) and WANT_OUTCOME (1 adds the tier-2 outcome key) are
+# globals of case_run; case_run resets CASE_NOTE after it prints it.
+CASE_NOTE=
+WANT_OUTCOME=0
+
 # case_run NAME FILE-AS-SENT CWD-AS-SENT PAYLOAD: one result block (D-01). The first run gives the
 # verdict (exit code, stdout, stderr). The second run of the same unmodified hook under sh -x only
 # reads the compiler call from the trace, so the compiler path is the real discovery result.
@@ -210,6 +236,16 @@ case_run() {
     *) _dn=no ;;
   esac
   _bytes=$(wc -c < "$WORK/stdout" | tr -d ' ')
+  _ebytes=$(wc -c < "$WORK/stderr" | tr -d ' ')
+  if [ "$RC" = 2 ] && [ "${_first#bbj-local reported}" != "$_first" ]; then
+    _out=feedback
+  elif [ "$RC" = 0 ] && [ "$_bytes" = 0 ] && [ "$_ebytes" = 0 ]; then
+    _out=silent
+  elif [ "$RC" = 0 ] && [ "$_bytes" != 0 ]; then
+    _out=notice
+  else
+    _out=other
+  fi
   {
     kv case "$1"
     kv file_as_sent "$2"
@@ -240,8 +276,11 @@ case_run() {
     kv exit "$RC"
     kv stdout_bytes "$_bytes"
     kv first_feedback_line "${_first:-none}"
+    if [ "$WANT_OUTCOME" = 1 ]; then kv outcome "$_out"; fi
+    if [ -n "$CASE_NOTE" ]; then kv note "$CASE_NOTE"; fi
     echo
   } | scrub
+  CASE_NOTE=
   cp "$WORK/payload" "$WORK/payload.$1"
 }
 
@@ -308,14 +347,179 @@ sub_claude() {
   fi
 }
 
+# codex: Codex apply_patch payloads (PLAT-03, PLAT-05). What Codex sends on Windows is undocumented
+# (RESEARCH Pitfall 2), so every plausible path form is tried and the hook's answer is shown.
+sub_codex() {
+  header codex
+  mkproj "$WORK/cx" || return 1
+  unset CLAUDE_PLUGIN_OPTION_BBJ_HOME
+  # Codex's discovery source is BBJ_HOME, or PATH when no home is given (D-04)
+  if [ -n "$KEEP_HOME" ]; then
+    BBJ_HOME=$KEEP_HOME
+    export BBJ_HOME
+  fi
+  # the Codex plugin route sets CLAUDE_PLUGIN_ROOT for its hook
+  CLAUDE_PLUGIN_ROOT=$ROOT
+  export CLAUDE_PLUGIN_ROOT
+  unset CLAUDE_PROJECT_DIR
+
+  _cx=$WORK/cx
+  if [ "$WIN" = 1 ]; then
+    _hp=$(w "$_cx/sub/bad.bbj")
+    _wc=$(w "$_cx")
+    case_run codex_abs_backslash "$_hp" "$_wc" "$(codex_payload "$_wc" "$(ptext "$_hp")")"
+    _hp=$(m "$_cx/sub/bad.bbj")
+    _mc=$(m "$_cx")
+    case_run codex_abs_fwd "$_hp" "$_mc" "$(codex_payload "$_mc" "$(ptext "$_hp")")"
+    _hp='sub/bad.bbj'
+    case_run codex_rel_fwd "$_hp" "$_wc" "$(codex_payload "$_wc" "$(ptext "$_hp")")"
+    _hp='sub\bad.bbj'
+    case_run codex_rel_backslash "$_hp" "$_wc" "$(codex_payload "$_wc" "$(ptext "$_hp")")"
+    _vc='\\?\'$_wc
+    _hp='\\?\'$(w "$_cx/sub/bad.bbj")
+    CASE_NOTE='informational (RESEARCH Pitfall 2)'
+    case_run codex_verbatim "$_hp" "$_vc" "$(codex_payload "$_vc" "$(ptext "$_hp")")"
+    _hp='sub/clean.bbj'
+    case_run codex_clean "$_hp" "$_wc" "$(codex_payload "$_wc" "$(ptext "$_hp" "$CLEAN_LINE")")"
+  else
+    _hp=$_cx/sub/bad.bbj
+    case_run codex_abs "$_hp" "$_cx" "$(codex_payload "$_cx" "$(ptext "$_hp")")"
+    _hp='sub/bad.bbj'
+    case_run codex_rel "$_hp" "$_cx" "$(codex_payload "$_cx" "$(ptext "$_hp")")"
+    _hp='sub/clean.bbj'
+    case_run codex_clean "$_hp" "$_cx" "$(codex_payload "$_cx" "$(ptext "$_hp" "$CLEAN_LINE")")"
+  fi
+}
+
+# no_route_setup NAME: the set-up tier2 and noroute share. Every compiler route off: the caller's
+# BBj variables are cleared, the PATH loses every directory that holds a compiler (a farm of links,
+# RESEARCH Pitfall 8). Returns 1 after printing a "not run" line when the farm cannot be built (an
+# empty PATH would make the run meaningless) or a compiler is still found.
+no_route_setup() {
+  no_compiler_env
+  _np=$(no_compiler_path 2> "$WORK/np_err")
+  if [ $? -ne 0 ]; then
+    printf '%s: not run (cannot build the PATH farm: %s)\n' "$1" "$(head -n 1 "$WORK/np_err")" | scrub
+    return 1
+  fi
+  PATH=$_np
+  export PATH
+  if command -v bbjcpl > /dev/null 2>&1 || command -v bbjcplw > /dev/null 2>&1; then
+    printf '%s: not run (a compiler is still on PATH)\n' "$1"
+    return 1
+  fi
+  CLAUDE_PLUGIN_ROOT=$(m "$ROOT")
+  export CLAUDE_PLUGIN_ROOT
+  unset CLAUDE_PROJECT_DIR
+  kv bbj_home_used 'none (every compiler route is off for this subcommand)' | scrub
+  return 0
+}
+
+# tier2: the loopback bbj-ls check as the only route (D-14, PLAT-04).
+sub_tier2() {
+  header tier2
+  no_route_setup tier2 || return 0
+  BBJ_LOCAL_MCP_URL=${SMOKE_LOCAL_URL:-http://127.0.0.1:5009/mcp}
+  export BBJ_LOCAL_MCP_URL
+  {
+    kv curl "$(command -v curl 2> /dev/null || echo none)"
+    kv bbj_local_url "$BBJ_LOCAL_MCP_URL"
+    echo
+  } | scrub
+  mkproj "$WORK/t2" || return 1
+  WANT_OUTCOME=1
+  _wc=$(w "$WORK/t2")
+  _wf=$(w "$WORK/t2/sub/bad.bbj")
+  fresh_state
+  case_run tier2_bad "$_wf" "$_wc" "$(claude_payload Write "$_wf" "$_wc")"
+  _wf=$(w "$WORK/t2/sub/clean.bbj")
+  fresh_state
+  case_run tier2_clean "$_wf" "$_wc" "$(claude_payload Write "$_wf" "$_wc")"
+  WANT_OUTCOME=0
+}
+
+# noroute: no route at all; the notice appears on the first call of a session only, and leaves
+# a claim file under the state directory (D-16).
+sub_noroute() {
+  header noroute
+  no_route_setup noroute || return 0
+  BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp
+  export BBJ_LOCAL_MCP_URL
+  fresh_state
+  mkproj "$WORK/nr" || return 1
+  _wc=$(w "$WORK/nr")
+  _wf=$(w "$WORK/nr/sub/bad.bbj")
+  _pl=$(claude_payload Write "$_wf" "$_wc")
+  _pfx='{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"'
+  {
+    kv state_dir "$(w "$BBJ_CHECK_STATE_DIR")"
+    run_check "$_pl"
+    kv exit_first "$RC"
+    _line=$(head -n 1 "$WORK/stdout")
+    _nl=$(wc -l < "$WORK/stdout" | tr -d ' ')
+    if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nl" = 1 ] && [ "${_line#"$_pfx"}" != "$_line" ]; then
+      kv notice_first present
+    else
+      kv notice_first absent
+    fi
+    _ctx=${_line#"$_pfx"}
+    kv notice_excerpt "$(printf '%s' "$_ctx" | head -c 160)"
+    _claim=absent
+    for _c in "$BBJ_CHECK_STATE_DIR"/bbj-check-noroute-*/claim; do
+      if [ -f "$_c" ]; then _claim=present; fi
+    done
+    kv claim_file "$_claim"
+    run_check "$_pl"
+    kv exit_second "$RC"
+    if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+      kv notice_second absent
+    else
+      kv notice_second present
+    fi
+    echo
+  } | scrub
+}
+
+# emit DIR: payload files for the PowerShell probes (input of the Windows runbook).
+sub_emit() {
+  if [ -z "${1:-}" ]; then usage; fi
+  if [ -e "$1" ] && { [ ! -d "$1" ] || [ -n "$(ls -A "$1" 2> /dev/null)" ]; }; then
+    printf 'emit: refused (%s is not empty)\n' "$1" | scrub >&2
+    exit 2
+  fi
+  mkdir -p "$1" || exit 2
+  _d=$(cd "$1" && pwd)
+  mkproj "$_d/proj" || return 1
+  header emit
+  _wc=$(w "$_d/proj")
+  _wf=$(w "$_d/proj/sub/bad.bbj")
+  claude_payload Write "$_wf" "$_wc" > "$_d/claude-bad.json"
+  _wf=$(w "$_d/proj/sub/clean.bbj")
+  claude_payload Write "$_wf" "$_wc" > "$_d/claude-clean.json"
+  codex_payload "$_wc" "$(ptext 'sub/bad.bbj')" > "$_d/codex-bad.json"
+  {
+    kv emit_dir "$(w "$_d")"
+    kv emit_file claude-bad.json
+    kv emit_file claude-clean.json
+    kv emit_file codex-bad.json
+    kv probe_script_forward "$(m "$SCRIPT")"
+    kv probe_script_backslash "$(w "$SCRIPT")"
+    echo
+  } | scrub
+}
+
 usage() {
-  echo 'usage: sh smoke.sh claude' >&2
+  echo 'usage: sh smoke.sh claude | codex | tier2 | noroute | emit DIR' >&2
   exit 2
 }
 
 [ $# -ge 1 ] || usage
 case "$1" in
   claude) sub_claude ;;
+  codex) sub_codex ;;
+  tier2) sub_tier2 ;;
+  noroute) sub_noroute ;;
+  emit) sub_emit "${2:-}" ;;
   *) usage ;;
 esac
 exit 0
