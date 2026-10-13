@@ -284,6 +284,19 @@ wpatch_gate() {
 }
 wpatch_gate windows_codex_relative 'C:\Users\x\bbj test' 'sub/f.bbj'
 wpatch_gate windows_codex_absolute 'C:\Users\x\bbj test' 'C:\Users\x\bbj test\sub\f.bbj'
+# Phase 9, W-3 (D-12, RESEARCH Pitfall 2): Codex on Windows may send a relative header with
+# backslashes and the verbatim prefix. Both must give the one call the plain forms give; a ".."
+# segment that only a backslash hides must still leave the workspace and be skipped.
+wpatch_gate windows_codex_backslash_relative 'C:\Users\x\bbj test' 'sub\f.bbj'
+wpatch_gate windows_codex_verbatim_prefix '\\?\C:\Users\x\bbj test' '\\?\C:\Users\x\bbj test\sub\f.bbj'
+: > "$WORK/drive/Users/x/x.bbj"
+wpatch 'C:\Users\x\bbj test' 'sub\..\..\x.bbj'
+_n=$(grep -c '^CALL$' "$FAKE_LOG")
+if [ "$_n" = 0 ] && [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+  gate windows_codex_backslash_dotdot_skipped ok "sub\\..\\..\\x.bbj leaves the workspace: no compiler call, exit 0, silent"
+else
+  gate windows_codex_backslash_dotdot_skipped FAIL "calls $_n, exit $RC, stdout $(wc -c < "$WORK/stdout") byte(s), stderr $(wc -c < "$WORK/stderr") byte(s)"
+fi
 unset BBJ_HOME
 
 unset FAKE_CYGDRIVE_ROOT CLAUDE_PLUGIN_OPTION_BBJ_HOME BBJ_HOME CLAUDE_PROJECT_DIR
