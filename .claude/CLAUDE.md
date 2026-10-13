@@ -214,7 +214,7 @@ and `bbj-ls`).
 - Shared helpers live in `tests/lib.sh` (gate, mkwork, json_escape, claude_payload, codex_payload, run_check). New test files source it instead of re-defining these.
 - Compiler fakes are copied into each temporary home (`mkhome` in `tests/test_discovery.sh`); tests never call a real compiler unless they opt in.
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
-- Versions are identical across both plugin manifests and both marketplace entries (`0.2.0`), and `tests/test_layout.py` enforces this. Bump all four together.
+- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.0`), and `tests/test_layout.py` enforces this. Bump all five together.
 - Licence is `Apache-2.0` in every manifest.
 
 ## Git and Commit Conventions
