@@ -5,10 +5,10 @@ milestone_name: Platform verification and release hygiene
 current_phase: 9
 current_phase_name: Windows and macOS verification
 status: planning
-stopped_at: Phase 08 complete, ready to plan Phase 9
-last_updated: "2026-10-13T16:14:41.808Z"
+stopped_at: Phase 08 verified, ready to plan Phase 9
+last_updated: "2026-10-13T17:32:01.000Z"
 last_activity: 2026-10-13
-last_activity_desc: Phase 08 complete, transitioned to Phase 9
+last_activity_desc: Phase 08 verified (UAT 38/38, re-verification passed), ready to plan Phase 9
 state_head: ff2dd650ca69d4b9d9d78b369ba3e9d244962a45
 progress:
   total_phases: 4
@@ -22,17 +22,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-12)
+See: .planning/PROJECT.md (updated 2026-10-13)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 08 — Codex plugin route
+**Current focus:** Phase 9 — Windows and macOS verification
 
 ## Current Position
 
 Phase: 9 — Windows and macOS verification
 Plan: Not started
 Status: Ready to plan
-Last activity: 2026-10-13 — Phase 08 complete, transitioned to Phase 9
+Last activity: 2026-10-13 — Phase 08 verified (UAT 38/38, re-verification passed), ready to plan Phase 9
 
 Progress: [█████░░░░░] 50%
 
@@ -162,8 +162,9 @@ None yet.
 - [Roadmap v0.2.1]: `tests/test_release_text.py` prints `skip` for its three content gates at any version other than CONTENT_VERSION (0.2.0). At 0.2.1 that would break the skip=0 release run (REL-08), so the Phase 7 policy decision (REL-06) has to settle it
 - [Roadmap v0.2.1]: The macOS run (PLAT-05) needs BBj with `bbjcpl` installed on the owner's Mac before Phase 9 can verify that route
 - [Roadmap v0.2.1]: PLAT-04 needs BBjServices running on the owner's Windows machine. If it cannot run there, the gap is recorded under PLAT-06 and the docs keep a "not run" line for that route
-- [Roadmap v0.2.1]: Gap with no requirement: moving an existing `install-codex.sh` install to the plugin route. Adding the plugin on top of an installer install likely leaves two hook entries (double check and double feedback), skills in both `~/.agents/skills` and the plugin cache, and a `[mcp_servers.bbj-docs]` table that overrides the plugin's server. Decided: new requirement CODEX-06 in Phase 8 (documented switch, verified on Linux)
-- [Spike 001]: Whether a plugin upgrade asks for hook trust again is unknown; the trusted hash covers the versioned cache path. If trust is not asked again, the hook stops silently. Observe it on Linux in Phase 8 and document it (CODEX-05)
+- [Phase 8]: Only a version-only upgrade from a local marketplace (hooks.json unchanged) was observed to keep hook trust; a Git-marketplace upgrade, an upgrade that changes the hook definition, the first-use tool prompt and a repeat sign-in on a fresh install were not run. Phase 10 wording may claim the observed case only
+- [Phase 8]: `codex plugin marketplace add BBj-AI/bbj-agent-plugins` serves the plugin route only once the Phase 8 files are on the GitHub default branch; the caveat sits in the 0.2.0 section of CHANGELOG.md (review fix WR-06) and must be reworded or dropped at the 0.2.1 merge (Phase 10)
+- [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
 - [Spike 005]: Three Windows unknowns for Phase 9 (PLAT-03): does Codex run the plugin hook's `sh "..."` through Git for Windows; is `commandWindows` in a plugin `hooks.json` honoured (Codex `hooks/list` showed `commandWindows: None` on Linux); does `CLAUDE_PLUGIN_ROOT` expand to a path `sh` accepts
 
 ## Deferred Items
@@ -179,8 +180,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T15:54:13.883Z
-Stopped at: Phase 08 complete, ready to plan Phase 9
+Last session: 2026-10-13T17:32:01.000Z
+Stopped at: Phase 08 verified (UAT 38/38 passed, re-verification passed after the review fixes), ready to plan Phase 9
 Resume file: None
 
 ## Operator Next Steps

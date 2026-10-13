@@ -2,8 +2,8 @@
 
 ## What This Is
 
-The `basis-bbj` plugin marketplace for coding agents (Claude Code, with an installer for
-OpenAI Codex). It gives an agent the BBj documentation MCP server, two BBj skills
+The `basis-bbj` plugin marketplace for coding agents (Claude Code, and OpenAI Codex through
+its own plugin commands, with `install-codex.sh` kept one release as a fallback). It gives an agent the BBj documentation MCP server, two BBj skills
 (`bbj-programming`, `bbj-web-programming`), and a hook that compile-checks every BBj file the
 agent writes, so agents write BBj that compiles. Release 0.2.0 (shipped 2026-10-12) made this
 repository the home of the two skills, rewrote them to state only verified facts, and made the
@@ -55,9 +55,10 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - ✓ Skills makeover complete for both skills: every claim cited or reproduced, every `bbj` block passes `bbjcpl -t` and `bbj-ls`, neutral names, docs tools instead of copied tables, "Built in: no USE needed" in `bbj-programming`, skill names unchanged — Phases 4 and 5
 - ✓ Release 0.2.0: both plugins and the marketplace at 0.2.0, CHANGELOG with Upgrading notes and a Tested against section from the release run, full suite `ok=738 fail=0 skip=0` with live gates, PR #1 merged (f15c257), annotated tag `0.2.0` and GitHub Release published; UAT installs confirmed on Claude Code and on Codex under macOS (REL-01..04) — Phase 6
 
+- ✓ Codex plugin route: `codex plugin marketplace add` and `codex plugin add bbj@basis-bbj` register `bbj-docs` at the literal docs URL through the `.codex-plugin/plugin.json` overlay and `.codex-mcp.json` (shipping the public OAuth client), both skills load, the unchanged hook checks `apply_patch` writes after `/hooks` trust and stays trusted across a version-only upgrade; `bbj-local` stays opt-in; `install-codex.sh --remove` is the documented switch; proven on Linux with Codex CLI 0.162.1, gated in CI on fakes (CODEX-01..06) — Phase 8
+
 ### Active
 
-- [ ] Codex installs through its own plugin marketplace; the installer becomes the fallback
 - [ ] Windows: Claude Code and Codex installs and hook verified on a real machine (bbjcpl; bbj-ls where available)
 - [ ] macOS: Claude Code and Codex hook verified on the bbjcpl route
 - [ ] Test suite passes on a maintainer machine that has bbjcpl on PATH or a running Codex daemon
@@ -122,6 +123,10 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 | A present but broken live route (failed canary pair) is skip unless BBJ_SKILLS_LIVE=1 (IN-03) | Same rule as a missing route; the release gate runs live | ✓ Accepted at Phase 3 UAT |
 | A rule no page states ships only when the skill maintainer confirmed it on BBj 26.03, worded as such (OWNER ledger class; `str()` sign rule, `bbj -tIO`, Dialog-flag front rule D-24) | Owner knowledge is real but must be marked, never passed off as documented | ✓ Accepted at Phase 4 UAT |
 | Release-text gates: `upgrade_addressed` runs at every version; `upgrade_quotes` and `not_run` are pinned to CONTENT_VERSION and FAIL with a re-pin message at any other version (REL-06, D-04 to D-07) | A version bump must not pass on the facts of an older release, and a skip would block the skip=0 release run; reverses the skip half of review fix WR-02 on purpose | ✓ Decided — Phase 7 (facts stay 0.2.0; Phase 10 re-pins them to 0.2.1) |
+| Codex route is the native plugin: `.codex-plugin/plugin.json` overlay plus literal-URL `.codex-mcp.json`; Claude Code keeps its `docs_url` option | Codex cannot expand `${user_config.docs_url}`; one plugin tree serves both hosts and the layout gates pin version and URL drift | ✓ Good — Phase 8 (CODEX-01, CODEX-04) |
+| `.codex-mcp.json` ships the public OAuth client (clientId, callbackUrl, callbackPort 47613) | Dynamic client registration is disabled on the docs server: sign-in failed without the block and completed with it | ✓ Good — Phase 8 (owner decision, plan 08-08) |
+| Route detection by `CLAUDE_PLUGIN_ROOT` (D-07): non-empty on `apply_patch` means plugin route; the variable is tested, never printed | The env probe showed Codex exports it into the hook process | ✓ Good — Phase 8 (CODEX-03) |
+| `install-codex.sh --remove` is the switch to the plugin route: removes only what the installer wrote, exit 3 for anything else, `--force` refused | A plugin on top of an installer install gives two hooks and double feedback; the installer must never delete a user's edits | ✓ Good — Phase 8 (CODEX-06, verified on real Codex, Linux) |
 
 ## Evolution
 
@@ -141,4 +146,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-12 after starting v0.2.1 milestone*
+*Last updated: 2026-10-13 after Phase 8*
