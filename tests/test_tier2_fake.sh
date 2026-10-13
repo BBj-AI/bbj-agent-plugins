@@ -20,8 +20,10 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 1' INT TERM HUP
 
-# MAINT-06, D-12: a compiler in /usr/bin or /bin would be a tier-1 route
-SYSPATH=$(no_compiler_path /usr/bin:/bin) || { gate url_syspath_scrub FAIL "no_compiler_path could not build SYSPATH"; finish; }
+# MAINT-06, D-12: a compiler in /usr/bin or /bin would be a tier-1 route. TIER2_TEST_SYSPATH is a
+# test seam for tests/test_path_scrub.sh (IN-02): it replaces /usr/bin:/bin with a PATH that holds a
+# fake compiler directory, so the scrub has something to remove and its removal can be caught.
+SYSPATH=$(no_compiler_path "${TIER2_TEST_SYSPATH:-/usr/bin:/bin}") || { gate url_syspath_scrub FAIL "no_compiler_path could not build SYSPATH"; finish; }
 ORIGPATH=$PATH
 
 # start_fake MODE: starts the fake server, sets FAKE_PID, LOGF and BBJ_LOCAL_MCP_URL.
