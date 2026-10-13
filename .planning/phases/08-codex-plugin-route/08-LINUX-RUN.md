@@ -21,7 +21,29 @@ excerpts. `<home>` stands for the home directory of the machine that ran them.
 
 ## Real home untouched
 
-(filled at the end of Task 2)
+Run: `sh run.sh realhome <home>/.cache/bbj-phase8/realhome.before` before the first Codex run and
+`... realhome.after` after the last one of plan 08-05 (the Task 2 runs included), then
+`home_diff realhome.before realhome.after` from `tests/lib.sh`. The snapshot walks the paths the
+Codex installer can write under the real `~/.codex` and `~/.agents/skills`: it reads only
+`config.toml`, `config.toml.bbj-backup`, `hooks.json`, `bbj/`, the two skill directories and the
+two parent directories, never `auth.json` or the daemon's files.
+
+Result: **identical** (`home_diff` returned 0 and printed nothing). Both snapshots hold ten lines:
+`~/.agents/skills` absent, `~/.codex` present, `config.toml` (mode 0600, 367 bytes) present, and
+the other watched paths absent. No daemon-written change had to be named.
+
+Other safety facts of these runs:
+
+- Every output directory was below `<home>/.cache/bbj-phase8/`; nothing was created under `/tmp`
+  by the scripts (`run.sh selftest` proves the refusals of `/tmp/...`, `~/.codex/x`,
+  `~/elsewhere`, `<base>/../x` and a relative path).
+- HOME and CODEX_HOME pointed into each run directory, so the skills directory
+  (`~/.agents/skills`) was throwaway too.
+- Every model request went to the loopback fake provider (`127.0.0.1:18765`,
+  `requires_openai_auth=false`); no billed model was reachable. No process of the scripts was left
+  running (no listener on 18765 or 47613 afterwards).
+- The checkout was not modified: `git diff --quiet HEAD -- plugins .claude-plugin` exited 0 after
+  all runs. The trust bypass flag appears only in `run.sh`, in the scripted exec runs.
 
 ## Env probe
 
@@ -128,3 +150,100 @@ The enable command named is therefore **`codex plugin add bbj-local@basis-bbj`**
         feedback_reached_model: no
         notice_plugin_command: yes
         notice_installer_command: no
+
+## bbj-local opt-in
+
+Route: plugin. Run: `sh run.sh local <home>/.cache/bbj-phase8/local`. Commands: `codex plugin
+marketplace add <checkout>`, `codex plugin add bbj@basis-bbj`, then `codex plugin add
+bbj-local@basis-bbj`.
+
+Outcome (CODEX-03, real half): `bbj-local` is absent from `codex mcp list` until the user runs
+`codex plugin add bbj-local@basis-bbj`, and present at `http://127.0.0.1:5009/mcp` after. A stopped
+bbj-ls is not probed by Codex here: the Status column reads `enabled` and Auth `Unsupported`
+(nothing listened on 5009).
+
+        local_before: absent
+        local_after: http://127.0.0.1:5009/mcp
+
+`codex mcp list` after the second `plugin add`:
+
+        Name       Url                         Bearer Token Env Var  Status   Auth
+        bbj-docs   https://mcp.bbj-ai.com/mcp  -                     enabled  Not logged in
+        bbj-local  http://127.0.0.1:5009/mcp   -                     enabled  Unsupported
+
+## Marketplace shorthand
+
+Route: plugin. Run: `sh run.sh shorthand <home>/.cache/bbj-phase8/shorthand`, i.e. `codex plugin
+marketplace add BBj-AI/bbj-agent-plugins` in a throwaway home with a terminal-prompt-free git
+(`GIT_TERMINAL_PROMPT=0`, stdin from /dev/null, 90 s limit).
+
+Outcome (assumption A5): **the owner/repo shorthand resolves.** Exit code 0 and the line
+
+        Added marketplace `basis-bbj` from https://github.com/BBj-AI/bbj-agent-plugins.git.
+
+`codex plugin list` then shows `bbj@basis-bbj` and `bbj-local@basis-bbj` as not installed, from a
+clone at `<codex home>/.tmp/marketplaces/basis-bbj`.
+
+What that clone held on 2026-10-13: the GitHub default branch at `f15c257` (Merge pull request #1
+from BBj-AI/gsd/planning-setup-pr), whose `plugins/bbj` has **no `.codex-plugin/` overlay** yet.
+The shorthand therefore works as a command, but until the Phase 8 files are on the default branch
+it would install the plugin without the overlay (and so with the unresolved
+`${user_config.docs_url}`). That is a release-order fact for the docs: the shorthand is
+documentable once the overlay is on the branch Codex clones. This run installed nothing from the
+clone.
+
+## Prepared for the owner pass
+
+Three throwaway homes wait for the owner (task 3 of this plan). Each is `<home>/.cache/bbj-phase8/owner-X`
+with `home/.codex` as its CODEX_HOME; `linux-run/owner.sh trust|login-a|login-b` points HOME and
+CODEX_HOME there. Readings below were taken before the human step.
+
+**owner-H (hook trust).** Scratch copy of the checkout at version 0.2.0 as the marketplace
+(`<home>/.cache/bbj-phase8/owner-H/src`), `bbj@basis-bbj` installed. Its `config.toml` was written
+before any Codex call with the loopback fake provider (`model_provider = "fake"`, `model =
+"gpt-5.5"`, `[model_providers.fake]` at `127.0.0.1:18765`, `requires_openai_auth = false`) and a
+`trust_level = "trusted"` entry for its own `proj` directory, so the TUI starts without an OpenAI
+login and without the folder-trust prompt, and no model is reachable. (The folder-trust entry is
+an addition to the plan's set-up; it is a different thing from the hook trust the owner gives.)
+`hooks_list.py` reading:
+
+        key=bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0 source=plugin trustStatus=untrusted
+        currentHash=sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+        command=sh "<home>/.cache/bbj-phase8/owner-H/home/.codex/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"
+
+The command is already expanded to the cache path, as spike 001 found. `hooks_list.py` first
+spoke the shape recorded in its docstring (`initialize` with `clientInfo`, the `initialized`
+notification, `hooks/list` with `cwds`) and needed no second attempt.
+
+**owner-A (sign-in, plugin as it ships: no OAuth block).** `codex mcp list`:
+`bbj-docs https://mcp.bbj-ai.com/mcp - enabled Not logged in`. `timeout 25 codex mcp login
+bbj-docs` printed, and exited 1:
+
+        Error: Registration failed: Dynamic registration failed: Registration failed: HTTP 400 Bad Request:
+        {"statusCode":400,"error":"Bad Request","message":"dynamic client registration is disabled"}
+
+So without a pre-registered client, Codex tries dynamic client registration and the hosted server
+refuses it: the sign-in cannot start on the plugin as it ships. (Reading only; the owner still
+runs it in step 2.)
+
+**owner-B (sign-in with an OAuth block).** The scratch copy's `plugins/bbj/.codex-mcp.json` has
+`"oauth": {"clientId": "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t", "callbackUrl":
+"http://localhost:47613/callback", "callbackPort": 47613}` next to `type` and `url` (the client id
+read from `codex/install-codex.sh`, public values only; `grep -c '"clientSecret"'` prints 0).
+`codex mcp list` still shows `bbj-docs https://mcp.bbj-ai.com/mcp - enabled Not logged in`, so
+Codex 0.162.1 accepts the keys in a plugin MCP file (assumptions A1 and A2 on the loading side).
+`timeout 25 codex mcp login bbj-docs` printed an authorization URL on `login.bbj-ai.com` (then
+`Browser launch failed; please copy the URL above manually.` on this headless machine) and was
+stopped by the timeout (`login_rc: 124`), no sign-in completed:
+
+        login_client_id: oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t
+        login_redirect_uri: http://localhost:47613/callback
+
+The URL also carries `resource=https://mcp.bbj-ai.com/mcp` and `scope` with `offline_access`.
+Whether the browser step then succeeds is the owner's reading in step 3.
+
+Housekeeping: owner-H was started once with the Codex TUI in a pseudo-terminal as a start-up
+check (the screen could not be read, only terminal colour queries came back). That start launched
+Codex's managed app-server daemon inside owner-H; both daemon processes were stopped and owner-H
+was rebuilt with `run.sh prepare-trust`, so the home the owner receives is the clean state above.
+The real `~/.codex` was not involved (see "Real home untouched").

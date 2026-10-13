@@ -363,7 +363,8 @@ scenario_prepare_trust() {
   must marketplace_add codex plugin marketplace add "$OUT/src"
   must plugin_add codex plugin add bbj@basis-bbj
   res codex_version "$(codex --version)"
-  python3 -I "$HERE/hooks_list.py" "$CODEX_HOME" > "$OUT/hooks_list.txt" 2>&1
+  # hooks_list.py checks CODEX_HOME against the real home's base, so it gets the real HOME
+  HOME=$REALHOME python3 -I "$HERE/hooks_list.py" "$CODEX_HOME" > "$OUT/hooks_list.txt" 2>&1
   res hooks_list_rc "$?"
   while IFS= read -r _line; do res hooks_list "$_line"; done < "$OUT/hooks_list.txt"
 }
