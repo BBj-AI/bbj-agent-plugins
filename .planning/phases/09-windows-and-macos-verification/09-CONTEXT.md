@@ -63,6 +63,11 @@ untouchable. BBj code is never executed; the machines are the owner's own.
   `codex plugin marketplace add <path>` followed by the plugin add commands. The record names
   the checkout commit. Nothing is pushed for the runs. The shorthand `BBj-AI/bbj-agent-plugins`
   is not used (see the scout fact above).
+  - D-03 amended 2026-10-13 by the owner (plan 09-04 Task 2): the owner chose `transfer: push`.
+    `gsd/planning-setup` is pushed to `origin` before each run round of Phase 9, so the Windows
+    machine and the Mac clone or pull `-b gsd/planning-setup` from GitHub. Only that branch is
+    pushed: `main` and tags are not touched and no push is forced. The release pushes stay
+    Phase 10's, each with its own owner confirmation.
 - **D-04:** Windows compiler discovery is exercised through the two sources a user sets: in
   Claude Code the plugin option `bbj_home` set to a drive-letter path (for example `C:\bbx`),
   which the hook converts with `cygpath`; in Codex `bbjcpl` on `PATH` or `BBJ_HOME`, the only
