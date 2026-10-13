@@ -101,7 +101,7 @@ _nr=$?
 if [ "$_nr" = 0 ]; then
   holds_all notice_text_claude "$TEXT" "$FILE" 'was written but not compile-checked' 'no bbjcpl found' \
     'no bbj-ls answering on 127.0.0.1:9' 'Later BBj files in this session are not checked either' \
-    'this notice is not repeated' 'bbj_home' 'bbj-local@basis-bbj' 'BBjServices 26.03' \
+    'this notice is not repeated' 'bbj_home' 'bbj-local@basis-bbj' 'start BBjServices 26.03' 'the hook does not need it' \
     'bbj_check_syntax' 'sends the code' 'stock BBj'
   case "${TEXT##*. }" in
     'Tell the user'*) gate notice_last_sentence ok "the last sentence starts Tell the user" ;;
@@ -177,8 +177,9 @@ CTEXT=$(notice_text "$WORK/stdout")
 _nr=$?
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
   holds_all notice_codex_text "$CTEXT" 'BBJ_HOME' 'bbjcpl on PATH' 'install-codex.sh --with-local' \
-    'BBjServices 26.03' 'bbj_check_syntax' 'no bbjcpl found'
-  holds_none notice_codex_text_no_claude_steps "$CTEXT" 'bbj_home' 'bbj-local@basis-bbj'
+    'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found'
+  holds_none notice_codex_text_no_claude_steps "$CTEXT" 'bbj_home' 'bbj-local@basis-bbj' \
+    'or rerun install-codex.sh' 'running on this machine)'
 else
   gate notice_codex_text FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
   gate notice_codex_text_no_claude_steps FAIL "no valid notice object"
@@ -194,9 +195,9 @@ RTEXT=$(notice_text "$WORK/stdout")
 _nr=$?
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
   holds_all notice_codex_plugin_route "$RTEXT" 'codex plugin add bbj-local@basis-bbj' 'BBJ_HOME' \
-    'bbjcpl on PATH' 'BBjServices 26.03' 'bbj_check_syntax' 'no bbjcpl found'
+    'bbjcpl on PATH' 'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found'
   holds_none notice_codex_plugin_route_no_other_steps "$RTEXT" 'install-codex.sh' 'bbj_home' \
-    'enable the bbj-local@basis-bbj plugin'
+    'The bbj-local@basis-bbj plugin' 'or run codex plugin add' 'running on this machine)'
 else
   gate notice_codex_plugin_route FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
   gate notice_codex_plugin_route_no_other_steps FAIL "no valid notice object"
@@ -224,10 +225,10 @@ run_check "$CODEX_ADD"
 RTEXT=$(notice_text "$WORK/stdout")
 _nr=$?
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ] \
-  && printf '%s' "$RTEXT" | grep -F 'rerun install-codex.sh --with-local' > /dev/null \
+  && printf '%s' "$RTEXT" | grep -F 'install-codex.sh --with-local only registers' > /dev/null \
   && printf '%s' "$RTEXT" | grep -F 'bbjcpl on PATH' > /dev/null \
   && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null \
-  && ! printf '%s' "$RTEXT" | grep -F 'enable the bbj-local@basis-bbj plugin' > /dev/null; then
+  && ! printf '%s' "$RTEXT" | grep -F 'The bbj-local@basis-bbj plugin' > /dev/null; then
   gate notice_codex_installer_route ok "unset CLAUDE_PLUGIN_ROOT gives the install-codex.sh wording"
 else
   gate notice_codex_installer_route FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
@@ -236,7 +237,10 @@ fi
 # Claude Code keeps its wording, also with the variable set as Claude Code sets it for a plugin hook
 route_run "$WORK/plug" "$(claude_payload Write "$FILE" "$WORK/proj")"
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$RNR" = 0 ] \
-  && printf '%s' "$RTEXT" | grep -F 'enable the bbj-local@basis-bbj plugin' > /dev/null \
+  && printf '%s' "$RTEXT" | grep -F 'The bbj-local@basis-bbj plugin only gives the model' > /dev/null \
+  && printf '%s' "$RTEXT" | grep -F 'start BBjServices 26.03' > /dev/null \
+  && printf '%s' "$RTEXT" | grep -F 'the hook does not need it' > /dev/null \
+  && ! printf '%s' "$RTEXT" | grep -F 'or enable the bbj-local' > /dev/null \
   && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null \
   && ! printf '%s' "$RTEXT" | grep -F 'install-codex.sh' > /dev/null; then
   gate notice_claude_route_command ok "Claude Code text with CLAUDE_PLUGIN_ROOT set"
@@ -247,7 +251,7 @@ fi
 # CODEX-03 edge (empty input): exported but empty counts as unset
 route_run '' "$CODEX_ADD"
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$RNR" = 0 ] \
-  && printf '%s' "$RTEXT" | grep -F 'rerun install-codex.sh --with-local' > /dev/null \
+  && printf '%s' "$RTEXT" | grep -F 'install-codex.sh --with-local only registers' > /dev/null \
   && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null; then
   gate notice_codex_empty_root ok "empty CLAUDE_PLUGIN_ROOT gives the installer wording"
 else
