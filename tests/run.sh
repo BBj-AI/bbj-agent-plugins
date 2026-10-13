@@ -7,6 +7,10 @@
 # Exit 1 when any test exited non-zero or printed a FAIL gate. Works from any cwd.
 # Nothing in tests/ executes BBj code (the only compiler call is bbjcpl with -N).
 
+# a test seam read from the environment (tests/test_tier2_fake.sh) must not come from the caller's
+# shell: only tests/test_path_scrub.sh sets it, for its own nested runs (IN-03)
+unset TIER2_TEST_SYSPATH
+
 TESTS=$(cd "$(dirname "$0")" && pwd)
 OUT=$(mktemp "${TMPDIR:-/tmp}/bbjplug-run.XXXXXX") || exit 1
 trap 'rm -f "$OUT"' EXIT
