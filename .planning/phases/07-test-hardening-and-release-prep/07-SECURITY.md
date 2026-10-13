@@ -98,3 +98,11 @@ Note: T-07-SC appears in all five plans with the same text and is counted once; 
 - [x] `status: verified` set in frontmatter
 
 **Approval:** verified 2026-10-13
+
+## Security Audit 2026-10-13
+
+| Metric | Count |
+|---|---|
+| Threats found | 18 |
+| Closed | 18 |
+| Open | 0 |
