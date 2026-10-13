@@ -347,7 +347,11 @@ render_hooks() {
 #   closed=1|0   a srv_begin line is followed by a srv_end line (--remove)
 #   extra=1|0    a line of the server's main, oauth or tool tables is not one this script writes (a comment,
 #                a key other than url, the srv_old_key line, approval_mode and the three OAuth lines), or,
-#                between srv_begin and srv_end, a non-blank line lies outside those tables (--remove)
+#                between srv_begin and srv_end, a non-blank line lies outside those tables (--remove).
+#                A comment outside a managed block that is followed (after blank lines) by a header of another
+#                table, a managed-block marker or the end of the file leads into what follows, as in the
+#                install pass (flush_main), and is not table content (WR-04)
+#   extra_line=  the line number of the first line that set extra, 0 when extra is 0 (--remove message)
 analyze() {
   src=$config
   [ -f "$src" ] || src=/dev/null
@@ -359,6 +363,10 @@ analyze() {
       gsub(/^[ \t]+|[ \t\r]+$/, "", l)
       if (l ~ /^".*"$/ || l ~ ("^" sq ".*" sq "$")) l = substr(l, 2, length(l) - 2)
       return l
+    }
+    function flag(ln) {
+      extra = 1
+      if (!extra_line) extra_line = ln
     }
     BEGIN {
       n = split(tools, tl, " ")
@@ -461,30 +469,42 @@ analyze() {
       # decision; the install path ignores them. xs is the table the current line belongs to, as sect,
       # but reset by the begin marker; etail is set after the end marker of a complete block
       if (isbegin) {
-        # the marker line itself
+        # the marker line itself; a comment before it leads into the block
+        pc = 0
       } else if (inb && line == mend) {
         closed = 1
         inb = 0
         etail = 1
       } else if (line ~ /^[ \t]*\[/) {
+        # a comment held since the last table line leads into this header unless the header is a table of
+        # this same server, which makes the comment part of that configuration (WR-04)
+        if (pc && (sect == "main" || sect == "tool" || sect == "oauth")) flag(pc)
+        pc = 0
         xs = sect
         etail = 0
-        if (inb && xs != "main" && xs != "tool" && xs != "oauth") extra = 1
+        if (inb && xs != "main" && xs != "tool" && xs != "oauth") flag(NR)
       } else if (line !~ /^[ \t]*$/) {
         if (line ~ mk_re && !inb) {
           # a managed-block marker of either server ends a table and is not table content
+          pc = 0
         } else if (etail) {
-          if (line !~ /^[ \t]*#/) extra = 1
-        } else if (xs == "main") {
-          if (!(line ~ /^[ \t]*url[ \t]*=/ || (old_key != "" && line == old_key))) extra = 1
-        } else if (xs == "tool") {
-          if (line !~ /^[ \t]*approval_mode[ \t]*=/) extra = 1
-        } else if (xs == "oauth") {
-          t2 = line
-          sub(/[ \t]+$/, "", t2)
-          if (t2 != want_id && t2 != want_url && t2 != want_port) extra = 1
-        } else if (inb) {
-          extra = 1
+          if (line !~ /^[ \t]*#/) flag(NR)
+        } else if (!inb && line ~ /^[ \t]*#/ && (xs == "main" || xs == "tool" || xs == "oauth")) {
+          # held until the next line says whether it belongs to the table or leads into what follows
+          if (!pc) pc = NR
+        } else {
+          if (pc) { flag(pc); pc = 0 }
+          if (xs == "main") {
+            if (!(line ~ /^[ \t]*url[ \t]*=/ || (old_key != "" && line == old_key))) flag(NR)
+          } else if (xs == "tool") {
+            if (line !~ /^[ \t]*approval_mode[ \t]*=/) flag(NR)
+          } else if (xs == "oauth") {
+            t2 = line
+            sub(/[ \t]+$/, "", t2)
+            if (t2 != want_id && t2 != want_url && t2 != want_port) flag(NR)
+          } else if (inb) {
+            flag(NR)
+          }
         }
       }
     }
@@ -504,6 +524,7 @@ analyze() {
       print "oauth.client_id=" ocid
       print "inblock=" (inblock ? 1 : 0)
       print "extra=" (extra ? 1 : 0)
+      print "extra_line=" extra_line + 0
       print "closed=" (closed ? 1 : 0)
       for (i = 1; i <= n; i++) print "tool." tl[i] "=" st[tl[i]]
     }' "$src"
@@ -900,7 +921,8 @@ remove_server() {
   rm_state=left
   rm_why=
   rm_what=
-  _rm_generic='it is in a form this script did not write'
+  _rm_generic='it names the server in a way this script does not recognise'
+  _rm_line="line $(an extra_line) of $config is not one this script writes (a comment or a key among the tables of $srv); move it out of them or delete the tables by hand"
   if [ "$(an main)" = 0 ] && [ "$(an mention)" = 0 ] && [ "$(an anytool)" = 0 ]; then
     if [ "$(an managed)" = 0 ]; then
       rm_state=absent
@@ -911,7 +933,7 @@ remove_server() {
       rm_state=remove
       rm_what='the managed block markers'
     else
-      rm_why=$_rm_generic
+      rm_why="line $(an extra_line) of $config, between the markers, is not one this script writes"
     fi
     return 0
   fi
@@ -921,7 +943,8 @@ remove_server() {
     rm_why='it is outside the managed block (registered by hand)'
     return 0
   fi
-  if [ "$foreign" != 0 ] || [ "$tools_foreign" != 0 ] || [ "$(an extra)" != 0 ]; then rm_why=$_rm_generic; return 0; fi
+  if [ "$foreign" != 0 ] || [ "$tools_foreign" != 0 ]; then rm_why=$_rm_generic; return 0; fi
+  if [ "$(an extra)" != 0 ]; then rm_why=$_rm_line; return 0; fi
   case "$(an dstate)" in
     none|ours) ;;
     *) rm_why='it sets default_tools_approval_mode in a form this script did not write'; return 0 ;;
@@ -980,6 +1003,15 @@ remove_tables() {
         for (i = 1; i <= nb; i++) print bl[i]
         nb = 0
       }
+      # emit_hold: the blank and comment lines held at the end of a removed table. A comment among them leads into
+      # what follows (analyze does not count it as table content, WR-04), so the held lines go out; without a
+      # comment they were only the blank lines of the removed region
+      function emit_hold(   i, c) {
+        c = 0
+        for (i = 1; i <= nh; i++) if (hd[i] ~ /^[ \t]*#/) c = 1
+        if (c) for (i = 1; i <= nh; i++) print hd[i]
+        nh = 0
+      }
       BEGIN {
         key = "(\"" srv "\"|" srv ")"
         main_re = "^\\[mcp_servers\\." key "\\][ \t]*(#.*)?$"
@@ -995,7 +1027,7 @@ remove_tables() {
           next
         }
         if (managed == 1 && line == begin) {
-          if (inskip) nb = 0
+          if (inskip) { nb = 0; emit_hold() }
           else if (nb > 0) nb--
           flush()
           inskip = 0
@@ -1004,26 +1036,28 @@ remove_tables() {
         }
         if (line ~ /^[ \t]*\[/) {
           if (line ~ main_re || line ~ oauth_re || line ~ tool_re) {
-            if (inskip) nb = 0
+            if (inskip) { nb = 0; nh = 0 }
             else if (nb > 0) nb--
             flush()
             inskip = 1
             next
           }
-          if (inskip) { nb = 0; inskip = 0 }
+          if (inskip) { nb = 0; inskip = 0; emit_hold() }
           flush()
           print
           next
         }
         if (inskip) {
-          if (line ~ mk_re) { nb = 0; inskip = 0; print; next }
+          if (line ~ mk_re) { nb = 0; inskip = 0; emit_hold(); print; next }
+          if (line ~ /^[ \t]*$/ || line ~ /^[ \t]*#/) { hd[++nh] = $0; next }
+          nh = 0
           next
         }
         if (line ~ /^[ \t]*$/) { bl[++nb] = $0; next }
         flush()
         print
       }
-      END { if (!inskip && !inblk) flush() }
+      END { if (!inskip && !inblk) flush(); else if (inskip) emit_hold() }
     ' "$config" > "$tmp" && cat "$tmp" > "$config"; then
     rm -f "$tmp"
     wrote="$wrote config.toml"
