@@ -2,19 +2,19 @@
 gsd_state_version: "1.0"
 milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
-current_phase: 9
+current_phase: 09
 current_phase_name: Windows and macOS verification
 status: executing
-stopped_at: "Phase 9 paused after plan 09-05 (waves 1-3 done, 5/8 plans); next: 09-06 Windows round 2 + macOS pass"
-last_updated: "2026-10-13T21:34:01.976Z"
-last_activity: 2026-10-13
-last_activity_desc: Phase 9 execution started
-state_head: 1b4bc65ef533024de704be540c57ad10c3ef8235
+stopped_at: Completed 09-06-PLAN.md
+last_updated: "2026-10-13T22:41:01.454Z"
+last_activity: 2026-10-14
+last_activity_desc: Plan 09-06 complete
+state_head: b16beb8c09f773f518469f4ef78bbf6337bdf3c1
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 50
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-13)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 9 — Windows and macOS verification
+**Current focus:** Phase 09 — Windows and macOS verification
 
 ## Current Position
 
-Phase: 9 (Windows and macOS verification) — EXECUTING
-Plan: 6 of 8
-Status: Ready to execute
-Last activity: 2026-10-13 — Phase 9 execution started
+Phase: 09 (Windows and macOS verification) — EXECUTING
+Plan: 7 of 8 (09-06 complete; next 09-07 macOS record)
+Status: Ready to execute plan 09-07
+Last activity: 2026-10-14 — plan 09-06 complete (Windows closed, macOS round 1 recorded)
 
 Progress: [█████░░░░░] 50%
 
@@ -125,6 +125,7 @@ Progress: [█████░░░░░] 50%
 | Phase 09 P03 | 7 min | 2 tasks | 5 files |
 | Phase 09 P04 | 110 min | 3 tasks | 2 files |
 | Phase 09 P05 | 40min | 3 tasks | 7 files |
+| Phase 09 P06 | owner-paced (2026-10-13 to 2026-10-14) | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -162,6 +163,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 09]: 09-05: owner chose fix for W-1, W-2, W-3 (typed 'W-1 W-2 W3 fill all three', normalized to fix each)
 - [Phase 09]: 09-05 W-1: commandWindows C:\PROGRA~1\Git\bin\sh.exe + quoted script + '; exit $LASTEXITCODE' shipped as unverified candidate; Codex plugin installs re-ask hook trust after upgrade (Phase 10 must say)
 - [Phase 09]: 09-05 W-2/W-3: tier-2 curl connect timeout 5 s and codex_patch wpath_norm (verbatim prefix + backslashes) under WIN=1 only; both await plan 09-06 re-run
+- [Phase 09]: 09-06: Windows closed on the shipped hook (PLAT-01 to 04 and 06 met); commandWindows honoured by Codex, ignored without harm by Claude Code; Codex asks for hook trust again after the upgrade (Phase 10 must say so)
+- [Phase 09]: 09-06: macOS round 1 recorded (mac-ready yes, d598854, BBj 26.03 at <home>/bbx); PLAT-05 verdict left to plan 09-07; owner notes to classify: Codex app-server daemon ignores shell-exported BBJ_HOME (D-04), stale user hooks.json double-fires, bbjcpl line 10 for a one-line file
 
 ### Pending Todos
 
@@ -193,9 +196,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T21:34:01.898Z
-Stopped at: Phase 9 paused after plan 09-05 (waves 1-3 done, 5/8 plans); next: 09-06 Windows round 2 + macOS pass
-Resume file: .planning/phases/09-windows-and-macos-verification/.continue-here.md
+Last session: 2026-10-13T22:41:01.361Z
+Stopped at: Completed 09-06-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
