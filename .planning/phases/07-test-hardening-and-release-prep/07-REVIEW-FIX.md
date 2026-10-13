@@ -22,23 +22,13 @@ status: all_fixed
 - Fixed: 10
 - Skipped: 0
 
-## IMPORTANT: the fix commits are NOT yet on `gsd/planning-setup`
+## Landing on `gsd/planning-setup`
 
-The fast-forward of `gsd/planning-setup` to the fix branch failed (exit 128, "Not possible to
-fast-forward"): while the fixer ran, another session committed `6246a6b` and `717e6e0`
-(`docs(08): capture phase context`, `docs(state): record phase 08 context session`) on
-`gsd/planning-setup`. Those two commits touch only `.planning/STATE.md` and
-`.planning/phases/08-codex-plugin-route/*`, so there is no file overlap with the fixes.
-
-The ten fix commits therefore live on the temp branch **`gsd-reviewfix/07-2624046`** (tip
-`f475d95`, based on `59a764d`). The worktree and the recovery sentinel were removed. To land the
-fixes: `git merge gsd-reviewfix/07-2624046` (no conflicts expected) or
-`git rebase gsd/planning-setup gsd-reviewfix/07-2624046` followed by a fast-forward. The commit
-hashes below are those on the temp branch (a rebase will change them).
-
-Process note: my cleanup command chained the branch delete after a failed fast-forward and
-deleted the temp branch once; I recreated it at `f475d95` immediately and checked that it holds all
-ten commits. No work was lost.
+The fixer ran in a worktree on a temp branch based on `59a764d`. While it ran, the phase 08
+context commits landed on `gsd/planning-setup` (`.planning/` files only, no overlap). The
+orchestrator replayed those two docs commits on top of the ten fix commits, so the fix hashes
+below are the ones on `gsd/planning-setup`; the temp branch was deleted. The full suite on the
+combined tree: `SUMMARY: ok=803 fail=0 skip=0`.
 
 ## Verification
 
@@ -59,7 +49,7 @@ ten commits. No work was lost.
 
 ## Fixed Issues
 
-### WR-01: `home_snapshot` does not watch everything the installer writes
+### WR-01: `home_snapshot` does not watch everything the installer writes, so leaked temp files and stray directories pass `real_home_untouched`
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`, `tests/test_install_codex.sh`
@@ -72,7 +62,7 @@ lines carry the permission string (`F <mode> <crc> <size> <path>`, mode from `ls
 the list. New gates: `homeguard_temp_config_leaked_detected`, `homeguard_temp_hooks_leaked_detected`,
 `homeguard_config_chmod_detected`, `homeguard_homes_created_detected`.
 
-### WR-02: Symlinks are recorded without their target
+### WR-02: Symlinks are recorded without their target, so retargeting or writing through a symlinked skill goes undetected
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
@@ -83,7 +73,7 @@ Retargeting the link and editing a file through it both change the snapshot. New
 `homeguard_link_retarget_detected`, `homeguard_link_write_through_detected`,
 `homeguard_link_untouched_same`.
 
-### WR-03: `home_snapshot` swallows errors and misreads special names
+### WR-03: `home_snapshot` swallows errors and misreads special names, so it can hang or silently omit entries
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
@@ -96,7 +86,7 @@ instead of being discarded. New gates: `homeguard_newline_name_detected`,
 `homeguard_fifo_not_opened` (background run with a 5 s watchdog), `homeguard_unreadable_dir_reported`
 (skips when run as root, where `chmod 000` hides nothing).
 
-### WR-04: `no_compiler_path` fails silently
+### WR-04: `no_compiler_path` fails silently, so it can emit a PATH with no `sh` or `awk`
 
 **Disposition:** fixed
 **Files modified:** `tests/lib.sh`, `tests/test_path_scrub.sh`, `tests/test_noroute_notice.sh`,
@@ -150,7 +140,7 @@ turns `url_refused_remote_http` and others red).
 `_nclean`; the re-pinned case requires `_nall = _nclean` (and `_nclean > 0`). The message prints
 the actual count.
 
-### IN-04: The gate-prefix list in `.claude/CLAUDE.md` contradicts its own rule
+### IN-04: The gate-prefix list in `.claude/CLAUDE.md` contradicts its own rule and is not exact
 
 **Disposition:** fixed
 **Files modified:** `.claude/CLAUDE.md`
