@@ -25,7 +25,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-12)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 07 — Test hardening and release prep
+**Current focus:** Phase 08 — Codex plugin route
 
 ## Current Position
 
@@ -158,8 +158,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T10:50:08.883Z
-Stopped at: Phase 07 complete, ready to plan Phase 08
+Last session: 2026-10-13T11:33:40Z
+Stopped at: Phase 07 verified (UAT 18/18, verification passed 6/6), ready to plan Phase 08
 Resume file: None
 
 ## Operator Next Steps
