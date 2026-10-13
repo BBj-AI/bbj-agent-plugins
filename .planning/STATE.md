@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 07
 current_phase_name: Test hardening and release prep
 status: executing
-stopped_at: Phase 08 context gathered
-last_updated: "2026-10-13T08:43:38.491Z"
-last_activity: 2026-10-12
-last_activity_desc: Phase 07 complete, transitioned to Phase 8
-state_head: ff60743cb7d149830a49e2d9662d3ffa0033296c
+stopped_at: Completed 07-05-PLAN.md
+last_updated: "2026-10-13T08:49:53.703Z"
+last_activity: 2026-10-13
+last_activity_desc: Phase 07 execution started
+state_head: 320ef16b522516dc3b7920a60e7f59790337c79c
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 25
 ---
 
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 
 ## Current Position
 
-Phase: 07 (Test hardening and release prep) — READY TO EXECUTE
-Plan: Not started
+Phase: 07 (Test hardening and release prep) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-10-12 — Phase 07 complete, transitioned to Phase 8
+Last activity: 2026-10-13 — Phase 07 execution started
 
 Progress: [███░░░░░░░] 25%
 
@@ -109,6 +109,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 07 P02 | 8 min | 3 tasks | 5 files |
 | Phase 07 P03 | 12 min | 2 tasks | 3 files |
 | Phase 07 P04 | 6 min | 2 tasks | 2 files |
+| Phase 07 P05 | 9 min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -124,6 +125,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 07]: 07-03: home_snapshot lists six installer-written paths as F/D/L/U/- lines with cksum, LC_ALL=C sorted; Phase 8 extends the list — content not mtime (D-08, D-09); daemon files never read
 - [Phase 07]: No gate-prefix sync gate (MAINT-08) — CI must not run the suite twice, .planning/ is stripped from the PR branch, and variable-built gate names defeat a static check
 - [Phase 07]: Release tree is gsd/planning-setup; review-fix commits proven by ancestry (REL-05, D-01); local main fast-forwarded to origin/main with no push (D-02) — Phase 10 PR carries the commits to main
+- [Phase 07]: 07-05: close the CONVENTIONS.md gate-prefix gap by copying the IN-04 block from .claude/CLAUDE.md (no overrides entry, no repository sync gate)
 
 ### Pending Todos
 
@@ -154,9 +156,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T03:58:33.254Z
-Stopped at: Phase 08 context gathered
-Resume file: .planning/phases/08-codex-plugin-route/08-CONTEXT.md
+Last session: 2026-10-13T08:49:53.663Z
+Stopped at: Completed 07-05-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
