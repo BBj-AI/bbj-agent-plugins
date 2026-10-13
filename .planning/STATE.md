@@ -5,11 +5,11 @@ milestone_name: Platform verification and release hygiene
 current_phase: 9
 current_phase_name: Windows and macOS verification
 status: executing
-stopped_at: "Phase 9 plan 09-04 Task 2: blocking-human decision checkpoint (commit transfer: bundle / direct / push) awaiting the owner"
-last_updated: "2026-10-13T19:23:08.086Z"
+stopped_at: "Phase 9 plan 09-04 Task 3: blocking-human action checkpoint, owner runs windows-runbook.md W0-W11 on commit 977135c and pastes the round-1 reply"
+last_updated: "2026-10-13T20:04:46.175Z"
 last_activity: 2026-10-13
 last_activity_desc: Phase 9 execution started
-state_head: 5c73c18fbe82fd1407013a1cd0652df6d16bbdce
+state_head: 977135cec27500f23a5e8f2d7021d94d23072a5a
 progress:
   total_phases: 4
   completed_phases: 2
@@ -187,9 +187,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T19:23:07.999Z
-Stopped at: Phase 9 plan 09-04 Task 2: blocking-human decision checkpoint (commit transfer: bundle / direct / push) awaiting the owner
-Resume file: .planning/phases/09-windows-and-macos-verification/09-04-PLAN.md
+Last session: 2026-10-13T20:04:46.094Z
+Stopped at: Phase 9 plan 09-04 Task 3: blocking-human action checkpoint, owner runs windows-runbook.md W0-W11 on commit 977135c and pastes the round-1 reply
+Resume file: .planning/phases/09-windows-and-macos-verification/platform-run/windows-runbook.md
 
 ## Operator Next Steps
 
