@@ -109,6 +109,11 @@
 # Exit 2 before the first write means nothing was changed: the options are validated and every
 # destination (skills directory, <codex home>/bbj, config.toml) is created or checked up front.
 # A failure after a step has run still exits 2 and names the steps that already ran.
+# With --remove, exit 2 (always before the first write) also covers: --remove together with
+# --with-local or with --force (a skill directory that differs is the user's and is never deleted,
+# so --force has nothing to do there), a Codex home that is not a directory (nothing to remove, and
+# no directory is created), and a skills directory, check-script directory or Codex home that is not
+# a writable directory.
 #
 # It never runs BBj and never calls a compiler; the hook it installs follows the same
 # never-execute rule. POSIX sh plus awk, sed, grep, cp, mv, cmp, diff, mktemp.
@@ -175,7 +180,9 @@ Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-ho
                      install. Whatever differs from what this script writes stays and is named
   --help             this text
 
-Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran),
+Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran; with
+        --remove: combined with --with-local or --force, a Codex home that is not a directory,
+        a destination that is not writable),
       3 done except something to merge or decide by hand: bbj-docs or its tools named in
         config.toml in a form this script does not edit, a default_tools_approval_mode that
         approves every tool, bbj-local named in a form this script does not edit or with
@@ -205,6 +212,15 @@ while [ "$#" -gt 0 ]; do
     *) refuse "unknown option: $1 (see --help)" ;;
   esac
 done
+
+# --remove contradicts two options (D-01, D-03); refused before any filesystem access, so nothing is written.
+# --force would replace a skill directory that differs, and --remove never deletes one: it is the user's
+if [ "$remove" = 1 ] && [ "$with_local" = 1 ]; then
+  refuse "--remove and --with-local cannot be combined"
+fi
+if [ "$remove" = 1 ] && [ "$force" = 1 ]; then
+  refuse "--remove does not take --force: a skill directory that differs is yours; copy out what you want to keep and delete it by hand"
+fi
 
 # the docs URL goes into config.toml and into one codex call: no whitespace, quote, backslash,
 # apostrophe, userinfo or control character; https anywhere, plain http only to loopback
