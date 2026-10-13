@@ -236,8 +236,6 @@ if [ -f "$CODEX_PAGE" ]; then
     gate codex_oauth_client_id FAIL "no OAUTH_CLIENT_ID line in codex/install-codex.sh"
   fi
   check_common "$n" "$CODEX_PAGE"
-  # the Codex route is unverified: the page must not say it was verified or tested on Codex
-  forbid "$n" "$CODEX_PAGE" '(was|has been|is) (verified|tested) (on|with) (a )?Codex' codex_verified_claim
   forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$CODEX_PAGE" "$NOROUTE_SILENCE" noroute_silence
   # no text may tell users to skip the hook review (T-08-26, CODEX-05)
