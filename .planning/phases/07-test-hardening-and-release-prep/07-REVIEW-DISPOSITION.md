@@ -5,12 +5,28 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "`home_snapshot` does not watch everything the installer writes, so leaked temp files and stray directories pass `real_home_untouched`"
+    disposition: open
+    title: "A watched path that is a symlink to a regular file is recorded by target only, so a write through it goes undetected"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "Symlinks are recorded without their target, so retargeting or writing through a symlinked skill goes undetected"
+    disposition: open
+    title: "An incomplete snapshot compares equal to itself, so `real_home_untouched` reports `ok` when part of the home could not be read"
+  - id: IN-01
+    severity: info
+    disposition: open
+    title: "The temp-file globs in `home_snapshot` silently stop expanding when the caller has `set -f`"
+  - id: IN-02
+    severity: info
+    disposition: open
+    title: "Directory modes are not recorded, and `readlink` is outside the POSIX tool list"
+  - id: IN-03
+    severity: info
+    disposition: open
+    title: "`TIER2_TEST_SYSPATH` is read from the ambient environment"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "`homeguard_fifo_not_opened` leaves orphans on failure, and `homeguard_unreadable_dir_reported` skips as root"
   - id: WR-03
     severity: warning
     disposition: fixed
@@ -23,45 +39,29 @@ findings:
     severity: warning
     disposition: fixed
     title: "`pathscrub_shared_dir_keeps_tools` and `pathscrub_exe_names` cannot detect a missing `.exe` removal"
-  - id: IN-01
-    severity: info
-    disposition: fixed
-    title: "`no_compiler_path` turns an unset `IFS` into an empty `IFS`, and skips `..`-prefixed names"
-  - id: IN-02
-    severity: info
-    disposition: fixed
-    title: "The PATH scrub of `test_tier2_fake.sh` has no load-bearing proof"
-  - id: IN-03
-    severity: info
-    disposition: fixed
-    title: "The hard-coded gate count `11` in `release_mut_later_repinned` is brittle"
-  - id: IN-04
-    severity: info
-    disposition: fixed
-    title: "The gate-prefix list in `.claude/CLAUDE.md` contradicts its own rule and is not exact"
   - id: IN-05
     severity: info
     disposition: fixed
     title: "`home_diff` returns 1 with no output when `diff` itself fails"
-open: 0
+open: 6
 total: 10
-recorded: 2026-10-13T04:05:55.354Z
+recorded: 2026-10-13T04:33:39.009Z
 ---
 
 # Phase 07: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 07-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 07-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 07-REVIEW-FIX.md |
-| WR-04 | warning | fixed | 07-REVIEW-FIX.md |
-| WR-05 | warning | fixed | 07-REVIEW-FIX.md |
-| IN-01 | info | fixed | 07-REVIEW-FIX.md |
-| IN-02 | info | fixed | 07-REVIEW-FIX.md |
-| IN-03 | info | fixed | 07-REVIEW-FIX.md |
-| IN-04 | info | fixed | 07-REVIEW-FIX.md |
-| IN-05 | info | fixed | 07-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
+| WR-03 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
+| WR-04 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
+| WR-05 | warning | fixed | 07-REVIEW-FIX.md (not in the current review) |
+| IN-05 | info | fixed | 07-REVIEW-FIX.md (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
