@@ -16,8 +16,8 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 - [x] **PLAT-02**: On Windows, the hook's `cygpath` branch works on real paths: compiler path, `-P` list joined with `;`, drive-letter file paths, and a project path that contains a space
 - [x] **PLAT-03**: On Windows, a user installs `bbj` through the Codex plugin route; Codex runs the plugin hook through Git for Windows' `sh` (with `commandWindows` or another fix if needed); after `apply_patch` the hook gives `bbjcpl` feedback for a bad file and nothing for a clean one
 - [x] **PLAT-04**: On Windows with BBjServices running, `bbj-local` connects in Claude Code (when enabled) and in Codex (`codex plugin add bbj-local@basis-bbj`)
-- [ ] **PLAT-05**: On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook give `bbjcpl` (tier 1) feedback for a bad file and silence for a clean one
-- [ ] **PLAT-06**: Every defect a Windows or macOS run finds is fixed in the shipped hook or installer with a regression gate that runs in CI on fakes, or recorded as a known gap; each run's evidence (OS, client, BBj version, route, outcome) is recorded in the phase
+- [x] **PLAT-05**: On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook give `bbjcpl` (tier 1) feedback for a bad file and silence for a clean one
+- [x] **PLAT-06**: Every defect a Windows or macOS run finds is fixed in the shipped hook or installer with a regression gate that runs in CI on fakes, or recorded as a known gap; each run's evidence (OS, client, BBj version, route, outcome) is recorded in the phase
 
 ### Codex plugin route
 
@@ -73,8 +73,8 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 | PLAT-02 | Phase 9 | Complete |
 | PLAT-03 | Phase 9 | Complete |
 | PLAT-04 | Phase 9 | Complete |
-| PLAT-05 | Phase 9 | Pending |
-| PLAT-06 | Phase 9 | Pending |
+| PLAT-05 | Phase 9 | Complete |
+| PLAT-06 | Phase 9 | Complete |
 | CODEX-01 | Phase 8 | Complete |
 | CODEX-02 | Phase 8 | Complete |
 | CODEX-03 | Phase 8 | Complete |
