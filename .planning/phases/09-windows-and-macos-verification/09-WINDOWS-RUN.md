@@ -508,6 +508,14 @@ W-1: Codex plugin route: bbjcpl | evidence: ps-sh missing, ps-direct-exit 2, ps-
 W-2: No-route notice smoke | evidence: notice_first absent, claim_file absent, exit_first 0, exit_second 0, notice_second absent, state_dir under <work> | D-11 row: n/a | candidate: hypothesis, not shown: Windows reports a closed loopback port only after about 2 s, so curl with --connect-timeout 1 ends in exit 28, which the hook reads as a route that gave no verdict (no notice, no claim); fix = a longer connect timeout in the tier 2 curl call under WIN=1, tested on the fake curl | gap category: D-10 no fake models the Windows connect timing (the owner's call)
 W-3: Codex plugin route: bbjcpl | evidence: smoke codex_verbatim gives compiler_call none, exit 0, no stderr for cwd and file with the \\?\ prefix; cx-marketplace-add shows Codex itself writing source = '\\?\C:\...' verbatim, so Codex does produce that form on Windows; codex_rel_backslash prints a mixed-slash header | D-11 row: payload-form (latent: the Codex run failed in the launcher before the script, so the form Codex sends to the hook is not seen) | candidate: codex_patch path-form fix (WIN=1 only: strip a leading \\?\ or //?/ and turn backslashes into slashes before the containment and .. checks) | gap category: none
 
+Owner decisions (plan 09-05 Task 2, 2026-10-13). Task 2 is a blocking-human decision with no auto_select. The owner's own words were: "W-1 W-2 W3 fill all three". The orchestrator read this as the option `fix` for each of the three defects and told the owner so; the normalized lines below are that reading, not the owner's typing:
+
+answer W-1: fix
+answer W-2: fix
+answer W-3: fix
+
+Consequences stated to the owner with the options and carried into Task 3: the W-1 fix adds a `commandWindows` entry, which changes the hook definition Codex hashes (every existing Codex plugin install asks for hook trust again after the upgrade, which Phase 10 must say) and puts Claude Code on Windows into the re-run of plan 09-06 as well; the W-2 and W-3 fixes change the Windows branch of the hook (WIN=1 only).
+
 Observations (no decision asked here):
 
 obs-1: The exact P1 prompt made Claude Code write with a Bash shell command twice (bbj-p9 and "bbj test"), so the Write|Edit hook never saw the create; P2 used Edit and P3 used Write without prompting. A file written through Bash is not checked by design (matcher Write|Edit). Client behaviour, not a PLAT-01 defect; Phase 10 may say it.
