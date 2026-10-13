@@ -18,7 +18,13 @@
 #     no check route exists is forbidden on all four (NOROUTE_SILENCE),
 #   - the OAuth sign-in of bbj-docs (quick 261013-cpn): port 47613 and the sign-in steps on both pages,
 #     and the installer messages the Codex page quotes about the OAuth table; the Codex page shows the
-#     client id of the installer (IN-07).
+#     client id of the installer (IN-07),
+#   - the Codex plugin route (phase 8, CODEX-05, CODEX-06; D-15, D-16): the plugin-route heading, the
+#     two install commands, the bbj-local opt-in command, the verified line, the first-use prompts, the
+#     upgrade-trust sentence, the switch heading and --remove, the fallback heading and the
+#     plugin-scoped key, on the Codex page; the two plugin commands in README; twelve installer
+#     messages quoted on the page (four more for --remove); and a forbid so that neither the Codex page
+#     nor README recommends the hook-trust bypass flag of codex exec.
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
 
 . "$(dirname "$0")/lib.sh"
@@ -62,6 +68,10 @@ NOROUTE_SILENCE='says nothing|missing compiler is silent'
 
 # the local check must never read as better than the compiler (D-13): bbjcpl also checks types
 LOCAL_ABOVE_BBJCPL='(preferred|better) (than|over) `?bbjcpl'
+
+# nothing may recommend skipping the Codex hook review (phase 8, T-08-26): the flag of codex exec that
+# does it is named by its stem only, so this file never holds the whole flag
+HOOK_TRUST_BYPASS='dangerously-bypass'
 
 # ---- Claude Code page ----
 if [ -f "$CLAUDE_PAGE" ]; then
@@ -206,7 +216,12 @@ if [ -f "$CODEX_PAGE" ]; then
     'Verified on Linux with Codex CLI 0.162.1 on' \
     '### Trust the hook in /hooks' \
     'first use' \
-    'Observed on Linux with Codex CLI 0.162.1:'
+    'Observed on Linux with Codex CLI 0.162.1:' \
+    '### Switch from the installer script' \
+    'sh codex/install-codex.sh --remove' \
+    '## Fallback: the installer script' \
+    '## Add the AGENTS.md snippet (both routes)' \
+    'plugins."bbj@basis-bbj".mcp_servers.bbj-docs'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
@@ -223,6 +238,8 @@ if [ -f "$CODEX_PAGE" ]; then
   forbid "$n" "$CODEX_PAGE" '(was|has been|is) (verified|tested) (on|with) (a )?Codex' codex_verified_claim
   forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$CODEX_PAGE" "$NOROUTE_SILENCE" noroute_silence
+  # no text may tell users to skip the hook review (T-08-26, CODEX-05)
+  forbid "$n" "$CODEX_PAGE" "$HOOK_TRUST_BYPASS" hook_trust_bypass
 
   # the bbj-local tool tables of the page are the installer's LOCAL_TOOLS, one list (plan 01-07)
   INSTALLER=$REPO/codex/install-codex.sh
@@ -246,12 +263,16 @@ if [ -f "$CODEX_PAGE" ]; then
     'registering it anyway' \
     'already registered in' \
     'added the OAuth client to' \
-    'OAuth settings of its own'
+    'OAuth settings of its own' \
+    'nothing to remove' \
+    'left in place' \
+    'holds more than the hook this script writes' \
+    'rerun with --docs-url'
   do
     grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
     grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
   done
-  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "eight quoted fragments, each on the page and on a non-comment installer line"
+  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "twelve quoted fragments, each on the page and on a non-comment installer line"
 fi
 
 # ---- README: the local check, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
@@ -264,10 +285,13 @@ if [ -f "$README" ]; then
     'PREFIX, classpath and config' \
     '--with-local' \
     '## Skills' \
-    'once per session'
+    'once per session' \
+    'codex plugin add bbj@basis-bbj' \
+    'codex plugin add bbj-local@basis-bbj'
   do
     need "$n" "$README" "$p"
   done
+  forbid "$n" "$README" "$HOOK_TRUST_BYPASS" hook_trust_bypass
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$README" "$NOROUTE_SILENCE" noroute_silence
 fi
