@@ -17,7 +17,8 @@
 #     installer, "not compile-checked" on both pages, and the old claim that the hook stays silent when
 #     no check route exists is forbidden on all four (NOROUTE_SILENCE),
 #   - the OAuth sign-in of bbj-docs (quick 261013-cpn): port 47613 and the sign-in steps on both pages,
-#     and the installer messages the Codex page quotes about the OAuth table.
+#     and the installer messages the Codex page quotes about the OAuth table; the Codex page shows the
+#     client id of the installer (IN-07).
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
 
 . "$(dirname "$0")/lib.sh"
@@ -201,6 +202,14 @@ if [ -f "$CODEX_PAGE" ]; then
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
+  # the client id of the example on the page is the installer's OAUTH_CLIENT_ID, read from the installer
+  # (one source; layout_oauth_codex_matches_plugin ties the installer to the plugin manifest) (IN-07)
+  _oid=$(sed -n 's/^OAUTH_CLIENT_ID=//p' "$REPO/codex/install-codex.sh" | head -n 1)
+  if [ -n "$_oid" ]; then
+    need "$n" "$CODEX_PAGE" "client_id = \"$_oid\""
+  else
+    gate codex_oauth_client_id FAIL "no OAUTH_CLIENT_ID line in codex/install-codex.sh"
+  fi
   check_common "$n" "$CODEX_PAGE"
   # the Codex route is unverified: the page must not say it was verified or tested on Codex
   forbid "$n" "$CODEX_PAGE" '(was|has been|is) (verified|tested) (on|with) (a )?Codex' codex_verified_claim
