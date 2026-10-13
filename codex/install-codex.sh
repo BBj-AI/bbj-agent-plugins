@@ -154,8 +154,8 @@ say() {
 
 wrote=
 refuse() {
-  echo "install-codex: $*" >&2
-  [ -z "$wrote" ] || echo "install-codex: steps that had already run: $wrote" >&2
+  printf 'install-codex: %s\n' "$*" >&2
+  [ -z "$wrote" ] || printf 'install-codex: steps that had already run: %s\n' "$wrote" >&2
   exit 2
 }
 
