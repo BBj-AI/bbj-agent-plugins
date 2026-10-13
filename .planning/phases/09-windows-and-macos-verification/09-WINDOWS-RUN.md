@@ -53,6 +53,8 @@ Status: awaiting the owner's run.
 
 Status: awaiting the owner's run.
 
+Linux dry run 2026-10-13: a clone from a bundle of 5c2d028 ran smoke.sh claude with the fake compiler (exit 2, -N present) and check-records.sh selftest (ok); suite SUMMARY: ok=913 fail=0 skip=0
+
 ## Smoke run
 
 Status: awaiting the owner's run.
