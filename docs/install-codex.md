@@ -97,7 +97,9 @@ what to do in that case. Running it a second time changes nothing.
    add` writes the `bbj-docs` table and then exits with an error, because the server refuses its
    self-registration; the installer keeps that table and completes it. An OAuth entry of your own
    for `bbj-docs` (another client, another port, or any other form) is left as it is, and the
-   output says `OAuth settings of its own`.
+   output says `OAuth settings of its own`. The client belongs to the hosted docs server only: with
+   another `--docs-url` the installer writes no `oauth` table and prints no sign-in client; if that
+   server asks for a sign-in, `codex mcp login bbj-docs` uses the server's own registration.
 
    **Upgrading from an earlier install.** Installers before 2026-10-09 wrote
    `default_tools_approval_mode = "approve"` into the `bbj-docs` table, which approved every tool

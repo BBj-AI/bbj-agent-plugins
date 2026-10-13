@@ -17,7 +17,8 @@
 #      which send your code to the server and keep Codex's normal prompt. The script also
 #      writes [mcp_servers.bbj-docs.oauth] with client_id, callback_url and callback_port of the
 #      pre-registered OAuth client of the hosted docs server (quick 261013-cpn), right after the
-#      bbj-docs table body (inside the managed block when there is one). It never goes through
+#      bbj-docs table body (inside the managed block when there is one); only for the default
+#      docs url, any other --docs-url gets no OAuth table (review 07 WR-02). It never goes through
 #      codex mcp add for this: the client-id option of that command starts the sign-in at once
 #      and waits for a browser. An OAuth entry of your own for bbj-docs is left alone and named.
 #      An existing table only gains the missing OAuth table and tool tables;
@@ -463,9 +464,17 @@ use_docs() {
   srv_old_key=$OLD_KEY_LINE
   srv_codex_add=1
   srv_fixed_url=0
-  srv_oauth_id=$OAUTH_CLIENT_ID
-  srv_oauth_url=$OAUTH_CALLBACK_URL
-  srv_oauth_port=$OAUTH_CALLBACK_PORT
+  # the pre-registered client belongs to the hosted server only: for any other --docs-url an
+  # explicit client_id would override that server's own registration (review 07 WR-02)
+  if [ "$docs_url" = "$DEFAULT_DOCS_URL" ]; then
+    srv_oauth_id=$OAUTH_CLIENT_ID
+    srv_oauth_url=$OAUTH_CALLBACK_URL
+    srv_oauth_port=$OAUTH_CALLBACK_PORT
+  else
+    srv_oauth_id=
+    srv_oauth_url=
+    srv_oauth_port=
+  fi
   srv_label='the five docs tools'
   srv_untouched='config.toml was not modified.'
   srv_approved_note='(the hosted check tools bbj_check_syntax, bbj_format and bbj_denum send your code to the server)'
@@ -873,7 +882,11 @@ say "----8<----"
 say ""
 say "Trust step: Codex skips a hook it did not manage until you review it. Start Codex, open /hooks, and approve the BBj check hook."
 say "The review is pinned to a hash of the script: a changed bbj-check.sh asks again. This script cannot approve it for you."
-say "Sign-in step: the docs server bbj-docs asks for an OAuth sign-in (pre-registered client $OAUTH_CLIENT_ID). Run codex mcp login bbj-docs once; a browser opens, and the sign-in returns to $OAUTH_CALLBACK_URL, so port $OAUTH_CALLBACK_PORT must be free while you sign in."
+if [ "$docs_url" = "$DEFAULT_DOCS_URL" ]; then
+  say "Sign-in step: the docs server bbj-docs asks for an OAuth sign-in (pre-registered client $OAUTH_CLIENT_ID). Run codex mcp login bbj-docs once; a browser opens, and the sign-in returns to $OAUTH_CALLBACK_URL, so port $OAUTH_CALLBACK_PORT must be free while you sign in."
+else
+  say "Sign-in step: none written. The pre-registered OAuth client belongs to the hosted docs server only, so $docs_url got no OAuth table; if that server asks for a sign-in, run codex mcp login bbj-docs."
+fi
 say ""
 say "Known gaps:"
 say "- OpenAI calls hooks \"a useful guardrail, not a complete enforcement boundary\"."

@@ -490,6 +490,30 @@ run_inst "$WITH_CODEX" --docs-url https://docs.example.org/mcp
 note_cfg "$E_CODEX/config.toml"
 real_parse httpsother "$E_CODEX/config.toml" https://docs.example.org/mcp
 
+# review 07 WR-02: the pre-registered OAuth client belongs to the hosted docs server only. A run with another
+# --docs-url (codex mcp add path and managed-block path) writes no oauth table, no client id, and says no sign-in
+# client was written instead of naming the pre-registered one
+_oc_bad=
+_oc_n=0
+# oauth_custom NAME PATHVALUE URL: one run with another --docs-url; appends to _oc_bad when an OAuth trace shows up
+oauth_custom() {
+  newenv "oauthcustom-$1"
+  run_inst "$2" --docs-url "$3"
+  _oc_n=$((_oc_n + 1))
+  _oc_cfg=$E_CODEX/config.toml
+  if [ "$RC" != 0 ] || [ ! -f "$_oc_cfg" ]; then _oc_bad="$_oc_bad $1(exit $RC)"; return 0; fi
+  grep -F 'oauth' "$_oc_cfg" > /dev/null && _oc_bad="$_oc_bad $1(oauth in config.toml)"
+  grep -F "$OAUTH_ID" "$_oc_cfg" "$WORK/out" > /dev/null && _oc_bad="$_oc_bad $1(client id written or printed)"
+  grep -F 'added the OAuth client' "$WORK/out" > /dev/null && _oc_bad="$_oc_bad $1(says it added the table)"
+  grep -F "$3" "$_oc_cfg" > /dev/null || _oc_bad="$_oc_bad $1(url missing)"
+  return 0
+}
+oauth_custom loopback "$WITH_CODEX" http://127.0.0.1:8765/mcp
+oauth_custom https "$WITH_CODEX" https://docs.example.org/mcp
+oauth_custom block "$NO_CODEX" http://localhost:9999/mcp
+[ -z "$_oc_bad" ] && gate oauth_custom_docs_url_no_table ok "$_oc_n runs with another --docs-url (loopback http, other https, managed block): no oauth table, no client id in config.toml or output" \
+  || gate oauth_custom_docs_url_no_table FAIL "$_oc_bad"
+
 # ---- --skills-dir and --codex-home ----
 newenv custom
 run_inst "$WITH_CODEX" --skills-dir "$E_ROOT/sk" --codex-home "$E_ROOT/ch"
