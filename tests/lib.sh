@@ -203,7 +203,9 @@ no_compiler_env() {
 # home_snapshot CODEXHOME SKILLSDIR: one line per entry under the paths the Codex installer can
 # write, sorted with LC_ALL=C (MAINT-07, D-08, D-09, D-10):
 #   F <mode> <crc> <size> <path>   regular file (permission string and cksum of the content, never a time)
-#   D <path>   directory    L <path> -> <target>   symlink    U <path>   unreadable    - <path>   absent
+#   D <path>   directory    L <path> -> <target>   symlink    U <path>   unreadable file
+#   O <path>   other (FIFO, socket, device; never opened)    - <path>   absent
+#   E <path>   find failed below this watched path (an unreadable directory); the walk is incomplete
 #   H <path> present|absent   the Codex home and the skills dir themselves (the installer mkdir -p's both)
 # Content, never mtime (D-09): a touch changes nothing, an edited, added or removed file does. Only
 # the paths below are read, so daemon files (logs_*.sqlite*, state_*.sqlite, history.jsonl,
@@ -232,17 +234,23 @@ home_snapshot() {
       if [ -e "$_hs_p" ] || [ -L "$_hs_p" ]; then
         # -H: a watched top-level path that is a symlink to a directory is followed, so a write
         # through the link is seen; links below it are recorded with their target, not followed
-        find -H "$_hs_p" -print 2> /dev/null | while IFS= read -r _hs_f; do
-          if [ -L "$_hs_f" ]; then
-            printf 'L %s -> %s\n' "$_hs_f" "$(readlink "$_hs_f")"
-          elif [ -d "$_hs_f" ]; then
-            printf 'D %s\n' "$_hs_f"
-          elif [ -r "$_hs_f" ]; then
-            printf 'F %s %s %s\n' "$(ls -ld "$_hs_f" | awk '{ print $1 }')" "$(cksum < "$_hs_f")" "$_hs_f"
-          else
-            printf 'U %s\n' "$_hs_f"
-          fi
-        done
+        # names reach the classifier as arguments, never through a line-oriented read (a newline
+        # in a name cannot split an entry), and only a regular file is ever opened (a FIFO would
+        # block cksum forever); a find that fails, for an unreadable directory, adds an E line
+        find -H "$_hs_p" -exec sh -c '
+          for _f; do
+            if [ -L "$_f" ]; then
+              printf "L %s -> %s\n" "$_f" "$(readlink "$_f")"
+            elif [ -d "$_f" ]; then
+              printf "D %s\n" "$_f"
+            elif [ -f "$_f" ] && [ -r "$_f" ]; then
+              printf "F %s %s %s\n" "$(ls -ld "$_f" | awk "{ print \$1 }")" "$(cksum < "$_f")" "$_f"
+            elif [ -f "$_f" ]; then
+              printf "U %s\n" "$_f"
+            else
+              printf "O %s\n" "$_f"
+            fi
+          done' sh {} + 2> /dev/null || printf 'E %s\n' "$_hs_p"
       else
         printf -- '- %s\n' "$_hs_p"
       fi

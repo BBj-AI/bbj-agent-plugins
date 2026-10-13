@@ -143,6 +143,56 @@ mklinkhome link_untouched_same
 touch "$H_S/bbj-web-programming/SKILL.md"
 expect link_untouched_same same
 
+# ---- odd names and file types: a newline in a name, a FIFO, an unreadable directory ----
+mkhome newline_name_detected
+mkdir "$H_C/bbj"
+printf 'one\n' > "$H_C/bbj/new
+line"
+home_snapshot "$H_C" "$H_S" > "$WORK/newline_name_detected.before"
+printf 'two\n' > "$H_C/bbj/new
+line"
+expect newline_name_detected differ
+
+# a FIFO under a watched path must not block the snapshot (it would hang the whole suite): the
+# snapshot runs in the background and is killed after about five seconds
+if command -v mkfifo > /dev/null 2>&1; then
+  mkhome fifo_not_opened
+  mkdir "$H_C/bbj"
+  mkfifo "$H_C/bbj/pipe"
+  home_snapshot "$H_C" "$H_S" > "$WORK/fifo_not_opened.snap" 2>&1 &
+  _pid=$!
+  _w=0
+  while kill -0 "$_pid" 2> /dev/null && [ "$_w" -lt 5 ]; do
+    sleep 1
+    _w=$((_w + 1))
+  done
+  if kill -0 "$_pid" 2> /dev/null; then
+    kill "$_pid" 2> /dev/null
+    gate homeguard_fifo_not_opened FAIL "home_snapshot blocked on a FIFO"
+  elif grep -q '^O .*/bbj/pipe$' "$WORK/fifo_not_opened.snap"; then
+    gate homeguard_fifo_not_opened ok "the FIFO is listed as O and was never opened"
+  else
+    gate homeguard_fifo_not_opened FAIL "no O line for the FIFO: $(tr '\n' ' ' < "$WORK/fifo_not_opened.snap")"
+  fi
+else
+  gate homeguard_fifo_not_opened skip "no mkfifo"
+fi
+
+# an unreadable directory is reported with an E line, never silently left out (root reads anyway)
+mkhome unreadable_dir_reported
+mkdir "$H_C/bbj"
+printf 'x\n' > "$H_C/bbj/f"
+chmod 000 "$H_C/bbj"
+home_snapshot "$H_C" "$H_S" > "$WORK/unreadable_dir_reported.snap"
+chmod 755 "$H_C/bbj"
+if [ -r "$WORK/unreadable_dir_reported.snap" ] && grep -q '^E .*/\.codex/bbj$' "$WORK/unreadable_dir_reported.snap"; then
+  gate homeguard_unreadable_dir_reported ok "find failure below bbj/ prints an E line"
+elif [ "$(id -u)" = 0 ]; then
+  gate homeguard_unreadable_dir_reported skip "running as root: chmod 000 does not hide a directory"
+else
+  gate homeguard_unreadable_dir_reported FAIL "no E line: $(tr '\n' ' ' < "$WORK/unreadable_dir_reported.snap")"
+fi
+
 # ---- restoring the original bytes makes the snapshot identical again (content, not history) ----
 mkhome restore_same
 cp "$H_C/config.toml" "$WORK/config.saved"
