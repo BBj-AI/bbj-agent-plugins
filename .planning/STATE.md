@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 08
 current_phase_name: Codex plugin route
 status: executing
-stopped_at: Phase 07 complete, ready to plan Phase 08
-last_updated: "2026-10-13T14:05:28.230Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-10-13T14:12:06.340Z"
 last_activity: 2026-10-13
-last_activity_desc: Phase 07 complete, transitioned to Phase 08
-state_head: 0042bb141b7d708c7cb0699791018f0e0614d939
+last_activity_desc: Phase 08 execution started
+state_head: 7284a14d4826fe7dd89f53ad4acebe750db194ba
 progress:
   total_phases: 4
   completed_phases: 1
   total_plans: 14
-  completed_plans: 6
+  completed_plans: 7
   percent: 25
 ---
 
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-12)
 
 ## Current Position
 
-Phase: 08 (Codex plugin route) — READY TO EXECUTE
-Plan: Not started
+Phase: 08 (Codex plugin route) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
-Last activity: 2026-10-13 — Phase 07 complete, transitioned to Phase 08
+Last activity: 2026-10-13 — Phase 08 execution started
 
 Progress: [███░░░░░░░] 25%
 
@@ -111,6 +111,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 07 P04 | 6 min | 2 tasks | 2 files |
 | Phase 07 P05 | 9 min | 2 tasks | 1 files |
 | Phase 07 P06 | 3 min | 2 tasks | 1 files |
+| Phase 08 P01 | 2 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -128,6 +129,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 07]: Release tree is gsd/planning-setup; review-fix commits proven by ancestry (REL-05, D-01); local main fast-forwarded to origin/main with no push (D-02) — Phase 10 PR carries the commits to main
 - [Phase 07]: 07-05: close the CONVENTIONS.md gate-prefix gap by copying the IN-04 block from .claude/CLAUDE.md (no overrides entry, no repository sync gate)
 - [Phase 07]: 07-06: close the oauth_ gap by copying the CLAUDE.md line into CONVENTIONS.md (no overrides entry, no repository sync gate)
+- [Phase 08]: 08-01: .codex-mcp.json ships without an oauth object; layout_codex_mcp pins the exact dict and plan 08-08 re-pins it if the owner chooses a block
+- [Phase 08]: 08-01: no plugin-route path joins the home_snapshot allowlist; Codex writes the plugin cache and [marketplaces]/[plugins] itself
 
 ### Pending Todos
 
@@ -158,8 +161,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T11:33:40Z
-Stopped at: Phase 07 verified (UAT 18/18, verification passed 6/6), ready to plan Phase 08
+Last session: 2026-10-13T14:12:06.276Z
+Stopped at: Completed 08-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

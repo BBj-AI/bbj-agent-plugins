@@ -24,7 +24,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 - [ ] **CODEX-01**: A Codex user installs with `codex plugin marketplace add BBj-AI/bbj-agent-plugins` and `codex plugin add bbj@basis-bbj`; `bbj-docs` is registered with a working URL (a `.codex-plugin/plugin.json` overlay pointing at a literal-URL MCP file), both skills load, and Claude Code's `userConfig` and `claude plugin validate --strict` are unchanged
 - [ ] **CODEX-02**: After the user trusts the hook in `/hooks`, the plugin's unchanged `hooks/hooks.json` checks every BBj file an `apply_patch` writes (bbjcpl feedback for a bad file, silence for a clean one), proven in CI on fakes with a Codex plugin-route payload
 - [ ] **CODEX-03**: `bbj-local` is opt-in on Codex through `codex plugin add bbj-local@basis-bbj`, and the hook's no-route notice names the command that fits how the hook was installed (plugin route or `install-codex.sh --with-local`)
-- [ ] **CODEX-04**: Gates keep the docs URL identical in the Claude `docs_url` default and the Codex literal MCP file, keep every manifest (both plugins, marketplace, Codex overlay) at one version, and keep the hosted-host rule of `tests/test_layout.py` correct for the new file
+- [x] **CODEX-04**: Gates keep the docs URL identical in the Claude `docs_url` default and the Codex literal MCP file, keep every manifest (both plugins, marketplace, Codex overlay) at one version, and keep the hosted-host rule of `tests/test_layout.py` correct for the new file
 - [ ] **CODEX-05**: `docs/install-codex.md` leads with the plugin route (including the `/hooks` trust step, first-use tool prompts, the `BBJ_HOME` note and whether an upgrade asks for trust again, as observed) and keeps `install-codex.sh` as a documented fallback for this release
 - [ ] **CODEX-06**: A user with an existing `install-codex.sh` setup can switch to the plugin route by documented steps (or an installer option) that leave one hook entry, one copy of the skills and one `bbj-docs` server, verified once on Linux in a throwaway Codex home
 
@@ -78,7 +78,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 | CODEX-01 | Phase 8 | Pending |
 | CODEX-02 | Phase 8 | Pending |
 | CODEX-03 | Phase 8 | Pending |
-| CODEX-04 | Phase 8 | Pending |
+| CODEX-04 | Phase 8 | Complete |
 | CODEX-05 | Phase 8 | Pending |
 | CODEX-06 | Phase 8 | Pending |
 | MAINT-06 | Phase 7 | Complete |
