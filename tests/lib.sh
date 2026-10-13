@@ -224,6 +224,7 @@ no_compiler_env() {
 # home_snapshot CODEXHOME SKILLSDIR: one line per entry under the paths the Codex installer can
 # write, sorted with LC_ALL=C (MAINT-07, D-08, D-09, D-10):
 #   F <mode> <crc> <size> <path>   regular file (permission string and cksum of the content, never a time)
+#   T <crc> <size> <path>   content behind a symlink to a regular file (WR-01: a write through the link)
 #   D <path>   directory    L <path> -> <target>   symlink    U <path>   unreadable file
 #   O <path>   other (FIFO, socket, device; never opened)    - <path>   absent
 #   E <path>   find failed below this watched path (an unreadable directory); the walk is incomplete
@@ -236,8 +237,9 @@ no_compiler_env() {
 # mktemp and mv (config.toml.XXXXXX, hooks.json.XXXXXX), and the two parent directories. A glob
 # that matches nothing stays literal and prints as an absent path. A symlink is recorded with its
 # target; a watched top-level symlink to a directory is also followed (find -H), so retargeting it
-# and writing through it both show. File content is never printed, only its cksum values. Pass the
-# real homes or fake ones; this helper only reads.
+# and writing through it both show, and a symlink to a regular file also gets a T line with the
+# cksum of what it points at, so a write through that link shows too. File content is never
+# printed, only its cksum values. Pass the real homes or fake ones; this helper only reads.
 # Accepted residual risk: Codex itself rewrites config.toml when a session trusts a new project or
 # changes a TUI option. That is a real content change and fails real_home_untouched by design, so do
 # not open Codex in a new project during a suite run (0.2.0 D-18 advice, narrowed).
@@ -262,6 +264,10 @@ home_snapshot() {
           for _f; do
             if [ -L "$_f" ]; then
               printf "L %s -> %s\n" "$_f" "$(readlink "$_f")"
+              # the content behind a file link: a write through the link changes this and nothing else
+              if [ -f "$_f" ] && [ -r "$_f" ]; then
+                printf "T %s %s\n" "$(cksum < "$_f")" "$_f"
+              fi
             elif [ -d "$_f" ]; then
               printf "D %s\n" "$_f"
             elif [ -f "$_f" ] && [ -r "$_f" ]; then
