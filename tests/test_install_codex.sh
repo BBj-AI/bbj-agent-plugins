@@ -8,6 +8,8 @@
 # homes, never a session; without a codex that gate is a clean skip. Plan 01-06 adds the tools/list
 # probe gates (LOCAL-03, LOCAL-04) against tests/fake_mcp.py and a fake curl; the probe URL is always
 # the BBJ_LOCAL_MCP_URL seam (a fake port or the closed port 9), never a real bbj-ls.
+# Quick 261013-cpn adds the oauth_ gates: the installer writes, keeps and reports the
+# [mcp_servers.bbj-docs.oauth] table of the pre-registered client, and never starts a sign-in.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -79,6 +81,39 @@ DEFAULT_URL=https://mcp.bbj-ai.com/mcp
 HAVE_TOML=0
 if command -v python3 > /dev/null 2>&1 && python3 -I -c 'import tomllib' 2> /dev/null; then HAVE_TOML=1; fi
 
+# quick 261013-cpn: the pre-registered OAuth client of the hosted docs server, as the installer writes it
+OAUTH_ID=oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t
+OAUTH_HDR='[mcp_servers.bbj-docs.oauth]'
+OAUTH_L1="client_id = \"$OAUTH_ID\""
+OAUTH_L2='callback_url = "http://localhost:47613/callback"'
+OAUTH_L3='callback_port = 47613'
+
+# oauth_once FILE: the OAuth header and its three lines each occur exactly once
+oauth_once() {
+  [ "$(count "$OAUTH_HDR" "$1")" = 1 ] && [ "$(count "$OAUTH_L1" "$1")" = 1 ] \
+    && [ "$(count "$OAUTH_L2" "$1")" = 1 ] && [ "$(count "$OAUTH_L3" "$1")" = 1 ]
+}
+
+# oauth_inside FILE: prints how many OAuth headers lie between the bbj-docs managed markers
+oauth_inside() {
+  awk -v h="$OAUTH_HDR" '$0 == "# >>> bbj-agent-plugins (managed) >>>" { b = 1 } $0 == "# <<< bbj-agent-plugins (managed) <<<" { b = 0 } b && $0 == h { n++ } END { print n + 0 }' "$1"
+}
+
+# oauth_parsed FILE: tomllib reads exactly the three keys of the pre-registered client under bbj-docs.oauth
+oauth_parsed() {
+  python3 -I -c '
+import sys, tomllib
+d = tomllib.load(open(sys.argv[1], "rb"))
+want = {"client_id": sys.argv[2], "callback_url": "http://localhost:47613/callback", "callback_port": 47613}
+sys.exit(0 if d["mcp_servers"]["bbj-docs"].get("oauth") == want else 1)
+' "$1" "$OAUTH_ID" 2> /dev/null
+}
+
+# oauth_added: the four lines the installer adds, as diff shows them (prefix "> "), for expectations
+oauth_added() {
+  printf '%s\n' "> $OAUTH_HDR" "> $OAUTH_L1" "> $OAUTH_L2" "> $OAUTH_L3"
+}
+
 # tsum FILE: canonical summary of the bbj-docs server of a config.toml, parsed with tomllib:
 # the url, the default_tools_approval_mode value or -, one "NAME VALUE" line per tool, sorted
 tsum() {
@@ -147,6 +182,14 @@ if [ "$HAVE_TOML" = 1 ]; then
     && gate first_tools_tables ok "tomllib: url, no default_tools_approval_mode, the five docs tools approve" || gate first_tools_tables FAIL "$(tsum "$CFG" | tr '\n' ';')"
 else
   gate first_tools_tables skip "no python3 with tomllib"
+fi
+# quick 261013-cpn: the OAuth table is there once, written by the installer and not by codex mcp add
+if oauth_once "$CFG" && { [ "$HAVE_TOML" = 0 ] || oauth_parsed "$CFG"; } && [ "$(awk 'END { print NR }' "$E_LOG")" = 1 ] \
+  && [ "$(cat "$E_LOG")" = 'mcp add bbj-docs --url https://mcp.bbj-ai.com/mcp' ] \
+  && grep -F 'added the OAuth client to' "$WORK/out" > /dev/null && grep -F 'codex mcp login bbj-docs' "$WORK/out" > /dev/null; then
+  gate oauth_fresh_table ok "the OAuth table once with the three lines, tomllib reads them, codex got only the plain mcp add, stdout names the table and the sign-in step"
+else
+  gate oauth_fresh_table FAIL "$(tr '\n' ';' < "$CFG" | head -c 500); log: $(tr '\n' ';' < "$E_LOG")"
 fi
 real_parse first "$CFG" "$DEFAULT_URL"
 if grep -F 'bbj_search' "$WORK/out" > /dev/null && grep -F 'bbj_fetch_page' "$WORK/out" > /dev/null && grep -F 'bbj_lookup' "$WORK/out" > /dev/null \
@@ -254,6 +297,11 @@ if [ "$HAVE_TOML" = 1 ]; then
 else
   gate managed_block_tools_tables skip "no python3 with tomllib"
 fi
+if oauth_once "$CFG" && [ "$(oauth_inside "$CFG")" = 1 ] && { [ "$HAVE_TOML" = 0 ] || oauth_parsed "$CFG"; }; then
+  gate oauth_managed_block ok "the OAuth table once, between the markers, tomllib reads the three lines"
+else
+  gate oauth_managed_block FAIL "inside: $(oauth_inside "$CFG"): $(tr '\n' ';' < "$CFG" | head -c 500)"
+fi
 real_parse nocodex "$CFG" "$DEFAULT_URL"
 cp "$CFG" "$WORK/cfg.m1"
 run_inst "$NO_CODEX"
@@ -279,6 +327,7 @@ note_cfg "$CFG"
 removed=$(grep -c '^<' "$WORK/cfg.diff")
 grep '^>' "$WORK/cfg.diff" | grep -v '^> *$' | sort > "$WORK/cfg.added"
 {
+  oauth_added
   for _t in bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples; do
     printf '%s\n' "> [mcp_servers.bbj-docs.tools.$_t]" '> approval_mode = "approve"'
   done
@@ -286,7 +335,7 @@ grep '^>' "$WORK/cfg.diff" | grep -v '^> *$' | sort > "$WORK/cfg.added"
 if [ "$RC" = 0 ] && [ "$removed" = 0 ] && cmp -s "$WORK/cfg.added" "$WORK/cfg.expected" \
   && [ "$(count 'url = "https://example.invalid/mcp"' "$CFG")" = 1 ] && [ "$(count '[mcp_servers.other]' "$CFG")" = 1 ] \
   && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ]; then
-  gate existing_table_gains_tools ok "nothing removed, the added lines are the five headers and five approvals, url kept, codex not called"
+  gate existing_table_gains_tools ok "nothing removed, the added lines are the OAuth table and the five headers and five approvals, url kept, codex not called"
 else
   gate existing_table_gains_tools FAIL "exit $RC, removed $removed: $(tr '\n' ';' < "$WORK/cfg.added")"
 fi
@@ -324,6 +373,8 @@ for form in "[mcp_servers.'bbj-docs']" '  [mcp_servers.bbj-docs]' '[ mcp_servers
     && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_lookup]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_reserved_word]' "$WORK/out" > /dev/null \
     && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_examples]' "$WORK/out" > /dev/null && [ "$(grep -Fxc 'approval_mode = "approve"' "$WORK/out")" = 5 ] \
     && grep -Fx '[mcp_servers.bbj-docs]' "$WORK/out" > /dev/null && grep -Fx 'url = "https://mcp.bbj-ai.com/mcp"' "$WORK/out" > /dev/null \
+    && grep -Fx "$OAUTH_HDR" "$WORK/out" > /dev/null && grep -Fx "$OAUTH_L1" "$WORK/out" > /dev/null \
+    && grep -Fx "$OAUTH_L2" "$WORK/out" > /dev/null && grep -Fx "$OAUTH_L3" "$WORK/out" > /dev/null \
     && ! grep -Fx 'default_tools_approval_mode = "approve"' "$WORK/out" > /dev/null; then
     :
   else
@@ -335,7 +386,7 @@ for form in "[mcp_servers.'bbj-docs']" '  [mcp_servers.bbj-docs]' '[ mcp_servers
       || { gate foreign_toml_parses FAIL "form '$form': config.toml no longer parses"; FOREIGN_BAD=1; }
   fi
 done
-[ "${FOREIGN_BAD:-0}" = 1 ] || gate foreign_toml_form ok "five spellings of bbj-docs: exit 3, config.toml byte-identical and parseable, no backup, codex not called, block printed"
+[ "${FOREIGN_BAD:-0}" = 1 ] || gate foreign_toml_form ok "five spellings of bbj-docs: exit 3, config.toml byte-identical and parseable, no backup, codex not called, block printed with the OAuth table"
 
 # ---- WR-01: the approval key is written in place; a symlinked config.toml keeps its link and mode ----
 newenv symlinkcfg
@@ -346,9 +397,9 @@ ln -s "$E_ROOT/dots/config.toml" "$E_CODEX/config.toml"
 run_inst "$WITH_CODEX"
 note_cfg "$E_ROOT/dots/config.toml"
 if [ "$RC" = 0 ] && [ -L "$E_CODEX/config.toml" ] && [ "$(count 'approval_mode = "approve"' "$E_ROOT/dots/config.toml")" = 5 ] \
-  && [ "$(count '[mcp_servers.bbj-docs.tools.bbj_search]' "$E_ROOT/dots/config.toml")" = 1 ] \
+  && [ "$(count '[mcp_servers.bbj-docs.tools.bbj_search]' "$E_ROOT/dots/config.toml")" = 1 ] && oauth_once "$E_ROOT/dots/config.toml" \
   && [ "$(ls -l "$E_ROOT/dots/config.toml" | cut -c1-10)" = "-rw-r--r--" ]; then
-  gate approval_key_keeps_symlink_and_mode ok "the link survives, its target gained the five tool tables, mode 644 kept"
+  gate approval_key_keeps_symlink_and_mode ok "the link survives, its target gained the OAuth table and the five tool tables, mode 644 kept"
 else
   gate approval_key_keeps_symlink_and_mode FAIL "exit $RC, link: $([ -L "$E_CODEX/config.toml" ] && echo kept || echo replaced)"
 fi
@@ -656,14 +707,16 @@ for form in inline dotted quotedname singlequoted quotedkey; do
     && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] && grep -F 'in a form this script does not edit' "$WORK/out" > /dev/null \
     && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_search]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_fetch_page]' "$WORK/out" > /dev/null \
     && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_lookup]' "$WORK/out" > /dev/null && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_reserved_word]' "$WORK/out" > /dev/null \
-    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_examples]' "$WORK/out" > /dev/null && [ "$(grep -Fxc 'approval_mode = "approve"' "$WORK/out")" = 5 ]; then
+    && grep -Fx '[mcp_servers.bbj-docs.tools.bbj_examples]' "$WORK/out" > /dev/null && [ "$(grep -Fxc 'approval_mode = "approve"' "$WORK/out")" = 5 ] \
+    && grep -Fx "$OAUTH_HDR" "$WORK/out" > /dev/null && grep -Fx "$OAUTH_L1" "$WORK/out" > /dev/null \
+    && grep -Fx "$OAUTH_L2" "$WORK/out" > /dev/null && grep -Fx "$OAUTH_L3" "$WORK/out" > /dev/null; then
     :
   else
     gate foreign_tool_forms FAIL "form $form: exit $RC, config changed, backup written or codex called"
     FTOOLS_BAD=1
   fi
 done
-[ "${FTOOLS_BAD:-0}" = 1 ] || gate foreign_tool_forms ok "five forms: exit 3, config.toml byte-identical, no backup, codex not called, the five tool tables printed"
+[ "${FTOOLS_BAD:-0}" = 1 ] || gate foreign_tool_forms ok "five forms: exit 3, config.toml byte-identical, no backup, codex not called, the five tool tables and the OAuth table printed"
 # the same, with the old server-wide line in the table: the output says to remove it by hand
 newenv foreigntoolsold
 mkdir -p "$E_CODEX"
@@ -675,6 +728,108 @@ if [ "$RC" = 3 ] && cmp -s "$WORK/cfg.foreign" "$E_CODEX/config.toml" && grep -F
 else
   gate foreign_tool_forms_old_line FAIL "exit $RC"
 fi
+
+# ---- quick 261013-cpn: the OAuth client table of bbj-docs is added, kept, reported; no sign-in is started ----
+# oauth_tools FILE: appends the five approved tool tables of bbj-docs, in the shape the installer writes them
+oauth_tools() {
+  for _t in bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples; do
+    printf '\n[mcp_servers.bbj-docs.tools.%s]\napproval_mode = "approve"\n' "$_t"
+  done >> "$1"
+}
+
+# a config of an earlier version of this script (no OAuth table) gains exactly the four lines: in a managed
+# block (no codex) and in a plain table (codex on PATH, which must not be called)
+OAUTH_UP_BAD=
+for form in managed plain; do
+  newenv oauthup-$form
+  mkdir -p "$E_CODEX"
+  case "$form" in
+    managed)
+      printf '%s\n' '# >>> bbj-agent-plugins (managed) >>>' '[mcp_servers.bbj-docs]' "url = \"$DEFAULT_URL\"" > "$E_CODEX/config.toml"
+      oauth_tools "$E_CODEX/config.toml"
+      printf '%s\n' '# <<< bbj-agent-plugins (managed) <<<' >> "$E_CODEX/config.toml"
+      _url=$DEFAULT_URL; _pv=$NO_CODEX
+      ;;
+    plain)
+      printf '%s\n' 'model = "x"' '' '[mcp_servers.bbj-docs]' 'url = "https://example.invalid/mcp"' > "$E_CODEX/config.toml"
+      oauth_tools "$E_CODEX/config.toml"
+      printf '%s\n' '' '[mcp_servers.other]' 'url = "https://other.invalid/mcp"' >> "$E_CODEX/config.toml"
+      _url=https://example.invalid/mcp; _pv=$WITH_CODEX
+      ;;
+  esac
+  cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
+  run_inst "$_pv"
+  CFG=$E_CODEX/config.toml
+  note_cfg "$CFG"
+  diff "$WORK/cfg.orig" "$CFG" > "$WORK/cfg.diff"
+  _removed=$(grep -c '^<' "$WORK/cfg.diff")
+  grep '^>' "$WORK/cfg.diff" | grep -v '^> *$' | sort > "$WORK/cfg.added"
+  oauth_added | sort > "$WORK/cfg.expected"
+  if [ "$RC" = 0 ] && [ "$_removed" = 0 ] && cmp -s "$WORK/cfg.added" "$WORK/cfg.expected" && oauth_once "$CFG" \
+    && { [ "$form" != managed ] || [ "$(oauth_inside "$CFG")" = 1 ]; } && cmp -s "$WORK/cfg.orig" "$CFG.bbj-backup" \
+    && grep -F 'added the OAuth client to' "$WORK/out" > /dev/null && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] \
+    && { [ "$HAVE_TOML" = 0 ] || { [ "$(tsum "$CFG")" = "$(five_expected "$_url")" ] && oauth_parsed "$CFG"; }; } \
+    && same_after_rerun "$_pv" 0; then
+    :
+  else
+    OAUTH_UP_BAD="$OAUTH_UP_BAD $form(exit $RC, removed $_removed): $(tr '\n' ';' < "$WORK/cfg.added" | head -c 300)"
+  fi
+  real_parse "oauthup-$form" "$CFG" "$_url"
+done
+[ -z "$OAUTH_UP_BAD" ] && gate oauth_upgrade_adds_table ok "managed block and plain table without the OAuth table: nothing removed, exactly the four lines added (inside the markers for the block), backup holds the original, codex not called, tomllib reads them, rerun byte-identical" \
+  || gate oauth_upgrade_adds_table FAIL "$OAUTH_UP_BAD"
+
+# OAuth settings of the user's own are never edited, never doubled, and named once
+OAUTH_USER_BAD=
+for form in own port inline dotted quoted; do
+  newenv oauthuser-$form
+  mkdir -p "$E_CODEX"
+  printf '[mcp_servers.bbj-docs]\nurl = "https://example.invalid/mcp"\n' > "$E_CODEX/config.toml"
+  case "$form" in
+    inline) printf '%s\n' 'oauth = { client_id = "my-own-client" }' >> "$E_CODEX/config.toml" ;;
+    dotted) printf '%s\n' 'oauth.client_id = "my-own-client"' >> "$E_CODEX/config.toml" ;;
+  esac
+  oauth_tools "$E_CODEX/config.toml"
+  case "$form" in
+    own) printf '\n%s\n%s\n%s\n' "$OAUTH_HDR" 'client_id = "my-own-client"' 'callback_port = 5555' >> "$E_CODEX/config.toml" ;;
+    port) printf '\n%s\n%s\n%s\n%s\n' "$OAUTH_HDR" "$OAUTH_L1" "$OAUTH_L2" 'callback_port = 5555' >> "$E_CODEX/config.toml" ;;
+    quoted) printf '\n%s\n%s\n' '[mcp_servers.bbj-docs."oauth"]' 'client_id = "my-own-client"' >> "$E_CODEX/config.toml" ;;
+  esac
+  cp "$E_CODEX/config.toml" "$WORK/cfg.orig"
+  run_inst "$WITH_CODEX"
+  CFG=$E_CODEX/config.toml
+  _own=$(grep -c 'OAuth settings of its own' "$WORK/out")
+  if [ "$RC" = 0 ] && cmp -s "$WORK/cfg.orig" "$CFG" && [ ! -e "$CFG.bbj-backup" ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 0 ] \
+    && [ "$_own" = 1 ] && ! grep -F 'added the OAuth client to' "$WORK/out" > /dev/null \
+    && grep -F 'bbj-docs: already registered in' "$WORK/out" > /dev/null \
+    && { [ "$HAVE_TOML" = 0 ] || python3 -I -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$CFG" 2> /dev/null; } \
+    && { [ "$form" != own ] || grep -F 'client_id my-own-client' "$WORK/out" > /dev/null; }; then
+    :
+  else
+    OAUTH_USER_BAD="$OAUTH_USER_BAD $form(exit $RC, $_own naming line(s))"
+  fi
+done
+[ -z "$OAUTH_USER_BAD" ] && gate oauth_user_forms_kept ok "own values, a changed port, an inline table, a dotted key and a quoted header: config.toml byte-identical, no backup, codex not called, one line names the OAuth settings of its own, exit 0" \
+  || gate oauth_user_forms_kept FAIL "$OAUTH_USER_BAD"
+
+# codex mcp add writes the table and then exits with an error (what Codex CLI 0.162.1 does against the hosted
+# server): the table is kept and completed, and the output says what happened
+FAKE_CODEX_EXIT=1
+export FAKE_CODEX_EXIT
+newenv oauthadderr
+run_inst "$WITH_CODEX"
+unset FAKE_CODEX_EXIT
+CFG=$E_CODEX/config.toml
+note_cfg "$CFG"
+if [ "$RC" = 0 ] && [ "$(awk 'END { print NR }' "$E_LOG")" = 1 ] && [ "$(cat "$E_LOG")" = 'mcp add bbj-docs --url https://mcp.bbj-ai.com/mcp' ] \
+  && [ "$(count '[mcp_servers.bbj-docs]' "$CFG")" = 1 ] && ! grep -F '>>> bbj-agent-plugins' "$CFG" > /dev/null \
+  && oauth_once "$CFG" && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] \
+  && grep -F 'then exited with an error' "$WORK/out" > /dev/null && ! grep -F 'writing the block to config.toml instead' "$WORK/out" > /dev/null; then
+  gate oauth_codex_add_error_after_write ok "codex mcp add wrote the table and exited 1: one table, no managed block, the OAuth table and five approvals added, the output says so"
+else
+  gate oauth_codex_add_error_after_write FAIL "exit $RC: $(tr '\n' ';' < "$CFG" | head -c 400); out: $(grep 'codex mcp add' "$WORK/out" | head -c 300)"
+fi
+real_parse oauthadderr "$CFG" "$DEFAULT_URL"
 
 # ---- plan 01-04: --with-local, the managed bbj-local block (LOCAL-02, D-09, D-10, D-12, D-17) ----
 # The three bbj-ls tools run on this machine and are approved by name only on the fixed loopback
@@ -703,10 +858,12 @@ three_expected() {
   printf 'url %s\ndefault -\nbbj_check_syntax approve\nbbj_denum approve\nbbj_format approve\n' "$LOCAL_URL_T"
 }
 
-# docs_done FILE: a plain bbj-docs table with its five approved tool tables, so the docs pass changes nothing
+# docs_done FILE: a plain bbj-docs table with the OAuth table of the pre-registered client (quick 261013-cpn)
+# and its five approved tool tables, so the docs pass changes nothing
 docs_done() {
   {
     printf '[mcp_servers.bbj-docs]\nurl = "https://example.invalid/mcp"\n'
+    printf '\n%s\n%s\n%s\n%s\n' "$OAUTH_HDR" "$OAUTH_L1" "$OAUTH_L2" "$OAUTH_L3"
     for _t in bbj_search bbj_fetch_page bbj_lookup bbj_reserved_word bbj_examples; do
       printf '\n[mcp_servers.bbj-docs.tools.%s]\napproval_mode = "approve"\n' "$_t"
     done
@@ -1014,11 +1171,13 @@ for form in docsonly appended restored; do
   _bare=$(bare_lf "$CFG")
   if [ "$RC" != 0 ] || [ "$_bare" != 0 ] || [ "$(count '[mcp_servers.bbj-docs.tools.bbj_lookup]'"$(printf '\r')" "$CFG")" != 1 ] \
     || { [ "$form" != docsonly ] && [ "$(count '[mcp_servers.bbj-local]'"$(printf '\r')" "$CFG")" != 1 ]; } \
-    || { [ "$HAVE_TOML" = 1 ] && ! python3 -I -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$CFG" 2> /dev/null; }; then
+    || { [ "$HAVE_TOML" = 1 ] && ! python3 -I -c 'import sys, tomllib; tomllib.load(open(sys.argv[1], "rb"))' "$CFG" 2> /dev/null; } \
+    || [ "$(count "$OAUTH_HDR$(printf '\r')" "$CFG")" != 1 ] \
+    || { [ "$form" = docsonly ] && ! same_after_rerun "$NO_CODEX" 0; }; then
     CRLF_BAD="$CRLF_BAD $form(exit $RC, $_bare line(s) without a carriage return)"
   fi
 done
-[ -z "$CRLF_BAD" ] && gate crlf_config_stays_crlf ok "a CRLF config.toml (tool tables added, a block appended, a table restored between markers): every line still ends CRLF, the file still parses" \
+[ -z "$CRLF_BAD" ] && gate crlf_config_stays_crlf ok "a CRLF config.toml (OAuth and tool tables added, a block appended, a table restored between markers): every line still ends CRLF, the OAuth header once, the file still parses, a rerun of the first form changes nothing" \
   || gate crlf_config_stays_crlf FAIL "$CRLF_BAD"
 
 # both servers: the docs table directly followed by the local block, and the reverse; the begin marker stays above its table
@@ -1090,6 +1249,21 @@ print(" ".join(bad))
 else
   gate local_check_tools_only_in_local_tables skip "no python3 with tomllib"
 fi
+
+# quick 261013-cpn: bbj-local is a loopback server without sign-in: no config of this section or of the written
+# list names bbj-local.oauth, and none holds the bbj-docs OAuth header twice
+_obad=
+_on=0
+for _list in "$WORK/local.list" "$WORK/written.list"; do
+  while IFS= read -r _f; do
+    [ -f "$_f" ] || continue
+    _on=$((_on + 1))
+    grep -F 'bbj-local.oauth' "$_f" > /dev/null && _obad="$_obad $_f(bbj-local.oauth)"
+    [ "$(grep -c -Fx "$OAUTH_HDR" "$_f")" -le 1 ] || _obad="$_obad $_f(header twice)"
+  done < "$_list"
+done
+[ -z "$_obad" ] && gate oauth_never_for_local ok "$_on configs: none names bbj-local.oauth, none holds the bbj-docs OAuth header twice" \
+  || gate oauth_never_for_local FAIL "$_obad"
 
 # ---- plan 01-06: the tools/list probe (LOCAL-03, LOCAL-04, D-09, D-11, D-17) ----
 # Without --with-local and with no bbj-local in config.toml the installer sends one static tools/list
@@ -1483,6 +1657,14 @@ else
   gate tools_list_single_source FAIL "installer '$(printf '%s' "$inst_tools" | tr '\n' ' ')', snippet '$(printf '%s' "$snip_tools" | tr '\n' ' ')', page '$(printf '%s' "$page_tools" | tr '\n' ' ')'"
 fi
 
+# ---- quick 261013-cpn: the installer never starts a sign-in: no fake codex call of any case names oauth or login ----
+cat "$WORK"/*/codex.log > "$WORK/codex.all" 2> /dev/null
+if grep -q '^mcp add bbj-docs --url' "$WORK/codex.all" && ! grep -i -E 'oauth|login' "$WORK/codex.all" > /dev/null; then
+  gate oauth_codex_never_logs_in ok "$(awk 'END { print NR }' "$WORK/codex.all") codex calls over all cases: only plain mcp add lines, none with oauth or login"
+else
+  gate oauth_codex_never_logs_in FAIL "$(grep -i -E 'oauth|login' "$WORK/codex.all" | head -n 3 | tr '\n' ';')"
+fi
+
 # ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
 if [ -n "$REAL_CODEX" ]; then
   newenv realcodex
@@ -1491,8 +1673,9 @@ if [ -n "$REAL_CODEX" ]; then
   run_inst "$WORK/realbin:$SYSPATH:$(dirname "$REAL_CODEX")"
   CFG=$E_CODEX/config.toml
   note_cfg "$CFG"
-  if [ "$RC" = 0 ] && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ]; } && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ]; then
-    gate real_codex_install ok "codex mcp add by the real codex, then the five tool tables"
+  if [ "$RC" = 0 ] && { [ "$HAVE_TOML" = 0 ] || [ "$(tsum "$CFG")" = "$(five_expected "$DEFAULT_URL")" ]; } && [ "$(count 'approval_mode = "approve"' "$CFG")" = 5 ] \
+    && oauth_once "$CFG" && ! grep -F 'writing the block to config.toml instead' "$WORK/out" > /dev/null; then
+    gate real_codex_install ok "codex mcp add by the real codex, then the OAuth table and the five tool tables, no claim of a block that is never written"
   else
     gate real_codex_install FAIL "exit $RC: $(head -c 300 "$WORK/err")"
   fi
