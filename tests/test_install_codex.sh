@@ -1520,7 +1520,7 @@ done < "$WORK/written.list"
 # MAINT-07, D-08 to D-10: content of the paths the installer can write; daemon files are ignored
 home_snapshot "$REALHOME/.codex" "$REALHOME/.agents/skills" > "$WORK/home.after"
 if _changed=$(home_diff "$WORK/home.before" "$WORK/home.after"); then
-  gate real_home_untouched ok "no watched path under the real ~/.codex or ~/.agents/skills changed (config.toml, config.toml.bbj-backup, hooks.json, bbj/, bbj-programming/, bbj-web-programming/)"
+  gate real_home_untouched ok "no watched path under the real ~/.codex or ~/.agents/skills changed (config.toml, config.toml.bbj-backup, hooks.json, bbj/, bbj-programming/, bbj-web-programming/, the installer temp files config.toml.* and hooks.json.*, and the existence of both parent directories)"
 else
   gate real_home_untouched FAIL "changed: $(printf '%s' "$_changed" | tr '\n' ' ')"
 fi

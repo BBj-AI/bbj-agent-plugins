@@ -29,9 +29,9 @@
 #                       holds a BBj compiler (MAINT-06, D-11); only for no-route tests
 #   no_compiler_env     unsets BBJ_HOME, BBJHOME and CLAUDE_PLUGIN_OPTION_BBJ_HOME and sets
 #                       BBJ_CHECK_DEFAULT_HOMES empty, in the calling shell (MAINT-06, D-11)
-#   home_snapshot CODEXHOME SKILLSDIR   prints a sorted content snapshot of the six paths the Codex
-#                       installer can write (MAINT-07, D-08, D-09): one line per entry, a kind and a
-#                       path, never a time
+#   home_snapshot CODEXHOME SKILLSDIR   prints a sorted content snapshot of the paths the Codex
+#                       installer can write, with its temp files and parent dirs (MAINT-07, D-08,
+#                       D-09): one line per entry, a kind and a path, never a time
 #   home_diff BEFORE AFTER   returns 0 when two snapshot files are identical; otherwise prints at
 #                       most three changed lines and returns 1 (MAINT-07, D-10)
 #
@@ -202,12 +202,17 @@ no_compiler_env() {
 
 # home_snapshot CODEXHOME SKILLSDIR: one line per entry under the paths the Codex installer can
 # write, sorted with LC_ALL=C (MAINT-07, D-08, D-09, D-10):
-#   F <crc> <size> <path>   regular file (cksum of the content, never a time)
+#   F <mode> <crc> <size> <path>   regular file (permission string and cksum of the content, never a time)
 #   D <path>   directory    L <path>   symlink (not followed)    U <path>   unreadable    - <path>   absent
+#   H <path> present|absent   the Codex home and the skills dir themselves (the installer mkdir -p's both)
 # Content, never mtime (D-09): a touch changes nothing, an edited, added or removed file does. Only
-# the six paths below are read, so daemon files (logs_*.sqlite*, state_*.sqlite, history.jsonl,
-# sessions/, log/, tmp/) and credential files (auth.json) are never opened. File content is never
-# printed, only its cksum values. Pass the real homes or fake ones; this helper only reads.
+# the paths below are read, so daemon files (logs_*.sqlite*, state_*.sqlite, history.jsonl,
+# sessions/, log/, tmp/) and credential files (auth.json) are never opened. The watched set is the
+# installer's whole write set: config.toml, config.toml.bbj-backup, hooks.json, bbj/, the two skill
+# directories, the mktemp files the installer leaves in the Codex home when it dies between
+# mktemp and mv (config.toml.XXXXXX, hooks.json.XXXXXX), and the two parent directories. A glob
+# that matches nothing stays literal and prints as an absent path. File content is never printed,
+# only its cksum values. Pass the real homes or fake ones; this helper only reads.
 # Accepted residual risk: Codex itself rewrites config.toml when a session trusts a new project or
 # changes a TUI option. That is a real content change and fails real_home_untouched by design, so do
 # not open Codex in a new project during a suite run (0.2.0 D-18 advice, narrowed).
@@ -215,26 +220,32 @@ home_snapshot() {
   _hs_c=$1
   _hs_s=$2
   # D-08: the paths codex/install-codex.sh can write; Phase 8 adds its plugin-route paths here
-  for _hs_p in "$_hs_c/config.toml" "$_hs_c/config.toml.bbj-backup" "$_hs_c/hooks.json" \
-    "$_hs_c/bbj" "$_hs_s/bbj-programming" "$_hs_s/bbj-web-programming"; do
-    if [ -L "$_hs_p" ]; then
-      printf 'L %s\n' "$_hs_p"
-    elif [ -e "$_hs_p" ]; then
-      find "$_hs_p" -print 2> /dev/null | while IFS= read -r _hs_f; do
-        if [ -L "$_hs_f" ]; then
-          printf 'L %s\n' "$_hs_f"
-        elif [ -d "$_hs_f" ]; then
-          printf 'D %s\n' "$_hs_f"
-        elif [ -r "$_hs_f" ]; then
-          printf 'F %s %s\n' "$(cksum < "$_hs_f")" "$_hs_f"
-        else
-          printf 'U %s\n' "$_hs_f"
-        fi
-      done
-    else
-      printf -- '- %s\n' "$_hs_p"
-    fi
-  done | LC_ALL=C sort
+  {
+    for _hs_d in "$_hs_c" "$_hs_s"; do
+      if [ -d "$_hs_d" ]; then printf 'H %s present\n' "$_hs_d"; else printf 'H %s absent\n' "$_hs_d"; fi
+    done
+    for _hs_p in "$_hs_c/config.toml" "$_hs_c/config.toml.bbj-backup" "$_hs_c/hooks.json" \
+      "$_hs_c"/config.toml.?????? "$_hs_c"/hooks.json.?????? \
+      "$_hs_c/bbj" "$_hs_s/bbj-programming" "$_hs_s/bbj-web-programming"; do
+      if [ -L "$_hs_p" ]; then
+        printf 'L %s\n' "$_hs_p"
+      elif [ -e "$_hs_p" ]; then
+        find "$_hs_p" -print 2> /dev/null | while IFS= read -r _hs_f; do
+          if [ -L "$_hs_f" ]; then
+            printf 'L %s\n' "$_hs_f"
+          elif [ -d "$_hs_f" ]; then
+            printf 'D %s\n' "$_hs_f"
+          elif [ -r "$_hs_f" ]; then
+            printf 'F %s %s %s\n' "$(ls -ld "$_hs_f" | awk '{ print $1 }')" "$(cksum < "$_hs_f")" "$_hs_f"
+          else
+            printf 'U %s\n' "$_hs_f"
+          fi
+        done
+      else
+        printf -- '- %s\n' "$_hs_p"
+      fi
+    done
+  } | LC_ALL=C sort
 }
 
 # home_diff BEFORE AFTER: returns 0 and prints nothing when the two snapshot files are identical;

@@ -99,6 +99,27 @@ mkhome skill_dir_removed_detected
 rm -rf "$H_S/bbj-programming"
 expect skill_dir_removed_detected differ
 
+# ---- the installer's mktemp leftovers, its parent directories and a mode change are watched ----
+mkhome temp_config_leaked_detected
+: > "$H_C/config.toml.AbC123"
+expect temp_config_leaked_detected differ
+
+mkhome temp_hooks_leaked_detected
+: > "$H_C/hooks.json.XyZ789"
+expect temp_hooks_leaked_detected differ
+
+mkhome config_chmod_detected
+chmod 755 "$H_C/config.toml"
+expect config_chmod_detected differ
+
+# a Codex home or skills dir that did not exist before: the installer's mkdir -p is caught
+H_C=$WORK/homes_created_detected/.codex
+H_S=$WORK/homes_created_detected/.agents/skills
+mkdir -p "$WORK/homes_created_detected"
+home_snapshot "$H_C" "$H_S" > "$WORK/homes_created_detected.before"
+mkdir -p "$H_C" "$H_S"
+expect homes_created_detected differ
+
 # ---- restoring the original bytes makes the snapshot identical again (content, not history) ----
 mkhome restore_same
 cp "$H_C/config.toml" "$WORK/config.saved"
