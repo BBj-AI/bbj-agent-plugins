@@ -2100,6 +2100,32 @@ else
   gate remove_left_skill_symlink FAIL "install exit $RM_RC1, remove exit $RC: $(grep -F 'bbj-web-programming' "$WORK/out" | head -c 300)"
 fi
 
+# --skills-dir that is the shipped skills of the checkout the script runs from (WR-01): a copy of the tree, so the
+# real checkout is never at risk; --remove must leave the source in place, directly and through a symlink
+rm_env rmsamedir
+RM_COPY=$E_ROOT/tree
+mkdir -p "$RM_COPY/codex" "$RM_COPY/plugins/bbj"
+cp "$REPO/codex/install-codex.sh" "$REPO/codex/AGENTS-snippet.md" "$RM_COPY/codex/"
+cp -R "$REPO/plugins/bbj/scripts" "$REPO/plugins/bbj/skills" "$RM_COPY/plugins/bbj/"
+mkdir -p "$E_CODEX"
+home_snapshot "$RM_COPY/plugins/bbj/skills" > "$WORK/rmsamedir.before"
+env HOME="$E_HOME" CODEX_HOME="$E_CODEX" PATH="$WITH_CODEX" FAKE_CODEX_LOG="$E_LOG" sh "$RM_COPY/codex/install-codex.sh" \
+  --remove --skills-dir "$RM_COPY/plugins/bbj/skills" > "$WORK/out" 2> "$WORK/err"
+RM_RC1=$?
+ln -s "$RM_COPY/plugins/bbj/skills" "$E_ROOT/skills-link"
+env HOME="$E_HOME" CODEX_HOME="$E_CODEX" PATH="$WITH_CODEX" FAKE_CODEX_LOG="$E_LOG" sh "$RM_COPY/codex/install-codex.sh" \
+  --remove --skills-dir "$E_ROOT/skills-link" > "$WORK/out2" 2> "$WORK/err2"
+RM_RC2=$?
+home_snapshot "$RM_COPY/plugins/bbj/skills" > "$WORK/rmsamedir.after"
+if [ "$RM_RC1" = 3 ] && [ "$RM_RC2" = 3 ] && _d=$(home_diff "$WORK/rmsamedir.before" "$WORK/rmsamedir.after") \
+  && [ -f "$RM_COPY/plugins/bbj/skills/bbj-programming/SKILL.md" ] && [ -f "$RM_COPY/plugins/bbj/skills/bbj-web-programming/SKILL.md" ] \
+  && [ "$(grep -c 'is the shipped directory of this checkout; left in place' "$WORK/out")" = 2 ] \
+  && [ "$(grep -c 'is the shipped directory of this checkout; left in place' "$WORK/out2")" = 2 ]; then
+  gate remove_left_shipped_skills_dir ok "--skills-dir at the shipped skills of a copy of the tree, directly and through a symlink: exit 3, the source is untouched, both skills named as the shipped directory"
+else
+  gate remove_left_shipped_skills_dir FAIL "exits $RM_RC1 $RM_RC2: ${_d:-$(head -c 300 "$WORK/out")}"
+fi
+
 # a file of the user's in <codex home>/bbj keeps the directory
 rm_env rmscriptdir
 rm_user_cfg "$E_CODEX/config.toml"
