@@ -159,7 +159,7 @@ Plans:
   4. On macOS with BBj installed, the Claude Code hook and the Codex plugin-route hook each give tier-1 `bbjcpl` feedback for a bad file and silence for a clean one (PLAT-05)
   5. The phase records each run (OS, client and version, BBj version, route, outcome). Every defect found is either fixed in the shipped hook (script or `hooks.json`), plugin files or installer with a regression gate that runs in CI on fakes, or recorded as a known gap. The Linux suite stays green (PLAT-06)
 
-**Plans**: 7/8 plans executed
+**Plans**: 8/8 plans executed
 
 Plans:
 **Wave 1**
@@ -180,7 +180,7 @@ Plans:
 - [x] 09-07-PLAN.md — PLAT-05, PLAT-06: macOS record by the tier-1 rule, owner fix-or-gap decision per defect, and the chosen fixes with gates (wave 5, checkpoint)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 09-08-PLAN.md — PLAT-05, PLAT-06: macOS re-run when a fix shipped, both records in final mode, `sh tests/ci.sh`, phase boundary check (wave 6, checkpoint)
+- [x] 09-08-PLAN.md — PLAT-05, PLAT-06: macOS re-run when a fix shipped, both records in final mode, `sh tests/ci.sh`, phase boundary check (wave 6, checkpoint)
 
 **Notes**:
 - The owner runs these steps by hand on their own machines: Windows (Git for Windows, BBj with `bbjcpl`, Claude Code, Codex CLI) and Mac (BBj with `bbjcpl` must be installed first).
@@ -215,5 +215,5 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 |-------|-----------|----------------|--------|-----------|
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 9. Windows and macOS verification | v0.2.1 | 7/8 | In Progress | - |
+| 9. Windows and macOS verification | v0.2.1 | 8/8 | In Progress | - |
 | 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |

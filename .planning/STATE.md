@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 09
 current_phase_name: Windows and macOS verification
 status: executing
-stopped_at: Completed 09-07-PLAN.md
-last_updated: "2026-10-13T22:53:05.090Z"
+stopped_at: Completed 09-08-PLAN.md
+last_updated: "2026-10-13T23:04:51.399Z"
 last_activity: 2026-10-14
 last_activity_desc: Plan 09-06 complete
-state_head: 638eeb36116c93bf2e0e2875b41d15bcd5ce1147
+state_head: e3aaa30ceebfcacb78670af9c0c776ff0eefb736
 progress:
   total_phases: 4
   completed_phases: 2
   total_plans: 22
-  completed_plans: 21
+  completed_plans: 22
   percent: 50
 ---
 
@@ -127,6 +127,7 @@ Progress: [█████░░░░░] 50%
 | Phase 09 P05 | 40min | 3 tasks | 7 files |
 | Phase 09 P06 | owner-paced (2026-10-13 to 2026-10-14) | 3 tasks | 3 files |
 | Phase 09 P07 | 25 min | 3 tasks | 1 files |
+| Phase 09 P08 | 15 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -167,6 +168,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 09]: 09-06: Windows closed on the shipped hook (PLAT-01 to 04 and 06 met); commandWindows honoured by Codex, ignored without harm by Claude Code; Codex asks for hook trust again after the upgrade (Phase 10 must say so)
 - [Phase 09]: 09-06: macOS round 1 recorded (mac-ready yes, d598854, BBj 26.03 at <home>/bbx); PLAT-05 verdict left to plan 09-07; owner notes to classify: Codex app-server daemon ignores shell-exported BBJ_HOME (D-04), stale user hooks.json double-fires, bbjcpl line 10 for a one-line file
 - [Phase 09]: Plan 09-07: PLAT-05 and PLAT-06 read met on the macOS record by the tier-1 rule; no M-N defect, the three owner notes are side readings (Codex daemon environment is host behaviour, stale installer hooks.json is the documented double install, line 10 text is the compiler's)
+- [Phase 09]: 09-08: no macOS re-run asked (plan 09-07 shipped no fix and planned no capture); both records closed with Closed lines naming final tree d4f751e, CI ok=921 fail=0, phase boundary since 2524dff held
 
 ### Pending Todos
 
@@ -198,8 +200,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-13T22:53:05.011Z
-Stopped at: Completed 09-07-PLAN.md
+Last session: 2026-10-13T23:04:51.306Z
+Stopped at: Completed 09-08-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
