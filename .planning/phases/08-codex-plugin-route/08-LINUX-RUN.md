@@ -418,3 +418,109 @@ D-07 holds. Plan 08-08 changed neither `plugins/bbj/scripts/bbj-check.sh` nor
 
 A non-empty `CLAUDE_PLUGIN_ROOT` in the hook process tells the plugin route from the installer
 route, as D-07 locks. The owner was not asked Q2 and no location rule was added.
+
+## After trust
+
+Date: 2026-10-13 (plan 08-06 Task 1). Route: plugin. Run: `sh run.sh posttrust
+<home>/.cache/bbj-phase8/owner-H`, in place on the home the owner trusted in `/hooks` (plan 08-05
+owner pass, `trust: yes` in `## Scope decisions`). The run only deleted a leftover `proj/bad.bbj`
+and the previous fake-compiler and request logs; it started the loopback fake provider and ran
+`codex exec` once. Before the run `hooks_list.py` read `trustStatus=trusted` for
+`bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0` (hash
+`sha256:051732b8...5434297`, one hook entry, source `plugin`).
+
+**No bypass flag.** The exact argument line of the run (`owner-H/exec-posttrust.cmd`, home paths
+unchanged):
+
+        codex exec --skip-git-repo-check --json -c model_provider=fake -c model=gpt-5.5 -c model_providers.fake.name="fake" -c model_providers.fake.base_url="http://127.0.0.1:18765/v1" -c model_providers.fake.wire_api="responses" -c model_providers.fake.requires_openai_auth=false --sandbox danger-full-access add bad.bbj
+
+`grep -c 'dangerously-bypass-hook-trust'` on that file prints 0 (`bypass_flag_in_cmd: 0`). The hook
+ran because of the owner's trust and for no other reason.
+
+Outcome (CODEX-02, real half, after a real trust): the fake model issued one `apply_patch` adding
+`bad.bbj`; the fake compiler ran once, with `-t -N -X -P<proj> <proj>/bad.bbj` as `argv`; the
+hook's feedback reached the model in the next request in place of the tool output
+(`bbjcpl reported 1 error(s) in <proj>/bad.bbj:` then the compiler line, then `bbj_lookup gives
+exact syntax for a named symbol.`), once. Codex also printed the same feedback on stderr
+(`codex_core::tools::router: error=bbjcpl reported 1 error(s) in ...`).
+
+        posttrust_exec_rc: 0
+        compiler_calls: 1
+        dash_n: yes
+        requests_posted: 2
+        feedback_reached_model: yes
+        feedback_occurrences: 1
+        bypass_flag_in_cmd: 0
+
+After the run `hooks_list.py` still read `trusted` with the same hash. One unrelated line in the
+exec's stderr: `rmcp::transport::worker ... AuthRequired` for `bbj-docs`; owner-H has no sign-in
+for the hosted docs server (the owner signed in on owner-B), which does not affect the hook.
+
+## Upgrade trust
+
+Date: 2026-10-13 (plan 08-06 Task 1, D-18, CODEX-05 input). Route: plugin. Run: `sh run.sh upgrade
+<home>/.cache/bbj-phase8/owner-H`, in place right after the post-trust run. The repository was not
+touched: `git diff --quiet HEAD -- plugins .claude-plugin tests/test_layout.py` exits 0 after the
+run. Only the scratch copy `owner-H/src` changed.
+
+What was done, in order:
+
+1. Readings before: `trustStatus=trusted`, `currentHash=sha256:051732b8...5434297`, plugin cache
+   `plugins/cache/basis-bbj/bbj/` holding `0.2.0`; `config.toml` holds
+   `[hooks.state."bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0"]` with
+   `trusted_hash = "sha256:051732b8...5434297"`.
+2. The scratch copy's version went from `0.2.0` to the test version `0.2.0-test` in the five
+   places (the `bbj` Claude and Codex manifests, the `bbj-local` Claude manifest, both marketplace
+   entries; `versions_set: 5`). Codex accepted `0.2.0-test`, so the fallback `0.2.1` was not
+   needed. Nothing else in the scratch copy changed; in particular `hooks/hooks.json` is the same
+   file as before.
+3. `codex plugin marketplace upgrade basis-bbj` exited 1 and printed (backticks as Codex prints
+   them):
+
+           Error: marketplace `basis-bbj` is not configured as a Git marketplace
+
+   The marketplace here is a local directory, so that command does not apply and did not refresh
+   anything.
+   (`upgrade_marketplace_rc: 1`.) How a Git marketplace upgrade behaves was **not run**: the
+   only Git source is the GitHub default branch, which has no Codex overlay yet (see "Marketplace
+   shorthand").
+4. `codex plugin add bbj@basis-bbj` exited 0 and printed
+
+           Added plugin `bbj` from marketplace `basis-bbj`.
+           Installed plugin root: <codex home>/plugins/cache/basis-bbj/bbj/0.2.0-test
+
+   After it the cache directory held only `0.2.0-test` (the old `0.2.0` directory was gone).
+   `upgrade_refresh_command: codex plugin add bbj@basis-bbj (after codex plugin marketplace upgrade
+   basis-bbj left the cache unchanged)`; `cache_versions: 0.2.0-test`.
+5. Readings after: `hooks_list.py` printed one entry,
+   `trustStatus=trusted`, `currentHash=sha256:051732b8...5434297` (the same hash as before,
+   `hash_changed: no`), with the command now expanded to
+   `.../plugins/cache/basis-bbj/bbj/0.2.0-test/scripts/bbj-check.sh`. The `[hooks.state...]`
+   block in `config.toml` is identical to the one before.
+6. A second `codex exec` with the same arguments as the post-trust run and **no bypass flag**
+   (`upgrade_bypass_flag_in_cmd: 0`): the fake compiler ran once with `-N`, and the feedback
+   reached the model again.
+
+        trust_before_upgrade: trusted
+        trust_after_upgrade: trusted
+        hash_changed: no
+        upgrade_exec_rc: 0
+        upgrade_compiler_calls: 1
+        upgrade_dash_n: yes
+        upgrade_feedback_reached_model: yes
+        hook_runs_after_upgrade: yes
+        upgrade_asks_trust_again: no
+
+What this does and does not show. Spike 001 expected a re-trust after an upgrade because the
+expanded command carries the versioned cache path; on Codex 0.162.1 the hash that Codex reports
+and stores for the hook did **not** change when only the version (and so the cache path) changed.
+Assumption A8 ("an upgrade asks for trust again") is therefore not borne out for that case. Not
+run: an upgrade that changes the hook's own definition (`hooks/hooks.json`), an upgrade through a
+Git marketplace, and an upgrade across a real release; the observation covers a version change with
+an unchanged `hooks.json` through a local marketplace and `codex plugin add`. The one look at the
+`/hooks` TUI is the end-of-phase human check; `hooks_list.py` reads the same data from the app
+server.
+
+Sentence for the docs:
+
+Observed on Linux with Codex CLI 0.162.1: after a plugin upgrade that changed only the version (the hook definition unchanged), Codex still listed the hook as trusted with an unchanged hash and the check ran without a new trust in /hooks.

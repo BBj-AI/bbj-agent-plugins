@@ -1,5 +1,5 @@
 #!/bin/sh
-# .planning/phases/08-codex-plugin-route/linux-run/run.sh -- plan 08-05 (and 08-06) real-Codex runs.
+# .planning/phases/08-codex-plugin-route/linux-run/run.sh -- plans 08-05 and 08-06 real-Codex runs.
 # Scripted scenarios against codex-cli 0.162.1 in throwaway homes. Evidence for the phase record,
 # never CI: CI has no Codex, and nothing here is a gate.
 #
@@ -24,6 +24,16 @@
 #   shorthand OUTDIR          codex plugin marketplace add BBj-AI/bbj-agent-plugins (A5)
 #   prepare-trust OUTDIR      throwaway home for the owner's /hooks trust step
 #   prepare-signin OUTDIR     throwaway home for the owner's codex mcp login (VARIANT=plain|oauth)
+#   posttrust OUTDIR          plan 08-06: the owner-trusted home (owner-H) in place; apply_patch of a
+#                             bad .bbj with NO bypass flag; trustStatus before and after
+#   upgrade OUTDIR            plan 08-06 (D-18): owner-H in place; the scratch copy moves to a test
+#                             version (UPGRADE_VERSION, default 0.2.0-test), Codex refreshes the
+#                             plugin, then trustStatus, hash and whether the hook still runs
+#   switch OUTDIR             plan 08-06 (D-05, D-06): the real installer, its --remove and the two
+#                             plugin commands in a fresh throwaway home; ORDER=a (install, remove,
+#                             plugin; default) or ORDER=b (install, plugin = double install, remove)
+# posttrust and upgrade work on an existing prepared home: safe_out keeps it (same prefix checks, no
+# delete, the directory must exist). Every other scenario recreates its OUTDIR.
 # Output: OUTDIR/result.txt (key: value lines) and raw files beside it; not committed.
 # Exit codes: 0 the scenario ran to the end, 1 a Codex command failed (its last line is in
 # result.txt), 2 a refused OUTDIR or a usage error.
@@ -43,7 +53,8 @@ refuse() {
   exit 2
 }
 
-# safe_out DIR: the absolute path must be below $HOME/.cache/bbj-phase8/; then it is recreated.
+# safe_out DIR [keep]: the absolute path must be below $HOME/.cache/bbj-phase8/; then it is recreated.
+# With keep (plan 08-06) the same checks run, nothing is deleted and DIR must already exist.
 # The rm -rf runs after every check, inside the approved prefix only.
 safe_out() {
   case $1 in
@@ -60,6 +71,10 @@ safe_out() {
     "$BASE"/?*) ;;
     *) refuse "$1" "outside $BASE/" ;;
   esac
+  if [ "${2:-}" = keep ]; then
+    [ -d "$1" ] || refuse "$1" "keep mode needs an existing directory"
+    return 0
+  fi
   rm -rf "$1" && mkdir -p "$1"
 }
 
@@ -101,9 +116,9 @@ setup_env() {
   unset CLAUDE_PLUGIN_ROOT PLUGIN_ROOT CLAUDE_PLUGIN_DATA BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR
 }
 
-# begin DIR: safe_out, then OUT and the environment
+# begin DIR [keep]: safe_out, then OUT and the environment
 begin() {
-  safe_out "$1" || exit 2
+  safe_out "$1" "${2:-}" || exit 2
   OUT=$1
   setup_env "$OUT"
 }
@@ -131,23 +146,37 @@ sys.exit(0 if s.connect_ex(("127.0.0.1", int(sys.argv[1]))) == 0 else 1)' "$PORT
   return 1
 }
 
-# run_exec OUT [flags]: spike 001's codex exec, verbatim provider keys, in OUT/proj
+# run_exec OUT [flags]: spike 001's codex exec, verbatim provider keys, in OUT/proj.
+# EXEC_LABEL (plan 08-06) names the run: the argument line goes to OUT/exec-LABEL.cmd, the result
+# key is LABEL_exec_rc, and exec.jsonl / exec.err are kept as exec-LABEL.jsonl / exec-LABEL.err.
 run_exec() {
   _o=$1
   shift
   (
     cd "$_o/proj" || exit 1
     git init -q . 2> /dev/null
-    timeout 120 codex exec --skip-git-repo-check --json \
+    set -- exec --skip-git-repo-check --json \
       -c model_provider=fake -c model=gpt-5.5 \
       -c 'model_providers.fake.name="fake"' \
       -c "model_providers.fake.base_url=\"http://127.0.0.1:$PORT/v1\"" \
       -c 'model_providers.fake.wire_api="responses"' \
       -c 'model_providers.fake.requires_openai_auth=false' \
-      --sandbox danger-full-access "$@" "add bad.bbj" < /dev/null > "$_o/exec.jsonl" 2> "$_o/exec.err"
+      --sandbox danger-full-access "$@" "add bad.bbj"
+    if [ -n "${EXEC_LABEL:-}" ]; then
+      printf 'codex' > "$_o/exec-$EXEC_LABEL.cmd"
+      for _a in "$@"; do printf ' %s' "$_a" >> "$_o/exec-$EXEC_LABEL.cmd"; done
+      echo >> "$_o/exec-$EXEC_LABEL.cmd"
+    fi
+    timeout 120 codex "$@" < /dev/null > "$_o/exec.jsonl" 2> "$_o/exec.err"
     echo "$?" > "$_o/exec.rc"
   )
-  res exec_rc "$(cat "$_o/exec.rc" 2> /dev/null)"
+  if [ -n "${EXEC_LABEL:-}" ]; then
+    cp "$_o/exec.jsonl" "$_o/exec-$EXEC_LABEL.jsonl" 2> /dev/null
+    cp "$_o/exec.err" "$_o/exec-$EXEC_LABEL.err" 2> /dev/null
+    res "${EXEC_LABEL}_exec_rc" "$(cat "$_o/exec.rc" 2> /dev/null)"
+  else
+    res exec_rc "$(cat "$_o/exec.rc" 2> /dev/null)"
+  fi
 }
 
 # scratch_copy OUT: copy .claude-plugin and plugins of the checkout into OUT/src
@@ -203,8 +232,9 @@ compiler_calls() {
   fi
 }
 
-# analyze_requests OUT: evidence lines from the fake server's request log. Only POST bodies after
-# the first are searched: hook feedback and the notice reach the model in a later request.
+# analyze_requests OUT [PREFIX]: evidence lines from the fake server's request log, keys prefixed
+# with PREFIX (plan 08-06). Only POST bodies after the first are searched: hook feedback and the
+# notice reach the model in a later request.
 analyze_requests() {
   python3 -I -c '
 import json, sys
@@ -222,11 +252,12 @@ except OSError:
 later = posts[1:]
 def has(text):
     return "yes" if any(text in post for post in later) else "no"
-print("requests_posted: %d" % len(posts))
-print("feedback_reached_model: " + has("bbjcpl reported 1 error(s) in"))
-print("notice_plugin_command: " + has("codex plugin add bbj-local@basis-bbj"))
-print("notice_installer_command: " + has("install-codex.sh --with-local"))
-' "$1/requests.jsonl" >> "$1/result.txt"
+prefix = sys.argv[2]
+print(prefix + "requests_posted: %d" % len(posts))
+print(prefix + "feedback_reached_model: " + has("bbjcpl reported 1 error(s) in"))
+print(prefix + "notice_plugin_command: " + has("codex plugin add bbj-local@basis-bbj"))
+print(prefix + "notice_installer_command: " + has("install-codex.sh --with-local"))
+' "$1/requests.jsonl" "${2:-}" >> "$1/result.txt"
 }
 
 # scenario_realhome FILE: snapshot of the real homes into FILE; a subshell, because lib.sh sets globals
@@ -410,10 +441,251 @@ print("login_error: " + (lines[0] if lines else "no output"))
 ' "$OUT/login.txt" >> "$OUT/result.txt"
 }
 
+# ---- plan 08-06: after the real trust, the upgrade (D-18) and the switch (D-05, D-06) ----
+
+# stamp: UTC time for the result lines
+stamp() {
+  date -u +%Y-%m-%dT%H:%M:%SZ
+}
+
+# hooks_read LABEL: hooks_list.py on the throwaway CODEX_HOME (it needs the real HOME to accept the
+# path); records hooks_count_LABEL, source_LABEL, trust_LABEL and hash_LABEL (values in order,
+# comma-joined) and keeps the raw lines in OUT/hooks-LABEL.txt
+hooks_read() {
+  _f=$OUT/hooks-$1.txt
+  HOME=$REALHOME python3 -I "$HERE/hooks_list.py" "$CODEX_HOME" > "$_f" 2> "$OUT/hooks-$1.err"
+  res "hooks_list_rc_$1" "$?"
+  res "hooks_count_$1" "$(grep -c '^key=' "$_f")"
+  res "source_$1" "$(sed -n 's/^key=[^ ]* source=\([^ ]*\) .*/\1/p' "$_f" | tr '\n' ',' | sed 's/,$//')"
+  res "trust_$1" "$(sed -n 's/.* trustStatus=\([^ ]*\) .*/\1/p' "$_f" | tr '\n' ',' | sed 's/,$//')"
+  res "hash_$1" "$(sed -n 's/.* currentHash=\([^ ]*\) .*/\1/p' "$_f" | tr '\n' ',' | sed 's/,$//')"
+}
+
+# last_value KEY: the last value of KEY in OUT/result.txt
+last_value() {
+  sed -n "s/^$1: //p" "$OUT/result.txt" | tail -n 1
+}
+
+# dash_n_result: dash_n yes|no from the fake compiler's argv log
+dash_n_result() {
+  if [ -f "$OUT/bbjcpl.log" ] && grep -qx -e '-N' "$OUT/bbjcpl.log"; then
+    res "$1" yes
+  else
+    res "$1" no
+  fi
+}
+
+# feedback_count OUT: how many times the bbjcpl feedback header is in the last request body
+feedback_count() {
+  python3 -I -c '
+import json, sys
+last = ""
+try:
+    for line in open(sys.argv[1]):
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if entry.get("method") == "POST":
+            last = json.dumps(entry.get("body"))
+except OSError:
+    pass
+print(last.count("bbjcpl reported 1 error(s) in"))
+' "$1/requests.jsonl"
+}
+
+# in_place_home: owner-H style home that exists and was prepared (result.txt present)
+in_place_home() {
+  begin "$1" keep
+  [ -f "$OUT/result.txt" ] || { echo "run.sh: $OUT is not a prepared home (no result.txt)" >&2; exit 2; }
+  rm -f "$OUT/proj/bad.bbj" "$OUT/bbjcpl.log" "$OUT/requests.jsonl"
+}
+
+scenario_posttrust() {
+  in_place_home "$1"
+  res posttrust_run "$(stamp)"
+  hooks_read posttrust_before
+  start_fake "$OUT" || { res status "fake server did not start"; exit 1; }
+  # no bypass flag: the hook runs only because the owner trusted it in /hooks
+  EXEC_LABEL=posttrust run_exec "$OUT"
+  res compiler_calls "$(compiler_calls)"
+  dash_n_result dash_n
+  analyze_requests "$OUT"
+  res feedback_occurrences "$(feedback_count "$OUT")"
+  res bypass_flag_in_cmd "$(grep -c 'dangerously-bypass-hook-trust' "$OUT/exec-posttrust.cmd")"
+  hooks_read posttrust_after
+  cp "$OUT/requests.jsonl" "$OUT/requests-posttrust.jsonl" 2> /dev/null
+  cp "$OUT/bbjcpl.log" "$OUT/bbjcpl-posttrust.log" 2> /dev/null
+}
+
+# set_test_version SRC VERSION: VERSION in the five places of the scratch copy, nowhere else
+set_test_version() {
+  python3 -I -c '
+import json, sys
+src, version = sys.argv[1], sys.argv[2]
+files = [
+    "plugins/bbj/.claude-plugin/plugin.json",
+    "plugins/bbj/.codex-plugin/plugin.json",
+    "plugins/bbj-local/.claude-plugin/plugin.json",
+]
+n = 0
+for rel in files:
+    path = src + "/" + rel
+    data = json.load(open(path))
+    data["version"] = version
+    json.dump(data, open(path, "w"), indent=2)
+    n += 1
+path = src + "/.claude-plugin/marketplace.json"
+data = json.load(open(path))
+for entry in data["plugins"]:
+    entry["version"] = version
+    n += 1
+json.dump(data, open(path, "w"), indent=2)
+print(n)
+' "$1" "$2"
+}
+
+# trusted_hashes: the hooks.state trusted_hash lines of the throwaway config.toml
+trusted_hashes() {
+  grep -E '^(\[hooks\.state\.|trusted_hash)' "$CODEX_HOME/config.toml" 2> /dev/null | tr '\n' ' '
+}
+
+scenario_upgrade() {
+  in_place_home "$1"
+  _v=${UPGRADE_VERSION:-0.2.0-test}
+  _cache=$CODEX_HOME/plugins/cache/basis-bbj/bbj
+  res upgrade_run "$(stamp)"
+  res upgrade_test_version "$_v"
+  res cache_versions_before "$(ls "$_cache" 2> /dev/null | tr '\n' ' ')"
+  hooks_read before_upgrade
+  res config_trust_before_upgrade "$(trusted_hashes)"
+  res versions_set "$(set_test_version "$OUT/src" "$_v")"
+  _cmd="none (the cache did not change)"
+  codex plugin marketplace upgrade basis-bbj > "$OUT/upgrade-marketplace.txt" 2>&1 < /dev/null
+  res upgrade_marketplace_rc "$?"
+  res upgrade_marketplace_first "$(grep -m 2 -v '^[[:space:]]*$' "$OUT/upgrade-marketplace.txt" | tr '\n' '|')"
+  if [ -d "$_cache/$_v" ]; then
+    _cmd="codex plugin marketplace upgrade basis-bbj"
+  else
+    codex plugin add bbj@basis-bbj > "$OUT/upgrade-add.txt" 2>&1 < /dev/null
+    res upgrade_add_rc "$?"
+    res upgrade_add_first "$(grep -m 2 -v '^[[:space:]]*$' "$OUT/upgrade-add.txt" | tr '\n' '|')"
+    if [ -d "$_cache/$_v" ]; then
+      _cmd="codex plugin add bbj@basis-bbj (after codex plugin marketplace upgrade basis-bbj left the cache unchanged)"
+    fi
+  fi
+  res upgrade_refresh_command "$_cmd"
+  res cache_versions "$(ls "$_cache" 2> /dev/null | tr '\n' ' ')"
+  hooks_read after_upgrade
+  res config_trust_after_upgrade "$(trusted_hashes)"
+  if [ "$(last_value hash_before_upgrade)" = "$(last_value hash_after_upgrade)" ]; then
+    res hash_changed no
+  else
+    res hash_changed yes
+  fi
+  start_fake "$OUT" || { res status "fake server did not start"; exit 1; }
+  # no bypass flag: whether the hook runs depends on the trust state alone
+  EXEC_LABEL=upgrade run_exec "$OUT"
+  res upgrade_compiler_calls "$(compiler_calls)"
+  dash_n_result upgrade_dash_n
+  analyze_requests "$OUT" upgrade_
+  res upgrade_bypass_flag_in_cmd "$(grep -c 'dangerously-bypass-hook-trust' "$OUT/exec-upgrade.cmd")"
+  if [ "$(last_value upgrade_compiler_calls)" = 1 ]; then
+    res hook_runs_after_upgrade yes
+  else
+    res hook_runs_after_upgrade no
+  fi
+  _n=$(last_value hooks_count_after_upgrade)
+  _bad=$(last_value trust_after_upgrade | tr ',' '\n' | grep -cvx trusted)
+  if [ "${_n:-0}" = 0 ] || [ "$_bad" != 0 ] || [ "$(last_value hook_runs_after_upgrade)" != yes ]; then
+    res upgrade_asks_trust_again yes
+  else
+    res upgrade_asks_trust_again no
+  fi
+  cp "$OUT/requests.jsonl" "$OUT/requests-upgrade.jsonl" 2> /dev/null
+  cp "$OUT/bbjcpl.log" "$OUT/bbjcpl-upgrade.log" 2> /dev/null
+}
+
+# snap_state LABEL: hook entries, skill entries and bbj-docs servers as Codex lists them now
+snap_state() {
+  hooks_read "$1"
+  res "skills_programming_$1" "$(skill_count bbj-programming)"
+  res "skills_web_$1" "$(skill_count bbj-web-programming)"
+  res "docs_servers_$1" "$(codex mcp list 2> /dev/null | awk '$1 == "bbj-docs"' | wc -l | tr -d ' ')"
+  res "docs_url_$1" "$(codex mcp list 2> /dev/null | awk '$1 == "bbj-docs" { printf "%s ", $2 }' | sed 's/ *$//')"
+  res "mcp_list_$1" "$(codex mcp list 2> /dev/null | awk 'NF { $1 = $1; printf "%s | ", $0 }')"
+  res "skill_dirs_$1" "$(ls "$HOME/.agents/skills" 2> /dev/null | tr '\n' ' ')"
+}
+
+# run_installer LABEL [args]: the real installer in the throwaway home; stdout and stderr to OUT/LABEL.txt
+run_installer() {
+  _lab=$1
+  shift
+  sh "$REPO/codex/install-codex.sh" "$@" > "$OUT/$_lab.txt" 2>&1 < /dev/null
+  _rc=$?
+  res "${_lab}_rc" "$_rc"
+  return 0
+}
+
+# config_residue LABEL: what the config.toml says about the two servers, and the lines left
+config_residue() {
+  python3 -I -c '
+import sys, tomllib
+try:
+    d = tomllib.load(open(sys.argv[1], "rb"))
+except Exception as exc:
+    print("unparsable (%s)" % exc)
+    sys.exit(0)
+servers = d.get("mcp_servers", {})
+print("mcp_servers=%s bbj-docs=%s bbj-local=%s" % (sorted(servers), "bbj-docs" in servers, "bbj-local" in servers))
+' "$CODEX_HOME/config.toml" > "$OUT/config-residue-$1.txt" 2>&1
+  res "config_after_$1" "$(cat "$OUT/config-residue-$1.txt")"
+  res "config_nonblank_lines_$1" "$(awk 'NF' "$CODEX_HOME/config.toml" 2> /dev/null | wc -l | tr -d ' ')"
+  res "config_total_lines_$1" "$(awk 'END { print NR }' "$CODEX_HOME/config.toml" 2> /dev/null)"
+  cp "$CODEX_HOME/config.toml" "$OUT/config-$1.toml" 2> /dev/null
+}
+
+scenario_switch() {
+  _order=${ORDER:-a}
+  case $_order in
+    a | b) ;;
+    *) echo "run.sh: ORDER must be a or b" >&2; exit 2 ;;
+  esac
+  begin "$1"
+  res switch_order "$_order"
+  res switch_run "$(stamp)"
+  res codex_version "$(codex --version)"
+  run_installer install
+  snap_state installer
+  if [ "$_order" = a ]; then
+    run_installer remove --remove
+    res remove_lines "$(grep -E 'removed from|left in place|nothing to remove' "$OUT/remove.txt" | tr '\n' '|')"
+    config_residue remove
+    snap_state after_remove
+    must marketplace_add codex plugin marketplace add "$REPO"
+    must plugin_add codex plugin add bbj@basis-bbj
+    snap_state plugin
+  else
+    must marketplace_add codex plugin marketplace add "$REPO"
+    must plugin_add codex plugin add bbj@basis-bbj
+    snap_state double
+    start_fake "$OUT" || { res status "fake server did not start"; exit 1; }
+    EXEC_LABEL=double run_exec "$OUT" --dangerously-bypass-hook-trust
+    res double_compiler_calls "$(compiler_calls)"
+    dash_n_result double_dash_n
+    analyze_requests "$OUT" double_
+    res double_feedback_occurrences "$(feedback_count "$OUT")"
+    run_installer remove --remove
+    res remove_lines "$(grep -E 'removed from|left in place|nothing to remove' "$OUT/remove.txt" | tr '\n' '|')"
+    config_residue remove
+    snap_state after_remove
+  fi
+}
+
 case ${1:-} in
   selftest) scenario_selftest ;;
   realhome) scenario_realhome "${2:-}" ;;
-  envprobe | plugin | local | shorthand | prepare-trust | prepare-signin)
+  envprobe | plugin | local | shorthand | prepare-trust | prepare-signin | posttrust | upgrade | switch)
     [ -n "${2:-}" ] || { echo "run.sh: $1 needs an OUTDIR" >&2; exit 2; }
     case $1 in
       envprobe) scenario_envprobe "$2" ;;
@@ -422,8 +694,11 @@ case ${1:-} in
       shorthand) scenario_shorthand "$2" ;;
       prepare-trust) scenario_prepare_trust "$2" ;;
       prepare-signin) scenario_prepare_signin "$2" ;;
+      posttrust) scenario_posttrust "$2" ;;
+      upgrade) scenario_upgrade "$2" ;;
+      switch) scenario_switch "$2" ;;
     esac ;;
   *)
-    echo "usage: sh run.sh selftest | realhome FILE | envprobe|plugin|local|shorthand|prepare-trust|prepare-signin OUTDIR" >&2
+    echo "usage: sh run.sh selftest | realhome FILE | envprobe|plugin|local|shorthand|prepare-trust|prepare-signin|posttrust|upgrade|switch OUTDIR" >&2
     exit 2 ;;
 esac
