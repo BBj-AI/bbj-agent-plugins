@@ -7,6 +7,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh\"",
+            "commandWindows": "C:\\PROGRA~1\\Git\\bin\\sh.exe \"${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh\"; exit $LASTEXITCODE",
             "timeout": 30,
             "statusMessage": "BBj compile-only check"
           }
