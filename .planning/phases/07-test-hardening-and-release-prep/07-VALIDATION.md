@@ -24,7 +24,7 @@ created: "2026-10-12"
 | **Config file** | none (`.shellcheckrc` for lint) |
 | **Quick run command** | `sh tests/test_<area>.sh` or `python3 -I tests/test_<area>.py` (single file) |
 | **Full suite command** | `sh tests/run.sh` (`sh tests/ci.sh` adds `claude plugin validate --strict` and `shellcheck -s sh`) |
-| **Estimated runtime** | about 120 seconds after this phase (787 gates); 84 seconds before it |
+| **Estimated runtime** | about 120 seconds after this phase (803 gates after the code-review fixes; 787 at plan close); 84 seconds before it |
 
 ---
 
@@ -32,7 +32,7 @@ created: "2026-10-12"
 
 - **After every task commit:** Run the single test file touched (`sh tests/test_<area>.sh`, 1–31 s) and `shellcheck -s sh tests/<file>.sh`
 - **After every plan wave:** Run `sh tests/run.sh`
-- **Before `/gsd-verify-work`:** Full suite must be green with `skip=0` (baseline before this phase `ok=757 fail=0 skip=0`; after it `ok=787 fail=0 skip=0`), plus one run with a fake `bbjcpl`/`bbjcplw` first on `PATH`, plus the four `git merge-base --is-ancestor <sha> HEAD` checks
+- **Before `/gsd-verify-work`:** Full suite must be green with `skip=0` (baseline before this phase `ok=757 fail=0 skip=0`; after it `ok=787 fail=0 skip=0`; after the code-review fixes `ok=803 fail=0 skip=0`), plus one run with a fake `bbjcpl`/`bbjcplw` first on `PATH`, plus the four `git merge-base --is-ancestor <sha> HEAD` checks
 - **Max feedback latency:** 120 seconds
 
 ---
