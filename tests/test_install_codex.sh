@@ -13,6 +13,10 @@
 . "$(dirname "$0")/lib.sh"
 mkwork
 
+# a test seam of the fake codex (tests/fake-bin/codex) must not come from the caller's shell: only the
+# oauthadderr case sets it, for its own run (IN-06)
+unset FAKE_CODEX_EXIT
+
 # plan 01-06: the fake servers of the probe gates are killed with the work directory
 FAKE_PIDS=
 cleanup() {
