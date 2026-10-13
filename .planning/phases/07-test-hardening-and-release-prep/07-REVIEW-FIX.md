@@ -1,137 +1,106 @@
 ---
 phase: 07-test-hardening-and-release-prep
-fixed_at: 2026-10-13T06:40:25Z
-review: re-review after the ten fix(07) commits
+fixed_at: 2026-10-13T00:00:00Z
 review_path: .planning/phases/07-test-hardening-and-release-prep/07-REVIEW.md
 fix_scope: all
 iteration: 1
-findings_in_scope: 6
-fixed: 6
+findings_in_scope: 10
+fixed: 10
 skipped: 0
 status: all_fixed
 ---
 
-# Phase 7: Code Review Fix Report (re-review round)
+# Phase 7: Code Review Fix Report
 
-**Fixed at:** 2026-10-13T06:40:25Z
+**Fixed at:** 2026-10-13
 **Source review:** `.planning/phases/07-test-hardening-and-release-prep/07-REVIEW.md`
-**Iteration:** 1 (this report replaces the one for the earlier round of ten findings, which stay fixed)
+**Iteration:** 1
+
+This report replaces the one on disk from the earlier round, whose findings reused the same IDs. That round's six fixes (commits 764c4c7, fe03ce6, 873973d, 48a9d8e, fc2a435, 2d23bf9) stay in place.
 
 **Summary:**
-- Findings in scope: 6 (WR-01, WR-02, IN-01 to IN-04)
-- Fixed: 6
+- Findings in scope: 10 (WR-01, WR-02, IN-01 to IN-08)
+- Fixed: 10 (IN-01 and IN-05 partly, see their notes)
 - Skipped: 0
 
-None of the six is classified as a logic error that needs human sign-off beyond the new gates. Each new
-gate was shown to fail without its fix (WR-01, IN-01) or was exercised by hand (IN-02 fallback, IN-04
-orphan release).
+**Verification:** `shellcheck -s sh` on every shell file touched; the affected test files under `sh`, `dash` and `bash`. All runs were in the main checkout, no worktree (as instructed), with `$WORK` fixtures and the scratchpad for scratch. After the last fix, `sh tests/run.sh` gave:
+
+`SUMMARY: ok=830 fail=0 skip=0`
 
 ## Fixed Issues
 
-### WR-01: A watched path that is a symlink to a regular file is recorded by target only, so a write through it goes undetected
+### WR-01: The `home_incomplete` branch in the consumer is not guarded by any gate
 
-**Disposition:** fixed
-**Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
-**Commit:** 764c4c7
-**Applied fix:** The `home_snapshot` classifier now prints, after the `L <path> -> <target>` line, a
-`T <crc> <size> <path>` line with the cksum of what the link resolves to when that is a readable regular
-file. A write through a dotfiles-style `config.toml` link now changes the snapshot. The header comment
-documents the `T` line. New gates `homeguard_filelink_write_through_detected` (expects `differ`) and
-`homeguard_filelink_untouched_same` (touch on link and target, expects `same`). With `tests/lib.sh`
-stashed to the old version the write-through gate fails, so the gate is load-bearing.
-
-### WR-02: An incomplete snapshot compares equal to itself, so `real_home_untouched` reports `ok` when part of the home could not be read
-
-**Disposition:** fixed
-**Files modified:** `tests/lib.sh`, `tests/test_install_codex.sh`, `tests/test_home_guard.sh`
-**Commit:** fe03ce6
-**Applied fix:** Two new helpers in `tests/lib.sh`. `home_incomplete BEFORE AFTER` returns 0 and prints a
-reason when either snapshot is missing or empty, or holds an `E` line. `home_incomplete_status` returns
-`skip`, or `FAIL` when `CI=true`. `tests/test_install_codex.sh` now checks `home_incomplete` before
-`home_diff` and gates `real_home_untouched` with that status instead of `ok`. The two `home_snapshot`
-calls on the real homes are unchanged, so `homeguard_install_codex_uses_helper` still holds. New gates
-`homeguard_incomplete_snapshot` (an `E` line in both snapshots, an empty pair, a missing file, and a
-complete pair) and `homeguard_incomplete_status` (skip locally, FAIL under `CI=true`).
-
-### IN-01: The temp-file globs in `home_snapshot` silently stop expanding when the caller has `set -f`
-
-**Disposition:** fixed
-**Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
-**Commit:** 873973d
-**Applied fix:** `home_snapshot` records whether noglob was set, runs `set +f` inside its block, and puts
-`set -f` back at the end, the same idiom `no_compiler_path` uses. New gate
-`homeguard_noglob_temp_detected` takes both snapshots under `set -f`, leaks a `config.toml.AbC123`, expects
-`differ` with an `F` line for it, and checks that `set -f` is still on afterwards. It fails on the old
-`home_snapshot`.
-
-### IN-02: Directory modes are not recorded, and `readlink` is outside the POSIX tool list
-
-**Disposition:** fixed
-**Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
-**Commit:** 48a9d8e
-**Applied fix:** The `D` line is now `D <mode> <path>`, with the permission string from `ls -ld`, and the
-header says so. The classifier checks `command -v readlink` once and otherwise cuts the target from the
-`ls -ld` line with `sed "s/.* -> //"`, so retarget detection survives a missing `readlink`. New gate
-`homeguard_dir_chmod_detected` (755 to 700 on `bbj/`). The fallback was checked by hand with a PATH that
-holds only symlinks to `find`, `sh`, `sort`, `ls`, `awk`, `sed`, `cksum`, `cat`, `grep`, `head`, `tr`: the
-two retargeted snapshots printed different `L` lines.
-
-### IN-03: `TIER2_TEST_SYSPATH` is read from the ambient environment
-
-**Disposition:** fixed
-**Files modified:** `tests/test_path_scrub.sh`, `tests/run.sh`
-**Commit:** fc2a435
-**Applied fix:** Added `TIER2_TEST_SYSPATH` to the `unset` line at the top of `tests/test_path_scrub.sh`
-and an `unset TIER2_TEST_SYSPATH` at the top of `tests/run.sh` (with a comment), so a variable exported in
-the developer's shell reaches neither the nested runs nor `tests/test_tier2_fake.sh` under the runner.
-Checked by running `test_path_scrub.sh` with `TIER2_TEST_SYSPATH=/nonexistent` exported: all 19 gates ok.
-
-### IN-04: `homeguard_fifo_not_opened` leaves orphans on failure, and `homeguard_unreadable_dir_reported` skips as root
-
-**Disposition:** fixed
 **Files modified:** `tests/test_home_guard.sh`
-**Commit:** 2d23bf9
-**Applied fix:** Chose from the review's alternatives:
-- FIFO: on the failure path the test now opens the FIFO read-write once in a subshell
-  (`( exec 3<> "$H_C/bbj/pipe" )`), which does not block and releases a reader waiting in `open()` with an
-  EOF, then kills the background subshell. Checked by hand on a mutated copy of `lib.sh` that opens every
-  non-directory: the gate failed as designed and no `cksum` or `find` process was left behind.
-- Root: a second technique that works as root. New gate `homeguard_find_failure_reported` puts a fake
-  `find` that exits 1 first on PATH and requires an `E` line for each existing watched path. The
-  `chmod 000` gate keeps its `skip` as root, with a message pointing to the new gate, because the same
-  `E` contract is now covered there and a CI FAIL for being root would be a false alarm.
+**Commit:** 7988ca1
+**Applied fix:** New static gate `homeguard_install_codex_checks_incomplete`. It requires the `home_incomplete "$WORK/home.before" "$WORK/home.after"` line and the `home_diff` line in the non-comment code of `test_install_codex.sh`, and that the first comes before the second (the review's recommended fix).
 
-## Verification
+### WR-02: The hosted OAuth client is bound to every `docs_url`
 
-Run in the main checkout (`/home/coder/repos/bbj-agent-plugins`, `workflow.use_worktrees` was off, no
-worktree). The numbers are reproducible from this tree.
+**Files modified:** `codex/install-codex.sh`, `tests/test_install_codex.sh`, `docs/install-claude-code.md`, `docs/install-codex.md`, `CHANGELOG.md`
+**Commit:** 40199a7
+**Status:** fixed: requires human verification (logic change: the condition decides when the OAuth table is written)
+**Applied fix:** Chose the review's first option (write the table only for the default URL).
+- Installer: `use_docs` sets the three `srv_oauth_*` variables only when `docs_url` equals `DEFAULT_DOCS_URL`, and leaves them empty otherwise. The "Sign-in step" line is printed in full only for the default URL; for another URL it says no OAuth client was written. The header comment says so.
+- Test: new gate `oauth_custom_docs_url_no_table` runs the installer with `--docs-url http://127.0.0.1:8765/mcp`, `https://docs.example.org/mcp` (both through the fake `codex mcp add`) and `http://localhost:9999/mcp` (managed block, no codex). It requires exit 0, no `oauth` text in `config.toml`, no client id in the config or the output, and no "added the OAuth client" line. I checked that it fails when the installer condition is forced true, then restored the installer.
+- Plugin: `.mcp.json` is static JSON, so there is no conditional. `docs/install-claude-code.md` now states that the client and port belong to the hosted server only and to remove the `oauth` block or override the entry for another `docs_url`. `docs/install-codex.md` and `CHANGELOG.md` state the installer behaviour.
+- `tests/test_layout.py`, `tests/test_install_pages.sh`, `tests/test_release_text.py` and `tests/test_release_text_mutation.sh` stay green.
 
-Per fix, before each commit:
-- `shellcheck -s sh tests/lib.sh tests/test_home_guard.sh` (plus `tests/test_install_codex.sh` for WR-02,
-  `tests/run.sh tests/test_path_scrub.sh` for IN-03): clean.
-- `sh`, `dash`, `bash` and `busybox sh` each ran `tests/test_home_guard.sh` after every fix touching it:
-  no failing gate.
-- `sh`, `dash`, `bash` and `busybox sh` each ran `tests/test_install_codex.sh` after WR-02: exit 0,
-  `real_home_untouched` ok.
-- `dash`, `bash` and `busybox sh` ran `tests/test_path_scrub.sh` after IN-03: no failing gate.
+### IN-01: `home_snapshot` reads files outside the watched set through symlinks (carried)
 
-After the last fix:
-- `shellcheck -s sh tests/*.sh tests/fake-bin/*`: no output.
-- `sh tests/run.sh`:
+**Files modified:** `tests/lib.sh`, `tests/test_home_guard.sh`
+**Commit:** 075d86f
+**Applied fix:** Partly, by choice.
+- Done: the `home_snapshot` header now says a symlink target is read for its `T` line even outside the watched set. A symlink to an unreadable regular file now also prints `U <path>`. New gate `homeguard_unreadable_target_reported` (runs as non-root, skips as root).
+- Not done: restricting `T` to targets under a watched root. A link inside `bbj/` or a skill directory that points outside is exactly the write-through case the `T` line catches (the installer's `cp` onto such a link would write the target), so restricting it would reopen that hole. Documenting the read was the safe half of the fix.
 
-```
-SUMMARY: ok=810 fail=0 skip=0
-```
+### IN-02: `homeguard_noglob_temp_detected` asserts that noglob is still on, which cannot fail
 
-(803 before this round; 7 new `homeguard_` gates: `filelink_write_through_detected`,
-`filelink_untouched_same`, `incomplete_snapshot`, `incomplete_status`, `noglob_temp_detected`,
-`dir_chmod_detected`, `find_failure_reported`. No new gate prefix.)
+**Files modified:** `tests/test_home_guard.sh`
+**Commit:** efbcb45
+**Applied fix:** Dropped `_ng_kept` and the claim from the detail text. A comment says the caller's noglob state cannot change by construction. The `config.toml.AbC123` check is kept.
 
-Nothing here ran BBj or touched the real `~/.codex` or `~/.agents`; every fixture lives under `$WORK` or
-the scratchpad. `.planning/config.json` and `.planning/state.json` were left alone and unstaged.
+### IN-03: `run.sh` leaves its temp files behind when the run is interrupted
+
+**Files modified:** `tests/run.sh`
+**Commit:** ce64915
+**Applied fix:** `trap 'rm -f "$OUT" "$OUT.gates"' EXIT` and `trap 'exit 1' INT TERM HUP`. I checked with a stub test and a TERM signal under `sh`, `dash` and `bash`: no temp file is left.
+
+### IN-04: Temp-file globs are exactly six characters wide; the gate text says `config.toml.*`
+
+**Files modified:** `tests/test_install_codex.sh`, `tests/lib.sh`
+**Commit:** 58be8c3
+**Applied fix:** The `real_home_untouched` ok message now says "six-character installer temp suffixes config.toml.XXXXXX and hooks.json.XXXXXX". The `home_snapshot` header notes the false positive next to the accepted-residual-risk paragraph.
+
+### IN-05: `mcp_docs_answers` is weaker than the gate it replaced, and `mcp_docs_oauth` does not check the value
+
+**Files modified:** `tests/test_claude_plugin.sh`
+**Commit:** 32a65b0
+**Applied fix:** Partly.
+- Done: `mcp_docs_answers` matches `[[:space:]]connected`, so "Disconnected" is excluded. Its comment and ok text say only that something answers and nothing past the 401 is proven.
+- Done: `mcp_docs_oauth` now requires `client_id configured` (the CLI's own wording) instead of the bare word `client_id`.
+- Not done: the review's `grep -F "$OAUTH_ID"` in `mcp_docs_oauth`. I ran `claude mcp get plugin:bbj:bbj-docs` in a throwaway config: it prints `OAuth: client_id configured, callback_port 47613` and never the id, so the grep could not pass. The id stays pinned by `layout_bbj_mcp`; a comment in the test says so.
+
+### IN-06: An ambient `FAKE_CODEX_EXIT` changes every fake-codex case
+
+**Files modified:** `tests/test_install_codex.sh`, `tests/run.sh`
+**Commit:** 854c938
+**Applied fix:** `unset FAKE_CODEX_EXIT` after `mkwork` in `test_install_codex.sh` and next to the existing `unset` in `run.sh`. With `FAKE_CODEX_EXIT=1` exported, `test_install_codex.sh` prints no FAIL under `sh`, `dash` and `bash`.
+
+### IN-07: The Codex page pins the OAuth wording but not the client id
+
+**Files modified:** `tests/test_install_pages.sh`
+**Commit:** f89b4c4
+**Applied fix:** The test reads `OAUTH_CLIENT_ID` from `codex/install-codex.sh` and requires `client_id = "<id>"` on the Codex page (a FAIL if the installer line is missing, so an empty id cannot match everything). Chose the review's first option.
+
+### IN-08: Installer header comment gained overlong, badly wrapped lines
+
+**Files modified:** `codex/install-codex.sh`
+**Commit:** 76f4474
+**Applied fix:** Re-wrapped the paragraph from "docs url, ..." (the line WR-02 had lengthened) through "Upgrade: versions up to 398aac5 wrote" at about 100 columns. The text is unchanged.
 
 ---
 
-_Fixed: 2026-10-13T06:40:25Z_
+_Fixed: 2026-10-13_
 _Fixer: Claude (gsd-code-fixer)_
 _Iteration: 1_
