@@ -1983,6 +1983,169 @@ else
   gate remove_codex_home_with_space FAIL "install exit $RM_RC1 (installed=$RM_INSTALLED), remove exit $RM_RC2: ${_d:-$(head -c 300 "$WORK/err")}"
 fi
 
+# ---- --remove leaves what the installer did not write, byte for byte, with exit 3 (CODEX-06, D-02 to D-04; T-08-14, T-08-15) ----
+# rm_docs_case NAME AWKPROGRAM: a fake-codex install, config.toml changed in one way by the awk program (-v hdr is the
+# single-quoted bbj-docs header), then --remove. The case is good when the exit code is 3, config.toml is byte-identical to
+# its changed state, and the output names bbj-docs as left in place. A failing case name is appended to RM_BAD. The change is
+# built with awk into a new file, never with sed -i.
+RM_BAD=
+RM_SQHDR="[mcp_servers.'bbj-docs']"
+rm_docs_case() {
+  _rd_n=rmdocs$1
+  rm_env "$_rd_n"
+  rm_user_cfg "$E_CODEX/config.toml"
+  run_inst "$WITH_CODEX"
+  _rd_rc1=$RC
+  cp "$E_CODEX/config.toml" "$WORK/$_rd_n.installed"
+  awk -v hdr="$RM_SQHDR" "$2" "$WORK/$_rd_n.installed" > "$WORK/$_rd_n.changed"
+  cat "$WORK/$_rd_n.changed" > "$E_CODEX/config.toml"
+  run_inst "$WITH_CODEX" --remove
+  if [ "$_rd_rc1" = 0 ] && ! cmp -s "$WORK/$_rd_n.installed" "$WORK/$_rd_n.changed" && [ "$RC" = 3 ] \
+    && cmp -s "$E_CODEX/config.toml" "$WORK/$_rd_n.changed" && grep -F 'bbj-docs:' "$WORK/out" | grep -F 'left in place' > /dev/null; then :
+  else
+    RM_BAD="$RM_BAD $1(install $_rd_rc1, remove $RC)"
+  fi
+}
+
+rm_docs_case a_extra_key '{ print } /^url = / && !d { print "startup_timeout_sec = 30"; d = 1 }'
+rm_docs_case b_comment '{ print } /^url = / && !d { print "# my note on this server"; d = 1 }'
+rm_docs_case c_own_oauth '/^client_id = / { print "client_id = \"my-own-client\""; next } { print }'
+rm_docs_case d_other_approval '$0 == "[mcp_servers.bbj-docs.tools.bbj_search]" { t = 1 } t && /^approval_mode = / { print "approval_mode = \"prompt\""; t = 0; next } { print }'
+rm_docs_case e_single_quoted_key '$0 == "[mcp_servers.bbj-docs]" { print hdr; next } { print }'
+rm_docs_case f_extra_tool_table '{ print } END { print ""; print "[mcp_servers.bbj-docs.tools.bbj_check_syntax]"; print "approval_mode = \"approve\"" }'
+if [ -z "$RM_BAD" ]; then
+  gate remove_left_docs_forms ok "six bbj-docs forms the installer does not write (extra key, comment, own OAuth table, another approval_mode, single-quoted key, extra tool table bbj_check_syntax): exit 3, config.toml byte-identical, 'bbj-docs:' named as left in place"
+else
+  gate remove_left_docs_forms FAIL "failing sub-case(s):$RM_BAD"
+fi
+
+# a bbj-local the installer did not write as its managed block: config.toml holds only the user content and that form
+rm_local_case() {
+  _rl_n=rmlocal$1
+  rm_env "$_rl_n"
+  rm_user_cfg "$E_CODEX/config.toml"
+  { cat "$E_CODEX/config.toml"; printf '\n'; cat; } > "$WORK/$_rl_n.changed"
+  cat "$WORK/$_rl_n.changed" > "$E_CODEX/config.toml"
+  run_inst "$WITH_CODEX" --remove
+  if [ "$RC" = 3 ] && cmp -s "$E_CODEX/config.toml" "$WORK/$_rl_n.changed" && grep -F 'bbj-local:' "$WORK/out" | grep -F 'left in place' > /dev/null; then :
+  else
+    RM_BAD="$RM_BAD $1(remove $RC)"
+  fi
+}
+RM_BAD=
+rm_local_case a_by_hand <<'EOF_LOCAL_A'
+[mcp_servers.bbj-local]
+url = "http://127.0.0.1:5009/mcp"
+EOF_LOCAL_A
+rm_local_case b_edited_block <<'EOF_LOCAL_B'
+# >>> bbj-agent-plugins bbj-local (managed) >>>
+[mcp_servers.bbj-local]
+url = "http://127.0.0.1:5009/mcp"
+startup_timeout_sec = 30
+
+[mcp_servers.bbj-local.tools.bbj_check_syntax]
+approval_mode = "approve"
+
+[mcp_servers.bbj-local.tools.bbj_format]
+approval_mode = "approve"
+
+[mcp_servers.bbj-local.tools.bbj_denum]
+approval_mode = "approve"
+# <<< bbj-agent-plugins bbj-local (managed) <<<
+EOF_LOCAL_B
+if [ -z "$RM_BAD" ]; then
+  gate remove_left_local_forms ok "a bbj-local table registered by hand outside the markers and a managed block with an edited line: exit 3, config.toml byte-identical, 'bbj-local:' named as left in place"
+else
+  gate remove_left_local_forms FAIL "failing sub-case(s):$RM_BAD"
+fi
+
+# a skill directory that differs from the shipped copy is the user's: kept, with exit 3; the other objects still go
+rm_env rmskilldiff
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+printf '# my own note on this skill\n' >> "$E_SKILLS/bbj-programming/SKILL.md"
+rm -rf "$WORK/rmskilldiff.saved"
+cp -R "$E_SKILLS/bbj-programming" "$WORK/rmskilldiff.saved"
+run_inst "$WITH_CODEX" --remove
+RM_RC2=$RC
+if [ "$RM_RC1" = 0 ] && [ "$RM_RC2" = 3 ] && diff -r "$WORK/rmskilldiff.saved" "$E_SKILLS/bbj-programming" > /dev/null 2>&1 \
+  && grep -F 'differs from the shipped copy; left in place' "$WORK/out" > /dev/null; then
+  gate remove_left_skill_differs ok "a bbj-programming directory with one edited file: exit 3, diff -r against the saved copy is clean, 'differs from the shipped copy; left in place' printed"
+else
+  gate remove_left_skill_differs FAIL "install exit $RM_RC1, remove exit $RM_RC2: $(grep -F 'bbj-programming' "$WORK/out" | head -c 300)"
+fi
+# per object, not all or nothing: in that same run the installer's other objects are gone
+if ! grep -F 'bbj-docs' "$E_CODEX/config.toml" > /dev/null && [ ! -e "$E_CODEX/bbj" ] && [ ! -e "$E_CODEX/hooks.json" ] && [ ! -e "$E_SKILLS/bbj-web-programming" ] && grep -F '# my codex settings' "$E_CODEX/config.toml" > /dev/null; then
+  gate remove_left_others_removed ok "with a differing skill directory left, config.toml no longer names bbj-docs (user content kept), the check script and its directory, hooks.json and the identical skill are removed"
+else
+  gate remove_left_others_removed FAIL "config: $(tr '\n' ';' < "$E_CODEX/config.toml" | head -c 200); codex home: $(ls "$E_CODEX" | tr '\n' ' '); skills: $(ls "$E_SKILLS" | tr '\n' ' ')"
+fi
+
+# a skill directory that is a symbolic link: the link and its target are kept
+rm_env rmskilllink
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+mkdir -p "$E_ROOT/outside"
+mv "$E_SKILLS/bbj-web-programming" "$E_ROOT/outside/web"
+ln -s "$E_ROOT/outside/web" "$E_SKILLS/bbj-web-programming"
+cp -R "$E_ROOT/outside/web" "$WORK/rmskilllink.saved"
+RM_LINK0=$(readlink "$E_SKILLS/bbj-web-programming")
+run_inst "$WITH_CODEX" --remove
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 3 ] && [ -L "$E_SKILLS/bbj-web-programming" ] && [ "$(readlink "$E_SKILLS/bbj-web-programming")" = "$RM_LINK0" ] \
+  && diff -r "$WORK/rmskilllink.saved" "$E_ROOT/outside/web" > /dev/null 2>&1 && grep -F 'symbolic link; left in place' "$WORK/out" > /dev/null; then
+  gate remove_left_skill_symlink ok "a symlinked bbj-web-programming keeps its link and its target (diff -r clean): exit 3, 'symbolic link; left in place' printed"
+else
+  gate remove_left_skill_symlink FAIL "install exit $RM_RC1, remove exit $RC: $(grep -F 'bbj-web-programming' "$WORK/out" | head -c 300)"
+fi
+
+# a file of the user's in <codex home>/bbj keeps the directory
+rm_env rmscriptdir
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+printf 'my notes\n' > "$E_CODEX/bbj/notes.txt"
+run_inst "$WITH_CODEX" --remove
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 3 ] && [ ! -e "$E_CODEX/bbj/bbj-check.sh" ] && [ -d "$E_CODEX/bbj" ] && [ "$(cat "$E_CODEX/bbj/notes.txt")" = "my notes" ] \
+  && grep -F 'holds other files; left in place' "$WORK/out" > /dev/null; then
+  gate remove_left_script_dir_extra_file ok "notes.txt in <codex home>/bbj: the check script is gone, the file and the directory stay, exit 3, 'holds other files; left in place' printed"
+else
+  gate remove_left_script_dir_extra_file FAIL "install exit $RM_RC1, remove exit $RC: $(ls "$E_CODEX/bbj" 2> /dev/null | tr '\n' ' ')"
+fi
+
+# a hooks.json with a second entry: kept byte for byte, with the entry to delete by hand
+rm_env rmhooksedit
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+awk '{ print } /"PostToolUse": \[/ { print "      { \"matcher\": \"Write\", \"hooks\": [] }," }' "$E_CODEX/hooks.json" > "$WORK/rmhooksedit.changed"
+cat "$WORK/rmhooksedit.changed" > "$E_CODEX/hooks.json"
+run_inst "$WITH_CODEX" --remove
+RM_AFTERMSG=$(awk '/Delete this PostToolUse entry from it by hand/ { f = 1 } f && /"matcher": "apply_patch\|Edit\|Write"/ { n++ } END { print n + 0 }' "$WORK/out")
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 3 ] && cmp -s "$E_CODEX/hooks.json" "$WORK/rmhooksedit.changed" && [ "$RM_AFTERMSG" -ge 1 ]; then
+  gate remove_left_hooks_edited ok "a hooks.json with a second PostToolUse entry stays byte for byte: exit 3, the output prints the entry to delete by hand and its rendered block"
+else
+  gate remove_left_hooks_edited FAIL "install exit $RM_RC1, remove exit $RC, rendered-block lines after the message: $RM_AFTERMSG"
+fi
+
+# a hooks.json that is a symbolic link to an identical file: the link and the target stay
+rm_env rmhookslink
+rm_user_cfg "$E_CODEX/config.toml"
+run_inst "$WITH_CODEX"
+RM_RC1=$RC
+mkdir -p "$E_ROOT/dots"
+mv "$E_CODEX/hooks.json" "$E_ROOT/dots/hooks.json"
+ln -s "$E_ROOT/dots/hooks.json" "$E_CODEX/hooks.json"
+cp "$E_ROOT/dots/hooks.json" "$WORK/rmhookslink.saved"
+run_inst "$WITH_CODEX" --remove
+if [ "$RM_RC1" = 0 ] && [ "$RC" = 3 ] && [ -L "$E_CODEX/hooks.json" ] && [ "$(readlink "$E_CODEX/hooks.json")" = "$E_ROOT/dots/hooks.json" ] \
+  && cmp -s "$E_ROOT/dots/hooks.json" "$WORK/rmhookslink.saved" && grep -F 'hooks.json' "$WORK/out" | grep -F 'symbolic link; left in place' > /dev/null; then
+  gate remove_left_hooks_symlink ok "a symlinked hooks.json keeps its link and its identical target: exit 3, 'symbolic link; left in place' printed"
+else
+  gate remove_left_hooks_symlink FAIL "install exit $RM_RC1, remove exit $RC: $(grep -F 'hooks.json' "$WORK/out" | head -c 300)"
+fi
+
 # ---- a full install with the real codex on PATH: its own codex mcp add, then the same parse ----
 if [ -n "$REAL_CODEX" ]; then
   newenv realcodex
