@@ -56,6 +56,9 @@ mutate() {
 fresh_root "$WORK/root-clean" || gate release_mut_clean FAIL "cannot copy the files"
 python3 -I "$GATE" "$WORK/root-clean" > "$WORK/out" 2> "$WORK/err"
 _rc=$?
+# how many gates the unchanged copy prints: the later-version cases compare against it, so adding
+# or removing a gate in test_release_text.py does not break them (IN-03)
+_nclean=$(grep -c "^gate release_" "$WORK/out")
 if [ "$_rc" = 0 ] && ! grep -q "^gate [^ ]* FAIL " "$WORK/out"; then
   gate release_mut_clean ok "the unchanged copy passes"
 else
@@ -116,10 +119,10 @@ if later_root "$WORK/root-repinned" 9.9.9; then
     _nfail=$(grep -c "^gate [^ ]* FAIL " "$WORK/out")
     _nskip=$(grep -c "^gate [^ ]* skip " "$WORK/out")
     _nall=$(grep -c "^gate release_" "$WORK/out")
-    if [ "$_rc" = 0 ] && [ "$_nfail" = 0 ] && [ "$_nskip" = 0 ] && [ "$_nall" = 11 ]; then
-      gate release_mut_later_repinned ok "a gate re-pinned to 9.9.9 passes the 9.9.9 root: 11 gates, no FAIL, no skip"
+    if [ "$_rc" = 0 ] && [ "$_nfail" = 0 ] && [ "$_nskip" = 0 ] && [ "$_nclean" -gt 0 ] && [ "$_nall" = "$_nclean" ]; then
+      gate release_mut_later_repinned ok "a gate re-pinned to 9.9.9 passes the 9.9.9 root: $_nall gates (as many as the unchanged copy), no FAIL, no skip"
     else
-      gate release_mut_later_repinned FAIL "rc=$_rc, $_nfail FAIL, $_nskip skip, $_nall gate line(s) for the re-pinned copy"
+      gate release_mut_later_repinned FAIL "rc=$_rc, $_nfail FAIL, $_nskip skip, $_nall gate line(s) for the re-pinned copy (unchanged copy: $_nclean)"
     fi
   fi
 else
