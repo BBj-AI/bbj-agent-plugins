@@ -17,8 +17,10 @@ Nothing here runs BBj code or touches a Claude Code configuration.
 import glob
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
@@ -275,5 +277,118 @@ except OSError:
 gate("notice_no_provenance",
      notice == ["bbj-agent-plugins", "Copyright 2026 BASIS International Ltd."],
      "NOTICE lines=%r" % (notice,))
+
+
+# CODEX-04: prove the gates above can fail. Each case copies the repository files this script
+# reads into a fresh temp directory, changes one thing, runs this file on the copy (a root
+# argument turns this section off, so a copy run never recurses) and requires the named gates to
+# print FAIL and the exit code to be 1. A mutation that changes nothing is itself a FAIL. The
+# checkout is never written; the temp directory is removed in a finally.
+def build_copy(dst):
+    for d in (".claude-plugin", "plugins", "codex", "docs"):
+        shutil.copytree(os.path.join(ROOT, d), os.path.join(dst, d), symlinks=True)
+    for f in ("README.md", "NOTICE", "CHANGELOG.md"):
+        shutil.copy2(os.path.join(ROOT, f), os.path.join(dst, f))
+
+
+def run_copy(root):
+    r = subprocess.run([sys.executable, "-I", os.path.abspath(__file__), root],
+                       capture_output=True, text=True, timeout=60)
+    return r.returncode, r.stdout
+
+
+def edit_json(path, fn):
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    fn(data)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+
+
+def read_bytes(path):
+    try:
+        with open(path, "rb") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def mutation_case(name, rels, change, expect):
+    """Run one mutation: rels are the files it touches, change(dst) edits the copy, expect lists
+    the gate names (without the layout_ prefix) that must print FAIL; an empty list is the
+    control: rc 0 and no FAIL line."""
+    tmp = tempfile.mkdtemp(prefix="layoutmut.")
+    try:
+        dst = os.path.join(tmp, "copy")
+        build_copy(dst)
+        before = [read_bytes(os.path.join(dst, r)) for r in rels]
+        change(dst)
+        after = [read_bytes(os.path.join(dst, r)) for r in rels]
+        if expect and before == after:
+            gate("mutation_" + name, False, "the mutation changed nothing in %s" % (", ".join(rels),))
+            return
+        rc, out = run_copy(dst)
+        fails = [ln for ln in out.splitlines() if " FAIL " in ln]
+        if not expect:
+            ok = rc == 0 and not fails
+            detail = "the unchanged copy passes" if ok else "rc=%d first FAIL lines: %r" % (rc, fails[:2])
+        else:
+            missing = [g for g in expect if not any(ln.startswith("gate layout_%s FAIL" % g) for ln in fails)]
+            ok = rc == 1 and not missing
+            detail = ("gate layout_%s fails on the changed copy" % ", layout_".join(expect)) if ok else (
+                "rc=%d missing FAIL for %r, first FAIL lines: %r" % (rc, missing, fails[:2]))
+        gate("mutation_" + name, ok, detail)
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as e:
+        gate("mutation_" + name, False, "case error: %s" % (e,))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+if len(sys.argv) == 1:
+    CLAUDE_MANIFEST = "plugins/bbj/.claude-plugin/plugin.json"
+    CODEX_MANIFEST = "plugins/bbj/.codex-plugin/plugin.json"
+    CODEX_MCP_FILE = "plugins/bbj/.codex-mcp.json"
+    SKILL_FILE = "plugins/bbj/skills/bbj-programming/SKILL.md"
+
+    def set_overlay_version(dst):
+        edit_json(os.path.join(dst, CODEX_MANIFEST), lambda d: d.update(version="9.9.9"))
+
+    def slash_codex_url(dst):
+        def fn(d):
+            d["mcpServers"]["bbj-docs"]["url"] += "/"
+        edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
+
+    def slash_default_url(dst):
+        def fn(d):
+            d["userConfig"]["docs_url"]["default"] += "/"
+        edit_json(os.path.join(dst, CLAUDE_MANIFEST), fn)
+
+    def host_in_third_file(dst):
+        with open(os.path.join(dst, SKILL_FILE), "a", encoding="utf-8") as f:
+            f.write("\nSee https://" + DOCS_HOST + "/mcp for the hosted server.\n")
+
+    def delete_codex_mcp(dst):
+        os.remove(os.path.join(dst, CODEX_MCP_FILE))
+
+    def overlay_extra_key(dst):
+        edit_json(os.path.join(dst, CODEX_MANIFEST), lambda d: d.update(skills="./skills/"))
+
+    def codex_secret(dst):
+        def fn(d):
+            # the key name is assembled from two pieces (self-scan convention)
+            d["mcpServers"]["bbj-docs"]["oauth"] = {"clientId": OAUTH_CLIENT_ID,
+                                                    "client" + "Secret": "not-a-real-value"}
+        edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
+
+    mutation_case("control", [], lambda dst: None, [])
+    mutation_case("overlay_version", [CODEX_MANIFEST], set_overlay_version, ["versions"])
+    mutation_case("codex_url", [CODEX_MCP_FILE], slash_codex_url, ["codex_url_equals_default"])
+    mutation_case("default_url", [CLAUDE_MANIFEST], slash_default_url, ["codex_url_equals_default"])
+    mutation_case("host_elsewhere", [SKILL_FILE], host_in_third_file, ["docs_host_single_source"])
+    mutation_case("codex_mcp_missing", [CODEX_MCP_FILE], delete_codex_mcp,
+                  ["codex_overlay_fields", "codex_mcp"])
+    mutation_case("overlay_extra_key", [CODEX_MANIFEST], overlay_extra_key, ["codex_overlay_fields"])
+    mutation_case("codex_secret", [CODEX_MCP_FILE], codex_secret, ["codex_mcp"])
 
 sys.exit(1 if failed else 0)
