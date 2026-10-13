@@ -17,7 +17,7 @@ expected: In 08-LINUX-RUN.md, the plan 08-05 install of the bbj plugin from the 
 result: pass
 
 ### 2. CLAUDE_PLUGIN_ROOT reaches the real plugin hook process
-expected: The env probe recorded in 08-LINUX-RUN.md (hook-env.txt) shows CLAUDE_PLUGIN_ROOT set inside the hook process of the real Codex plugin hook, so the apply_patch no-route notice on the plugin route ends with 'or run codex plugin add bbj-local@basis-bbj (BBjServices 26.03+ running on this machine).' and the owner decision in 08-08 kept D-07 unamended. (08-02 D5, CODEX-03, assumption A3)
+expected: The env probe recorded in 08-LINUX-RUN.md (hook-env.txt) shows CLAUDE_PLUGIN_ROOT set inside the hook process of the real Codex plugin hook, so the apply_patch no-route notice on the plugin route carries the Codex wording ('... codex plugin add bbj-local@basis-bbj only gives the model the local bbj_check_syntax tool; the hook does not need it.', as reworded by review fix WR-05) and the owner decision in 08-08 kept D-07 unamended. (08-02 D5, CODEX-03, assumption A3)
 result: pass
 
 ### 3. Real-Codex install then --remove round-trips config.toml
