@@ -56,11 +56,11 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - ✓ Release 0.2.0: both plugins and the marketplace at 0.2.0, CHANGELOG with Upgrading notes and a Tested against section from the release run, full suite `ok=738 fail=0 skip=0` with live gates, PR #1 merged (f15c257), annotated tag `0.2.0` and GitHub Release published; UAT installs confirmed on Claude Code and on Codex under macOS (REL-01..04) — Phase 6
 
 - ✓ Codex plugin route: `codex plugin marketplace add` and `codex plugin add bbj@basis-bbj` register `bbj-docs` at the literal docs URL through the `.codex-plugin/plugin.json` overlay and `.codex-mcp.json` (shipping the public OAuth client), both skills load, the unchanged hook checks `apply_patch` writes after `/hooks` trust and stays trusted across a version-only upgrade; `bbj-local` stays opt-in; `install-codex.sh --remove` is the documented switch; proven on Linux with Codex CLI 0.162.1, gated in CI on fakes (CODEX-01..06) — Phase 8
+- ✓ Windows verified on a real machine (Windows 10, Git for Windows 2.52, Claude Code 2.1.292, Codex CLI 0.162.1, BBj 26.03): Claude Code hook and Codex plugin route on `bbjcpl`, `bbj-local` connected in both clients with BBjServices running; three defects found and fixed with CI gates on fakes (`commandWindows` for the Codex hook, 5 s tier-2 connect timeout, verbatim and backslash path forms), each confirmed by a dated round-2 re-run; records in `09-WINDOWS-RUN.md` (PLAT-01..04, PLAT-06) — Phase 9
+- ✓ macOS verified on the `bbjcpl` route (macOS 27.0.1, bash 3.2, Claude Code 2.1.296, Codex CLI 0.162.1, BBj 26.03 at `<home>/bbx`): Claude Code and Codex plugin route both give tier-1 `bbjcpl` feedback, tier 2 and the no-route notice read as expected, no defect; record in `09-MACOS-RUN.md` (PLAT-05, PLAT-06) — Phase 9
 
 ### Active
 
-- [ ] Windows: Claude Code and Codex installs and hook verified on a real machine (bbjcpl; bbj-ls where available)
-- [ ] macOS: Claude Code and Codex hook verified on the bbjcpl route
 - [ ] Test suite passes on a maintainer machine that has bbjcpl on PATH or a running Codex daemon
 - [ ] Install docs, installer and CHANGELOG state per platform and per route what was verified
 - [ ] Release 0.2.1 carries the 0.2.0 review fixes and is tagged and published
@@ -91,6 +91,13 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
   (pre-production); that is the reason the local route is preferred.
 - Vendoring retired in Phase 1: the skills are edited here under `tests/test_layout.py`; the
   hash test is gone.
+- Phase 9 run records (`.planning/phases/09-windows-and-macos-verification/09-WINDOWS-RUN.md`,
+  `09-MACOS-RUN.md`, both checked by `platform-run/check-records.sh` final mode) are the only
+  source for the Phase 10 per-platform wording. Facts Phase 10 must state: Codex asks for hook
+  trust again after an upgrade that changes `hooks.json`; `BBJ_HOME` must be in the Codex
+  app-server daemon's environment (a shell export does not reach a daemon started earlier); the
+  Mac's BBj home may not be a built-in default home; a stale `~/.codex/hooks.json` from the
+  installer fires alongside the plugin hook until `install-codex.sh --remove` is run.
 
 ## Constraints
 
@@ -127,6 +134,10 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 | `.codex-mcp.json` ships the public OAuth client (clientId, callbackUrl, callbackPort 47613) | Dynamic client registration is disabled on the docs server: sign-in failed without the block and completed with it | ✓ Good — Phase 8 (owner decision, plan 08-08) |
 | Route detection by `CLAUDE_PLUGIN_ROOT` (D-07): non-empty on `apply_patch` means plugin route; the variable is tested, never printed | The env probe showed Codex exports it into the hook process | ✓ Good — Phase 8 (CODEX-03) |
 | `install-codex.sh --remove` is the switch to the plugin route: removes only what the installer wrote, exit 3 for anything else, `--force` refused | A plugin on top of an installer install gives two hooks and double feedback; the installer must never delete a user's edits | ✓ Good — Phase 8 (CODEX-06, verified on real Codex, Linux) |
+| Phase 9 transfer is `git push origin gsd/planning-setup` (D-03 amended by the owner), never main, never a tag, never forced | A clone from GitHub cannot see local-only commits; the same method serves every round and both machines | ✓ Good — Phase 9 (977135c and d598854 pushed, both fast-forward) |
+| Every platform defect is the owner's call: fix, alternative fix, known gap or capture first, at a blocking-human gate with no auto_select (D-10) | A fix or gap changes what Phase 10 may claim per platform | ✓ Good — Phase 9 (W-1, W-2, W-3 all `fix`; no macOS defect) |
+| `hooks.json` ships a `commandWindows` entry (`C:\PROGRA~1\Git\bin\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE`) pinned by `layout_hook_command_windows` | Codex on Windows runs hooks through PowerShell, where `sh` is not on PATH; the entry made the Codex hook run and changes the hook hash, so Codex asks for trust again after upgrade | ✓ Good — Phase 9 (honoured by Codex, ignored without harm by Claude Code; limit: a default Git install on C: with 8.3 names, review WR-01) |
+| PLAT-05 is tier 1 only: a `bbj-local reported` header for a bad file is a defect, not a pass | The 0.2.0 UAT on the Mac saw tier 2 only because BBj was not installed; the requirement asks for `bbjcpl` feedback | ✓ Good — Phase 9 (both macOS clients read `bbjcpl reported`) |
 
 ## Evolution
 
@@ -146,4 +157,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-13 after Phase 8*
+*Last updated: 2026-10-13 after Phase 9*

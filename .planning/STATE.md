@@ -25,7 +25,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-13)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 09 — Windows and macOS verification
+**Current focus:** Phase 10 — Install wording and release 0.2.1
 
 ## Current Position
 
@@ -34,7 +34,7 @@ Plan: Not started
 Status: Ready to plan
 Last activity: 2026-10-13 — Phase 09 complete, transitioned to Phase 10
 
-Progress: [████████░░] 75%
+Progress: [████████████████████] 22/22 plans (100%) — phases 3/4 complete
 
 ## Performance Metrics
 
@@ -181,12 +181,11 @@ None yet.
 - [Phase 6]: Review-fix commits b0a4c62, 3a42ebf, b600ac4, 172e6a5 (CHANGELOG/docs wording refinements, release-text gates) are on the planning branch only, not in tag 0.2.0; they ship with the next release (planned: Phase 7, REL-05)
 - [Phase 6]: install-codex.sh and docs still say "not yet run on macOS"; the owner ran it on macOS at UAT (2026-10-12, Codex hook feedback confirmed) — update the wording in a later release (planned: Phase 10, DOCS-01..03, from the Phase 9 runs)
 - [Roadmap v0.2.1]: `tests/test_release_text.py` prints `skip` for its three content gates at any version other than CONTENT_VERSION (0.2.0). At 0.2.1 that would break the skip=0 release run (REL-08), so the Phase 7 policy decision (REL-06) has to settle it
-- [Roadmap v0.2.1]: The macOS run (PLAT-05) needs BBj with `bbjcpl` installed on the owner's Mac before Phase 9 can verify that route
-- [Roadmap v0.2.1]: PLAT-04 needs BBjServices running on the owner's Windows machine. If it cannot run there, the gap is recorded under PLAT-06 and the docs keep a "not run" line for that route
 - [Phase 8]: Only a version-only upgrade from a local marketplace (hooks.json unchanged) was observed to keep hook trust; a Git-marketplace upgrade, an upgrade that changes the hook definition, the first-use tool prompt and a repeat sign-in on a fresh install were not run. Phase 10 wording may claim the observed case only
 - [Phase 8]: `codex plugin marketplace add BBj-AI/bbj-agent-plugins` serves the plugin route only once the Phase 8 files are on the GitHub default branch; the caveat sits in the 0.2.0 section of CHANGELOG.md (review fix WR-06) and must be reworded or dropped at the 0.2.1 merge (Phase 10)
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
-- [Spike 005]: Three Windows unknowns for Phase 9 (PLAT-03): does Codex run the plugin hook's `sh "..."` through Git for Windows; is `commandWindows` in a plugin `hooks.json` honoured (Codex `hooks/list` showed `commandWindows: None` on Linux); does `CLAUDE_PLUGIN_ROOT` expand to a path `sh` accepts
+- [Phase 9]: Code review 09-REVIEW.md left three warnings open in 09-REVIEW-DISPOSITION.md: WR-01 `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (a non-default Git location fails, and probably silently); WR-02 the 5 s Windows tier-2 connect timeout is paid per file, so a many-file `apply_patch` with no route can hit the 30 s hook timeout; WR-03 `windows_codex_backslash_dotdot_skipped` also passes without the backslash conversion (the property is covered by the sibling gates, not independently). Phase 10 states the WR-01 limit; WR-02/WR-03 are candidates for a later fix
+- [Phase 9]: Facts for the Phase 10 wording, from the records: Codex asks for hook trust again after an upgrade that changes `hooks.json`; `BBJ_HOME` must be in the Codex app-server daemon's environment on macOS (a shell export does not reach a daemon started earlier; D-04 observation); the Mac's BBj home `<home>/bbx` is not a built-in default home; a stale installer `~/.codex/hooks.json` fires alongside the plugin hook until `install-codex.sh --remove`; Claude Code on Windows ignores `commandWindows` without harm; bbjcpl reports `line 10` for a one-line file
 
 ## Deferred Items
 
