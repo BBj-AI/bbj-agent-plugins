@@ -198,7 +198,7 @@ fi
 _out=$(WORK=$WORK/missing_dir no_compiler_path "$U/cpl:$U/clean" 2> "$WORK/farm1.err")
 _rc1=$?
 _out2=$(
-  # shellcheck disable=SC2329 # no_compiler_path calls this shadow of ln; shellcheck cannot see that
+  # shellcheck disable=SC2317,SC2329 # no_compiler_path calls this shadow of ln; shellcheck cannot see that (0.9 names it SC2317, 0.11 SC2329)
   ln() { return 1; }
   no_compiler_path "$U/sh ared:$U/clean" 2> "$WORK/farm2.err"
 )
