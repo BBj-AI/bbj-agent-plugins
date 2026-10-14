@@ -10,6 +10,8 @@
 # the BBJ_LOCAL_MCP_URL seam (a fake port or the closed port 9), never a real bbj-ls.
 # Plan 10-01 (D-06 to D-08) gates the commandWindows call form, --sh-exe and the early sh.exe refusal on
 # the fake cygpath (the command_windows_ gates).
+# Plan 10-15 (D-27 to D-29) re-pins the command_windows_ gates to the Git for Windows launcher and to a
+# --sh-exe value written as given (round 1 of the Windows reading, plan 10-05).
 # Quick 261013-cpn adds the oauth_ gates: the installer writes, keeps and reports the
 # [mcp_servers.bbj-docs.oauth] table of the pre-registered client, and never starts a sign-in.
 . "$(dirname "$0")/lib.sh"
@@ -533,15 +535,28 @@ note_cfg "$E_ROOT/ch/config.toml"
 real_parse custom "$E_ROOT/ch/config.toml" "$DEFAULT_URL"
 
 # ---- Windows command field through cygpath ----
+# Plan 10-15 (D-27, D-28): the drive seam of the fake cygpath maps every drive to $CDRIVE, so the empty files
+# below stand for the launchers of three Git roots: C:\Program Files\Git, D:\PortableGit and the "/" of a
+# shell whose fake cygpath prints W:/ for the root. FAKE_CYGDRIVE_ROOT is exported for the whole block and
+# unset after the help gate.
+CDRIVE=$WORK/cdrive
+mkdir -p "$CDRIVE/bin" "$CDRIVE/Program Files/Git/bin" "$CDRIVE/PortableGit/bin"
+: > "$CDRIVE/bin/sh.exe"
+: > "$CDRIVE/Program Files/Git/bin/sh.exe"
+: > "$CDRIVE/PortableGit/bin/sh.exe"
+FAKE_CYGDRIVE_ROOT=$CDRIVE
+export FAKE_CYGDRIVE_ROOT
 newenv cyg
+FAKE_CYGPATH_GIT_ROOT='C:\Program Files\Git\'
+export FAKE_CYGPATH_GIT_ROOT
 run_inst "$WORK/fbcyg:$WITH_CODEX"
+unset FAKE_CYGPATH_GIT_ROOT
 note_cfg "$E_CODEX/config.toml"
 real_parse cyg "$E_CODEX/config.toml" "$DEFAULT_URL"
-# D-06 (plan 10-01): the whole string, not a prefix; the expected value is computed here, the way the
-# installer resolves the sh of the case's PATH and the copied script path
-_cyg_sh=$(PATH="$WORK/fbcyg:$WITH_CODEX"; command -v sh)
+# D-27 (plan 10-15): the whole string, not a prefix; the launcher is <Git root>\bin\sh.exe from `cygpath -w /`,
+# the script path goes through cygpath -w as before
 _cyg_home=$(cd "$E_CODEX" && pwd)
-_cyg_want="& \"W:$_cyg_sh\" \"W:$_cyg_home/bbj/bbj-check.sh\"; exit \$LASTEXITCODE"
+_cyg_want="& \"C:\\Program Files\\Git\\bin\\sh.exe\" \"W:$_cyg_home/bbj/bbj-check.sh\"; exit \$LASTEXITCODE"
 if command -v python3 > /dev/null 2>&1; then
   if python3 -I -c '
 import json, sys
@@ -551,7 +566,7 @@ assert w != h["command"], w
 assert w.count("\"") == 4, w
 assert w == sys.argv[2], "got %r, want %r" % (w, sys.argv[2])
 ' "$E_CODEX/hooks.json" "$_cyg_want" 2> "$WORK/pyerr"; then
-    gate command_windows_cygpath ok "commandWindows is the PowerShell call form with the two cygpath -w paths"
+    gate command_windows_cygpath ok "commandWindows names the launcher bin/sh.exe of the Git root, not the sh.exe of usr/bin"
   else
     gate command_windows_cygpath FAIL "$(tail -n 1 "$WORK/pyerr")"
   fi
@@ -560,8 +575,8 @@ else
 fi
 
 # ---- plan 10-01 (D-07, D-08): --sh-exe and the early sh.exe refusal, on the fake cygpath ----
-# With the fake cygpath `command -v sh` always exists, so a derived sh.exe that is missing cannot happen
-# in CI; --sh-exe with a missing file stands in for it.
+# Plan 10-15: the drive seam models a Git root without its launcher (command_windows_launcher_missing_refused),
+# so a derived sh.exe that is missing is gated; --sh-exe with a missing file is the second refusal.
 CYGP=$WORK/fbcyg:$WITH_CODEX
 mkdir -p "$WORK/gitalt/bin"
 : > "$WORK/gitalt/bin/sh.exe"
@@ -591,6 +606,42 @@ else
   gate command_windows_sh_exe_override skip "no python3"
 fi
 
+# D-27: the Git root is what `cygpath -w /` prints with one trailing separator removed; with the root seam
+# off the fake prints W:/ and the launcher is W:\bin\sh.exe. The sh.exe part is the text between the leading
+# & " and the next double quote; none of the forms may name a usr path segment.
+if command -v python3 > /dev/null 2>&1; then
+  _lr_bad=
+  for _lr in portable plain; do
+    newenv "cyglr-$_lr"
+    case "$_lr" in
+      portable) FAKE_CYGPATH_GIT_ROOT='D:\PortableGit'; export FAKE_CYGPATH_GIT_ROOT; _lr_want='D:\PortableGit\bin\sh.exe' ;;
+      plain) unset FAKE_CYGPATH_GIT_ROOT; _lr_want='W:\bin\sh.exe' ;;
+    esac
+    run_inst "$CYGP"
+    unset FAKE_CYGPATH_GIT_ROOT
+    _lr_cw=$(cw_value "$E_CODEX/hooks.json" 2> /dev/null)
+    _lr_got=$(printf '%s\n' "$_lr_cw" | sed -n 's/^& "\([^"]*\)".*$/\1/p')
+    if [ "$RC" != 0 ] || [ "$_lr_got" != "$_lr_want" ]; then
+      _lr_bad="$_lr_bad $_lr(exit $RC, got '$_lr_got', want '$_lr_want')"
+    elif printf '%s\n' "$_lr_cw" | grep -i 'usr[\\/]' > /dev/null; then
+      _lr_bad="$_lr_bad $_lr(usr segment in '$_lr_cw')"
+    fi
+  done
+  [ -z "$_lr_bad" ] && gate command_windows_launcher_root_forms ok "a root without a trailing separator and the W:/ root give the launcher with one backslash before bin and no usr segment" \
+    || gate command_windows_launcher_root_forms FAIL "$_lr_bad"
+else
+  gate command_windows_launcher_root_forms skip "no python3"
+fi
+
+newenv cyglm
+FAKE_CYGPATH_GIT_ROOT='E:\NoGit\'
+export FAKE_CYGPATH_GIT_ROOT
+run_inst "$CYGP"
+unset FAKE_CYGPATH_GIT_ROOT
+[ "$RC" = 2 ] && grep -F 'E:\NoGit\bin\sh.exe' "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
+  && gate command_windows_launcher_missing_refused ok "a Git root without its launcher exits 2 before any write and the message names the launcher and --sh-exe" \
+  || gate command_windows_launcher_missing_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
+
 newenv cygmiss
 run_inst "$CYGP" --sh-exe /nonexistent/sh.exe
 [ "$RC" = 2 ] && grep -F '/nonexistent/sh.exe' "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
@@ -602,9 +653,8 @@ FAKE_CYGPATH_W_FAIL=1
 export FAKE_CYGPATH_W_FAIL
 run_inst "$CYGP"
 unset FAKE_CYGPATH_W_FAIL
-_cf_sh=$(PATH=$CYGP; command -v sh)
-[ "$RC" = 2 ] && grep -F "$_cf_sh" "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
-  && gate command_windows_cygpath_fail_refused ok "a path that cygpath -w cannot convert exits 2 before any write and the message names the path and --sh-exe" \
+[ "$RC" = 2 ] && grep -F 'cygpath cannot convert / (the root' "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
+  && gate command_windows_cygpath_fail_refused ok "a root that cygpath -w cannot convert exits 2 before any write and the message says so and names --sh-exe" \
   || gate command_windows_cygpath_fail_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
 
 # a Windows path with a dollar sign, a backtick or a double quote would be expanded or would end the quoted
@@ -637,9 +687,20 @@ newenv cygrt
 run_inst "$CYGP" --sh-exe "$ALT_SH"
 _rt_rc1=$RC
 run_inst "$CYGP" --remove --sh-exe "$ALT_SH"
-[ "$_rt_rc1" = 0 ] && [ "$RC" = 0 ] && [ ! -e "$E_CODEX/hooks.json" ] \
-  && gate command_windows_remove_round_trip ok "install with --sh-exe, then --remove with the same --sh-exe: hooks.json is gone" \
-  || gate command_windows_remove_round_trip FAIL "install exit $_rt_rc1, remove exit $RC, hooks.json present: $([ -e "$E_CODEX/hooks.json" ] && echo yes || echo no)"
+_rt_rm1=$RC
+_rt_gone1=no
+[ ! -e "$E_CODEX/hooks.json" ] && _rt_gone1=yes
+# plan 10-15: the derived launcher renders the same bytes at install and at --remove
+newenv cygrtd
+FAKE_CYGPATH_GIT_ROOT='C:\Program Files\Git\'
+export FAKE_CYGPATH_GIT_ROOT
+run_inst "$CYGP"
+_rt_rc2=$RC
+run_inst "$CYGP" --remove
+unset FAKE_CYGPATH_GIT_ROOT
+[ "$_rt_rc1" = 0 ] && [ "$_rt_rm1" = 0 ] && [ "$_rt_gone1" = yes ] && [ "$_rt_rc2" = 0 ] && [ "$RC" = 0 ] && [ ! -e "$E_CODEX/hooks.json" ] \
+  && gate command_windows_remove_round_trip ok "install, then --remove with the same arguments (--sh-exe, and the derived launcher): hooks.json is gone" \
+  || gate command_windows_remove_round_trip FAIL "--sh-exe: install exit $_rt_rc1, remove exit $_rt_rm1, gone $_rt_gone1; derived: install exit $_rt_rc2, remove exit $RC, hooks.json present: $([ -e "$E_CODEX/hooks.json" ] && echo yes || echo no)"
 
 # --remove is never refused because of sh.exe (Pitfall 9): cygpath -w failing leaves commandWindows equal to
 # command, so a hooks.json with the call form stays and is named (exit 3), but the run is not a refusal
@@ -661,6 +722,7 @@ run_inst "$WITH_CODEX" --sh-exe
 [ "$RC" = 2 ] && [ "$_hp_rc" = 0 ] \
   && gate command_windows_help_names_sh_exe ok "--help names --sh-exe; --sh-exe without a value exits 2" \
   || gate command_windows_help_names_sh_exe FAIL "help state $_hp_rc, no-value exit $RC"
+unset FAKE_CYGDRIVE_ROOT
 
 # ---- the installer never calls a compiler or the interpreter ----
 newenv nocompiler

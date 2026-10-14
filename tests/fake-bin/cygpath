@@ -7,6 +7,10 @@
 # cygpath (no case folding, no /cygdrive, no -m or -d). Without the seam the output is unchanged.
 # Plan 10-01 (D-07) adds the seam FAKE_CYGPATH_W_FAIL, also off unless set and non-empty: with it
 # on, "-w" prints nothing and exits 1, which models a path the real cygpath cannot convert.
+# Plan 10-15 (D-27) adds the seam FAKE_CYGPATH_GIT_ROOT, also off unless set and non-empty: with it
+# on, "-w /" (the argument is exactly /) prints the value of the variable, which models the Windows
+# path the real cygpath prints for the root, the Git root (C:\Program Files\Git\ on the owner's
+# machine). Every other argument behaves as before, and without the seam the output is unchanged.
 case "$1" in
   -u)
     case "$2" in
@@ -22,6 +26,10 @@ case "$1" in
   -w)
     if [ -n "${FAKE_CYGPATH_W_FAIL:-}" ]; then
       exit 1
+    fi
+    if [ "$2" = / ] && [ -n "${FAKE_CYGPATH_GIT_ROOT:-}" ]; then
+      printf '%s\n' "$FAKE_CYGPATH_GIT_ROOT"
+      exit 0
     fi
     printf 'W:%s\n' "$2"
     ;;
