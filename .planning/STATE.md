@@ -5,17 +5,17 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-02-PLAN.md
-last_updated: "2026-10-14T08:48:05.923Z"
+stopped_at: Completed 10-03-PLAN.md
+last_updated: "2026-10-14T09:16:48.341Z"
 last_activity: 2026-10-14
 last_activity_desc: Phase 10 execution started
-state_head: 6fe2e8ae3204b66487ade91897c645509155b1d4
+state_head: 89b14a90edb877a9d6551e0668adfda868676281
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 36
-  completed_plans: 24
-  percent: 67
+  completed_plans: 25
+  percent: 69
 ---
 
 # Project State
@@ -30,11 +30,11 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 3 of 14
+Plan: 4 of 14
 Status: Ready to execute
 Last activity: 2026-10-14 — Phase 10 execution started
 
-Progress: [████████████████████] 22/22 plans ([███████░░░] 67%) — phases 3/4 complete
+Progress: [████████████████████] 22/22 plans ([███████░░░] 69%) — phases 3/4 complete
 
 ## Performance Metrics
 
@@ -131,6 +131,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 09 P08 | 15 min | 2 tasks | 2 files |
 | Phase 10 P01 | 11 min | 2 tasks | 3 files |
 | Phase 10 P02 | 6 min | 2 tasks | 4 files |
+| Phase 10 P03 | owner-gated | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,12 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: 10-01: --sh-exe PATH is the installer option for the Windows sh.exe; refused without cygpath on install, ignored under --remove (never refused for sh.exe)
 - [Phase 10]: 10-01: commandWindows is the PowerShell call form & "<sh.exe>" "<script>"; exit $LASTEXITCODE; Windows behaviour unclaimed until the owner re-run (plan 10-05)
 - [Phase 10]: 10-02: oauth.scopes is the string offline_access in both MCP files (never an array, never a key named scope); docs_url description says the hosted BBj docs server
+- [Phase 10]: RQ-1 a: Linux Claude Code version stated as the one running the 0.2.1 checks, re-read at release run (amends Linux half of D-02)
+- [Phase 10]: RQ-2 a: macOS installer cell says Codex CLI 0.162.x
+- [Phase 10]: RQ-3 a: docs-server line has no server version, only URL and dated sign-in completion per client
+- [Phase 10]: RQ-4 a: pre-merge install gate from the pushed PR ref
+- [Phase 10]: RQ-5 a: D-23 amendment PR also updates the Upgrading the plugin paragraph of docs/install-codex.md; full suite re-runs
+- [Phase 10]: RQ-6 a: PR branches gsd/release-0.2.1 and gsd/release-0.2.1-amend
 
 ### Pending Todos
 
@@ -205,8 +212,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-14T08:48:05.806Z
-Stopped at: Completed 10-02-PLAN.md
+Last session: 2026-10-14T09:16:48.227Z
+Stopped at: Completed 10-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
