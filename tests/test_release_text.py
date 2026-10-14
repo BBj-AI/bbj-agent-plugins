@@ -14,7 +14,7 @@ installer and the newest CHANGELOG entry (plan 10-06, D-02).
 
 DOCS-04 (plan 10-06): the old hints of a platform that was not run ("Tested on Linux only", "not yet
 run", "not yet been run", "not yet tried", "not yet been tried") must not come back to the files in
-HINT_FILES, the README and the Claude Code page (plan 10-07 adds the Codex page and the installer).
+HINT_FILES: the README, the Claude Code page, the Codex page and the installer (plan 10-07).
 Gate no_unrun_hint reads the squashed text of each, so a hint split over two lines is found too;
 tests/test_install_pages.sh forbids the same phrases in a second, independent place.
 
@@ -239,8 +239,8 @@ gate("claude_version_single", claude_ok,
 
 # DOCS-04 (plan 10-06): the old "not yet run" hints cannot come back. A hint is a platform or route
 # said not to have been run; "not yet set" (a Claude Code message about two options) is not one.
-# Plan 10-07 adds docs/install-codex.md and codex/install-codex.sh to HINT_FILES.
-HINT_FILES = ("README.md", "docs/install-claude-code.md")
+# Plan 10-07 added docs/install-codex.md and codex/install-codex.sh to HINT_FILES (four files).
+HINT_FILES = ("README.md", "docs/install-claude-code.md", "docs/install-codex.md", "codex/install-codex.sh")
 OLD_HINTS = re.compile(r"Tested on Linux only|not yet run|not yet been run|not yet tried|not yet been tried",
                        re.IGNORECASE)
 hint_hits = []

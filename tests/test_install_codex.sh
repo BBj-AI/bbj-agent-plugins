@@ -12,6 +12,8 @@
 # the fake cygpath (the command_windows_ gates).
 # Plan 10-15 (D-27 to D-29) re-pins the command_windows_ gates to the Git for Windows launcher and to a
 # --sh-exe value written as given (round 1 of the Windows reading, plan 10-05).
+# Plan 10-07 (D-12, DOCS-04) re-pins first_status_banner to the STATUS_LINE read from the installer and adds
+# first_known_gaps_windows, first_no_unrun_hint and first_names_plugin_route.
 # Quick 261013-cpn adds the oauth_ gates: the installer writes, keeps and reports the
 # [mcp_servers.bbj-docs.oauth] table of the pre-registered client, and never starts a sign-in.
 . "$(dirname "$0")/lib.sh"
@@ -176,6 +178,26 @@ if [ "$(printf '%s\n' "$_status" | grep -c .)" = 1 ] && [ "$_first" = "$_status"
   gate first_status_banner ok "first stdout line equals the STATUS_LINE of the installer and names Linux, Windows and macOS"
 else
   gate first_status_banner FAIL "first line: $_first; STATUS_LINE: $_status"
+fi
+# plan 10-07 (D-12, DOCS-04): the Windows Known-gaps line, the plugin route named in the closing note, and none of
+# the old hints; the hint phrases are built from pieces so this file never holds one whole
+if grep -F -e 'names the launcher bin\sh.exe of the Git for Windows this script ran under' "$WORK/out" > /dev/null \
+  && grep -F -e 'give --sh-exe PATH' "$WORK/out" > /dev/null; then
+  gate first_known_gaps_windows ok "stdout names the launcher bin\\sh.exe of the Git for Windows the script ran under and --sh-exe PATH"
+else
+  gate first_known_gaps_windows FAIL "the Windows Known-gaps line is missing from stdout"
+fi
+_ny='not ye''t'
+_hint_found=
+for _h in "Tested on Linux o""nly" "$_ny run" "$_ny been run" "$_ny tried" "$_ny been tried" 'pre-prod''uction' 'go-''live' 'earlier tri''al' 'command_wind''ows'; do
+  grep -F -i -e "$_h" "$WORK/out" > /dev/null && _hint_found="$_hint_found [$_h]"
+done
+[ -z "$_hint_found" ] && gate first_no_unrun_hint ok "stdout of a first run holds none of the old hint phrases" \
+  || gate first_no_unrun_hint FAIL "stdout holds:$_hint_found"
+if grep -E '^Recommended install: .*codex plugin add bbj@basis-bbj' "$WORK/out" > /dev/null; then
+  gate first_names_plugin_route ok "the closing note names codex plugin add bbj@basis-bbj as the recommended install"
+else
+  gate first_names_plugin_route FAIL "no closing note with codex plugin add bbj@basis-bbj"
 fi
 grep -Fx 'mcp add bbj-docs --url https://mcp.bbj-ai.com/mcp' "$E_LOG" > /dev/null \
   && gate first_codex_mcp_add ok "codex mcp add bbj-docs --url <default>" || gate first_codex_mcp_add FAIL "log: $(cat "$E_LOG")"

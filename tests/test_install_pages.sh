@@ -304,7 +304,8 @@ if [ -f "$CODEX_PAGE" ]; then
     'left in place' \
     'holds more than the hook this script writes' \
     'rerun with --docs-url' \
-    'pass --sh-exe PATH'
+    'pass --sh-exe PATH' \
+    'names the launcher bin\sh.exe of the Git for Windows this script ran under'
   do
     quoted_n=$((quoted_n + 1))
     grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
@@ -365,6 +366,8 @@ fi
 if [ -f "$REPO/codex/install-codex.sh" ]; then
   n=installer
   need "$n" "$REPO/codex/install-codex.sh" 'once per session'
+  # plan 10-07 (DOCS-04, D-03, D-05): the installer file, header comment included, holds none of the old hints
+  check_released_wording "$n" "$REPO/codex/install-codex.sh"
   forbid "$n" "$REPO/codex/install-codex.sh" "$NOROUTE_SILENCE" noroute_silence
 fi
 

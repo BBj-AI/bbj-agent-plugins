@@ -15,7 +15,9 @@
 # on the Claude Code page and on the README table row (claude_version_single and
 # claude_version_single_readme); mutate takes the case name as an optional fourth argument when
 # one gate has more than one case. Two more cases put an old hint back into the README and into the
-# Claude Code page and require release_no_unrun_hint to fail (DOCS-04).
+# Claude Code page and require release_no_unrun_hint to fail (DOCS-04). Plan 10-07 adds the same for the Codex
+# page and the installer's STATUS_LINE (no_unrun_hint_codex_page, no_unrun_hint_installer) and the case
+# status_line_in_page (DOCS-03: one changed word in the installer's STATUS_LINE).
 # Nothing here runs BBj; the only program run is python3 -I on the gate script.
 
 . "$(dirname "$0")/lib.sh"
@@ -189,6 +191,9 @@ mutate no_unrun_hint README.md '/^| Claude Code |/s/$/ Tested on Linux only./' n
 mutate no_unrun_hint docs/install-claude-code.md '1s/$/ The plugin has not yet been run on Windows./' no_unrun_hint_claude_page
 # DOCS-03 (plan 10-07): a changed word in the installer's STATUS_LINE, not on the Codex page, fails the gate
 mutate status_line_in_page codex/install-codex.sh "/^STATUS_LINE=/s/Verified/Checked/"
+# DOCS-04 (plan 10-07): an old hint put back into the Codex page or the installer fails the gate too
+mutate no_unrun_hint docs/install-codex.md '1s/$/ Tested on Linux only./' no_unrun_hint_codex_page
+mutate no_unrun_hint codex/install-codex.sh "/^STATUS_LINE=/s/'\$/ Not yet run on Windows.'/" no_unrun_hint_installer
 mutate not_run CHANGELOG.md 's/^- macOS: not run on macOS\.$/- macOS: run./'
 
 finish
