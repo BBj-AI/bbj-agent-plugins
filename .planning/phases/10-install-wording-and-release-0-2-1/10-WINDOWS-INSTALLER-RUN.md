@@ -34,17 +34,17 @@ Filled from the reply (the env-* keys, `checkout-commit`, `date`) and the `trans
 
 | Item | Value |
 |------|-------|
-| OS | pending |
-| Git for Windows | pending |
-| Git Bash sh | pending |
-| PowerShell | pending |
-| Codex CLI | pending |
-| BBj (owner-reported) | pending |
-| BBJ_HOME in the shell that starts Codex | pending |
-| bbjcpl on PATH | pending |
-| Checkout commit | pending |
+| OS | Microsoft Windows [Version 10.0.19045.6466] |
+| Git for Windows | git version 2.52.0.windows.1 |
+| Git Bash sh | 5.2.37(1)-release |
+| PowerShell | 5.1.19041.6456 |
+| Codex CLI | codex-cli 0.162.1 |
+| BBj (owner-reported) | BBj 26.03 (readme.htm/relnotes.htm; build.info dtstamp 10-13-2026_1402) |
+| BBJ_HOME in the shell that starts Codex | unset (reply key `env-bbj-home`; the runbook sets `$env:BBJ_HOME = 'C:\bbx'` in the PowerShell that starts Codex) |
+| bbjcpl on PATH | not found |
+| Checkout commit | fb375e3 (equals the handed-over short sha of `fb375e3b40cd0ffbb55261dd1531451a70974613`) |
 | Install source | transfer: push (`origin` branch `gsd/planning-setup`) |
-| Date | pending |
+| Date | 2026-10-14 |
 
 ## Install source
 
@@ -75,26 +75,38 @@ Message for the owner (hand-over):
 
 ## Installer route on Windows
 
-Reading pending, round 1 (plan 10-05 fills this section from the owner's reply).
+Reading 2026-10-14, round 1
 
-Sections to fill, one reading line per reply key:
+Source: `windows-installer/reply-round1.txt`, the owner's reply kept verbatim (user name already
+replaced by `<home>`). Lines below are the reply keys; a value that is long is shortened only where
+marked, the full text is in the saved reply.
 
-        r1-exit: pending
-        r1-cmdwin: pending
-        r1-trusted: pending
-        r1-bad: pending
-        r1-clean: pending
-        r2-exit: pending
-        r2-cmdwin: pending
-        r2-trusted: pending
-        r2-bad: pending
-        r3-exit: pending
-        r3-message: pending
-        r3-home-created: pending
-        notes: pending
+        r1-exit: 0
+        r1-cmdwin: "commandWindows": "& \"C:\\Program Files\\Git\\usr\\bin\\sh.exe\" \"<home>\\.codex-p10-inst\\bbj\\bbj-check.sh\"; exit $LASTEXITCODE",
+        r1-trusted: yes
+        r1-bad: bbjcpl reported (Codex showed "Blocked by hook" with: bbjcpl reported 1 error(s) in /c/Users/<home>/bad.bbj: / C:\Users\<home>\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol.)
+        r1-clean: silent
+        r2-exit: 0
+        r2-cmdwin: "commandWindows": "& \"C:\\Program Files\\Git\\usr\\bin\\sh.exe\" \"<home>\\.codex-p10-inst\\bbj\\bbj-check.sh\"; exit $LASTEXITCODE",
+        r2-trusted: other: no new prompt; /hooks listed it as "Unnamed hook", Source "User config - ~\.codex-p10-inst\hooks.json", Trust already "Trusted" (the R2 hooks.json is byte-identical to R1)
+        r2-bad: other: no hook text; Codex showed only "Added bad.bbj (+1 -0)" and "Created bad.bbj (/C:/Users/<home>/bbj-p10/bad.bbj)". Q answered: "No BBj check hook text was returned to me. The only tool output after the file change was {}."
+        r3-exit: 2
+        r3-message: install-codex: no sh.exe at /c/nowhere/sh.exe; pass --sh-exe PATH with the sh.exe of your Git for Windows, for example C:\Program Files\Git\bin\sh.exe
+        r3-home-created: no
+        notes: (summarised here; the six notes are verbatim in the saved reply) (1) The R2 override `--sh-exe 'C:\Program Files\Git\bin\sh.exe'` was accepted (exit 0) but the written commandWindows names `Git\usr\bin\sh.exe`, byte-identical to R1: `cygpath -u` turns `Git\bin\sh.exe` into `/bin/sh.exe` and `cygpath -w` turns that back into `Git\usr\bin\sh.exe` (`/bin` is a mount alias of `/usr/bin`). (2) Cause of the silent r2-bad, reproduced by the owner outside Codex with the R2 apply_patch payload on stdin: started from PowerShell as written in hooks.json (`& "C:\Program Files\Git\usr\bin\sh.exe" ...`) the hook prints "cat: command not found", "head: command not found", "awk: command not found" and exits 0, because `usr\bin\sh.exe` started directly gets the plain Windows PATH (Git\cmd on it, Git\usr\bin not). The same payload through the launcher `& "C:\Program Files\Git\bin\sh.exe" ...` exits 2 with the bbjcpl report, and from Git Bash (`sh ...`) also exits 2. (3) The R1 Codex session was started in `<home>`, not `<home>\bbj-p10` (bad.bbj and clean.bbj were created in `<home>`); presumably it was started from Git Bash, which explains why the same hooks.json blocked in R1 and was silent in R2 (PowerShell); R1's PATH therefore probably held Git's usr\bin. (4) The R1 installer printed "bbj-docs: codex mcp add wrote the bbj-docs table, then exited with an error; the table is kept and completed below" and then completed normally. (5) The installer reported a bbj-ls answering at http://127.0.0.1:5009/mcp (not registered, --with-local not passed). (6) Clean-up: `.codex-p10-inst` could not be removed until its app-server daemon (three codex processes under `<home>\.codex-p10-inst\packages\app-server-daemon`) was stopped. The real `~\.codex` was never used as CODEX_HOME.
 
-Sentence for the docs: pending
+BBj discovery: `env-bbjcpl-path` is `not found` and `env-bbj-home` is `unset` in the owner's shell, yet r1-bad shows a `bbjcpl reported` text, so the hook found BBj through another discovery source. The runbook sets `BBJ_HOME` to `C:\bbx` in the PowerShell that starts Codex; the reply does not name the source that was used, and this record does not claim one.
+
+Reading against the rule of this record:
+
+- `r1-bad` starts with `bbjcpl reported`, `r1-clean` is `silent`, `r1-trusted` is `yes`: R1 passes. Note (3) qualifies it: the R1 session most likely ran with Git's `usr\bin` on PATH (Git Bash), not in the PowerShell that the call form names.
+- `r2-trusted` is `other:` (no new prompt, already trusted because the hooks.json is byte-identical to R1), not `yes`.
+- `r2-bad` is `other: no hook text`, not a `bbjcpl reported` or `bbj-local reported` text: the hook, started by Codex through the call form the installer wrote, gave no feedback on a file with an error.
+- The `--sh-exe` override on `Git\bin\sh.exe` did not reach the hook (note 1): the written commandWindows is the derived one.
+- `r3-exit` is `2`, `r3-message` names `pass --sh-exe PATH`, `r3-home-created` is `no`: R3 passes.
+
+Sentence for the docs: On Git for Windows 2.52.0 with Codex CLI 0.162.1 and BBj 26.03 the installer exited 0 and wrote `commandWindows` as `& "C:\Program Files\Git\usr\bin\sh.exe" "<home>\.codex-p10-inst\bbj\bbj-check.sh"; exit $LASTEXITCODE`; the hook was trusted and blocked a bad file with the bbjcpl report and stayed silent on a clean one in a Codex session started from Git Bash, but in the PowerShell session the same hook gave no feedback on a bad file (started that way, `usr\bin\sh.exe` has no Git `usr\bin` on PATH, so `cat`, `head` and `awk` are not found and the hook exits 0); `--sh-exe 'C:\Program Files\Git\bin\sh.exe'` was accepted but written back as the same `usr\bin\sh.exe` path; a missing sh.exe was refused with exit 2, `pass --sh-exe PATH`, and no home created.
 
 ## Verdict
 
-D-09: pending
+D-09: tested negative (r2-bad: no hook text in the PowerShell session; r2-trusted: other; the call form starts Git\usr\bin\sh.exe without Git's usr\bin on PATH so the hook finds no cat, head or awk and exits 0, and --sh-exe Git\bin\sh.exe round-trips through cygpath to usr\bin\sh.exe)

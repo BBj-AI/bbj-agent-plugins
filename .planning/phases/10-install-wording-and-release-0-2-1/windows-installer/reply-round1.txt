@@ -1,0 +1,24 @@
+round: 1
+date: 2026-10-14
+checkout-commit: fb375e3
+env-os: Microsoft Windows [Version 10.0.19045.6466]
+env-git: git version 2.52.0.windows.1
+env-gitbash: 5.2.37(1)-release
+env-powershell: 5.1.19041.6456
+env-codex: codex-cli 0.162.1
+env-bbj: BBj 26.03 (readme.htm/relnotes.htm; build.info dtstamp 10-13-2026_1402)
+env-bbj-home: unset
+env-bbjcpl-path: not found
+r1-exit: 0
+r1-cmdwin: "commandWindows": "& \"C:\\Program Files\\Git\\usr\\bin\\sh.exe\" \"<home>\\.codex-p10-inst\\bbj\\bbj-check.sh\"; exit $LASTEXITCODE",
+r1-trusted: yes
+r1-bad: bbjcpl reported (Codex showed "Blocked by hook" with: bbjcpl reported 1 error(s) in /c/Users/<home>/bad.bbj: / C:\Users\<home>\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol.)
+r1-clean: silent
+r2-exit: 0
+r2-cmdwin: "commandWindows": "& \"C:\\Program Files\\Git\\usr\\bin\\sh.exe\" \"<home>\\.codex-p10-inst\\bbj\\bbj-check.sh\"; exit $LASTEXITCODE",
+r2-trusted: other: no new prompt; /hooks listed it as "Unnamed hook", Source "User config - ~\.codex-p10-inst\hooks.json", Trust already "Trusted" (the R2 hooks.json is byte-identical to R1)
+r2-bad: other: no hook text; Codex showed only "Added bad.bbj (+1 -0)" and "Created bad.bbj (/C:/Users/<home>/bbj-p10/bad.bbj)". Q answered: "No BBj check hook text was returned to me. The only tool output after the file change was {}."
+r3-exit: 2
+r3-message: install-codex: no sh.exe at /c/nowhere/sh.exe; pass --sh-exe PATH with the sh.exe of your Git for Windows, for example C:\Program Files\Git\bin\sh.exe
+r3-home-created: no
+notes: (1) R2 override did not change the hook: --sh-exe 'C:\Program Files\Git\bin\sh.exe' was accepted (exit 0) but the written commandWindows names Git\usr\bin\sh.exe, byte-identical to R1. On Git for Windows, cygpath -u turns Git\bin\sh.exe into /bin/sh.exe and cygpath -w turns that back into Git\usr\bin\sh.exe (/bin is a mount alias of /usr/bin), so the override round-trips to the default path. (2) Cause of the silent r2-bad, reproduced outside Codex with the R2 apply_patch payload on stdin: run from PowerShell as written in hooks.json (& "C:\Program Files\Git\usr\bin\sh.exe" ...), the hook prints "cat: command not found", "head: command not found", "awk: command not found" and exits 0, because usr\bin\sh.exe started directly gets the plain Windows PATH (Git\cmd is on it, Git\usr\bin is not). The same payload through the launcher & "C:\Program Files\Git\bin\sh.exe" ... exits 2 with the bbjcpl report, and run from Git Bash (sh ...) also exits 2. So the hook works only when sh.exe is started with Git's usr\bin on PATH. (3) R1 Codex session was started in <home>, not <home>\bbj-p10 (bad.bbj and clean.bbj were created in <home>); it was presumably started from Git Bash, which explains why the same hooks.json blocked in R1 and was silent in R2 (PowerShell). (4) R1 installer printed "bbj-docs: codex mcp add wrote the bbj-docs table, then exited with an error; the table is kept and completed below" and then completed normally. (5) The installer reported a bbj-ls answering at http://127.0.0.1:5009/mcp (not registered, --with-local not passed). (6) Clean-up: after leaving Codex, .codex-p10-inst could not be removed until its app-server daemon (three codex processes under <home>\.codex-p10-inst\packages\app-server-daemon) was stopped; stopped it, then removed. The real ~\.codex was never used as CODEX_HOME.
