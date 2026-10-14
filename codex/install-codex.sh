@@ -68,6 +68,14 @@
 #      any plugin cache.
 #   4. writes <codex home>/hooks.json with an apply_patch matcher, only when that file does not
 #      exist; an existing hooks.json is never modified (exit 3 with the block to merge by hand).
+#      With cygpath on PATH (Git for Windows) the file also carries commandWindows in the
+#      PowerShell call form: & "<sh.exe>" "<bbj-check.sh>"; exit $LASTEXITCODE, both paths through
+#      cygpath -w. Codex runs the field through PowerShell, where a command that starts with a
+#      quoted string is a parse error (hook exit 1, no output); the call operator runs it and the
+#      trailing exit keeps exit code 2 (plan 10-01, D-06 to D-08; Phase 9 W11). The sh.exe is the one
+#      given with --sh-exe, else the sh this shell runs; an install refuses (exit 2, before the
+#      first write) when it does not exist, cygpath cannot convert it, or its Windows path holds
+#      $, a backtick or a double quote. --remove resolves it the same way and never refuses.
 #   5. prints the AGENTS.md snippet, the /hooks trust step, the sign-in step (codex mcp login
 #      bbj-docs, once) and the known gaps.
 #   R. --remove (phase 8, CODEX-06; D-01 to D-04) undoes what this script wrote, for a user who
@@ -95,7 +103,8 @@
 #
 # Options: --docs-url URL (default DEFAULT_DOCS_URL, the same value as the bbj plugin's
 # docs_url default; plain http only to 127.0.0.1, localhost or [::1]), --skills-dir DIR,
-# --codex-home DIR (default $CODEX_HOME or ~/.codex), --with-local (register bbj-local, step 1b),
+# --codex-home DIR (default $CODEX_HOME or ~/.codex), --sh-exe PATH (the sh.exe of Git for Windows in
+# commandWindows, step 4; needs cygpath on PATH), --with-local (register bbj-local, step 1b),
 # --force, --remove (undo what this script wrote, R), --help.
 # Exit codes: 0 done, 2 usage error or refusal, 3 finished with something left to merge or
 # decide by hand: bbj-docs or its tools named in config.toml in a form this script does not
@@ -105,6 +114,10 @@
 # because it differs from what this script writes: a bbj-docs or bbj-local entry in another form or
 # at another url, a skill directory that differs or is a symbolic link, a hooks.json that holds more
 # than this script's hook, a check-script directory that holds other files.
+#
+# Exit 2 before the first write also covers --sh-exe without cygpath on PATH, and with cygpath an sh.exe
+# that does not exist, that cygpath cannot convert, or whose Windows path holds a dollar sign, a
+# backtick or a double quote (plan 10-01, D-07): the message names the path and --sh-exe.
 #
 # Exit 2 before the first write means nothing was changed: the options are validated and every
 # destination (skills directory, <codex home>/bbj, config.toml) is created or checked up front.
@@ -161,12 +174,15 @@ refuse() {
 
 usage() {
   cat <<EOF
-Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--with-local] [--force] [--remove]
+Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-home DIR] [--sh-exe PATH] [--with-local] [--force] [--remove]
 
   --docs-url URL     docs server URL (default $DEFAULT_DOCS_URL);
                      https anywhere, http only to 127.0.0.1, localhost or [::1]
   --skills-dir DIR   where the skills go (default \$HOME/.agents/skills)
   --codex-home DIR   Codex home (default \$CODEX_HOME, else \$HOME/.codex)
+  --sh-exe PATH      the sh.exe of Git for Windows that the Windows hook command (commandWindows)
+                     runs; default the sh this shell runs, converted through cygpath; only with
+                     cygpath on PATH (Git for Windows), refused without it
   --with-local       register bbj-local, the bbj-ls of a running BBjServices 26.03 or later at
                      http://127.0.0.1:5009/mcp, and approve its three tools by name; a probe (one
                      tools/list request, no code sent) asks first, and with no answer bbj-local is
@@ -176,13 +192,15 @@ Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-ho
   --remove           undo what this script wrote (the bbj-docs and bbj-local entries of config.toml,
                      the two skills when identical to the shipped copy, the check script, hooks.json
                      when it holds only this hook), for a switch to the Codex plugin route; never
-                     calls codex; give the same --docs-url, --skills-dir and --codex-home as the
-                     install. Whatever differs from what this script writes stays and is named
+                     calls codex; give the same --docs-url, --skills-dir, --codex-home and
+                     --sh-exe as the install. Whatever differs from what this script writes stays and is named
   --help             this text
 
 Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran; with
         --remove: combined with --with-local or --force, a Codex home that is not a directory,
-        a destination that is not writable),
+        a destination that is not writable; --sh-exe without cygpath; on Windows an sh.exe that
+        does not exist, cannot be converted by cygpath or holds \$, a backtick or a double quote,
+        which an install refuses and --remove never does),
       3 done except something to merge or decide by hand: bbj-docs or its tools named in
         config.toml in a form this script does not edit, a default_tools_approval_mode that
         approves every tool, bbj-local named in a form this script does not edit or with
@@ -200,11 +218,13 @@ codex_home=
 force=0
 with_local=0
 remove=0
+sh_exe=
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --docs-url) [ "$#" -ge 2 ] || refuse "--docs-url needs a value"; docs_url=$2; shift 2 ;;
     --skills-dir) [ "$#" -ge 2 ] || refuse "--skills-dir needs a value"; skills_dir=$2; shift 2 ;;
     --codex-home) [ "$#" -ge 2 ] || refuse "--codex-home needs a value"; codex_home=$2; shift 2 ;;
+    --sh-exe) [ "$#" -ge 2 ] && [ -n "$2" ] || refuse "--sh-exe needs a value"; sh_exe=$2; shift 2 ;;
     --with-local) with_local=1; shift ;;
     --force) force=1; shift ;;
     --remove) remove=1; shift ;;
@@ -258,6 +278,42 @@ case "$codex_home" in
   *'$'*|*'`'*|*'"'*|*'\'*|*"'"*) refuse "--codex-home holds a character that is not allowed in a hook command (one of \$ \` \" \\ ')" ;;
 esac
 
+# the sh.exe of the Windows hook command (plan 10-01, D-07, D-08), resolved before the first write: with
+# cygpath on PATH (Git for Windows) the hook command names the Windows path of an sh.exe, the one given
+# with --sh-exe or else the sh this shell runs. An install refuses when that sh.exe is missing, cannot be
+# converted, or holds a character PowerShell would expand or end its quoted path on, rather than write a
+# hook that cannot start. --remove resolves it the same way (to render the same bytes) but never refuses.
+w_sh=
+if command -v cygpath > /dev/null 2>&1; then
+  if [ -n "$sh_exe" ]; then
+    sh_posix=$(cygpath -u "$sh_exe" 2> /dev/null)
+  else
+    sh_posix=$(command -v sh)
+  fi
+  sh_why=
+  if [ -z "$sh_posix" ] || { [ ! -f "$sh_posix" ] && [ ! -f "$sh_posix.exe" ]; }; then
+    sh_why="no sh.exe at ${sh_posix:-$sh_exe}"
+  else
+    w_sh=$(cygpath -w "$sh_posix" 2> /dev/null)
+    w_script_early=$(cygpath -w "$codex_home/bbj/bbj-check.sh" 2> /dev/null)
+    if [ -z "$w_sh" ]; then
+      sh_why="cygpath cannot convert $sh_posix to a Windows path"
+    elif [ -z "$w_script_early" ]; then
+      sh_why="cygpath cannot convert $codex_home/bbj/bbj-check.sh to a Windows path"
+    else
+      case "$w_sh" in
+        *'$'*|*'`'*|*'"'*|*"$nl"*) sh_why="the Windows path of sh.exe, $w_sh, holds a character that is not allowed in the hook command (one of \$ \` \" or a newline)" ;;
+      esac
+    fi
+  fi
+  if [ -n "$sh_why" ]; then
+    w_sh=
+    [ "$remove" = 1 ] || refuse "$sh_why; pass --sh-exe PATH with the sh.exe of your Git for Windows, for example C:\\Program Files\\Git\\bin\\sh.exe"
+  fi
+elif [ -n "$sh_exe" ] && [ "$remove" != 1 ]; then
+  refuse "--sh-exe needs cygpath (Git for Windows) on PATH, and cygpath was not found; without it no Windows hook command is written and the option would be used nowhere"
+fi
+
 # the checkout this script belongs to
 here=$(cd "$(dirname "$0")" && pwd) || refuse "cannot locate this script"
 repo=$(cd "$here/.." && pwd) || refuse "cannot locate the repository"
@@ -309,13 +365,16 @@ json_str() {
 }
 hook_cmd="sh \"$script_dst\""
 hook_cmd_win=$hook_cmd
-if command -v cygpath > /dev/null 2>&1; then
-  w_sh=$(cygpath -w "$(command -v sh)")
-  w_script=$(cygpath -w "$script_dst")
-  # under Codex's PowerShell launcher a command that starts with a quoted string is a parse error;
-  # the call operator runs it, and the trailing exit keeps exit code 2, which a -Command wrapper
-  # would rewrite to 1 (plan 10-01, D-06; Phase 9 W11)
-  hook_cmd_win="& \"$w_sh\" \"$w_script\"; exit \$LASTEXITCODE"
+if [ -n "$w_sh" ]; then
+  w_script=$(cygpath -w "$script_dst" 2> /dev/null)
+  if [ -n "$w_script" ]; then
+    # under Codex's PowerShell launcher a command that starts with a quoted string is a parse error;
+    # the call operator runs it, and the trailing exit keeps exit code 2, which a -Command wrapper
+    # would rewrite to 1 (plan 10-01, D-06; Phase 9 W11)
+    hook_cmd_win="& \"$w_sh\" \"$w_script\"; exit \$LASTEXITCODE"
+  elif [ "$remove" != 1 ]; then
+    refuse "cygpath cannot convert $script_dst to a Windows path"
+  fi
 fi
 hooks=$codex_home/hooks.json
 # render_hooks: the hooks.json this script writes, on stdout

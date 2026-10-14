@@ -655,9 +655,9 @@ unset FAKE_CYGPATH_W_FAIL
   || gate command_windows_remove_unaffected FAIL "install exit $_ru_rc1, remove exit $RC, err: $(head -c 200 "$WORK/err")"
 
 run_inst "$WITH_CODEX" --help
-_hp_rc=$RC
+_hp_rc=bad
+[ "$RC" = 0 ] && grep -F -e '--sh-exe' "$WORK/out" > /dev/null && _hp_rc=0
 run_inst "$WITH_CODEX" --sh-exe
-[ "$_hp_rc" = 0 ] && grep -F -e '--sh-exe' "$WORK/out" > /dev/null 2>&1 || _hp_rc=bad
 [ "$RC" = 2 ] && [ "$_hp_rc" = 0 ] \
   && gate command_windows_help_names_sh_exe ok "--help names --sh-exe; --sh-exe without a value exits 2" \
   || gate command_windows_help_names_sh_exe FAIL "help state $_hp_rc, no-value exit $RC"
