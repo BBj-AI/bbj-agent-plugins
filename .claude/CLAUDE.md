@@ -93,7 +93,7 @@ and `bbj-ls`).
 - Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install-claude-code.md`)
 - Installed for Codex through `codex/install-codex.sh` (`docs/install-codex.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
-- Current version: 0.2.0 for both plugins, the first release (`CHANGELOG.md`)
+- Current version: 0.2.1 for both plugins (`CHANGELOG.md`)
 
 <!-- GSD:stack-end -->
 
@@ -214,7 +214,7 @@ and `bbj-ls`).
 - Shared helpers live in `tests/lib.sh` (gate, mkwork, json_escape, claude_payload, codex_payload, run_check). New test files source it instead of re-defining these.
 - Compiler fakes are copied into each temporary home (`mkhome` in `tests/test_discovery.sh`); tests never call a real compiler unless they opt in.
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
-- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.0`), and `tests/test_layout.py` enforces this. Bump all five together.
+- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.1`), and `tests/test_layout.py` enforces this. Bump all five together.
 - Licence is `Apache-2.0` in every manifest.
 
 ## Git and Commit Conventions
@@ -227,7 +227,7 @@ and `bbj-ls`).
 
 - Markdown skill references use the `references/` subdirectory under each skill, one topic per file, lowercase hyphenated names.
 - `README.md`, `docs/install-claude-code.md`, `docs/install-codex.md` describe installation; keep install steps there, not in the scripts' code comments.
-- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.0`).
+- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.1`).
 
 <!-- GSD:conventions-end -->
 
