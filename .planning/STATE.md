@@ -5,17 +5,17 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-01-PLAN.md
-last_updated: "2026-10-14T08:43:37.638Z"
+stopped_at: Completed 10-02-PLAN.md
+last_updated: "2026-10-14T08:48:05.923Z"
 last_activity: 2026-10-14
 last_activity_desc: Phase 10 execution started
-state_head: 4dcdb727be28a932721681852d1c4d69d1dbf00c
+state_head: 6fe2e8ae3204b66487ade91897c645509155b1d4
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 36
-  completed_plans: 23
-  percent: 64
+  completed_plans: 24
+  percent: 67
 ---
 
 # Project State
@@ -30,11 +30,11 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 2 of 14
+Plan: 3 of 14
 Status: Ready to execute
 Last activity: 2026-10-14 — Phase 10 execution started
 
-Progress: [████████████████████] 22/22 plans ([██████░░░░] 64%) — phases 3/4 complete
+Progress: [████████████████████] 22/22 plans ([███████░░░] 67%) — phases 3/4 complete
 
 ## Performance Metrics
 
@@ -130,6 +130,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 09 P07 | 25 min | 3 tasks | 1 files |
 | Phase 09 P08 | 15 min | 2 tasks | 2 files |
 | Phase 10 P01 | 11 min | 2 tasks | 3 files |
+| Phase 10 P02 | 6 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -173,6 +174,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 09]: 09-08: no macOS re-run asked (plan 09-07 shipped no fix and planned no capture); both records closed with Closed lines naming final tree d4f751e, CI ok=921 fail=0, phase boundary since 2524dff held
 - [Phase 10]: 10-01: --sh-exe PATH is the installer option for the Windows sh.exe; refused without cygpath on install, ignored under --remove (never refused for sh.exe)
 - [Phase 10]: 10-01: commandWindows is the PowerShell call form & "<sh.exe>" "<script>"; exit $LASTEXITCODE; Windows behaviour unclaimed until the owner re-run (plan 10-05)
+- [Phase 10]: 10-02: oauth.scopes is the string offline_access in both MCP files (never an array, never a key named scope); docs_url description says the hosted BBj docs server
 
 ### Pending Todos
 
@@ -203,8 +205,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-14T08:43:37.530Z
-Stopped at: Completed 10-01-PLAN.md
+Last session: 2026-10-14T08:48:05.806Z
+Stopped at: Completed 10-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
