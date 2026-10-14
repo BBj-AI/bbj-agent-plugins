@@ -24,6 +24,24 @@ Verdict for this record (D-09): `met`, `tested negative (reason)` or `not run (r
   outcome, whichever it is (D-09).
 - `not run (reason)` for a part the owner could not run.
 
+Rule for round 2 (plan 10-16, D-31): round 2 is `met` when all of these hold:
+
+- `r1-cmdwin` names the launcher `<env-cygpath-root>\bin\sh.exe` and no `usr\bin`;
+- `r2-cmdwin` names the `--sh-exe` value given in R2 byte for byte;
+- `r1-bad` and `r2-bad` start with `bbjcpl reported` or `bbj-local reported`;
+- `r1-clean` is `silent`;
+- `r1-trusted` and `r2-trusted` are `yes`;
+- `r1-folder` is `bbj-p10`;
+- `r3-exit` and `r3u-exit` are `2`, and `r3-home-created` and `r3u-home-created` are `no`;
+- `r4-bad` starts with `bbjcpl reported` or `bbj-local reported`, or is `not run (...)`;
+- the notes do not say that the R1 or R2 session was started otherwise than the runbook says.
+
+Otherwise round 2 is `tested negative (reason)`, or `not run (reason)` when it was not run.
+`## Verdict` keeps exactly one line that starts `D-09: `, the verdict of the latest round. An
+earlier verdict stays, prefixed `Round N (date, superseded by round M): `. The reply keys of round 2
+fill a `Round 2` table under `## Run environment` and a `Reading YYYY-MM-DD, round 2` block under
+`## Installer route on Windows` (plan 10-17).
+
 The reply keys of the runbook map one to one onto the reading lines below: the `env-*` keys,
 `round`, `date` and `checkout-commit` fill `## Run environment`, and `r1-*`, `r2-*`, `r3-*` and
 `notes` fill `## Installer route on Windows`. Both are filled in plan 10-05.
@@ -72,6 +90,12 @@ Message for the owner (hand-over):
 - Update an existing checkout in Git Bash: `git -C <checkout> pull origin gsd/planning-setup`. Without a clone: `git clone -b gsd/planning-setup https://github.com/BBj-AI/bbj-agent-plugins.git <checkout>`. Then `git -C <checkout> rev-parse --short HEAD` must print `fb375e3`; if it does not, stop and tell Claude.
 - Runbook in the checkout: `.planning/phases/10-install-wording-and-release-0-2-1/windows-installer/runbook.md` (steps R0 to R3, clean-up, and the 24-line reply template at its end).
 - Start Codex in the project folder with `-a on-request`. Replace your user name by `<home>` in every pasted line; paste no authorization URL and no token.
+
+Round 2 (plan 10-16, D-30):
+
+round2-remote-before: fb375e3b40cd0ffbb55261dd1531451a70974613
+
+round2-dry-run 2026-10-14: R1 exit 0, commandWindows names C:\Program Files\Git\bin\sh.exe; R2 exit 0, C:\PROGRA~1\Git\bin\sh.exe as given; R3 exit 2, pass --sh-exe PATH, no home created; R3u exit 2, no home created; fake cygpath and fake codex in a throwaway directory, deleted afterwards; suite SUMMARY: ok=938 fail=0 skip=0
 
 ## Installer route on Windows
 
