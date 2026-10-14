@@ -12,7 +12,7 @@
     "docs_url": {
       "type": "string",
       "title": "BBj docs server URL",
-      "description": "URL of the BBj docs MCP server; the default is the pre-production instance until the go-live release.",
+      "description": "URL of the BBj docs MCP server; the default is the hosted BBj docs server.",
       "default": "https://mcp.bbj-ai.com/mcp"
     },
     "bbj_home": {

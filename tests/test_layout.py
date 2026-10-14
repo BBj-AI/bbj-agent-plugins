@@ -5,6 +5,8 @@ Quick 261013-cpn: the bbj-docs entry carries the pre-registered OAuth client; th
 installer holds the same client (layout_oauth_codex_matches_plugin).
 Phase 8 (CODEX-01, CODEX-04; D-10, D-11, D-13): pins the Codex overlay
 plugins/bbj/.codex-plugin/plugin.json and its literal-URL file plugins/bbj/.codex-mcp.json.
+Plan 10-02 (D-05, D-16): both MCP files ask for offline_access as a string; the docs_url
+description calls the default the hosted BBj docs server and names no stage of a release.
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -131,8 +133,18 @@ gate("codex_mcp",
      codex_servers == {"bbj-docs": {"type": "http", "url": DOCS_DEFAULT,
                                     "oauth": {"clientId": OAUTH_CLIENT_ID,
                                               "callbackUrl": "http://localhost:%d/callback" % OAUTH_PORT,
-                                              "callbackPort": OAUTH_PORT}}},
+                                              "callbackPort": OAUTH_PORT,
+                                              "scopes": OAUTH_SCOPES}}},
      "mcpServers=%r" % (codex_servers,))
+
+# D-05: the docs_url description calls the default the hosted BBj docs server and names no stage of
+# a release. The stage words are assembled from pieces so this file never names them whole.
+STAGE_WORDS = ("pre-" + "production", "go-" + "live", "until the go" + "-live", "tempo" + "rary")
+docs_desc = (bbj.get("userConfig", {}).get("docs_url", {}) or {}).get("description", "")
+stage_hits = [w for w in STAGE_WORDS if w in str(docs_desc).lower()]
+gate("docs_url_description",
+     isinstance(docs_desc, str) and "hosted BBj docs server" in docs_desc and not stage_hits,
+     "description=%r stage words found=%r" % (docs_desc, stage_hits))
 
 # the Codex installer holds the same client as the plugin: one id, one port, the loopback callback
 # built from that port (quick 261013-cpn). Plain startswith parsing of the three literal lines.
@@ -401,6 +413,23 @@ if len(sys.argv) == 1:
                                                     "client" + "Secret": "not-a-real-value"}
         edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
 
+    MCP_FILE = "plugins/bbj/.mcp.json"
+
+    def mcp_scopes_missing(dst):
+        def fn(d):
+            d["mcpServers"]["bbj-docs"]["oauth"].pop("scopes", None)
+        edit_json(os.path.join(dst, MCP_FILE), fn)
+
+    def codex_scopes_array(dst):
+        def fn(d):
+            d["mcpServers"]["bbj-docs"]["oauth"]["scopes"] = [OAUTH_SCOPES]
+        edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
+
+    def docs_url_stage(dst):
+        def fn(d):
+            d["userConfig"]["docs_url"]["description"] += " It is the pre-" + "production instance."
+        edit_json(os.path.join(dst, CLAUDE_MANIFEST), fn)
+
     HOOKS_FILE = "plugins/bbj/hooks/hooks.json"
 
     def drop_command_windows(dst):
@@ -418,5 +447,8 @@ if len(sys.argv) == 1:
     mutation_case("overlay_extra_key", [CODEX_MANIFEST], overlay_extra_key, ["codex_overlay_fields"])
     mutation_case("codex_secret", [CODEX_MCP_FILE], codex_secret, ["codex_mcp"])
     mutation_case("hook_command_windows", [HOOKS_FILE], drop_command_windows, ["hook_command_windows"])
+    mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
+    mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
+    mutation_case("docs_url_stage", [CLAUDE_MANIFEST], docs_url_stage, ["docs_url_description"])
 
 sys.exit(1 if failed else 0)
