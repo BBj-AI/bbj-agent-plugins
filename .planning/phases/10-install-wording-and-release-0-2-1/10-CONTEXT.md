@@ -417,6 +417,69 @@ RQ-4: a - Run the pre-merge install gate from the pushed PR ref, after the PR pu
 RQ-5: a - The D-23 amendment PR also updates the "Upgrading the plugin" paragraph of docs/install-codex.md to the D-22 observation, and the full release suite re-runs on that tree (first branch of D-23). (owner, 2026-10-14, plan 10-03 Task 2)
 RQ-6: a - New branches gsd/release-0.2.1 (PR-A) and gsd/release-0.2.1-amend (PR-B); the merged gsd/planning-setup-pr is left alone. (owner, 2026-10-14, plan 10-03 Task 2)
 
+## Amendments (gap after plan 10-05)
+
+Source: plan 10-05 recorded `D-09: tested negative` for round 1 of the Windows installer reading
+(`10-WINDOWS-INSTALLER-RUN.md`, `windows-installer/reply-round1.txt`, `10-05-SUMMARY.md`). Two
+defects of the plan 10-01 installer: (1) `commandWindows` names `<Git root>\usr\bin\sh.exe`, which,
+started by Codex from PowerShell, gets the plain Windows PATH without Git's `usr\bin`, so
+`bbj-check.sh` finds no `cat`, `head` or `awk` and exits 0 (the hook does nothing); the launcher
+`<Git root>\bin\sh.exe` sets up Git's PATH, and the owner reproduced that the same payload through it
+exits 2 with the bbjcpl report. (2) `--sh-exe 'C:\Program Files\Git\bin\sh.exe'` is accepted but
+written back as `Git\usr\bin\sh.exe`, because the installer passes it through `cygpath -u` and then
+`cygpath -w`, and `/bin` is a mount of `/usr/bin`. R1 passed most likely only because that Codex
+session was started from Git Bash; R3 (refusal) passed.
+
+Owner decision, 2026-10-14: "Fix first, then round 2".
+
+- **D-26:** Fix first, then round 2 (owner, 2026-10-14). Execution pauses before plan 10-06.
+  Gap-closure plans run first: 10-15 (installer fix, TDD), 10-16 (round-2 runbook, Linux dry run,
+  owner-authorized push), 10-17 (round-2 owner reading, recorded by rule). Plans 10-06 to 10-14 wait
+  for 10-17. Plans 10-06 and 10-07 write the Windows installer wording from the D-09 verdict of the
+  latest round; the round-1 reading stays in the record as superseded history. If round 2 is not met
+  either, 10-06 and 10-07 state the observed outcome (D-09, D-12) unless the owner asks for another
+  fix first.
+- **D-27:** The installer's `commandWindows` names the Git for Windows launcher
+  `<Git root>\bin\sh.exe`, never `<Git root>\usr\bin\sh.exe`. The Git root is the Windows path that
+  `cygpath -w /` prints in the shell the installer runs in, with one trailing separator removed. The
+  early refusal of D-07 applies to the launcher: an install exits 2 before the first write, naming the
+  path and `pass --sh-exe PATH`, when `/` cannot be converted, when the launcher does not exist, or
+  when its path holds `$`, a backtick, a double quote or a newline.
+- **D-28:** A `--sh-exe` value is written into `commandWindows` exactly as given. It must be a
+  Windows path with a drive letter (`C:\...` or `C:/...`). No `cygpath -u`/`cygpath -w` round trip
+  touches the written value. Existence is checked on a POSIX form built from the drive root
+  (`cygpath -u` of `X:/`, then the rest of the path with slashes), so a path under the Git root is not
+  read through the `/bin` mount. The derived launcher of D-27 is checked the same way. The D-08
+  refusals stay: no value, no cygpath, a missing file, a forbidden character. Every sh.exe refusal
+  names the value as given and `pass --sh-exe PATH`. `--remove` resolves the same way and never
+  refuses (Pitfall 9 unchanged).
+- **D-29:** An install refuses (exit 2, before the first write) a `--sh-exe` that names an sh.exe in a
+  `usr\bin` directory (any letter case, either slash), with a message that names the launcher
+  `bin\sh.exe` of that Git. Planner's pick under D-07: refuse rather than write a hook that is known
+  to do nothing when Codex runs it from PowerShell. The owner may veto it at the push checkpoint of
+  plan 10-16.
+- **D-30:** The round-2 hand-over follows plan 10-03. A Linux dry run uses the fake cygpath modelling
+  the owner's Git root, and the suite must be green. Then the owner confirms at a blocking checkpoint,
+  and only then is `gsd/planning-setup` pushed, as a plain fast-forward of that branch alone. Never
+  `main`, never a tag, never forced (Phase 9 D-03, D-25).
+- **D-31:** Round 2 of the Windows installer reading (plan 10-17, section `## Round 2` of
+  `windows-installer/runbook.md`) uses fresh throwaway Codex homes:
+  - R1: the derived launcher.
+  - R2: `--sh-exe` with a second real launcher path, the plugin's 8.3 path
+    `C:\PROGRA~1\Git\bin\sh.exe`. That string differs from the derived one, so `hooks.json` changes
+    and `/hooks` asks for trust again.
+  - In R1 and R2, Codex is started in the project folder from a PowerShell window opened from the
+    Start menu, with Git's `usr\bin` removed from that window's PATH and every Codex process stopped
+    first.
+  - R3: the refusal of a missing sh.exe. R3u: the refusal of a `usr\bin\sh.exe`.
+  - R4 (optional): the same hook with Codex started from Git Bash.
+
+  The reading is recorded by the same rule in `10-WINDOWS-INSTALLER-RUN.md`, as
+  `Reading YYYY-MM-DD, round 2` with its own `Sentence for the docs:`. `## Verdict` keeps exactly one
+  line that starts `D-09: `, the verdict of the latest round; the round-1 verdict stays as a
+  superseded line. — **Reversibility:** costly — a billed owner session on another machine, and
+  the Windows wording of plans 10-06 and 10-07 depends on it.
+
 ---
 
 *Phase: 10-install-wording-and-release-0-2-1*

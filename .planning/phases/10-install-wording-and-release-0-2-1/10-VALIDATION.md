@@ -46,6 +46,8 @@ Filled in by the planner/executor; requirement-to-test map from 10-RESEARCH.md:
 | DOCS-02 | both pages carry banners, `## Windows`, new `## macOS`, per-platform versions, old hints gone | page gate | `sh tests/test_install_pages.sh` | restore `Tested on Linux only`: forbids FAIL; delete `## macOS`: `_has_` FAIL | ⬜ pending |
 | DOCS-02 | per-platform Claude Code version single | release-text gate | `python3 -I tests/test_release_text.py` (`release_claude_version_single`) | mutation of one version: FAIL | ⬜ pending |
 | DOCS-03 | `STATUS_LINE` first stdout line and quoted in Codex page | installer + drift gate | `sh tests/test_install_codex.sh` (`first_status_banner`); `python3 -I tests/test_release_text.py` (`release_status_line_in_page`) | edit `STATUS_LINE` in a copy: FAIL | ⬜ pending |
+| DOCS-03 | derived `commandWindows` names the Git for Windows launcher `<Git root>\bin\sh.exe`, never usr\bin (D-27, plan 10-15) | installer gate | `sh tests/test_install_codex.sh` (`command_windows_cygpath`, `command_windows_launcher_root_forms`, `command_windows_launcher_missing_refused`) | round-1 installer `fb375e3:codex/install-codex.sh` in a tree copy: both FAIL | ⬜ pending |
+| DOCS-03 | `--sh-exe` written as given; no drive letter or usr\bin refused (D-28, D-29, plan 10-15) | installer gate | `sh tests/test_install_codex.sh` (`command_windows_sh_exe_as_given`, `command_windows_sh_exe_override`, `command_windows_sh_exe_not_windows_refused`, `command_windows_sh_exe_usr_bin_refused`) | round-1 installer in a tree copy: `_as_given` and `_override` FAIL | ⬜ pending |
 | DOCS-03 | Known gaps line carries the observed outcome | installer gate | `sh tests/test_install_codex.sh` (`first_known_gaps_*`) | reinsert `is not yet tried on Windows`: FAIL | ⬜ pending |
 | DOCS-04 | old hints cannot return for a verified configuration | release-text gate + mutation | `python3 -I tests/test_release_text.py` (`release_no_unrun_hint`); `sh tests/test_release_text_mutation.sh` | mutation inserting each old hint requires FAIL | ⬜ pending |
 | REL-07 | five version places agree; CHANGELOG entry pinned to 0.2.1 | layout + release-text | `python3 -I tests/test_layout.py` (`layout_versions`); `python3 -I tests/test_release_text.py`; `sh tests/test_release_text_mutation.sh` | bump one manifest only: FAIL | ⬜ pending |
@@ -74,7 +76,8 @@ Filled in by the planner/executor; requirement-to-test map from 10-RESEARCH.md:
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Windows installer run (D-07/D-08 fix observed on a real Windows host) | DOCS-03 | Needs the owner's Windows machine | Follow `10-WINDOWS-INSTALLER-RUN.md` runbook, record outcome |
+| Windows installer run (D-07/D-08 fix observed on a real Windows host) | DOCS-03 | Needs the owner's Windows machine | Follow `10-WINDOWS-INSTALLER-RUN.md` runbook, record outcome (round 1, plan 10-05: tested negative) |
+| Windows installer round 2 (D-27 to D-29 fix, Codex started from PowerShell) | DOCS-02, DOCS-03 | Needs the owner's Windows machine | Section `## Round 2 (after plan 10-15)` of `windows-installer/runbook.md`; recorded by the round-2 rule in plan 10-17; the latest round's `D-09:` line feeds plans 10-06 and 10-07 |
 | Push, PR merge, tag push, GitHub Release | REL-08 | Outward-facing; owner confirms each step | Confirm before each action, record evidence |
 
 ---
