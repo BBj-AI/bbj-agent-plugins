@@ -143,3 +143,13 @@ refreshed inside the call); after the date was moved back, calls were answered u
 on every sign-in (Codex yes, Claude Code no), and a lapse reaches a client at its next token refresh, not after 60
 seconds. A scripted `codex exec` needs `</dev/null`, otherwise it waits on standard input. Not tried: macOS and
 Windows in this round.
+
+### Status 2026-10-14 (phase 10)
+
+- `scopes: "offline_access"` is done (plan 10-02, `plugins/bbj/.mcp.json`).
+- Confirmed by plan 10-04: the sign-in on Linux in both clients with the plugin as it ships: Claude Code 2.1.299
+  (`/mcp`, `bbj-docs`; the credentials show the granted scope `offline_access` and a refresh token, although the
+  owner saw no mention of offline access on the consent page) and Codex CLI 0.162.1 (`codex mcp login
+  bbj-docs`; refresh token stored). Record: `.planning/phases/10-install-wording-and-release-0-2-1/10-LINUX-RUN.md`.
+- Still pending (CONTEXT Deferred Ideas): the client id as a setting with this value as the default, and the
+  rename of the server from `bbj-docs` to `bbj`.

@@ -104,27 +104,89 @@ gave `bbj-local reported` feedback from bbj-ls and a clean file was silent (2026
 
 ## Claude Code from the checkout
 
-Filled in plan 10-04 Task 3 (install gate against the checkout and `bbj-local` connected). The
-throwaway configuration `<home>/.cache/bbj-phase10/ccsignin/cfg` is prepared:
+Reading 2026-10-14, round 1
 
-        cc_run: 2026-10-14T09:24:55Z
-        cc_version: 2.1.299 (Claude Code)
-        cc_bbj: enabled
-        cc_bbj_local: disabled
+Route: Claude Code installs `bbj` and `bbj-local` from the checkout. Run:
+`WANT_VERSION=0.2.0 sh evidence/install-gate.sh <checkout>` (seven gates, a throwaway
+`CLAUDE_CONFIG_DIR`; the checkout still ships 0.2.0, hence `WANT_VERSION=0.2.0`; the gate's own default
+is 0.2.1 for the release). The full output is `evidence/install-gate-local.txt`; its first line is
+`claude --version`.
+
+        claude --version: 2.1.299 (Claude Code)
+        gate install_marketplace_add ok marketplace added from <checkout>
+        gate install_bbj ok bbj@basis-bbj installed
+        gate install_bbj_version ok bbj 0.2.0 enabled
+        gate install_bbj_local_disabled ok bbj-local installed and disabled
+        gate install_hook_bad ok exit 2, bbjcpl reported 1 error(s)
+        gate install_hook_clean ok exit 0, silent
+        gate install_real_config_untouched ok plugin files of <home>/.claude-shared/dot-claude unchanged
+
+`bbj-local` was then enabled in the prepared `ccsignin` configuration (`claude plugin enable
+bbj-local@basis-bbj`, 09:57 UTC) and `claude mcp list` was read there, after the owner's sign-in:
+
+        plugin:bbj:bbj-docs: https://mcp.bbj-ai.com/mcp (HTTP) - Connected
+        plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - Connected
+
+(The same listing also shows the account's own claude.ai connectors; they are not part of this plugin
+and are left out of the block.)
+
+Sentence for the docs: Observed on Linux with Claude Code 2.1.299, `claude plugin marketplace add` of the
+checkout and `claude plugin install bbj@basis-bbj` gave bbj 0.2.0 enabled and `bbj-local` installed
+disabled; the installed hook gave `bbjcpl reported` for a bad file and was silent for a clean one; once
+enabled, `bbj-local` showed Connected next to `bbj-docs` in `claude mcp list` (2026-10-14).
 
 ## Sign-in (D-16)
 
-Filled in plan 10-04 Task 3 from the owner's reply to Task 2. Prepared: `ccsignin` (Claude Code with
-`bbj` and `bbj-local` from the checkout) and `signin` (Codex with `bbj` from the checkout, the plugin
-as it ships). Prepared reading of the Codex login request (`run.sh prepare-signin`, the login waits
-for a browser and is killed after 25 s; only the client id, redirect URI and requested scope are
-read from the URL, never the state, PKCE value or the URL itself):
+Reading 2026-10-14, round 1
+
+Route: the plugin as it ships (`scopes` is `offline_access` in `plugins/bbj/.mcp.json`; the Codex block
+from `.codex-mcp.json`), in two throwaway homes: `ccsignin` (Claude Code 2.1.299, `bbj` and `bbj-local`
+from the checkout) and `signin` (Codex CLI 0.162.1, `bbj` from the checkout). The owner signed in to
+`bbj-docs` in both on Linux: Claude Code with `/mcp`, Codex with `codex mcp login bbj-docs`.
+
+The owner did not send the eight-line reply template. The owner's replies were, verbatim:
+
+        Reply 1: "1. no mention of offline access  2. [pasted: owner.sh list | grep bbj output]  3. [pasted: Codex /hooks review screen]"
+        Reply 2 (after being asked to press t in /hooks): "done"
+
+The other items were read by the orchestrator (the agent that dispatched this plan), not stated by the
+owner, directly from the throwaway homes on 2026-10-14: field names and scope values only, no token value
+was printed or recorded.
+
+        cc-signin: signed in
+            (read from the home) ccsignin/cfg/.credentials.json, written 09:44 UTC, holds an mcpOAuth entry for
+            serverName plugin:bbj:bbj-docs, serverUrl https://mcp.bbj-ai.com/mcp, accessToken set,
+            refreshToken set, scope "offline_access"; history.jsonl shows only /mcp and /exit (no prompt was
+            sent); mcp-needs-auth-cache.json is {}
+        cc-mcp-status: not copied by the owner; credentials show signed in (the status reading is
+            `claude mcp list` above: plugin:bbj:bbj-docs Connected)
+        cc-scope-offline: no, as the owner saw it ("no mention of offline access" on the consent page); the
+            granted scope nevertheless includes offline_access and a refresh token was issued
+        cx-signin: last line of codex mcp login not copied by the owner
+            (read from the home) signin/home/.codex/.credentials.json, written 09:46 UTC, holds
+            an access token and a refresh token (values not read), scopes openid, profile, email, address, phone,
+            offline_access, server_url https://mcp.bbj-ai.com/mcp
+        cx-mcp-list: bbj-docs  https://mcp.bbj-ai.com/mcp  -  enabled  OAuth
+        notes: none from the owner
+
+Prepared reading of the Codex login request (`run.sh prepare-signin`; the login waits for a browser and
+is killed after 25 s; only the client id, redirect URI and requested scope are read from the URL, never
+the state, PKCE value or the URL itself):
 
         mcp_bbj_docs: bbj-docs https://mcp.bbj-ai.com/mcp - enabled Not logged in
         login_rc: 124
         login_client_id: oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t
         login_redirect_uri: http://localhost:47613/callback
         login_scope: openid profile offline_access name given_name family_name nickname email email_verified picture created_at identities phone address
+
+Incident of Task 1 (noted here because it touched this machine's BBjServices, not a client home): a stray
+`pkill -f` stopped BBjServices at 09:21:59 UTC (graceful shutdown in `BBjServices.log`); it was started
+again at 09:23 UTC. Nothing in a client home was affected.
+
+Sentence for the docs: Observed on Linux with Claude Code 2.1.299 and Codex CLI 0.162.1, with the plugin
+as it ships, the sign-in to `bbj-docs` completed in both clients and each stored a refresh token
+(2026-10-14); the Claude Code consent page did not mention offline access, although the granted scope
+includes it.
 
 ## Git-marketplace upgrade (D-22)
 
@@ -151,8 +213,28 @@ provider and trusts the project folder, so no model is reachable.
         currentHash=sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
 
 The clone holds no `.codex-plugin` overlay (`main` serves 0.2.0 as published), so Codex lists the docs
-server at the unexpanded `${user_config.docs_url}` placeholder. The owner's trust in `/hooks` and the
-line shown there are added in Task 3.
+server at the unexpanded `${user_config.docs_url}` placeholder.
+
+Owner's trust step (Task 2, 2026-10-14, Codex 0.162.1, `owner.sh trust-upgrade`): the `/hooks` line before
+trust, as shown on the review screen the owner pasted:
+
+        [!]  1  BBj compile-only check · new
+        Event: PostToolUse   Matcher: Write|Edit   Source: Plugin - bbj@basis-bbj
+        Command: sh "<home>/.cache/bbj-phase10/gitupgrade/home/.codex/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"
+        Mode: Sync   Timeout: 30s   Trust: New hook - review required
+
+(Read by the orchestrator from the owner's pasted screen, not copied by the owner as a reply line.) The
+first pass did not press `t` (the orchestrator's `hooks_list` read `trustStatus=untrusted`). After being
+asked to press `t` the owner replied "done", and `hooks_list.py` on the same home reads (run again by the
+plan's executor in Task 3):
+
+        gu-trusted: yes
+        key=bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0 source=plugin trustStatus=trusted
+        currentHash=sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+        command=sh "<home>/.cache/bbj-phase10/gitupgrade/home/.codex/plugins/cache/basis-bbj/bbj/0.2.0/scripts/bbj-check.sh"
+
+The hash is the same as in the untrusted reading above. The home stays on disk for plan 10-11, which
+merges, upgrades, and reads the hash and the trust again.
 
 ## Fresh install from main (D-19)
 
