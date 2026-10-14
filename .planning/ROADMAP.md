@@ -200,7 +200,7 @@ Plans:
   4. Both plugins, both marketplace entries, the Codex overlay and `tests/test_layout.py` read 0.2.1, and `claude plugin validate --strict` passes. The `## 0.2.1` CHANGELOG entry's Tested against section covers Linux, Windows and macOS from the recorded runs (REL-07)
   5. The full suite passes on the release tree with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) at skip=0. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.1` (no `v` prefix) is pushed, and the GitHub Release is published (REL-08)
 
-**Plans**: 8/17 plans executed
+**Plans**: 9/17 plans executed
 
 Plans:
 **Wave 1**
@@ -224,7 +224,7 @@ Plans:
 - [x] 10-17-PLAN.md — D-26, D-31 (gap closure): owner's Windows round 2 of the installer reading, recorded by rule; D-09 verdict of the latest round, round 1 superseded (wave 6, checkpoint)
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 10-06-PLAN.md — DOCS-01, DOCS-02, DOCS-04: verified matrix, README table, Claude Code page banner, Windows and macOS sections, per-platform Claude Code versions, hint bans (wave 7)
+- [x] 10-06-PLAN.md — DOCS-01, DOCS-02, DOCS-04: verified matrix, README table, Claude Code page banner, Windows and macOS sections, per-platform Claude Code versions, hint bans (wave 7)
 
 **Wave 8** *(blocked on Wave 7 completion)*
 - [ ] 10-07-PLAN.md — DOCS-02 to DOCS-04: installer STATUS_LINE and closing notes, Codex page per route and platform, drift and hint gates (wave 8)
@@ -265,4 +265,4 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 9. Windows and macOS verification | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 10. Install wording and release 0.2.1 | v0.2.1 | 8/17 | In Progress | - |
+| 10. Install wording and release 0.2.1 | v0.2.1 | 9/17 | In Progress | - |
