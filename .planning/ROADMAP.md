@@ -200,7 +200,7 @@ Plans:
   4. Both plugins, both marketplace entries, the Codex overlay and `tests/test_layout.py` read 0.2.1, and `claude plugin validate --strict` passes. The `## 0.2.1` CHANGELOG entry's Tested against section covers Linux, Windows and macOS from the recorded runs (REL-07)
   5. The full suite passes on the release tree with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) at skip=0. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.1` (no `v` prefix) is pushed, and the GitHub Release is published (REL-08)
 
-**Plans**: 6/17 plans executed
+**Plans**: 7/17 plans executed
 
 Plans:
 **Wave 1**
@@ -218,7 +218,7 @@ Plans:
 - [x] 10-15-PLAN.md — D-27 to D-29 (gap closure): installer writes the Git for Windows launcher `bin\sh.exe` from `cygpath -w /`, `--sh-exe` as given (drive letter required, no cygpath round trip), usr\bin refused; `FAKE_CYGPATH_GIT_ROOT` seam, gates red first and back-tested against the round-1 installer (wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 10-16-PLAN.md — D-30, D-31 (gap closure): round-2 runbook (Codex from PowerShell, optional Git Bash), round-2 rule in the record, Linux dry run, owner-confirmed fast-forward push of gsd/planning-setup (wave 5, checkpoint)
+- [x] 10-16-PLAN.md — D-30, D-31 (gap closure): round-2 runbook (Codex from PowerShell, optional Git Bash), round-2 rule in the record, Linux dry run, owner-confirmed fast-forward push of gsd/planning-setup (wave 5, checkpoint)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 10-17-PLAN.md — D-26, D-31 (gap closure): owner's Windows round 2 of the installer reading, recorded by rule; D-09 verdict of the latest round, round 1 superseded (wave 6, checkpoint)
@@ -265,4 +265,4 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 9. Windows and macOS verification | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 10. Install wording and release 0.2.1 | v0.2.1 | 6/17 | In Progress | - |
+| 10. Install wording and release 0.2.1 | v0.2.1 | 7/17 | In Progress | - |
