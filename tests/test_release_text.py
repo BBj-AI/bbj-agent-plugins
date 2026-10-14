@@ -12,6 +12,12 @@ names one version across the install pages and the installer, and the Claude Cod
 one version per platform (Linux, Windows, macOS) across the README table, the install pages, the
 installer and the newest CHANGELOG entry (plan 10-06, D-02).
 
+DOCS-04 (plan 10-06): the old hints of a platform that was not run ("Tested on Linux only", "not yet
+run", "not yet been run", "not yet tried", "not yet been tried") must not come back to the files in
+HINT_FILES, the README and the Claude Code page (plan 10-07 adds the Codex page and the installer).
+Gate no_unrun_hint reads the squashed text of each, so a hint split over two lines is found too;
+tests/test_install_pages.sh forbids the same phrases in a second, independent place.
+
 What is pinned to CONTENT_VERSION (0.2.0): the facts of that release. The Upgrading section
 quotes three installer lines byte for byte (each quote must also sit on a non-comment line of
 codex/install-codex.sh, so a reworded installer fails here; gate upgrade_quotes), and the Not run
@@ -230,6 +236,19 @@ gate("claude_version_single", claude_ok,
      "Claude Code versions per platform in the README table, pages, installer and newest entry: %s%s"
      % (", ".join("%s %s" % (p, sorted(claude_versions[p])) for p in PLATFORMS),
         "" if row_found else "; the README table has no '| Claude Code |' row under the platform header"))
+
+# DOCS-04 (plan 10-06): the old "not yet run" hints cannot come back. A hint is a platform or route
+# said not to have been run; "not yet set" (a Claude Code message about two options) is not one.
+# Plan 10-07 adds docs/install-codex.md and codex/install-codex.sh to HINT_FILES.
+HINT_FILES = ("README.md", "docs/install-claude-code.md")
+OLD_HINTS = re.compile(r"Tested on Linux only|not yet run|not yet been run|not yet tried|not yet been tried",
+                       re.IGNORECASE)
+hint_hits = []
+for rel in HINT_FILES:
+    for m in OLD_HINTS.finditer(squash(read_lines(rel) or [])):
+        hint_hits.append("%s: %s" % (rel, m.group(0)))
+gate("no_unrun_hint", not hint_hits,
+     "; ".join(hint_hits) if hint_hits else "no old 'not yet run' hint in %s" % ", ".join(HINT_FILES))
 
 # the Not run section: exactly the two D-15 lines
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]

@@ -14,7 +14,8 @@
 # Plan 10-06 (D-02): claude_version_single is per platform, so two cases change one version each,
 # on the Claude Code page and on the README table row (claude_version_single and
 # claude_version_single_readme); mutate takes the case name as an optional fourth argument when
-# one gate has more than one case.
+# one gate has more than one case. Two more cases put an old hint back into the README and into the
+# Claude Code page and require release_no_unrun_hint to fail (DOCS-04).
 # Nothing here runs BBj; the only program run is python3 -I on the gate script.
 
 . "$(dirname "$0")/lib.sh"
@@ -183,6 +184,9 @@ mutate codex_version_single docs/install-codex.md '1,/Codex CLI [0-9][0-9.]*/s/C
 # version of the README row "| Claude Code |" (the Linux column); the other mentions stay as they are
 mutate claude_version_single docs/install-claude-code.md '1,/Claude Code [0-9][0-9.]* on Windows/s/Claude Code [0-9][0-9.]* on Windows/Claude Code 2.1.0 on Windows/'
 mutate claude_version_single README.md '/^| Claude Code |/s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/9.9.0/' claude_version_single_readme
+# DOCS-04 (plan 10-06): an old hint put back into the README or the Claude Code page fails the gate
+mutate no_unrun_hint README.md '/^| Claude Code |/s/$/ Tested on Linux only./' no_unrun_hint_readme
+mutate no_unrun_hint docs/install-claude-code.md '1s/$/ The plugin has not yet been run on Windows./' no_unrun_hint_claude_page
 mutate not_run CHANGELOG.md 's/^- macOS: not run on macOS\.$/- macOS: run./'
 
 finish
