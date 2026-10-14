@@ -5,17 +5,17 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-16-PLAN.md
-last_updated: "2026-10-14T15:59:49.133Z"
+stopped_at: Completed 10-17-PLAN.md
+last_updated: "2026-10-14T16:35:57.615Z"
 last_activity: 2026-10-14
 last_activity_desc: Phase 10 execution started
-state_head: abe876419b9d21928960bb3ea40429675aaf8fc0
+state_head: 41fa2e3250a2930934aa73074295cad08c5323f9
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 39
-  completed_plans: 29
-  percent: 74
+  completed_plans: 30
+  percent: 75
 ---
 
 # Project State
@@ -30,11 +30,11 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 8 of 17 (7 done; next 10-17, gap closure before 10-06)
+Plan: 9 of 17 (8 done; next 10-06)
 Status: Ready to execute
-Last activity: 2026-10-14 — Plan 10-16 complete; gsd/planning-setup pushed for Windows round 2
+Last activity: 2026-10-14 — Plan 10-17 complete; Windows installer round 2 recorded, D-09: met
 
-Progress: [████████████████████] 22/22 plans ([███████░░░] 74%) — phases 3/4 complete
+Progress: [████████████████████] 22/22 plans ([████████░░] 75%) — phases 3/4 complete
 
 ## Performance Metrics
 
@@ -136,6 +136,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 10 P05 | owner-gated | 3 tasks | 2 files |
 | Phase 10 P15 | 18 min | 3 tasks | 3 files |
 | Phase 10 P16 | 15min | 3 tasks | 2 files |
+| Phase 10 P17 | n/a | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -190,6 +191,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: 10-04: D-22 before half recorded; gitupgrade home holds the owner-trusted 0.2.0 hook (sha256:051732b8...5434297) for plan 10-11
 - [Phase 10]: 10-05: Windows installer reading is D-09 tested negative: the call form with Git\usr\bin\sh.exe is silent from PowerShell (no Git usr\bin on PATH) and --sh-exe Git\bin\sh.exe round-trips through cygpath to usr\bin\sh.exe; owner decides on a gap-closure fix or states the outcome (D-12)
 - [Phase 10]: 10-15: commandWindows names the Git for Windows launcher <Git root>\bin\sh.exe from cygpath -w /; --sh-exe is written as given; usr\bin and no drive letter are refused (D-27 to D-29)
+- [Phase 10]: D-26/D-31: Windows installer round 2 met by the round-2 rule; D-09: met, round-1 verdict superseded
 
 ### Pending Todos
 
@@ -220,8 +222,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-14T15:59:49.031Z
-Stopped at: Completed 10-16-PLAN.md
+Last session: 2026-10-14T16:35:57.468Z
+Stopped at: Completed 10-17-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
