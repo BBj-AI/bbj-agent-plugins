@@ -99,6 +99,16 @@ round2-dry-run 2026-10-14: R1 exit 0, commandWindows names C:\Program Files\Git\
 
 round2-pushed: 51fc5c26da6e4b81aa0814332c1927c1a23d91c4 (2026-10-14)
 
+round2-hand-over 2026-10-14: clone of 51fc5c26da6e4b81aa0814332c1927c1a23d91c4 checked; R1, R2, R3, R3u as in the round-2 dry run (fresh HTTPS clone of `origin` branch `gsd/planning-setup`, head equal to the round2-pushed sha; R1 exit 0 with commandWindows naming `C:\Program Files\Git\bin\sh.exe`, R2 exit 0 with `C:\PROGRA~1\Git\bin\sh.exe` written as given, R3 exit 2 with `pass --sh-exe PATH` and no home created, R3u exit 2 with `usr\bin` in the message and no home created; fake cygpath and fake codex on PATH, empty launcher files under FAKE_CYGDRIVE_ROOT, FAKE_CYGPATH_GIT_ROOT `C:\Program Files\Git\`; clone and throwaway homes deleted afterwards)
+
+Message for the owner (round 2):
+
+- Commit to run: `51fc5c2` (full sha `51fc5c26da6e4b81aa0814332c1927c1a23d91c4`), the tip of `origin/gsd/planning-setup`.
+- Update an existing checkout in Git Bash: `git -C <checkout> pull origin gsd/planning-setup`. Without a clone: `git clone -b gsd/planning-setup https://github.com/BBj-AI/bbj-agent-plugins.git <checkout>`. Then `git -C <checkout> rev-parse --short HEAD` must print `51fc5c2`; if it does not, stop and tell Claude.
+- Runbook in the checkout: `.planning/phases/10-install-wording-and-release-0-2-1/windows-installer/runbook.md`, section `## Round 2 (after plan 10-15)` (steps R0 to R3u, optional R4, clean-up, and the reply template at its end).
+- For R1 and R2, start Codex from a PowerShell window opened from the Start menu (not from Git Bash), after stopping every Codex process (`Get-Process codex -ErrorAction SilentlyContinue | Stop-Process`).
+- Replace your user name by `<home>` in every pasted line; paste no authorization URL and no token.
+
 ## Installer route on Windows
 
 Reading 2026-10-14, round 1
