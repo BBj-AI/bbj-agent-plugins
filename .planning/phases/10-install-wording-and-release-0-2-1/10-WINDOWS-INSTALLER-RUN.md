@@ -64,6 +64,15 @@ pushed: fb375e3b40cd0ffbb55261dd1531451a70974613 (2026-10-14)
 
 Linux dry run 2026-10-14: R1 exit 0, commandWindows in the call form (`& "W:<sh>" "W:<home>/bbj/bbj-check.sh"; exit $LASTEXITCODE`); R2 override named, same form with the given sh.exe; R3 exit 2 with `pass --sh-exe PATH`, no home created; the steps ran with the fake cygpath on PATH in a throwaway directory that was deleted afterwards; suite SUMMARY: ok=933 fail=0 skip=0
 
+hand-over 2026-10-14: clone of fb375e3b40cd0ffbb55261dd1531451a70974613 checked; R1, R2, R3 as in the dry run (fresh HTTPS clone of `origin` branch `gsd/planning-setup`, head equal to the pushed sha; R1 exit 0 with commandWindows in the call form, R2 exit 0 with the override sh.exe in the same form, R3 exit 2 with `pass --sh-exe PATH` and no home created; fake cygpath on PATH; clone and throwaway homes deleted afterwards)
+
+Message for the owner (hand-over):
+
+- Commit to run: `fb375e3` (full sha `fb375e3b40cd0ffbb55261dd1531451a70974613`), the tip of `origin/gsd/planning-setup`.
+- Update an existing checkout in Git Bash: `git -C <checkout> pull origin gsd/planning-setup`. Without a clone: `git clone -b gsd/planning-setup https://github.com/BBj-AI/bbj-agent-plugins.git <checkout>`. Then `git -C <checkout> rev-parse --short HEAD` must print `fb375e3`; if it does not, stop and tell Claude.
+- Runbook in the checkout: `.planning/phases/10-install-wording-and-release-0-2-1/windows-installer/runbook.md` (steps R0 to R3, clean-up, and the 24-line reply template at its end).
+- Start Codex in the project folder with `-a on-request`. Replace your user name by `<home>` in every pasted line; paste no authorization URL and no token.
+
 ## Installer route on Windows
 
 Reading pending, round 1 (plan 10-05 fills this section from the owner's reply).
