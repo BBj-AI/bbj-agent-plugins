@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 7 of 14
+Plan: 7 of 17 (6 done; next 10-16, gap closure before 10-06)
 Status: Ready to execute
 Last activity: 2026-10-14 — Phase 10 execution started
 
