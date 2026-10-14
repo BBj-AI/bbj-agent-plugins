@@ -45,7 +45,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 
 - [x] **REL-05**: The four planning-branch review-fix commits (`b0a4c62`, `3a42ebf`, `b600ac4`, `172e6a5`) are in the release tree
 - [x] **REL-06**: The CONTENT_VERSION gate policy in `tests/test_release_text.py` is decided and recorded
-- [ ] **REL-07**: Both plugins and both marketplace entries at 0.2.1; a `## 0.2.1` CHANGELOG entry whose Tested-against section covers Linux, Windows and macOS from the recorded runs
+- [x] **REL-07**: Both plugins and both marketplace entries at 0.2.1; a `## 0.2.1` CHANGELOG entry whose Tested-against section covers Linux, Windows and macOS from the recorded runs
 - [ ] **REL-08**: Full suite passes with live gates at skip=0 on the release tree; PR merged, annotated tag `0.2.1` pushed, GitHub Release published
 
 ## Future Requirements
@@ -90,7 +90,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 | DOCS-04 | Phase 10 | Complete |
 | REL-05 | Phase 7 | Complete |
 | REL-06 | Phase 7 | Complete |
-| REL-07 | Phase 10 | Pending |
+| REL-07 | Phase 10 | Complete |
 | REL-08 | Phase 10 | Pending |
 
 **Coverage:**

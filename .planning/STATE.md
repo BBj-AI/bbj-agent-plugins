@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-07-PLAN.md
-last_updated: "2026-10-14T17:08:10.805Z"
+stopped_at: Completed 10-08-PLAN.md
+last_updated: "2026-10-14T17:16:02.081Z"
 last_activity: 2026-10-14
 last_activity_desc: Phase 10 execution started
-state_head: 9204b8d5abd6d083a7638422fb41e5c96a411297
+state_head: fa37af59f9429c3c5aa2e007a79ac5241464ae81
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 39
-  completed_plans: 32
+  completed_plans: 33
   percent: 75
 ---
 
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 11 of 17 (10 done; next 10-08)
+Plan: 12 of 17 (11 done; next 10-09)
 Status: Ready to execute
-Last activity: 2026-10-14 — Plan 10-07 complete; Codex page and installer state the verified platforms
+Last activity: 2026-10-14 — Plan 10-08 complete; release 0.2.1 bump and CHANGELOG entry
 
 Progress: [████████████████████] 22/22 plans ([████████░░] 75%) — phases 3/4 complete
 
@@ -139,6 +139,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 10 P17 | n/a | 3 tasks | 2 files |
 | Phase 10 P06 | 70min | 3 tasks | 6 files |
 | Phase 10 P07 | ~50min | 3 tasks | 6 files |
+| Phase 10 P08 | 25min | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -197,6 +198,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: 10-06: Linux Claude Code version is 2.1.299 (RQ-1 a, equal to claude --version on 2026-10-14); Windows 2.1.292; macOS 2.1.296; the gate is per platform
 - [Phase 10]: 10-06: the README table names a route only where the matrix Sources entry shows it; (hook) marks tier 2 of the hook, (bbj-local plugin) the plugin connected; Windows Codex installer cell follows round 2 (D-09: met)
 - [Phase 10]: 10-07: Codex STATUS_LINE says 'compiler route' (static guard bans the compiler name on installer code lines); Windows clause follows round 2 (D-09: met)
+- [Phase 10]: 10-08: UPGRADE_QUOTES are the --remove Next line, the re-trust line and the STATUS_LINE; Not run holds all eight matrix gaps; the D-15 shorthand-install sentence waits for the D-22 reading
 
 ### Pending Todos
 
@@ -227,8 +229,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-14T17:08:10.688Z
-Stopped at: Completed 10-07-PLAN.md
+Last session: 2026-10-14T17:16:01.960Z
+Stopped at: Completed 10-08-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
