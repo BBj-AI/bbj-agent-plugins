@@ -7,7 +7,8 @@ a few minutes; nothing asks you a question, the defaults apply. For Codex, see
 
 ## Requirements
 
-- Claude Code 2.1.281 or later. The plugin was tested with Claude Code 2.1.296.
+- Claude Code 2.1.281 or later. The plugin was tested with Claude Code 2.1.299 on Linux,
+  Claude Code 2.1.292 on Windows and Claude Code 2.1.296 on macOS.
 - A network connection to the docs server (see the `docs_url` option below), and a browser for
   the docs server's one-time sign-in.
 - BBj is optional. Without it you get the docs tools and the skills; with it the hook also checks

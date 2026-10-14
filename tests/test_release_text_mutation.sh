@@ -11,6 +11,10 @@
 # addressee gate keeps running, the pinned fact gates FAIL until they are re-pinned, and a
 # re-pinned copy passes. The four cases are later_unpinned, later_repinned, later_addressee and
 # later_command.
+# Plan 10-06 (D-02): claude_version_single is per platform, so two cases change one version each,
+# on the Claude Code page and on the README table row (claude_version_single and
+# claude_version_single_readme); mutate takes the case name as an optional fourth argument when
+# one gate has more than one case.
 # Nothing here runs BBj; the only program run is python3 -I on the gate script.
 
 . "$(dirname "$0")/lib.sh"
@@ -34,21 +38,23 @@ fresh_root() {
   cp "$REPO/codex/install-codex.sh" "$1/codex/" || return 1
 }
 
-# mutate GATE FILE SEDPROGRAM: change FILE in a fresh copy; GATE must print FAIL and exit 1
+# mutate GATE FILE SEDPROGRAM [CASE]: change FILE in a fresh copy; GATE must print FAIL and exit 1.
+# CASE names the case (default GATE), for a gate with more than one mutation case (plan 10-06).
 mutate() {
-  _root="$WORK/root-$1"
-  fresh_root "$_root" || { gate "release_mut_$1" FAIL "cannot copy the files"; return; }
+  _case=${4:-$1}
+  _root="$WORK/root-$_case"
+  fresh_root "$_root" || { gate "release_mut_$_case" FAIL "cannot copy the files"; return; }
   sed "$3" "$_root/$2" > "$_root/$2.new" && mv "$_root/$2.new" "$_root/$2"
   if cmp -s "$_root/$2" "$REPO/$2"; then
-    gate "release_mut_$1" FAIL "the mutation changed nothing in $2"
+    gate "release_mut_$_case" FAIL "the mutation changed nothing in $2"
     return
   fi
   python3 -I "$GATE" "$_root" > "$WORK/out" 2> "$WORK/err"
   _rc=$?
   if [ "$_rc" = 1 ] && grep -q "^gate release_$1 FAIL " "$WORK/out"; then
-    gate "release_mut_$1" ok "gate release_$1 fails on a changed $2"
+    gate "release_mut_$_case" ok "gate release_$1 fails on a changed $2"
   else
-    gate "release_mut_$1" FAIL "rc=$_rc, no FAIL line for release_$1"
+    gate "release_mut_$_case" FAIL "rc=$_rc, no FAIL line for release_$1"
   fi
 }
 
@@ -173,7 +179,10 @@ mutate upgrade_addressed CHANGELOG.md 's/claude plugin marketplace update basis-
 mutate upgrade_install_page docs/install-claude-code.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
 mutate upgrade_quotes codex/install-codex.sh 's/every update of it makes Codex ask/every update of it makes Codex request/'
 mutate codex_version_single docs/install-codex.md '1,/Codex CLI [0-9][0-9.]*/s/Codex CLI [0-9][0-9.]*/Codex CLI 0.0.1/'
-mutate claude_version_single docs/install-claude-code.md 's/tested with Claude Code [0-9][0-9.]*/tested with Claude Code 2.1.0/'
+# one version per platform (D-02): the first "Claude Code N on Windows" of the page, then the first
+# version of the README row "| Claude Code |" (the Linux column); the other mentions stay as they are
+mutate claude_version_single docs/install-claude-code.md '1,/Claude Code [0-9][0-9.]* on Windows/s/Claude Code [0-9][0-9.]* on Windows/Claude Code 2.1.0 on Windows/'
+mutate claude_version_single README.md '/^| Claude Code |/s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/9.9.0/' claude_version_single_readme
 mutate not_run CHANGELOG.md 's/^- macOS: not run on macOS\.$/- macOS: run./'
 
 finish

@@ -7,9 +7,10 @@ headed with that version and has the sections Upgrading, Tested against and Not 
 order, with no placeholder heading or word in it; older entries below it are left alone, so the
 next release only adds one above; the Upgrading section is addressed to "If you installed from
 `main` before VERSION" and carries the two Claude Code update commands (gate upgrade_addressed);
-the install page carries the Claude Code update commands; the Claude Code and Codex CLI versions
-it was tested with each name one version across the install pages, the CHANGELOG and the
-installer.
+the install page carries the Claude Code update commands; the Codex CLI version it was tested with
+names one version across the install pages and the installer, and the Claude Code version names
+one version per platform (Linux, Windows, macOS) across the README table, the install pages, the
+installer and the newest CHANGELOG entry (plan 10-06, D-02).
 
 What is pinned to CONTENT_VERSION (0.2.0): the facts of that release. The Upgrading section
 quotes three installer lines byte for byte (each quote must also sit on a non-comment line of
@@ -186,15 +187,49 @@ for rel in ("codex/install-codex.sh", "docs/install-codex.md"):
 gate("codex_version_single", len(codex_versions) == 1,
      "Codex CLI versions named in the installer and its page: %s" % sorted(codex_versions))
 
-# the Claude Code version the release was tested with is one version in the install page
-# ("tested with Claude Code N.N.N") and the newest CHANGELOG entry ("- Claude Code N.N.N: ...").
-# Other mentions ("2.1.281 or later", the subagent check on 2.1.294) are different facts (REVIEW IN-01)
-claude_versions = set(re.findall(r"tested with Claude Code ([0-9]+\.[0-9]+\.[0-9]+)", page))
-claude_versions.update(re.findall(r"(?:^| )Claude Code ([0-9]+\.[0-9]+\.[0-9]+): ",
-                                  squash(sections.get("Tested against", []))))
-gate("claude_version_single", len(claude_versions) == 1,
-     "Claude Code versions tested with, in the install page and the newest entry: %s"
-     % sorted(claude_versions))
+# the Claude Code version is one version per platform (D-02, plan 10-06). Named as
+# "Claude Code N.N.N on <platform>" in README.md, both install pages, the installer and the newest
+# CHANGELOG entry, and as the N.N.N in the "| Claude Code |" row of the README table under the
+# "| Client | Linux | Windows | macOS |" header (the header gives the platform of each column).
+# The "on <platform>" anchor keeps "Claude Code 2.1.281 or later" and the subagent check on 2.1.294
+# (different facts, REVIEW IN-01) out of the count.
+PLATFORMS = ("Linux", "Windows", "macOS")
+VERSION_NNN = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
+CLAUDE_ON_PLATFORM = re.compile(r"Claude Code ([0-9]+\.[0-9]+\.[0-9]+) on (Linux|Windows|macOS)")
+
+
+def table_cells(line):
+    """The stripped cells of a Markdown table row, or None when the line is not one."""
+    ln = line.strip()
+    if not ln.startswith("|"):
+        return None
+    return [c.strip() for c in ln.strip("|").split("|")]
+
+
+claude_versions = dict((p, set()) for p in PLATFORMS)
+for rel in ("README.md", "docs/install-claude-code.md", "docs/install-codex.md", "codex/install-codex.sh"):
+    for ver, plat in CLAUDE_ON_PLATFORM.findall(squash(read_lines(rel) or [])):
+        claude_versions[plat].add(ver)
+for ver, plat in CLAUDE_ON_PLATFORM.findall(squash(entry)):
+    claude_versions[plat].add(ver)
+table_columns = None
+row_found = False
+for ln in readme:
+    cells = table_cells(ln)
+    if cells is None:
+        continue
+    if cells[:1] == ["Client"] and tuple(cells[1:]) == PLATFORMS:
+        table_columns = cells
+    elif table_columns is not None and cells[:1] == ["Claude Code"] and len(cells) == len(table_columns):
+        row_found = True
+        for i, plat in enumerate(PLATFORMS):
+            claude_versions[plat].update(VERSION_NNN.findall(cells[i + 1]))
+        break
+claude_ok = row_found and all(len(claude_versions[p]) == 1 for p in PLATFORMS)
+gate("claude_version_single", claude_ok,
+     "Claude Code versions per platform in the README table, pages, installer and newest entry: %s%s"
+     % (", ".join("%s %s" % (p, sorted(claude_versions[p])) for p in PLATFORMS),
+        "" if row_found else "; the README table has no '| Claude Code |' row under the platform header"))
 
 # the Not run section: exactly the two D-15 lines
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]
