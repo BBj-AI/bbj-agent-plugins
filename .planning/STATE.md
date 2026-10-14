@@ -5,17 +5,17 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Phase 10 context gathered
-last_updated: "2026-10-14T07:41:38.383Z"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-10-14T08:43:37.638Z"
 last_activity: 2026-10-14
-last_activity_desc: Phase 09 complete, transitioned to Phase 10
-state_head: 1c4f34766beba9f1715b25fcd7b03361866b3cc8
+last_activity_desc: Phase 10 execution started
+state_head: 4dcdb727be28a932721681852d1c4d69d1dbf00c
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 36
-  completed_plans: 22
-  percent: 61
+  completed_plans: 23
+  percent: 64
 ---
 
 # Project State
@@ -29,12 +29,12 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 
 ## Current Position
 
-Phase: 10 (Install wording and release 0.2.1) — READY TO EXECUTE
-Plan: Not started
+Phase: 10 (Install wording and release 0.2.1) — EXECUTING
+Plan: 2 of 14
 Status: Ready to execute
-Last activity: 2026-10-13 — Phase 09 complete, transitioned to Phase 10
+Last activity: 2026-10-14 — Phase 10 execution started
 
-Progress: [████████████████████] 22/22 plans ([██████░░░░] 61%) — phases 3/4 complete
+Progress: [████████████████████] 22/22 plans ([██████░░░░] 64%) — phases 3/4 complete
 
 ## Performance Metrics
 
@@ -129,6 +129,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 09 P06 | owner-paced (2026-10-13 to 2026-10-14) | 3 tasks | 3 files |
 | Phase 09 P07 | 25 min | 3 tasks | 1 files |
 | Phase 09 P08 | 15 min | 2 tasks | 2 files |
+| Phase 10 P01 | 11 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -170,6 +171,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 09]: 09-06: macOS round 1 recorded (mac-ready yes, d598854, BBj 26.03 at <home>/bbx); PLAT-05 verdict left to plan 09-07; owner notes to classify: Codex app-server daemon ignores shell-exported BBJ_HOME (D-04), stale user hooks.json double-fires, bbjcpl line 10 for a one-line file
 - [Phase 09]: Plan 09-07: PLAT-05 and PLAT-06 read met on the macOS record by the tier-1 rule; no M-N defect, the three owner notes are side readings (Codex daemon environment is host behaviour, stale installer hooks.json is the documented double install, line 10 text is the compiler's)
 - [Phase 09]: 09-08: no macOS re-run asked (plan 09-07 shipped no fix and planned no capture); both records closed with Closed lines naming final tree d4f751e, CI ok=921 fail=0, phase boundary since 2524dff held
+- [Phase 10]: 10-01: --sh-exe PATH is the installer option for the Windows sh.exe; refused without cygpath on install, ignored under --remove (never refused for sh.exe)
+- [Phase 10]: 10-01: commandWindows is the PowerShell call form & "<sh.exe>" "<script>"; exit $LASTEXITCODE; Windows behaviour unclaimed until the owner re-run (plan 10-05)
 
 ### Pending Todos
 
@@ -200,9 +203,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-14T06:34:15.320Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-install-wording-and-release-0-2-1/10-CONTEXT.md
+Last session: 2026-10-14T08:43:37.530Z
+Stopped at: Completed 10-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
