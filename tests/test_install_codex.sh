@@ -544,6 +544,14 @@ mkdir -p "$CDRIVE/bin" "$CDRIVE/Program Files/Git/bin" "$CDRIVE/PortableGit/bin"
 : > "$CDRIVE/bin/sh.exe"
 : > "$CDRIVE/Program Files/Git/bin/sh.exe"
 : > "$CDRIVE/PortableGit/bin/sh.exe"
+# plan 10-15 (D-28, D-29): --sh-exe values are written as given and checked through the drive root; the 8.3
+# launcher, a second Git, and the usr\bin sh.exe of two spellings (the fake keeps letter case, so the
+# upper-case path is a file of its own on Linux)
+mkdir -p "$CDRIVE/PROGRA~1/Git/bin" "$CDRIVE/gitalt/bin" "$CDRIVE/Program Files/Git/usr/bin" "$CDRIVE/program files/git/USR/BIN"
+: > "$CDRIVE/PROGRA~1/Git/bin/sh.exe"
+: > "$CDRIVE/gitalt/bin/sh.exe"
+: > "$CDRIVE/Program Files/Git/usr/bin/sh.exe"
+: > "$CDRIVE/program files/git/USR/BIN/SH.EXE"
 FAKE_CYGDRIVE_ROOT=$CDRIVE
 export FAKE_CYGDRIVE_ROOT
 newenv cyg
@@ -596,11 +604,11 @@ nothing_created() {
 
 if command -v python3 > /dev/null 2>&1; then
   newenv cygov
-  run_inst "$CYGP" --sh-exe "$ALT_SH"
-  _cw_want="& \"W:$ALT_SH\" \"W:$(cd "$E_CODEX" && pwd)/bbj/bbj-check.sh\"; exit \$LASTEXITCODE"
+  run_inst "$CYGP" --sh-exe 'C:\PROGRA~1\Git\bin\sh.exe'
+  _cw_want="& \"C:\\PROGRA~1\\Git\\bin\\sh.exe\" \"W:$(cd "$E_CODEX" && pwd)/bbj/bbj-check.sh\"; exit \$LASTEXITCODE"
   _cw_got=$(cw_value "$E_CODEX/hooks.json" 2> /dev/null)
   [ "$RC" = 0 ] && [ "$_cw_got" = "$_cw_want" ] \
-    && gate command_windows_sh_exe_override ok "--sh-exe replaces the derived sh.exe in commandWindows" \
+    && gate command_windows_sh_exe_override ok "--sh-exe replaces the derived launcher in commandWindows, as the exact 8.3 string" \
     || gate command_windows_sh_exe_override FAIL "exit $RC, got '$_cw_got', want '$_cw_want'"
 else
   gate command_windows_sh_exe_override skip "no python3"
@@ -642,9 +650,49 @@ unset FAKE_CYGPATH_GIT_ROOT
   && gate command_windows_launcher_missing_refused ok "a Git root without its launcher exits 2 before any write and the message names the launcher and --sh-exe" \
   || gate command_windows_launcher_missing_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
 
+# D-28: a --sh-exe value reaches commandWindows byte for byte; no cygpath output is written, because
+# cygpath -u of a path under the Git root lands under /bin (a mount of /usr/bin) and cygpath -w gave usr\bin\sh.exe
+# back (round 1 note 1). The sh.exe part is the text between the leading & " and the next double quote.
+if command -v python3 > /dev/null 2>&1; then
+  _ag_bad=
+  _ag_n=0
+  for _ag in 'C:\Program Files\Git\bin\sh.exe' 'C:/Program Files/Git/bin/sh.exe'; do
+    _ag_n=$((_ag_n + 1))
+    newenv "cygag-$_ag_n"
+    run_inst "$CYGP" --sh-exe "$_ag"
+    _ag_cw=$(cw_value "$E_CODEX/hooks.json" 2> /dev/null)
+    _ag_got=$(printf '%s\n' "$_ag_cw" | sed -n 's/^& "\([^"]*\)".*$/\1/p')
+    [ "$RC" = 0 ] && [ "$_ag_got" = "$_ag" ] || _ag_bad="$_ag_bad (exit $RC, got '$_ag_got', want '$_ag')"
+  done
+  [ -z "$_ag_bad" ] && gate command_windows_sh_exe_as_given ok "--sh-exe is written as given, with no cygpath round trip ($_ag_n spellings of the Program Files launcher)" \
+    || gate command_windows_sh_exe_as_given FAIL "$_ag_bad"
+else
+  gate command_windows_sh_exe_as_given skip "no python3"
+fi
+
+# D-28: a --sh-exe without a drive letter is refused, though the file exists
+newenv cygnowin
+run_inst "$CYGP" --sh-exe "$ALT_SH"
+[ "$RC" = 2 ] && grep -F 'drive letter' "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
+  && gate command_windows_sh_exe_not_windows_refused ok "a POSIX --sh-exe exits 2 before any write and the message asks for a drive letter and names --sh-exe" \
+  || gate command_windows_sh_exe_not_windows_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
+
+# D-29: the sh.exe of usr\bin, either slash, any letter case (both files exist under the drive seam)
+_ub_bad=
+_ub_n=0
+for _ub in 'C:\Program Files\Git\usr\bin\sh.exe' 'c:/program files/git/USR/BIN/SH.EXE'; do
+  _ub_n=$((_ub_n + 1))
+  newenv "cygub-$_ub_n"
+  run_inst "$CYGP" --sh-exe "$_ub"
+  [ "$RC" = 2 ] && grep -F 'usr\bin' "$WORK/err" > /dev/null && grep -F 'launcher' "$WORK/err" > /dev/null \
+    && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created || _ub_bad="$_ub_bad $_ub_n(exit $RC)"
+done
+[ -z "$_ub_bad" ] && gate command_windows_sh_exe_usr_bin_refused ok "$_ub_n usr/bin sh.exe spellings exit 2 before any write; the message names usr/bin, the launcher and --sh-exe" \
+  || gate command_windows_sh_exe_usr_bin_refused FAIL "$_ub_bad"
+
 newenv cygmiss
-run_inst "$CYGP" --sh-exe /nonexistent/sh.exe
-[ "$RC" = 2 ] && grep -F '/nonexistent/sh.exe' "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
+run_inst "$CYGP" --sh-exe 'C:\nonexistent\sh.exe'
+[ "$RC" = 2 ] && grep -F 'C:\nonexistent\sh.exe' "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
   && gate command_windows_sh_exe_missing_refused ok "a missing sh.exe exits 2 before any write and the message names the path and --sh-exe" \
   || gate command_windows_sh_exe_missing_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
 
@@ -658,35 +706,38 @@ unset FAKE_CYGPATH_W_FAIL
   || gate command_windows_cygpath_fail_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
 
 # a Windows path with a dollar sign, a backtick or a double quote would be expanded or would end the quoted
-# path in the PowerShell command (T-10-01): each is refused, the file exists
+# path in the PowerShell command (T-10-01, T-10-35): each is refused, the file exists under the drive seam
 _ch_bad=
 _ch_n=0
-for _ch in dollar backtick quote; do
+_ch_nl='
+'
+for _ch in dollar backtick quote newline; do
   case "$_ch" in
-    dollar) _ch_dir=$WORK/'git$x' ;;
-    backtick) _ch_dir=$WORK/'git`x' ;;
-    quote) _ch_dir=$WORK/'git"x' ;;
+    dollar) _ch_dir='git$x'; _ch_val='C:\git$x\bin\sh.exe' ;;
+    backtick) _ch_dir='git`x'; _ch_val='C:\git`x\bin\sh.exe' ;;
+    quote) _ch_dir='git"x'; _ch_val='C:\git"x\bin\sh.exe' ;;
+    newline) _ch_dir="git${_ch_nl}x"; _ch_val="C:\\git${_ch_nl}x\\bin\\sh.exe" ;;
   esac
-  mkdir -p "$_ch_dir/bin"
-  : > "$_ch_dir/bin/sh.exe"
+  mkdir -p "$CDRIVE/$_ch_dir/bin"
+  : > "$CDRIVE/$_ch_dir/bin/sh.exe"
   newenv "cygchar-$_ch"
-  run_inst "$CYGP" --sh-exe "$_ch_dir/bin/sh.exe"
+  run_inst "$CYGP" --sh-exe "$_ch_val"
   _ch_n=$((_ch_n + 1))
   [ "$RC" = 2 ] && nothing_created && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null || _ch_bad="$_ch_bad $_ch(exit $RC)"
 done
-[ -z "$_ch_bad" ] && gate command_windows_sh_exe_chars_refused ok "$_ch_n sh.exe paths holding a dollar sign, a backtick or a double quote exit 2 before any write" \
+[ -z "$_ch_bad" ] && gate command_windows_sh_exe_chars_refused ok "$_ch_n sh.exe paths holding a dollar sign, a backtick, a double quote or a newline exit 2 before any write" \
   || gate command_windows_sh_exe_chars_refused FAIL "$_ch_bad"
 
 newenv nocygopt
-run_inst "$WITH_CODEX" --sh-exe "$ALT_SH"
+run_inst "$WITH_CODEX" --sh-exe 'C:\gitalt\bin\sh.exe'
 [ "$RC" = 2 ] && grep -F 'cygpath' "$WORK/err" > /dev/null && ! grep -F 'unknown option' "$WORK/err" > /dev/null && nothing_created \
   && gate command_windows_sh_exe_without_cygpath_refused ok "--sh-exe without cygpath on PATH exits 2 before any write and says cygpath was not found" \
   || gate command_windows_sh_exe_without_cygpath_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
 
 newenv cygrt
-run_inst "$CYGP" --sh-exe "$ALT_SH"
+run_inst "$CYGP" --sh-exe 'C:\PROGRA~1\Git\bin\sh.exe'
 _rt_rc1=$RC
-run_inst "$CYGP" --remove --sh-exe "$ALT_SH"
+run_inst "$CYGP" --remove --sh-exe 'C:\PROGRA~1\Git\bin\sh.exe'
 _rt_rm1=$RC
 _rt_gone1=no
 [ ! -e "$E_CODEX/hooks.json" ] && _rt_gone1=yes
@@ -712,8 +763,17 @@ export FAKE_CYGPATH_W_FAIL
 run_inst "$CYGP" --remove
 unset FAKE_CYGPATH_W_FAIL
 [ "$_ru_rc1" = 0 ] && [ "$RC" != 2 ] && ! grep -F -e '--sh-exe' "$WORK/err" > /dev/null \
-  && gate command_windows_remove_unaffected ok "--remove with a cygpath that cannot convert exits $RC, never 2, and does not ask for --sh-exe" \
-  || gate command_windows_remove_unaffected FAIL "install exit $_ru_rc1, remove exit $RC, err: $(head -c 200 "$WORK/err")"
+  && _ru_ok=yes || _ru_ok=no
+_ru_rc2=$RC
+_ru_err=$(head -c 200 "$WORK/err")
+# plan 10-15 (D-28): a --sh-exe that an install refuses (no drive letter) does not make --remove a refusal
+newenv cygrm2
+run_inst "$CYGP"
+_ru_rc3=$RC
+run_inst "$CYGP" --remove --sh-exe "$ALT_SH"
+[ "$_ru_ok" = yes ] && [ "$_ru_rc3" = 0 ] && [ "$RC" != 2 ] && ! grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null \
+  && gate command_windows_remove_unaffected ok "--remove with a cygpath that cannot convert exits $_ru_rc2, and with a --sh-exe without a drive letter exits $RC: never 2, never a request for --sh-exe" \
+  || gate command_windows_remove_unaffected FAIL "install exit $_ru_rc1, remove exit $_ru_rc2 ($_ru_ok, err: $_ru_err); second install exit $_ru_rc3, remove exit $RC, err: $(head -c 200 "$WORK/err")"
 
 run_inst "$WITH_CODEX" --help
 _hp_rc=bad
