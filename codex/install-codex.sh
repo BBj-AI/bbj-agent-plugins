@@ -2,10 +2,14 @@
 # install-codex.sh -- Codex install script for the BBj docs server, the two BBj skills and the
 # BBj check hook (plan 19-05, PLUG-04; decision D-15 of phase 19).
 #
-# Verified on Linux with Codex CLI 0.162.1 on 2026-10-12 (plan 06-05 release run: registered,
-# hook approved in /hooks, a .bbj written through apply_patch got the compiler's feedback,
-# skills found in ~/.agents/skills). Not yet run on Windows or macOS. The test suite runs it
-# with a fake codex in a temp HOME.
+# Verified with Codex CLI 0.162.1 on Linux (2026-10-12, plan 06-05 release run: registered, hook
+# approved in /hooks, a .bbj written through apply_patch got the compiler's feedback, skills found
+# in ~/.agents/skills) and on Windows (2026-10-14, Git for Windows 2.52.0, plan 10-17: the hook was
+# trusted in /hooks, blocked a bad file with the bbjcpl report and stayed silent on a clean one),
+# and with Codex CLI 0.162.x on macOS (2026-10-12, --with-local, the bbj-local route: a bad file
+# blocked with the bbj-local report, no bbjcpl on that machine). STATUS_LINE below says the same
+# in one line (plan 10-07, D-12); the Codex page quotes it. The test suite runs it with a
+# fake codex in a temp HOME.
 #
 # What it does, one factual line per step:
 #   1. registers the read-only docs server as bbj-docs: "codex mcp add" when codex is on PATH,
@@ -166,7 +170,7 @@ TOOL_KEY='approval_mode = "approve"'
 # the server-wide line that versions up to 398aac5 of this script wrote; it is only ever
 # recognised and removed, never written again
 OLD_KEY_LINE='default_tools_approval_mode = "approve"'
-STATUS_LINE='Verified on Linux with Codex CLI 0.162.1; not yet run on Windows or macOS.'
+STATUS_LINE='Verified with Codex CLI 0.162.1 on Linux (2026-10-12, bbjcpl route) and on Windows (2026-10-14, bbjcpl route, Git for Windows 2.52.0), and with Codex CLI 0.162.x on macOS (2026-10-12, bbj-local route).'
 
 say() {
   printf '%s\n' "$*"

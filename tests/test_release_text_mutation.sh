@@ -187,6 +187,8 @@ mutate claude_version_single README.md '/^| Claude Code |/s/[0-9][0-9]*\.[0-9][0
 # DOCS-04 (plan 10-06): an old hint put back into the README or the Claude Code page fails the gate
 mutate no_unrun_hint README.md '/^| Claude Code |/s/$/ Tested on Linux only./' no_unrun_hint_readme
 mutate no_unrun_hint docs/install-claude-code.md '1s/$/ The plugin has not yet been run on Windows./' no_unrun_hint_claude_page
+# DOCS-03 (plan 10-07): a changed word in the installer's STATUS_LINE, not on the Codex page, fails the gate
+mutate status_line_in_page codex/install-codex.sh "/^STATUS_LINE=/s/Verified/Checked/"
 mutate not_run CHANGELOG.md 's/^- macOS: not run on macOS\.$/- macOS: run./'
 
 finish
