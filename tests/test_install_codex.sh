@@ -777,10 +777,10 @@ run_inst "$CYGP" --remove --sh-exe "$ALT_SH"
 
 run_inst "$WITH_CODEX" --help
 _hp_rc=bad
-[ "$RC" = 0 ] && grep -F -e '--sh-exe' "$WORK/out" > /dev/null && _hp_rc=0
+[ "$RC" = 0 ] && grep -F -e '--sh-exe' "$WORK/out" > /dev/null && grep -F 'as given' "$WORK/out" > /dev/null && _hp_rc=0
 run_inst "$WITH_CODEX" --sh-exe
 [ "$RC" = 2 ] && [ "$_hp_rc" = 0 ] \
-  && gate command_windows_help_names_sh_exe ok "--help names --sh-exe; --sh-exe without a value exits 2" \
+  && gate command_windows_help_names_sh_exe ok "--help names --sh-exe and says it is written as given; --sh-exe without a value exits 2" \
   || gate command_windows_help_names_sh_exe FAIL "help state $_hp_rc, no-value exit $RC"
 unset FAKE_CYGDRIVE_ROOT
 
