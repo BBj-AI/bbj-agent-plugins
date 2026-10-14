@@ -18,6 +18,9 @@
 # Claude Code page and require release_no_unrun_hint to fail (DOCS-04). Plan 10-07 adds the same for the Codex
 # page and the installer's STATUS_LINE (no_unrun_hint_codex_page, no_unrun_hint_installer) and the case
 # status_line_in_page (DOCS-03: one changed word in the installer's STATUS_LINE).
+# Plan 10-08 (REL-07): the upgrade_quotes case changes a word inside the --remove "Next:" quote on its
+# installer line, and the not_run case is generic (it prefixes every Not run line), so a later
+# re-pin of NOT_RUN_LINES does not touch this file.
 # Nothing here runs BBj; the only program run is python3 -I on the gate script.
 
 . "$(dirname "$0")/lib.sh"
@@ -180,7 +183,7 @@ mutate changelog_leftovers CHANGELOG.md 's/^### Tested against$/### Next\
 ### Tested against/'
 mutate upgrade_addressed CHANGELOG.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
 mutate upgrade_install_page docs/install-claude-code.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
-mutate upgrade_quotes codex/install-codex.sh 's/every update of it makes Codex ask/every update of it makes Codex request/'
+mutate upgrade_quotes codex/install-codex.sh 's/then open \/hooks in Codex and trust the BBj check hook/then open \/hooks in Codex and trust the BBj check script/'
 mutate codex_version_single docs/install-codex.md '1,/Codex CLI [0-9][0-9.]*/s/Codex CLI [0-9][0-9.]*/Codex CLI 0.0.1/'
 # one version per platform (D-02): the first "Claude Code N on Windows" of the page, then the first
 # version of the README row "| Claude Code |" (the Linux column); the other mentions stay as they are
@@ -194,6 +197,6 @@ mutate status_line_in_page codex/install-codex.sh "/^STATUS_LINE=/s/Verified/Che
 # DOCS-04 (plan 10-07): an old hint put back into the Codex page or the installer fails the gate too
 mutate no_unrun_hint docs/install-codex.md '1s/$/ Tested on Linux only./' no_unrun_hint_codex_page
 mutate no_unrun_hint codex/install-codex.sh "/^STATUS_LINE=/s/'\$/ Not yet run on Windows.'/" no_unrun_hint_installer
-mutate not_run CHANGELOG.md 's/^- macOS: not run on macOS\.$/- macOS: run./'
+mutate not_run CHANGELOG.md '/^### Not run$/,$ s/^- /- x /'
 
 finish

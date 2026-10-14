@@ -18,17 +18,18 @@ HINT_FILES: the README, the Claude Code page, the Codex page and the installer (
 Gate no_unrun_hint reads the squashed text of each, so a hint split over two lines is found too;
 tests/test_install_pages.sh forbids the same phrases in a second, independent place.
 
-What is pinned to CONTENT_VERSION (0.2.0): the facts of that release. The Upgrading section
+What is pinned to CONTENT_VERSION (0.2.1): the facts of that release. The Upgrading section
 quotes three installer lines byte for byte (each quote must also sit on a non-comment line of
 codex/install-codex.sh, so a reworded installer fails here; gate upgrade_quotes), and the Not run
-section holds exactly the two lines of D-15 (gate not_run). At any other version these two gates
+section holds exactly the lines of NOT_RUN_LINES (gate not_run). At any other version these two gates
 FAIL with a message that says to re-pin the facts; they never skip. Reason: a version bump must
 not pass on the facts of an older release, and a skip would block the skip=0 release run. This
 reverses the skip half of review fix WR-02 (3a42ebf) on purpose (phase 7 D-05). WR-02's goal,
 letting the next release pass, still holds once that release has written its own facts.
 
 Bumping the version: change VERSION in tests/test_layout.py, both plugin manifests, both
-marketplace entries, the README.md version line and the CHANGELOG heading; write the new
+marketplace entries, the Codex overlay plugins/bbj/.codex-plugin/plugin.json, the README.md version
+line and the CHANGELOG heading; write the new
 release's Upgrading quotes and Not run lines; then set CONTENT_VERSION, UPGRADE_QUOTES and
 NOT_RUN_LINES to those facts. The suite stays red until both steps are done.
 
@@ -52,15 +53,21 @@ LEFTOVER = "unre" + "leased"
 NEXT_HEADING = "### " + "Next"
 
 UPGRADE_QUOTES = [
-    "rerun with --force to replace it",
+    "then open /hooks in Codex and trust the BBj check hook",
     "every update of it makes Codex ask for the /hooks review again",
-    "open /hooks, and approve the BBj check hook",
+    "Verified with Codex CLI 0.162.1 on Linux (2026-10-12, compiler route) and on Windows (2026-10-14, compiler route, Git for Windows 2.52.0), and with Codex CLI 0.162.x on macOS (2026-10-12, bbj-local route).",
 ]
 # the release whose facts upgrade_quotes and not_run pin; at any other version they FAIL and ask for a re-pin (phase 7 D-05)
-CONTENT_VERSION = "0.2.0"
+CONTENT_VERSION = "0.2.1"
 NOT_RUN_LINES = [
-    "- Windows: the Windows branch of the hook and the `commandWindows` entry were not run on Windows.",
-    "- macOS: not run on macOS.",
+    "- Linux: the 0.2.1 Codex installer with a real Codex; the last Linux installer reading is the 0.2.0 run of 2026-10-12.",
+    "- Windows: the Claude Code default home `/c/bbx` and the discovery variables `BBJHOME` and `PATH`; Claude Code was run with `bbj_home` and Codex with `BBJ_HOME`.",
+    "- Windows: the Codex installer with a Git for Windows installed anywhere but `C:\\Program Files\\Git`.",
+    "- Windows: the Codex plugin route with a Git for Windows installed anywhere but `C:\\Program Files\\Git`.",
+    "- Windows: the hook's tier 2 inside a Claude Code or Codex session; tier 2 was seen as the hook script run from Git Bash, and the `bbj-local` plugin as a connected server, each without the other.",
+    "- macOS: the `bbj-local` plugin in either client; only the hook's own tier 2 was seen there.",
+    "- macOS: the Codex installer on the `bbjcpl` route; the 0.2.0 run saw tier 2 only.",
+    "- Every platform: a plugin upgrade through a Git marketplace and across a real release.",
 ]
 
 failed = False
@@ -258,10 +265,10 @@ gate("status_line_in_page", len(status_values) == 1 and status_values[0] in code
      "STATUS_LINE of the installer (%d assignment line(s)) is quoted verbatim on docs/install-codex.md: %r"
      % (len(status_values), status_values[0] if len(status_values) == 1 else None))
 
-# the Not run section: exactly the two D-15 lines
+# the Not run section: exactly the NOT_RUN_LINES
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]
 pinned_gate("not_run", not_run == NOT_RUN_LINES,
-            "Not run lines=%r" % (not_run,) if not_run != NOT_RUN_LINES else "exactly the two D-15 lines",
+            "Not run lines=%r" % (not_run,) if not_run != NOT_RUN_LINES else "exactly the NOT_RUN_LINES",
             "CONTENT_VERSION and NOT_RUN_LINES")
 
 sys.exit(1 if failed else 0)
