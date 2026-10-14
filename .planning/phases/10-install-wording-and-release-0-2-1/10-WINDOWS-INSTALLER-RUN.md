@@ -97,6 +97,8 @@ round2-remote-before: fb375e3b40cd0ffbb55261dd1531451a70974613
 
 round2-dry-run 2026-10-14: R1 exit 0, commandWindows names C:\Program Files\Git\bin\sh.exe; R2 exit 0, C:\PROGRA~1\Git\bin\sh.exe as given; R3 exit 2, pass --sh-exe PATH, no home created; R3u exit 2, no home created; fake cygpath and fake codex in a throwaway directory, deleted afterwards; suite SUMMARY: ok=938 fail=0 skip=0
 
+round2-pushed: 51fc5c26da6e4b81aa0814332c1927c1a23d91c4 (2026-10-14)
+
 ## Installer route on Windows
 
 Reading 2026-10-14, round 1
