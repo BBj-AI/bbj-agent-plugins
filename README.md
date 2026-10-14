@@ -51,6 +51,18 @@ Install pages, one per client:
 
 Release notes and what each version was tested against: [CHANGELOG.md](CHANGELOG.md).
 
+## Verified
+
+Verified on Linux, Windows and macOS, with BBj 26.03. A cell names the check routes seen working
+on that platform and the client version it was seen with. `bbjcpl` is the hook's compiler check:
+it reported on a bad file and stayed silent on a clean one. `bbj-ls` is the local language server
+answering, either through the hook's second route (`hook`) or through the `bbj-local` plugin
+(`bbj-local plugin`). A route that is not named in a cell was not seen there.
+
+| Client | Linux | Windows | macOS |
+|--------|-------|---------|-------|
+| Claude Code | `bbjcpl`, `bbj-ls` (bbj-local plugin); Claude Code 2.1.299 | `bbjcpl`, `bbj-ls` (bbj-local plugin); Claude Code 2.1.292 | `bbjcpl`, `bbj-ls` (hook); Claude Code 2.1.296 |
+
 ## The check hook
 
 After every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file the hook compiles the file
