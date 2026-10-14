@@ -200,7 +200,47 @@ Plans:
   4. Both plugins, both marketplace entries, the Codex overlay and `tests/test_layout.py` read 0.2.1, and `claude plugin validate --strict` passes. The `## 0.2.1` CHANGELOG entry's Tested against section covers Linux, Windows and macOS from the recorded runs (REL-07)
   5. The full suite passes on the release tree with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) at skip=0. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.1` (no `v` prefix) is pushed, and the GitHub Release is published (REL-08)
 
-**Plans**: TBD
+**Plans**: 14 plans
+
+Plans:
+**Wave 1**
+- [ ] 10-01-PLAN.md — D-06 to D-08: installer `commandWindows` in the PowerShell call form, `--sh-exe PATH`, the early sh.exe refusal, `FAKE_CYGPATH_W_FAIL` seam and `command_windows_*` gates (wave 1)
+- [ ] 10-02-PLAN.md — D-16, D-05: `scopes` offline_access in both MCP files, hosted-server wording of `docs_url`, layout gates and mutation cases (wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 10-03-PLAN.md — D-09, D-25: Windows installer runbook and record, Linux dry run, owner decision on the push and the release questions RQ-1 to RQ-6, push of gsd/planning-setup (wave 2, checkpoint)
+- [ ] 10-04-PLAN.md — D-16, D-22: Linux readings (Codex plugin route with the real compiler and tier 2, sign-ins in both clients, D-22 before half, Claude Code install gate from the checkout) (wave 2, checkpoint)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 10-05-PLAN.md — D-09, D-20: owner's Windows re-run of the fixed installer, recorded with a verdict (wave 3, checkpoint)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 10-06-PLAN.md — DOCS-01, DOCS-02, DOCS-04: verified matrix, README table, Claude Code page banner, Windows and macOS sections, per-platform Claude Code versions, hint bans (wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 10-07-PLAN.md — DOCS-02 to DOCS-04: installer STATUS_LINE and closing notes, Codex page per route and platform, drift and hint gates (wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 10-08-PLAN.md — REL-07: one-commit bump to 0.2.1 with the `## 0.2.1` entry and re-pinned release facts; project notes (wave 6)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 10-09-PLAN.md — REL-08: release run at skip=0, suite line, strict PR branch, owner-confirmed push and PR, CI and install gate on the pushed ref (wave 7, checkpoint)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 10-10-PLAN.md — REL-08, D-19: owner-confirmed merge commit M1, proofs, CI on main, Claude Code install gate from main (wave 8, checkpoint)
+
+**Wave 9** *(blocked on Wave 8 completion)*
+- [ ] 10-11-PLAN.md — D-19, D-22, D-23: Codex install from main and the Git-marketplace upgrade reading, owner re-trust, the CHANGELOG amendment (wave 9, checkpoint)
+
+**Wave 10** *(blocked on Wave 9 completion)*
+- [ ] 10-12-PLAN.md — D-23: amendment branch from M1, checks, owner-confirmed push and PR (wave 10, checkpoint)
+
+**Wave 11** *(blocked on Wave 10 completion)*
+- [ ] 10-13-PLAN.md — D-23: owner-confirmed merge commit M2, proofs, CI on main (wave 11, checkpoint)
+
+**Wave 12** *(blocked on Wave 11 completion)*
+- [ ] 10-14-PLAN.md — REL-08, D-21, D-23: annotated tag 0.2.1 on M2 and the GitHub Release after the owner's confirmation, merge-back, todo closed (wave 12, checkpoint)
+
 **Notes**:
 - The release follows the v0.2.0 Phase 6 pattern, with a blocking owner confirmation before every push, merge, tag push and Release.
 - The CHANGELOG entry keeps the sections that `tests/test_release_text.py` requires for every version (Upgrading, Tested against, Not run, in that order) and follows the CONTENT_VERSION policy decided in Phase 7.
@@ -216,4 +256,4 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 9. Windows and macOS verification | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 10. Install wording and release 0.2.1 | v0.2.1 | 0/TBD | Not started | - |
+| 10. Install wording and release 0.2.1 | v0.2.1 | 0/14 | Planned | - |
