@@ -5,6 +5,8 @@
 # variable is set and non-empty. With the seam on, "-u" maps C:\a\b and C:/a/b to <root>/a/b
 # (drive letter dropped, backslashes turned into slashes); it models nothing else of the real
 # cygpath (no case folding, no /cygdrive, no -m or -d). Without the seam the output is unchanged.
+# Plan 10-01 (D-07) adds the seam FAKE_CYGPATH_W_FAIL, also off unless set and non-empty: with it
+# on, "-w" prints nothing and exits 1, which models a path the real cygpath cannot convert.
 case "$1" in
   -u)
     case "$2" in
@@ -17,6 +19,11 @@ case "$1" in
     esac
     printf '%s\n' "$2"
     ;;
-  -w) printf 'W:%s\n' "$2" ;;
+  -w)
+    if [ -n "${FAKE_CYGPATH_W_FAIL:-}" ]; then
+      exit 1
+    fi
+    printf 'W:%s\n' "$2"
+    ;;
   *) exit 1 ;;
 esac

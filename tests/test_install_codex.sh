@@ -559,6 +559,109 @@ else
   gate command_windows_cygpath skip "no python3"
 fi
 
+# ---- plan 10-01 (D-07, D-08): --sh-exe and the early sh.exe refusal, on the fake cygpath ----
+# With the fake cygpath `command -v sh` always exists, so a derived sh.exe that is missing cannot happen
+# in CI; --sh-exe with a missing file stands in for it.
+CYGP=$WORK/fbcyg:$WITH_CODEX
+mkdir -p "$WORK/gitalt/bin"
+: > "$WORK/gitalt/bin/sh.exe"
+ALT_SH=$WORK/gitalt/bin/sh.exe
+
+# cw_value FILE: the commandWindows string of the hooks.json FILE
+cw_value() {
+  python3 -I -c '
+import json, sys
+print(json.load(open(sys.argv[1]))["hooks"]["PostToolUse"][0]["hooks"][0]["commandWindows"])
+' "$1"
+}
+# nothing_created: neither the Codex home nor the skills directory of the case exists
+nothing_created() {
+  [ ! -e "$E_CODEX" ] && [ ! -e "$E_HOME/.agents" ]
+}
+
+if command -v python3 > /dev/null 2>&1; then
+  newenv cygov
+  run_inst "$CYGP" --sh-exe "$ALT_SH"
+  _cw_want="& \"W:$ALT_SH\" \"W:$(cd "$E_CODEX" && pwd)/bbj/bbj-check.sh\"; exit \$LASTEXITCODE"
+  _cw_got=$(cw_value "$E_CODEX/hooks.json" 2> /dev/null)
+  [ "$RC" = 0 ] && [ "$_cw_got" = "$_cw_want" ] \
+    && gate command_windows_sh_exe_override ok "--sh-exe replaces the derived sh.exe in commandWindows" \
+    || gate command_windows_sh_exe_override FAIL "exit $RC, got '$_cw_got', want '$_cw_want'"
+else
+  gate command_windows_sh_exe_override skip "no python3"
+fi
+
+newenv cygmiss
+run_inst "$CYGP" --sh-exe /nonexistent/sh.exe
+[ "$RC" = 2 ] && grep -F '/nonexistent/sh.exe' "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
+  && gate command_windows_sh_exe_missing_refused ok "a missing sh.exe exits 2 before any write and the message names the path and --sh-exe" \
+  || gate command_windows_sh_exe_missing_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
+
+newenv cygfail
+FAKE_CYGPATH_W_FAIL=1
+export FAKE_CYGPATH_W_FAIL
+run_inst "$CYGP"
+unset FAKE_CYGPATH_W_FAIL
+_cf_sh=$(PATH=$CYGP; command -v sh)
+[ "$RC" = 2 ] && grep -F "$_cf_sh" "$WORK/err" > /dev/null && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null && nothing_created \
+  && gate command_windows_cygpath_fail_refused ok "a path that cygpath -w cannot convert exits 2 before any write and the message names the path and --sh-exe" \
+  || gate command_windows_cygpath_fail_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
+
+# a Windows path with a dollar sign, a backtick or a double quote would be expanded or would end the quoted
+# path in the PowerShell command (T-10-01): each is refused, the file exists
+_ch_bad=
+_ch_n=0
+for _ch in dollar backtick quote; do
+  case "$_ch" in
+    dollar) _ch_dir=$WORK/'git$x' ;;
+    backtick) _ch_dir=$WORK/'git`x' ;;
+    quote) _ch_dir=$WORK/'git"x' ;;
+  esac
+  mkdir -p "$_ch_dir/bin"
+  : > "$_ch_dir/bin/sh.exe"
+  newenv "cygchar-$_ch"
+  run_inst "$CYGP" --sh-exe "$_ch_dir/bin/sh.exe"
+  _ch_n=$((_ch_n + 1))
+  [ "$RC" = 2 ] && nothing_created && grep -F 'pass --sh-exe PATH' "$WORK/err" > /dev/null || _ch_bad="$_ch_bad $_ch(exit $RC)"
+done
+[ -z "$_ch_bad" ] && gate command_windows_sh_exe_chars_refused ok "$_ch_n sh.exe paths holding a dollar sign, a backtick or a double quote exit 2 before any write" \
+  || gate command_windows_sh_exe_chars_refused FAIL "$_ch_bad"
+
+newenv nocygopt
+run_inst "$WITH_CODEX" --sh-exe "$ALT_SH"
+[ "$RC" = 2 ] && grep -F 'cygpath' "$WORK/err" > /dev/null && ! grep -F 'unknown option' "$WORK/err" > /dev/null && nothing_created \
+  && gate command_windows_sh_exe_without_cygpath_refused ok "--sh-exe without cygpath on PATH exits 2 before any write and says cygpath was not found" \
+  || gate command_windows_sh_exe_without_cygpath_refused FAIL "exit $RC, err: $(head -c 200 "$WORK/err")"
+
+newenv cygrt
+run_inst "$CYGP" --sh-exe "$ALT_SH"
+_rt_rc1=$RC
+run_inst "$CYGP" --remove --sh-exe "$ALT_SH"
+[ "$_rt_rc1" = 0 ] && [ "$RC" = 0 ] && [ ! -e "$E_CODEX/hooks.json" ] \
+  && gate command_windows_remove_round_trip ok "install with --sh-exe, then --remove with the same --sh-exe: hooks.json is gone" \
+  || gate command_windows_remove_round_trip FAIL "install exit $_rt_rc1, remove exit $RC, hooks.json present: $([ -e "$E_CODEX/hooks.json" ] && echo yes || echo no)"
+
+# --remove is never refused because of sh.exe (Pitfall 9): cygpath -w failing leaves commandWindows equal to
+# command, so a hooks.json with the call form stays and is named (exit 3), but the run is not a refusal
+newenv cygrm
+run_inst "$CYGP"
+_ru_rc1=$RC
+FAKE_CYGPATH_W_FAIL=1
+export FAKE_CYGPATH_W_FAIL
+run_inst "$CYGP" --remove
+unset FAKE_CYGPATH_W_FAIL
+[ "$_ru_rc1" = 0 ] && [ "$RC" != 2 ] && ! grep -F -e '--sh-exe' "$WORK/err" > /dev/null \
+  && gate command_windows_remove_unaffected ok "--remove with a cygpath that cannot convert exits $RC, never 2, and does not ask for --sh-exe" \
+  || gate command_windows_remove_unaffected FAIL "install exit $_ru_rc1, remove exit $RC, err: $(head -c 200 "$WORK/err")"
+
+run_inst "$WITH_CODEX" --help
+_hp_rc=$RC
+run_inst "$WITH_CODEX" --sh-exe
+[ "$_hp_rc" = 0 ] && grep -F -e '--sh-exe' "$WORK/out" > /dev/null 2>&1 || _hp_rc=bad
+[ "$RC" = 2 ] && [ "$_hp_rc" = 0 ] \
+  && gate command_windows_help_names_sh_exe ok "--help names --sh-exe; --sh-exe without a value exits 2" \
+  || gate command_windows_help_names_sh_exe FAIL "help state $_hp_rc, no-value exit $RC"
+
 # ---- the installer never calls a compiler or the interpreter ----
 newenv nocompiler
 FAKE_LOG=$WORK/compiler.log
