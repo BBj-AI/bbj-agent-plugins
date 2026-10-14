@@ -87,7 +87,9 @@
 #      usr\bin, or the Windows path holds $, a backtick, a double quote or a newline. --remove
 #      resolves it the same way and never refuses (plan 10-15, D-27 to D-29).
 #   5. prints the AGENTS.md snippet, the /hooks trust step, the sign-in step (codex mcp login
-#      bbj-docs, once) and the known gaps.
+#      bbj-docs, once), the known gaps (the Windows one names the launcher bin\sh.exe and --sh-exe
+#      PATH, plan 10-07, D-12) and a closing line that names the Codex plugin route as the
+#      recommended install; this script is the fallback.
 #   R. --remove (phase 8, CODEX-06; D-01 to D-04) undoes what this script wrote, for a user who
 #      switches to the Codex plugin route (codex plugin marketplace add, then codex plugin add):
 #      afterwards one hook, one copy of the skills and one bbj-docs server remain. It never calls
@@ -170,7 +172,7 @@ TOOL_KEY='approval_mode = "approve"'
 # the server-wide line that versions up to 398aac5 of this script wrote; it is only ever
 # recognised and removed, never written again
 OLD_KEY_LINE='default_tools_approval_mode = "approve"'
-STATUS_LINE='Verified with Codex CLI 0.162.1 on Linux (2026-10-12, bbjcpl route) and on Windows (2026-10-14, bbjcpl route, Git for Windows 2.52.0), and with Codex CLI 0.162.x on macOS (2026-10-12, bbj-local route).'
+STATUS_LINE='Verified with Codex CLI 0.162.1 on Linux (2026-10-12, compiler route) and on Windows (2026-10-14, compiler route, Git for Windows 2.52.0), and with Codex CLI 0.162.x on macOS (2026-10-12, bbj-local route).'
 
 say() {
   printf '%s\n' "$*"
@@ -1419,8 +1421,9 @@ say "- Patches applied through a shell heredoc are not seen by the hook; only ap
 say "- Codex has no plugin options here: the check finds BBj through BBJ_HOME, then PATH, then the default homes; set BBJ_HOME when BBj is not in a default location."
 say "- With no compiler found, the hook asks a running bbj-ls on 127.0.0.1:5009 (syntax only); with neither, it tells Codex once per session that the file was written but not compile-checked."
 say "- If Codex does not list the BBj skills, rerun with --skills-dir ~/.codex/skills (~/.agents/skills worked with Codex CLI 0.162.1)."
-say "- commandWindows in hooks.json is not yet tried on Windows; if Codex rejects it there, use command_windows in config.toml instead."
+say "- On Windows the hook command (commandWindows) names the launcher bin\sh.exe of the Git for Windows this script ran under; give --sh-exe PATH (a Windows path with a drive letter, written as given) when your Git for Windows is installed elsewhere. Run so far with Git for Windows 2.52.0 at C:\Program Files\Git only."
 say ""
+say "Recommended install: the Codex plugin (codex plugin add bbj@basis-bbj, see docs/install-codex.md); this script is the fallback for this release."
 say "$STATUS_LINE"
 
 [ "$pending" = 0 ] || exit 3
