@@ -69,13 +69,19 @@
 #   4. writes <codex home>/hooks.json with an apply_patch matcher, only when that file does not
 #      exist; an existing hooks.json is never modified (exit 3 with the block to merge by hand).
 #      With cygpath on PATH (Git for Windows) the file also carries commandWindows in the
-#      PowerShell call form: & "<sh.exe>" "<bbj-check.sh>"; exit $LASTEXITCODE, both paths through
-#      cygpath -w. Codex runs the field through PowerShell, where a command that starts with a
+#      PowerShell call form: & "<sh.exe>" "<bbj-check.sh>"; exit $LASTEXITCODE, the script path
+#      through cygpath -w. Codex runs the field through PowerShell, where a command that starts with a
 #      quoted string is a parse error (hook exit 1, no output); the call operator runs it and the
-#      trailing exit keeps exit code 2 (plan 10-01, D-06 to D-08; Phase 9 W11). The sh.exe is the one
-#      given with --sh-exe, else the sh this shell runs; an install refuses (exit 2, before the
-#      first write) when it does not exist, cygpath cannot convert it, or its Windows path holds
-#      $, a backtick or a double quote. --remove resolves it the same way and never refuses.
+#      trailing exit keeps exit code 2 (plan 10-01, D-06 to D-08; Phase 9 W11). The sh.exe is the
+#      --sh-exe value as given, else the launcher <Git root>\bin\sh.exe, the Git root being what
+#      `cygpath -w /` prints. Not usr\bin\sh.exe: started from PowerShell it gets no Git PATH, so the
+#      hook finds no cat, head or awk and does nothing (round 1 of the Windows reading). No cygpath
+#      round trip touches a --sh-exe value, because /bin is a mount of /usr/bin and the path came back
+#      as usr\bin\sh.exe. Existence is checked through the drive root (cygpath -u of X:/ plus the rest
+#      of the path), not through the /bin mount. An install refuses (exit 2, before the first write)
+#      when the sh.exe does not exist, / cannot be converted, a --sh-exe has no drive letter or names
+#      usr\bin, or the Windows path holds $, a backtick, a double quote or a newline. --remove
+#      resolves it the same way and never refuses (plan 10-15, D-27 to D-29).
 #   5. prints the AGENTS.md snippet, the /hooks trust step, the sign-in step (codex mcp login
 #      bbj-docs, once) and the known gaps.
 #   R. --remove (phase 8, CODEX-06; D-01 to D-04) undoes what this script wrote, for a user who
@@ -103,8 +109,8 @@
 #
 # Options: --docs-url URL (default DEFAULT_DOCS_URL, the same value as the bbj plugin's
 # docs_url default; plain http only to 127.0.0.1, localhost or [::1]), --skills-dir DIR,
-# --codex-home DIR (default $CODEX_HOME or ~/.codex), --sh-exe PATH (the sh.exe of Git for Windows in
-# commandWindows, step 4; needs cygpath on PATH), --with-local (register bbj-local, step 1b),
+# --codex-home DIR (default $CODEX_HOME or ~/.codex), --sh-exe PATH (the Windows path of the sh.exe in
+# commandWindows, written as given, step 4; needs cygpath on PATH), --with-local (register bbj-local, step 1b),
 # --force, --remove (undo what this script wrote, R), --help.
 # Exit codes: 0 done, 2 usage error or refusal, 3 finished with something left to merge or
 # decide by hand: bbj-docs or its tools named in config.toml in a form this script does not
@@ -116,8 +122,9 @@
 # than this script's hook, a check-script directory that holds other files.
 #
 # Exit 2 before the first write also covers --sh-exe without cygpath on PATH, and with cygpath an sh.exe
-# that does not exist, that cygpath cannot convert, or whose Windows path holds a dollar sign, a
-# backtick or a double quote (plan 10-01, D-07): the message names the path and --sh-exe.
+# that does not exist, a --sh-exe without a drive letter or in usr\bin, a root that cygpath cannot
+# convert, or a Windows path that holds a dollar sign, a backtick, a double quote or a newline (plan
+# 10-01, D-07; plan 10-15, D-27 to D-29): the message names the path as given and --sh-exe.
 #
 # Exit 2 before the first write means nothing was changed: the options are validated and every
 # destination (skills directory, <codex home>/bbj, config.toml) is created or checked up front.
@@ -180,9 +187,11 @@ Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-ho
                      https anywhere, http only to 127.0.0.1, localhost or [::1]
   --skills-dir DIR   where the skills go (default \$HOME/.agents/skills)
   --codex-home DIR   Codex home (default \$CODEX_HOME, else \$HOME/.codex)
-  --sh-exe PATH      the sh.exe of Git for Windows that the Windows hook command (commandWindows)
-                     runs; default the sh this shell runs, converted through cygpath; only with
-                     cygpath on PATH (Git for Windows), refused without it
+  --sh-exe PATH      the Windows path, with a drive letter, of the sh.exe that the Windows hook
+                     command (commandWindows) runs, written as given, for a Git for Windows
+                     installed elsewhere; default the launcher bin\sh.exe of the Git for Windows
+                     this shell belongs to (the Windows path of /); only with cygpath on PATH
+                     (Git for Windows), refused without it
   --with-local       register bbj-local, the bbj-ls of a running BBjServices 26.03 or later at
                      http://127.0.0.1:5009/mcp, and approve its three tools by name; a probe (one
                      tools/list request, no code sent) asks first, and with no answer bbj-local is
@@ -199,8 +208,9 @@ Usage: sh codex/install-codex.sh [--docs-url URL] [--skills-dir DIR] [--codex-ho
 Exit: 0 done, 2 refused (nothing written unless the message names the steps that ran; with
         --remove: combined with --with-local or --force, a Codex home that is not a directory,
         a destination that is not writable; --sh-exe without cygpath; on Windows an sh.exe that
-        does not exist, cannot be converted by cygpath or holds \$, a backtick or a double quote,
-        which an install refuses and --remove never does),
+        does not exist, a --sh-exe without a drive letter or in usr\bin, a path cygpath cannot
+        convert, or one that holds \$, a backtick or a double quote, which an install refuses
+        and --remove never does),
       3 done except something to merge or decide by hand: bbj-docs or its tools named in
         config.toml in a form this script does not edit, a default_tools_approval_mode that
         approves every tool, bbj-local named in a form this script does not edit or with
