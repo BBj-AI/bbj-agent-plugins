@@ -406,6 +406,17 @@ installer.
 
 </deferred>
 
+## Amendments (plan 10-03)
+
+Owner reply, verbatim: "push-accept a for all" (option push-accept: push now, RQ-1 to RQ-6 as recommended, all a).
+
+RQ-1: a - State the Claude Code version that runs the 0.2.1 Linux checks, read when the wording is written, read again at the release run, and re-pinned in one commit if it changed; this amends the Linux half of D-02. (owner, 2026-10-14, plan 10-03 Task 2)
+RQ-2: a - Write "Codex CLI 0.162.x" for the macOS installer cell. (owner, 2026-10-14, plan 10-03 Task 2)
+RQ-3: a - No server version in the docs server line: state the URL and that the sign-in completed in each client, with dates (sources: plan 10-04 Linux readings and the Phase 9 Windows side readings). (owner, 2026-10-14, plan 10-03 Task 2)
+RQ-4: a - Run the pre-merge install gate from the pushed PR ref, after the PR push and before the merge. (owner, 2026-10-14, plan 10-03 Task 2)
+RQ-5: a - The D-23 amendment PR also updates the "Upgrading the plugin" paragraph of docs/install-codex.md to the D-22 observation, and the full release suite re-runs on that tree (first branch of D-23). (owner, 2026-10-14, plan 10-03 Task 2)
+RQ-6: a - New branches gsd/release-0.2.1 (PR-A) and gsd/release-0.2.1-amend (PR-B); the merged gsd/planning-setup-pr is left alone. (owner, 2026-10-14, plan 10-03 Task 2)
+
 ---
 
 *Phase: 10-install-wording-and-release-0-2-1*
