@@ -314,12 +314,31 @@ w_sh=
 sh_why=
 if command -v cygpath > /dev/null 2>&1; then
   if [ -n "$sh_exe" ]; then
-    sh_posix=$(cygpath -u "$sh_exe" 2> /dev/null)
-    if [ -z "$sh_posix" ] || { [ ! -f "$sh_posix" ] && [ ! -f "$sh_posix.exe" ]; }; then
-      sh_why="no sh.exe at ${sh_posix:-$sh_exe}"
-    else
-      w_sh=$(cygpath -w "$sh_posix" 2> /dev/null)
-      [ -n "$w_sh" ] || sh_why="cygpath cannot convert $sh_posix to a Windows path"
+    # the value is written as given and no cygpath output reaches w_sh: cygpath -u of a path under the Git
+    # root lands under /bin, a mount of /usr/bin, and cygpath -w then returned usr\bin\sh.exe (plan 10-15,
+    # D-28; round 1 note 1). Reasons, first one wins: no drive letter, a character the PowerShell command
+    # cannot carry, an sh.exe in usr\bin (D-29), a file that does not exist.
+    w_sh=$sh_exe
+    case "$sh_exe" in
+      [A-Za-z]:[\\/]*) ;;
+      *) sh_why="--sh-exe takes the Windows path of sh.exe with a drive letter, written as given (C:\\... or C:/...); $sh_exe has none" ;;
+    esac
+    if [ -z "$sh_why" ]; then
+      case "$sh_exe" in
+        *'$'*|*'`'*|*'"'*|*"$nl"*) sh_why="the --sh-exe value, $sh_exe, holds a character that is not allowed in the hook command (one of \$ \` \" or a newline)" ;;
+      esac
+    fi
+    if [ -z "$sh_why" ]; then
+      sh_lc=$(printf '%s' "$sh_exe" | tr '[:upper:]\\' '[:lower:]/')
+      case "$sh_lc" in
+        */usr/bin/sh.exe|*/usr/bin/sh) sh_why="the sh.exe in usr\\bin, $sh_exe, started by Codex from PowerShell finds no cat, head or awk and the hook does nothing; name the launcher bin\\sh.exe of that Git instead" ;;
+      esac
+    fi
+    if [ -z "$sh_why" ]; then
+      sh_posix=$(drive_posix "$sh_exe")
+      if [ -z "$sh_posix" ] || { [ ! -f "$sh_posix" ] && [ ! -f "$sh_posix.exe" ]; }; then
+        sh_why="no sh.exe at $sh_exe"
+      fi
     fi
   else
     w_root=$(cygpath -w / 2> /dev/null)
