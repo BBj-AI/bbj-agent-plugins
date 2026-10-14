@@ -312,7 +312,10 @@ hook_cmd_win=$hook_cmd
 if command -v cygpath > /dev/null 2>&1; then
   w_sh=$(cygpath -w "$(command -v sh)")
   w_script=$(cygpath -w "$script_dst")
-  hook_cmd_win="\"$w_sh\" \"$w_script\""
+  # under Codex's PowerShell launcher a command that starts with a quoted string is a parse error;
+  # the call operator runs it, and the trailing exit keeps exit code 2, which a -Command wrapper
+  # would rewrite to 1 (plan 10-01, D-06; Phase 9 W11)
+  hook_cmd_win="& \"$w_sh\" \"$w_script\"; exit \$LASTEXITCODE"
 fi
 hooks=$codex_home/hooks.json
 # render_hooks: the hooks.json this script writes, on stdout

@@ -8,6 +8,8 @@
 # homes, never a session; without a codex that gate is a clean skip. Plan 01-06 adds the tools/list
 # probe gates (LOCAL-03, LOCAL-04) against tests/fake_mcp.py and a fake curl; the probe URL is always
 # the BBJ_LOCAL_MCP_URL seam (a fake port or the closed port 9), never a real bbj-ls.
+# Plan 10-01 (D-06 to D-08) gates the commandWindows call form, --sh-exe and the early sh.exe refusal on
+# the fake cygpath (the command_windows_ gates).
 # Quick 261013-cpn adds the oauth_ gates: the installer writes, keeps and reports the
 # [mcp_servers.bbj-docs.oauth] table of the pre-registered client, and never starts a sign-in.
 . "$(dirname "$0")/lib.sh"
@@ -535,15 +537,21 @@ newenv cyg
 run_inst "$WORK/fbcyg:$WITH_CODEX"
 note_cfg "$E_CODEX/config.toml"
 real_parse cyg "$E_CODEX/config.toml" "$DEFAULT_URL"
+# D-06 (plan 10-01): the whole string, not a prefix; the expected value is computed here, the way the
+# installer resolves the sh of the case's PATH and the copied script path
+_cyg_sh=$(PATH="$WORK/fbcyg:$WITH_CODEX"; command -v sh)
+_cyg_home=$(cd "$E_CODEX" && pwd)
+_cyg_want="& \"W:$_cyg_sh\" \"W:$_cyg_home/bbj/bbj-check.sh\"; exit \$LASTEXITCODE"
 if command -v python3 > /dev/null 2>&1; then
   if python3 -I -c '
 import json, sys
 h = json.load(open(sys.argv[1]))["hooks"]["PostToolUse"][0]["hooks"][0]
 w = h["commandWindows"]
 assert w != h["command"], w
-assert w.startswith("\"W:") and "bbj-check.sh\"" in w and w.count("\"") == 4, w
-' "$E_CODEX/hooks.json" 2> "$WORK/pyerr"; then
-    gate command_windows_cygpath ok "commandWindows holds the two cygpath -w forms, each double-quoted"
+assert w.count("\"") == 4, w
+assert w == sys.argv[2], "got %r, want %r" % (w, sys.argv[2])
+' "$E_CODEX/hooks.json" "$_cyg_want" 2> "$WORK/pyerr"; then
+    gate command_windows_cygpath ok "commandWindows is the PowerShell call form with the two cygpath -w paths"
   else
     gate command_windows_cygpath FAIL "$(tail -n 1 "$WORK/pyerr")"
   fi
