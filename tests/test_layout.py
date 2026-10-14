@@ -30,6 +30,7 @@ DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
 OAUTH_CLIENT_ID = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
 OAUTH_PORT = 47613
+OAUTH_SCOPES = "offline_access"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # D-11 of phase 9: Codex's Windows override of the hook command, as the owner chose it for W-1 (the
 # 8.3 path of Git for Windows' sh.exe, unquoted, because Codex starts the hook through Windows
@@ -109,12 +110,15 @@ gate("codex_overlay_fields",
 
 # bbj .mcp.json: exactly one http server at ${user_config.docs_url}. The entry carries the
 # pre-registered OAuth client of the hosted docs server (quick 261013-cpn); dict equality
-# also rejects a string port and any extra key such as a client secret.
+# also rejects a string port and any extra key such as a client secret. Claude Code asks for
+# offline_access only when told, so the plugin names it as a string, never an array and never a
+# key called scope (plan 10-02, D-16).
 servers = bbj_mcp.get("mcpServers", {})
 gate("bbj_mcp",
      servers == {"bbj-docs": {"type": "http", "url": "${user_config.docs_url}",
                               "oauth": {"clientId": OAUTH_CLIENT_ID,
-                                        "callbackPort": OAUTH_PORT}}},
+                                        "callbackPort": OAUTH_PORT,
+                                        "scopes": OAUTH_SCOPES}}},
      "mcpServers=%r" % (servers,))
 
 # D-11: the Codex file registers bbj-docs at the literal docs URL. Plan 08-08 (owner decision
