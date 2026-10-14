@@ -1,0 +1,31 @@
+round: 2
+date: 2026-10-14
+checkout-commit: 51fc5c2
+env-os: Microsoft Windows [Version 10.0.19045.6466]
+env-git: git version 2.52.0.windows.1
+env-gitbash: 5.2.37(1)-release
+env-powershell: 5.1.19041.6456
+env-codex: codex-cli 0.162.1
+env-bbj: BBj 26.03 (readme.htm; C:\bbx\bin\BBjCpl.exe)
+env-bbj-home: unset
+env-bbjcpl-path: not found
+env-cygpath-root: C:\Program Files\Git\
+env-ps-usr-bin: not on PATH
+r1-exit: 0
+r1-cmdwin: "commandWindows": "& \"C:\\Program Files\\Git\\bin\\sh.exe\" \"<home>\\.codex-p10r2-inst\\bbj\\bbj-check.sh\"; exit $LASTEXITCODE",
+r1-trusted: yes
+r1-bad: bbjcpl reported (Codex showed "Blocked by hook" with: bbjcpl reported 1 error(s) in /c/Users/<home>/bbj-p10/bad.bbj: / C:\Users\<home>\bbj-p10\bad.bbj: error at line 10 (1): print "a"   rem same line / bbj_lookup gives exact syntax for a named symbol. Q repeated the same three lines word for word.)
+r1-clean: silent
+r1-folder: bbj-p10
+r2-exit: 0
+r2-cmdwin: "commandWindows": "& \"C:\\PROGRA~1\\Git\\bin\\sh.exe\" \"<home>\\.codex-p10r2-inst\\bbj\\bbj-check.sh\"; exit $LASTEXITCODE",
+r2-trusted: yes
+r2-bad: bbjcpl reported (same three lines as r1-bad)
+r3-exit: 2
+r3-message: install-codex: no sh.exe at C:\nowhere\sh.exe; pass --sh-exe PATH with the sh.exe of your Git for Windows, for example C:\Program Files\Git\bin\sh.exe
+r3-home-created: no
+r3u-exit: 2
+r3u-message: install-codex: the sh.exe in usr\bin, C:\Program Files\Git\usr\bin\sh.exe, started by Codex from PowerShell finds no cat, head or awk and the hook does nothing; name the launcher bin\sh.exe of that Git instead; pass --sh-exe PATH with the sh.exe of your Git for Windows, for example C:\Program Files\Git\bin\sh.exe
+r3u-home-created: no
+r4-bad: bbjcpl reported (same three lines; the agent then edited bad.bbj again, was blocked again, and finally wrote the file with Set-Content from the shell, which the hook does not see)
+notes: (1) R1 and R2 Codex sessions were started from a Start-menu PowerShell window with Git\usr\bin removed from PATH as written; on this machine Git\usr\bin is not on the machine or user PATH anyway, so the removal step changed nothing. (2) /hooks lists the hook as "Unnamed hook" (Source "User config - ~\.codex-p10r2-inst\hooks.json") in both R1 and R2; R2 asked for trust anew after the hooks.json change. (3) Before the Codex run, the R1 hook was pre-checked outside Codex: the exact commandWindows form run from PowerShell without Git\usr\bin on PATH, BBJ_HOME=C:\bbx and an apply_patch payload on stdin exited 2 with the bbjcpl report. (4) The 8.3 path C:\PROGRA~1\Git\bin\sh.exe exists on this machine, so the R2 fallback was not needed. (5) R1 installer again printed "bbj-docs: codex mcp add wrote the bbj-docs table, then exited with an error; the table is kept and completed below" and then completed; it also reported a bbj-ls at http://127.0.0.1:5009/mcp, not registered (--with-local not passed). The R2 installer reported bbj-docs, both skills and bbj-check.sh unchanged and rewrote only hooks.json. (6) After the R2 session was left with Ctrl+C, bad.bbj was no longer in bbj-p10 (clean.bbj was); Codex appears to have rolled the blocked patch back on the interrupt. (7) Clean-up: after leaving Codex, two codex.exe app-server-daemon processes under <home>\.codex-p10r2-inst and one under the Codex app install were running; all were stopped with Get-Process codex | Stop-Process, then both throwaway homes were removed. The real ~\.codex was never used as CODEX_HOME. Round-1 leftovers bad.bbj and clean.bbj in <home> were deleted before R1; <home>\bbj-p10 did not exist from round 1.
