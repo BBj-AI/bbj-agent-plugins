@@ -25,6 +25,11 @@
 #     plugin-scoped key, on the Codex page; the two plugin commands in README; twelve installer
 #     messages quoted on the page (four more for --remove); and a forbid so that neither the Codex page
 #     nor README recommends the hook-trust bypass flag of codex exec.
+#   - the Codex page, verified platforms (plan 10-07, DOCS-02, DOCS-04; D-03 to D-05, D-10, D-11): the banner "Verified on
+#     Linux, Windows and macOS", "## macOS", the --sh-exe option, the "hook exited" symptom and the plugin's
+#     commandWindows path, the "Observed on <platform> with" lines, the hosted-server wording and the daemon
+#     environment sentence; the two forbids of check_released_wording; and codex_plugin_route_first (the
+#     plugin-route heading comes before the fallback heading).
 #   - the verified platforms (plan 10-06, DOCS-01, DOCS-02, DOCS-04; D-01 to D-05): the banner "Verified on
 #     Linux, Windows and macOS", the three Claude Code versions (one per platform) and the sections
 #     "## Windows" and "## macOS" on the Claude Code page; the README table rows and the BBj version
@@ -190,7 +195,7 @@ if [ -f "$CODEX_PAGE" ]; then
   n=codex
   # shellcheck disable=SC2088  # the tilde is literal text searched for in the page
   for p in \
-    'Tested on Linux only' \
+    'Verified on Linux, Windows and macOS' \
     'install-codex.sh' \
     '--docs-url' \
     '--skills-dir' \
@@ -240,6 +245,14 @@ if [ -f "$CODEX_PAGE" ]; then
     '### Trust the hook in /hooks' \
     'first use' \
     'Observed on Linux with Codex CLI 0.162.1:' \
+    'Observed on Windows with' \
+    'Observed on macOS with' \
+    '## macOS' \
+    '--sh-exe' \
+    'hook exited' \
+    'C:\PROGRA~1\Git\bin\sh.exe' \
+    'the hosted BBj docs server' \
+    'stop every Codex process' \
     '### Switch from the installer script' \
     'sh codex/install-codex.sh --remove' \
     '## Fallback: the installer script' \
@@ -257,6 +270,7 @@ if [ -f "$CODEX_PAGE" ]; then
     gate codex_oauth_client_id FAIL "no OAUTH_CLIENT_ID line in codex/install-codex.sh"
   fi
   check_common "$n" "$CODEX_PAGE"
+  check_released_wording "$n" "$CODEX_PAGE"
   forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$CODEX_PAGE" "$NOROUTE_SILENCE" noroute_silence
   # no text may tell users to skip the hook review (T-08-26, CODEX-05)
@@ -276,6 +290,7 @@ if [ -f "$CODEX_PAGE" ]; then
   # comment, so the page cannot describe a message the installer does not print (T-01-28)
   grep -v '^[[:space:]]*#' "$INSTALLER" > "$WORK/installer.code"
   quoted_bad=0
+  quoted_n=0
   for p in \
     'a bbj-ls answers at' \
     'no bbj-ls answered at' \
@@ -288,12 +303,23 @@ if [ -f "$CODEX_PAGE" ]; then
     'nothing to remove' \
     'left in place' \
     'holds more than the hook this script writes' \
-    'rerun with --docs-url'
+    'rerun with --docs-url' \
+    'pass --sh-exe PATH'
   do
+    quoted_n=$((quoted_n + 1))
     grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
     grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
   done
-  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "twelve quoted fragments, each on the page and on a non-comment installer line"
+  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "$quoted_n quoted fragments, each on the page and on a non-comment installer line"
+
+  # the plugin route comes before the installer script on the page (phase 8 D-15, D-16; plan 10-07)
+  _plug=$(grep -n -F -x '## Install with the Codex plugin (recommended)' "$CODEX_PAGE" | head -n 1 | cut -d: -f1)
+  _fall=$(grep -n -F -x '## Fallback: the installer script' "$CODEX_PAGE" | head -n 1 | cut -d: -f1)
+  if [ -n "$_plug" ] && [ -n "$_fall" ] && [ "$_plug" -lt "$_fall" ]; then
+    gate codex_plugin_route_first ok "the plugin-route heading (line $_plug) comes before the fallback heading (line $_fall)"
+  else
+    gate codex_plugin_route_first FAIL "plugin-route heading line '$_plug', fallback heading line '$_fall'"
+  fi
 fi
 
 # ---- README: the local check, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
