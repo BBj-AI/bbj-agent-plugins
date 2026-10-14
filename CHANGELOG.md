@@ -100,6 +100,9 @@ If you installed from `main` before 0.2.1:
 - BBj 26.03: `bbjcpl` for the local compiler route and `bbj-ls` on `127.0.0.1:5009` for the
   `bbj-local` route, on all three machines.
 - The skills `bbj-programming` and `bbj-web-programming` as shipped, unchanged since 0.2.0.
+- The plugin test suite, `CI=true BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1 BBJ_TEST_CODEX=<path to codex>
+  sh tests/ci.sh` with busybox, ShellCheck 0.11.0, claude 2.1.299 and no Codex daemon running:
+  `SUMMARY: ok=979 fail=0 skip=0` and `CI SUMMARY: ok=6 fail=0 skip=0 run_sh_exit=0`, 2026-10-14.
 
 ### Not run
 
