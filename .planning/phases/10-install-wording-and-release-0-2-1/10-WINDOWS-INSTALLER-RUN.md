@@ -60,6 +60,7 @@ message. The sha the owner reads back from `git -C <checkout> rev-parse --short 
 `checkout-commit` in the Run environment table and must equal it.
 
 remote-before: d598854ce86eec805b85f7a55837024978cba82f
+pushed: fb375e3b40cd0ffbb55261dd1531451a70974613 (2026-10-14)
 
 Linux dry run 2026-10-14: R1 exit 0, commandWindows in the call form (`& "W:<sh>" "W:<home>/bbj/bbj-check.sh"; exit $LASTEXITCODE`); R2 override named, same form with the given sh.exe; R3 exit 2 with `pass --sh-exe PATH`, no home created; the steps ran with the fake cygpath on PATH in a throwaway directory that was deleted afterwards; suite SUMMARY: ok=933 fail=0 skip=0
 
