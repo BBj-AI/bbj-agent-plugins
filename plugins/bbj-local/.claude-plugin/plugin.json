@@ -1,6 +1,6 @@
 {
   "name": "bbj-local",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Registers the bbj-ls MCP server of a running BBjServices on 127.0.0.1:5009, which offers bbj_check_syntax, bbj_denum and bbj_format; needs BBj 26.03 or later; off by default.",
   "author": {
     "name": "BASIS International Ltd."
