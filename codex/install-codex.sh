@@ -278,27 +278,67 @@ case "$codex_home" in
   *'$'*|*'`'*|*'"'*|*'\'*|*"'"*) refuse "--codex-home holds a character that is not allowed in a hook command (one of \$ \` \" \\ ')" ;;
 esac
 
-# the sh.exe of the Windows hook command (plan 10-01, D-07, D-08), resolved before the first write: with
-# cygpath on PATH (Git for Windows) the hook command names the Windows path of an sh.exe, the one given
-# with --sh-exe or else the sh this shell runs. An install refuses when that sh.exe is missing, cannot be
-# converted, or holds a character PowerShell would expand or end its quoted path on, rather than write a
-# hook that cannot start. --remove resolves it the same way (to render the same bytes) but never refuses.
+# drive_posix WINPATH: the POSIX path of a Windows path with a drive letter, built from the drive root
+# (cygpath -u of X:/, trailing slashes removed) followed by the rest of WINPATH with its backslashes turned
+# into slashes; prints nothing for any other value, or when cygpath prints nothing. A path under the Git
+# root converted whole by cygpath -u comes back under /bin, which Git for Windows mounts on /usr/bin, so the
+# existence check would see usr\bin\sh.exe and not the launcher (plan 10-15, D-28; round 1 note 1).
+drive_posix() {
+  case "$1" in
+    [A-Za-z]:[\\/]*) ;;
+    *) return 0 ;;
+  esac
+  _dp_rest=${1#?:}
+  _dp_drive=${1%"$_dp_rest"}
+  _dp_root=$(cygpath -u "$_dp_drive/" 2> /dev/null)
+  [ -n "$_dp_root" ] || return 0
+  while :; do
+    case "$_dp_root" in
+      */) _dp_root=${_dp_root%/} ;;
+      *) break ;;
+    esac
+  done
+  printf '%s%s\n' "$_dp_root" "$(printf '%s' "$_dp_rest" | tr '\\' '/')"
+}
+
+# the sh.exe of the Windows hook command (plan 10-01, D-07, D-08; plan 10-15, D-27, D-28), resolved before the
+# first write: with cygpath on PATH (Git for Windows) the hook command names the Windows path of an sh.exe,
+# the one given with --sh-exe or else the launcher <Git root>\bin\sh.exe, where the Git root is what
+# `cygpath -w /` prints. Codex runs commandWindows from PowerShell: usr\bin\sh.exe started that way gets the
+# plain Windows PATH, so the hook finds no cat, head or awk and exits 0, while the launcher bin\sh.exe puts
+# Git's usr\bin on PATH first (plan 10-15, D-27; round 1, notes 1 and 2). An install refuses when that sh.exe
+# is missing, cannot be converted, or holds a character PowerShell would expand or end its quoted path on,
+# rather than write a hook that cannot start. --remove resolves it the same way (to render the same bytes)
+# but never refuses.
 w_sh=
+sh_why=
 if command -v cygpath > /dev/null 2>&1; then
   if [ -n "$sh_exe" ]; then
     sh_posix=$(cygpath -u "$sh_exe" 2> /dev/null)
+    if [ -z "$sh_posix" ] || { [ ! -f "$sh_posix" ] && [ ! -f "$sh_posix.exe" ]; }; then
+      sh_why="no sh.exe at ${sh_posix:-$sh_exe}"
+    else
+      w_sh=$(cygpath -w "$sh_posix" 2> /dev/null)
+      [ -n "$w_sh" ] || sh_why="cygpath cannot convert $sh_posix to a Windows path"
+    fi
   else
-    sh_posix=$(command -v sh)
+    w_root=$(cygpath -w / 2> /dev/null)
+    if [ -z "$w_root" ]; then
+      sh_why="cygpath cannot convert / (the root of this Git for Windows) to a Windows path"
+    else
+      case "$w_root" in
+        *[\\/]) w_root=${w_root%?} ;;
+      esac
+      w_sh=$w_root'\bin\sh.exe'
+      sh_posix=$(drive_posix "$w_sh")
+      if [ -z "$sh_posix" ] || { [ ! -f "$sh_posix" ] && [ ! -f "$sh_posix.exe" ]; }; then
+        sh_why="no sh.exe at $w_sh"
+      fi
+    fi
   fi
-  sh_why=
-  if [ -z "$sh_posix" ] || { [ ! -f "$sh_posix" ] && [ ! -f "$sh_posix.exe" ]; }; then
-    sh_why="no sh.exe at ${sh_posix:-$sh_exe}"
-  else
-    w_sh=$(cygpath -w "$sh_posix" 2> /dev/null)
+  if [ -z "$sh_why" ]; then
     w_script_early=$(cygpath -w "$codex_home/bbj/bbj-check.sh" 2> /dev/null)
-    if [ -z "$w_sh" ]; then
-      sh_why="cygpath cannot convert $sh_posix to a Windows path"
-    elif [ -z "$w_script_early" ]; then
+    if [ -z "$w_script_early" ]; then
       sh_why="cygpath cannot convert $codex_home/bbj/bbj-check.sh to a Windows path"
     else
       case "$w_sh" in
