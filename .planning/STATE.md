@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-06-PLAN.md
-last_updated: "2026-10-14T16:51:39.355Z"
+stopped_at: Completed 10-07-PLAN.md
+last_updated: "2026-10-14T17:08:10.805Z"
 last_activity: 2026-10-14
 last_activity_desc: Phase 10 execution started
-state_head: bfcfcd647ea4eee992c25ed826734d091377adf5
+state_head: 9204b8d5abd6d083a7638422fb41e5c96a411297
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 39
-  completed_plans: 31
+  completed_plans: 32
   percent: 75
 ---
 
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 10 of 17 (9 done; next 10-07)
+Plan: 11 of 17 (10 done; next 10-08)
 Status: Ready to execute
-Last activity: 2026-10-14 — Plan 10-06 complete; README and Claude Code page state the verified platforms
+Last activity: 2026-10-14 — Plan 10-07 complete; Codex page and installer state the verified platforms
 
 Progress: [████████████████████] 22/22 plans ([████████░░] 75%) — phases 3/4 complete
 
@@ -138,6 +138,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 10 P16 | 15min | 3 tasks | 2 files |
 | Phase 10 P17 | n/a | 3 tasks | 2 files |
 | Phase 10 P06 | 70min | 3 tasks | 6 files |
+| Phase 10 P07 | ~50min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -195,6 +196,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: D-26/D-31: Windows installer round 2 met by the round-2 rule; D-09: met, round-1 verdict superseded
 - [Phase 10]: 10-06: Linux Claude Code version is 2.1.299 (RQ-1 a, equal to claude --version on 2026-10-14); Windows 2.1.292; macOS 2.1.296; the gate is per platform
 - [Phase 10]: 10-06: the README table names a route only where the matrix Sources entry shows it; (hook) marks tier 2 of the hook, (bbj-local plugin) the plugin connected; Windows Codex installer cell follows round 2 (D-09: met)
+- [Phase 10]: 10-07: Codex STATUS_LINE says 'compiler route' (static guard bans the compiler name on installer code lines); Windows clause follows round 2 (D-09: met)
 
 ### Pending Todos
 
@@ -225,8 +227,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-14T16:51:39.241Z
-Stopped at: Completed 10-06-PLAN.md
+Last session: 2026-10-14T17:08:10.688Z
+Stopped at: Completed 10-07-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
