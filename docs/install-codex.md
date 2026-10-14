@@ -207,6 +207,9 @@ writing a file. A plugin cannot ship an `AGENTS.md`, which is why this is a manu
 `codex/install-codex.sh` stays for this release, for a Codex without plugin support and for users
 who want the five docs tools pre-approved. It needs a checkout of this repository.
 
+The installer prints its status first and last, and the status says where it was verified:
+`Verified with Codex CLI 0.162.1 on Linux (2026-10-12, bbjcpl route) and on Windows (2026-10-14, bbjcpl route, Git for Windows 2.52.0), and with Codex CLI 0.162.x on macOS (2026-10-12, bbj-local route).`
+
 ### 1. Run the installer
 
 ```bash

@@ -168,8 +168,15 @@ real_parse() {
 newenv first
 run_inst "$WITH_CODEX"
 [ "$RC" = 0 ] && gate first_exit ok "exit 0" || gate first_exit FAIL "exit $RC: $(head -c 300 "$WORK/err")"
-head -n 1 "$WORK/out" | grep 'not yet run on Windows or macOS' > /dev/null \
-  && gate first_status_banner ok "first stdout line states the tested platforms" || gate first_status_banner FAIL "first line: $(head -n 1 "$WORK/out")"
+# plan 10-07 (D-12): the one STATUS_LINE value is read from the installer, so the test never holds a second copy
+_status=$(sed -n "s/^STATUS_LINE='\(.*\)'\$/\1/p" "$INSTALLER")
+_first=$(head -n 1 "$WORK/out")
+if [ "$(printf '%s\n' "$_status" | grep -c .)" = 1 ] && [ "$_first" = "$_status" ] \
+  && printf '%s' "$_first" | grep -q 'Linux' && printf '%s' "$_first" | grep -q 'Windows' && printf '%s' "$_first" | grep -q 'macOS'; then
+  gate first_status_banner ok "first stdout line equals the STATUS_LINE of the installer and names Linux, Windows and macOS"
+else
+  gate first_status_banner FAIL "first line: $_first; STATUS_LINE: $_status"
+fi
 grep -Fx 'mcp add bbj-docs --url https://mcp.bbj-ai.com/mcp' "$E_LOG" > /dev/null \
   && gate first_codex_mcp_add ok "codex mcp add bbj-docs --url <default>" || gate first_codex_mcp_add FAIL "log: $(cat "$E_LOG")"
 CFG=$E_CODEX/config.toml

@@ -250,6 +250,14 @@ for rel in HINT_FILES:
 gate("no_unrun_hint", not hint_hits,
      "; ".join(hint_hits) if hint_hits else "no old 'not yet run' hint in %s" % ", ".join(HINT_FILES))
 
+# DOCS-03 (plan 10-07, D-12): the installer's one STATUS_LINE is quoted on the Codex page, so the two
+# cannot say different things about where the installer was verified
+status_values = [m.group(1) for m in (re.match(r"^STATUS_LINE='(.*)'$", ln) for ln in installer) if m]
+codex_page_text = squash(read_lines("docs/install-codex.md") or [])
+gate("status_line_in_page", len(status_values) == 1 and status_values[0] in codex_page_text,
+     "STATUS_LINE of the installer (%d assignment line(s)) is quoted verbatim on docs/install-codex.md: %r"
+     % (len(status_values), status_values[0] if len(status_values) == 1 else None))
+
 # the Not run section: exactly the two D-15 lines
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]
 pinned_gate("not_run", not_run == NOT_RUN_LINES,
