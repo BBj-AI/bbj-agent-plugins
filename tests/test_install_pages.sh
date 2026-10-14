@@ -25,6 +25,13 @@
 #     plugin-scoped key, on the Codex page; the two plugin commands in README; twelve installer
 #     messages quoted on the page (four more for --remove); and a forbid so that neither the Codex page
 #     nor README recommends the hook-trust bypass flag of codex exec.
+#   - the verified platforms (plan 10-06, DOCS-01, DOCS-02, DOCS-04; D-01 to D-05): the banner "Verified on
+#     Linux, Windows and macOS", the three Claude Code versions (one per platform) and the sections
+#     "## Windows" and "## macOS" on the Claude Code page; the README table rows and the BBj version
+#     beside them; the hosted-server wording on both; the plugin commands before the installer in
+#     README (readme_codex_plugin_first); and two forbids on README and the Claude Code page
+#     (check_released_wording): the old "not yet run" platform hints and the pre-production or go-live
+#     wording of the docs server, so neither can come back.
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
 
 . "$(dirname "$0")/lib.sh"
@@ -65,6 +72,13 @@ check_common() {
   forbid "$1" "$2" 'until this release|release is merged to it|this release is on github' release_time_caveat
 }
 
+# check_released_wording NAME FILE: the hints of releases before 0.2.1 must not come back (plan 10-06,
+# DOCS-04, D-03, D-05). "not yet set" (a Claude Code message about two options) is not one of them.
+check_released_wording() {
+  forbid "$1" "$2" 'Tested on Linux only|not yet run|not yet been run|not yet tried|not yet been tried' old_platform_hints
+  forbid "$1" "$2" 'pre-production|go-live|earlier trial' docs_server_stage
+}
+
 # the hook now speaks when no check route exists (plan 02-03, HOOK-02): no text may say it stays silent
 NOROUTE_SILENCE='says nothing|missing compiler is silent'
 
@@ -97,7 +111,13 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'Git for Windows' \
     'data-handling' \
     'config*.bbx' \
-    'not yet been run on Windows' \
+    '## macOS' \
+    'Verified on Linux, Windows and macOS' \
+    'the hosted BBj docs server' \
+    'commandWindows' \
+    'Claude Code 2.1.299 on Linux' \
+    'Claude Code 2.1.292 on Windows' \
+    'Claude Code 2.1.296 on macOS' \
     '`bbj-local reported' \
     '`bbjcpl reported' \
     'recommended where BBjServices 26.03' \
@@ -114,6 +134,7 @@ if [ -f "$CLAUDE_PAGE" ]; then
     need "$n" "$CLAUDE_PAGE" "$p"
   done
   check_common "$n" "$CLAUDE_PAGE"
+  check_released_wording "$n" "$CLAUDE_PAGE"
   forbid "$n" "$CLAUDE_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$CLAUDE_PAGE" "$NOROUTE_SILENCE" noroute_silence
 
@@ -287,10 +308,27 @@ if [ -f "$README" ]; then
     '## Skills' \
     'once per session' \
     'codex plugin add bbj@basis-bbj' \
-    'codex plugin add bbj-local@basis-bbj'
+    'codex plugin add bbj-local@basis-bbj' \
+    '| Claude Code |' \
+    '| Codex plugin |' \
+    '| Codex installer |' \
+    'Verified on Linux, Windows and macOS' \
+    'BBj 26.03' \
+    'the hosted BBj docs server'
   do
     need "$n" "$README" "$p"
   done
+  check_released_wording "$n" "$README"
+  # the plugin commands come before the installer script in README (phase 8 D-15, D-16; plan 10-06)
+  _flat=$(tr '\n' ' ' < "$README")
+  _before_plugin=${_flat%%codex plugin add*}
+  _before_installer=${_flat%%install-codex.sh*}
+  if [ "${#_before_plugin}" -lt "${#_flat}" ] && [ "${#_before_installer}" -lt "${#_flat}" ] \
+    && [ "${#_before_plugin}" -lt "${#_before_installer}" ]; then
+    gate "${n}_codex_plugin_first" ok "the first 'codex plugin add' comes before the first 'install-codex.sh'"
+  else
+    gate "${n}_codex_plugin_first" FAIL "README names the installer script before the plugin commands, or lacks one of them"
+  fi
   forbid "$n" "$README" "$HOOK_TRUST_BYPASS" hook_trust_bypass
   forbid "$n" "$README" 'until this release|release is merged to it|this release is on github' release_time_caveat
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
