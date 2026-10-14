@@ -5,17 +5,17 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-03-PLAN.md
-last_updated: "2026-10-14T09:16:48.341Z"
+stopped_at: Completed 10-04-PLAN.md
+last_updated: "2026-10-14T10:00:25.135Z"
 last_activity: 2026-10-14
 last_activity_desc: Phase 10 execution started
-state_head: 89b14a90edb877a9d6551e0668adfda868676281
+state_head: ce3f7a460c390c2a392a82197f3ba188a05a2905
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 36
-  completed_plans: 25
-  percent: 69
+  completed_plans: 26
+  percent: 72
 ---
 
 # Project State
@@ -30,11 +30,11 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 4 of 14
+Plan: 5 of 14
 Status: Ready to execute
 Last activity: 2026-10-14 — Phase 10 execution started
 
-Progress: [████████████████████] 22/22 plans ([███████░░░] 69%) — phases 3/4 complete
+Progress: [████████████████████] 22/22 plans ([███████░░░] 72%) — phases 3/4 complete
 
 ## Performance Metrics
 
@@ -132,6 +132,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 10 P01 | 11 min | 2 tasks | 3 files |
 | Phase 10 P02 | 6 min | 2 tasks | 4 files |
 | Phase 10 P03 | owner-gated | 3 tasks | 3 files |
+| Phase 10 P04 | owner-gated | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,8 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: RQ-4 a: pre-merge install gate from the pushed PR ref
 - [Phase 10]: RQ-5 a: D-23 amendment PR also updates the Upgrading the plugin paragraph of docs/install-codex.md; full suite re-runs
 - [Phase 10]: RQ-6 a: PR branches gsd/release-0.2.1 and gsd/release-0.2.1-amend
+- [Phase 10]: 10-04: D-16 sign-in confirmed on Linux in Claude Code 2.1.299 and Codex 0.162.1 (refresh token stored); wording claims sign-in completed, not consent-page text
+- [Phase 10]: 10-04: D-22 before half recorded; gitupgrade home holds the owner-trusted 0.2.0 hook (sha256:051732b8...5434297) for plan 10-11
 
 ### Pending Todos
 
@@ -212,8 +215,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-14T09:16:48.227Z
-Stopped at: Completed 10-03-PLAN.md
+Last session: 2026-10-14T10:00:25.023Z
+Stopped at: Completed 10-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
