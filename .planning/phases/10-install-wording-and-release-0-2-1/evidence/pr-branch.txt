@@ -2,14 +2,18 @@ Date: 2026-10-14
 Mode: strict (planning.pr_strict=true); strict filter of the pr-branch workflow, commit list restricted to 9f178d2..gsd/planning-setup (research Pitfall 2) and to commits touching a path outside .planning/
 branch: gsd/release-0.2.1
 base: f15c257f6fba6e5d4cde60e49ad06727de44f68f
-head: bc0eecfb95bd7022e975d7ca4e0e90c406459ba9
-tree: 4d7e6eb02b6a830273426dae50b0c8a143066362
-commits: 100
+head: 9c5a226dafe580e38f48c71b3b5cde6c07aa3944
+tree: 8af800f30f2966072f8a7bbc6bbd8bd094823c9b
+commits: 101
 planning_paths: 0
 planning_paths_in_tree: 0
 deletions_against_main: 0
-planning_head: 7946835cae9d9e11ca8ff25a51f82ca6a5ea35f6
+planning_head: 34994713a545448ea475899924741f53e93b9070 (before this evidence commit)
 tree_equal: yes
 origin_main: f15c257f6fba6e5d4cde60e49ad06727de44f68f
-pushed_to_origin: no
-note: 100 of 311 non-merge commits of 9f178d2..gsd/planning-setup touch a path outside .planning/; the 57bebd9 cherry-pick hit a modify/delete conflict on .planning/codebase/CONVENTIONS.md only, resolved by the strict filter (the path is absent from the base by construction); no conflict outside .planning/; no commit became empty
+pushed_to_origin: no (origin holds the previous head)
+note: 100 of 311 non-merge commits (at the first build; the 101st commit is the shellcheck fix cherry-picked afterwards) of 9f178d2..gsd/planning-setup touch a path outside .planning/; the 57bebd9 cherry-pick hit a modify/delete conflict on .planning/codebase/CONVENTIONS.md only, resolved by the strict filter (the path is absent from the base by construction); no conflict outside .planning/; no commit became empty
+previous_head: bc0eecfb95bd7022e975d7ca4e0e90c406459ba9 (CI failed: ci_shellcheck SC2317)
+added_on_previous_head: 9c5a226 fix(10-09): shellcheck directive in test_path_scrub covers SC2317 and SC2329 (cherry-pick of 3499471)
+shellcheck_0.9.0: clean (shellcheck -s sh over plugins/bbj/scripts/*.sh codex/*.sh tests/*.sh in the PR tree, the CI file list)
+release_run: planning and PR tree both SUMMARY: ok=979 fail=0 skip=0, CI SUMMARY: ok=6 fail=0 skip=0 run_sh_exit=0

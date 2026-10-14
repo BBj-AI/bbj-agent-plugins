@@ -45,35 +45,35 @@ gate plugin_route_command_windows ok commandWindows names the same script as com
 gate real_compiler_add_bad ok exit 2, header and the compiler's own line
 gate real_compiler_clean ok silent
 == test_discovery.sh
-gate order_option_first ok ran /tmp/bbjplug.iWIENr/A/bin/bbjcpl
-gate order_bbj_home_before_bbjhome ok ran /tmp/bbjplug.iWIENr/B/bin/bbjcpl
-gate order_bbjhome_before_path ok ran /tmp/bbjplug.iWIENr/C/bin/bbjcpl
-gate order_path_before_defaults ok ran /tmp/bbjplug.iWIENr/D/bin/bbjcpl
-gate order_defaults_last ok ran /tmp/bbjplug.iWIENr/E/bin/bbjcpl
-gate empty_home_falls_through ok ran /tmp/bbjplug.iWIENr/B/bin/bbjcpl
-gate home_given_as_bin_dir ok ran /tmp/bbjplug.iWIENr/B/bin/bbjcpl
-gate symlink_absolute_resolved ok ran /tmp/bbjplug.iWIENr/C/bin/bbjcpl
-gate symlink_relative_resolved ok ran /tmp/bbjplug.iWIENr/C/bin/bbjcpl
-gate bbjcplw_only ok ran /tmp/bbjplug.iWIENr/W/bin/bbjcplw
+gate order_option_first ok ran /tmp/bbjplug.fv0GZB/A/bin/bbjcpl
+gate order_bbj_home_before_bbjhome ok ran /tmp/bbjplug.fv0GZB/B/bin/bbjcpl
+gate order_bbjhome_before_path ok ran /tmp/bbjplug.fv0GZB/C/bin/bbjcpl
+gate order_path_before_defaults ok ran /tmp/bbjplug.fv0GZB/D/bin/bbjcpl
+gate order_defaults_last ok ran /tmp/bbjplug.fv0GZB/E/bin/bbjcpl
+gate empty_home_falls_through ok ran /tmp/bbjplug.fv0GZB/B/bin/bbjcpl
+gate home_given_as_bin_dir ok ran /tmp/bbjplug.fv0GZB/B/bin/bbjcpl
+gate symlink_absolute_resolved ok ran /tmp/bbjplug.fv0GZB/C/bin/bbjcpl
+gate symlink_relative_resolved ok ran /tmp/bbjplug.fv0GZB/C/bin/bbjcpl
+gate bbjcplw_only ok ran /tmp/bbjplug.fv0GZB/W/bin/bbjcplw
 gate no_route_notice_then_silent ok first call notice, second call silent
 gate unusable_output_notice_then_silent ok first call notice, second call silent
 gate crash_notice_then_silent ok first call notice, second call silent
-gate p_list_dedup ok -P/tmp/bbjplug.iWIENr/proj/sub:/tmp/bbjplug.iWIENr/proj
-gate p_list_three ok -P/tmp/bbjplug.iWIENr/proj/sub:/tmp/bbjplug.iWIENr/proj:/tmp/bbjplug.iWIENr/elsewhere
-gate p_list_drops_separator ok -P/tmp/bbjplug.iWIENr/proj/sub:/tmp/bbjplug.iWIENr/proj
-gate windows_p_list ok -PW:/tmp/bbjplug.iWIENr/proj/sub;W:/tmp/bbjplug.iWIENr/proj
-gate windows_target ok W:/tmp/bbjplug.iWIENr/proj/sub/f.bbj
-gate windows_drive_home ok ran /tmp/bbjplug.iWIENr/drive/bbx/bin/bbjcpl.exe
-gate windows_drive_file ok W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub/f.bbj
-gate windows_space_p_list ok -PW:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test
-gate windows_forward_slash_file ok W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub/f.bbj
-gate windows_p_list_empty_entries ok -PW:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub
-gate windows_p_list_dedup_mixed ok -PW:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test
-gate windows_p_list_order ok -PW:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test;W:/tmp/bbjplug.iWIENr/drive/Users/x/other
-gate windows_codex_relative ok W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub/f.bbj
-gate windows_codex_absolute ok W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub/f.bbj
-gate windows_codex_backslash_relative ok W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub/f.bbj
-gate windows_codex_verbatim_prefix ok W:/tmp/bbjplug.iWIENr/drive/Users/x/bbj test/sub/f.bbj
+gate p_list_dedup ok -P/tmp/bbjplug.fv0GZB/proj/sub:/tmp/bbjplug.fv0GZB/proj
+gate p_list_three ok -P/tmp/bbjplug.fv0GZB/proj/sub:/tmp/bbjplug.fv0GZB/proj:/tmp/bbjplug.fv0GZB/elsewhere
+gate p_list_drops_separator ok -P/tmp/bbjplug.fv0GZB/proj/sub:/tmp/bbjplug.fv0GZB/proj
+gate windows_p_list ok -PW:/tmp/bbjplug.fv0GZB/proj/sub;W:/tmp/bbjplug.fv0GZB/proj
+gate windows_target ok W:/tmp/bbjplug.fv0GZB/proj/sub/f.bbj
+gate windows_drive_home ok ran /tmp/bbjplug.fv0GZB/drive/bbx/bin/bbjcpl.exe
+gate windows_drive_file ok W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub/f.bbj
+gate windows_space_p_list ok -PW:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test
+gate windows_forward_slash_file ok W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub/f.bbj
+gate windows_p_list_empty_entries ok -PW:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub
+gate windows_p_list_dedup_mixed ok -PW:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test
+gate windows_p_list_order ok -PW:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test;W:/tmp/bbjplug.fv0GZB/drive/Users/x/other
+gate windows_codex_relative ok W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub/f.bbj
+gate windows_codex_absolute ok W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub/f.bbj
+gate windows_codex_backslash_relative ok W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub/f.bbj
+gate windows_codex_verbatim_prefix ok W:/tmp/bbjplug.fv0GZB/drive/Users/x/bbj test/sub/f.bbj
 gate windows_codex_backslash_dotdot_skipped ok sub\..\..\x.bbj leaves the workspace: no compiler call, exit 0, silent
 == test_exit_contract.sh
 gate contract_dash_empty_stdin ok exit 0, stdout empty
@@ -597,7 +597,7 @@ gate notice_mixed_clean_names_noroute_only ok all fragments present
 gate notice_mixed_clean_not_named ok no forbidden fragment present
 gate notice_no_tmp_marker ok no bbj-check-noroute-* entry appeared in /tmp
 == test_path_scrub.sh
-gate pathscrub_fake_on_path ok bbjcpl and bbjcplw resolve to /tmp/bbjplug.p97eQH/cplbin
+gate pathscrub_fake_on_path ok bbjcpl and bbjcplw resolve to /tmp/bbjplug.1t3Fk3/cplbin
 gate pathscrub_green_noroute_notice ok test_noroute_notice.sh is green with a compiler first on PATH
 gate pathscrub_green_exit_contract ok test_exit_contract.sh is green with a compiler first on PATH
 gate pathscrub_green_tier2_fake ok test_tier2_fake.sh is green with a compiler first on PATH
@@ -605,7 +605,7 @@ gate pathscrub_mutation_noroute_notice ok test_noroute_notice.sh goes red when t
 gate pathscrub_mutation_exit_contract ok test_exit_contract.sh goes red when the scrub is a no-op
 gate pathscrub_mutation_tier2_fake ok test_tier2_fake.sh goes red when the scrub is a no-op
 gate pathscrub_env_cleared ok BBJ_HOME, BBJHOME and the plugin option are unset; the default homes are empty
-gate pathscrub_compiler_only_dir ok no compiler name resolves on /tmp/bbjplug.p97eQH/pathfarm.X3bqGv:/tmp/bbjplug.p97eQH/u/clean
+gate pathscrub_compiler_only_dir ok no compiler name resolves on /tmp/bbjplug.1t3Fk3/pathfarm.WTA1w4:/tmp/bbjplug.1t3Fk3/u/clean
 gate pathscrub_shared_dir_keeps_tools ok mytool still runs, none of the four compiler names is in the farm
 gate pathscrub_exe_names ok a directory with only bbjcpl.exe is replaced by a farm without it
 gate pathscrub_clean_unchanged ok clean directories are printed as given
@@ -954,7 +954,7 @@ gate skills_fx_cpl_stdin_eof_exit_ignored ok want ('stdin-eof', 'ok'), got ('std
 gate skills_fx_cpl_canary_silent ok want ('broken', True, {}), got ('broken', True, {})
 gate skills_fx_cpl_canary_good_record ok want ('broken', 'canary_good.bbj got an error record', {}), got ('broken', 'canary_good.bbj got an error record', {})
 gate skills_fx_cpl_stray ok want ('broken', 'unattributed compiler output: stray line from nowhere', {}), got ('broken', 'unattributed compiler output: stray line from nowhere', {})
-gate skills_fx_cpl_zero_blocks ok want (1, ['/tmp/skillfx-zyuq8d4z/canary_good.bbj', '/tmp/skillfx-zyuq8d4z/canary_bad.bbj'], None, 'ok', {}), got (1, ['/tmp/skillfx-zyuq8d4z/canary_good.bbj', '/tmp/skillfx-zyuq8d4z/canary_bad.bbj'], None, 'ok', {})
+gate skills_fx_cpl_zero_blocks ok want (1, ['/tmp/skillfx-_rffj24o/canary_good.bbj', '/tmp/skillfx-_rffj24o/canary_bad.bbj'], None, 'ok', {}), got (1, ['/tmp/skillfx-_rffj24o/canary_good.bbj', '/tmp/skillfx-_rffj24o/canary_bad.bbj'], None, 'ok', {})
 gate skills_fx_live_blocks_selection ok want [(0, 'fx', 'a.md', 1, 'bbj'), (1, 'fx', 'a.md', 4, 'bbj should-fail')], got [(0, 'fx', 'a.md', 1, 'bbj'), (1, 'fx', 'a.md', 4, 'bbj should-fail')]
 gate skills_fx_outcome_bbj_pass ok want [], got []
 gate skills_fx_outcome_bbj_fail_cpl ok want [('bbjcpl', 'violation', 'd1')], got [('bbjcpl', 'violation', 'd1')]

@@ -45,35 +45,35 @@ gate plugin_route_command_windows ok commandWindows names the same script as com
 gate real_compiler_add_bad ok exit 2, header and the compiler's own line
 gate real_compiler_clean ok silent
 == test_discovery.sh
-gate order_option_first ok ran /tmp/bbjplug.dLzyGT/A/bin/bbjcpl
-gate order_bbj_home_before_bbjhome ok ran /tmp/bbjplug.dLzyGT/B/bin/bbjcpl
-gate order_bbjhome_before_path ok ran /tmp/bbjplug.dLzyGT/C/bin/bbjcpl
-gate order_path_before_defaults ok ran /tmp/bbjplug.dLzyGT/D/bin/bbjcpl
-gate order_defaults_last ok ran /tmp/bbjplug.dLzyGT/E/bin/bbjcpl
-gate empty_home_falls_through ok ran /tmp/bbjplug.dLzyGT/B/bin/bbjcpl
-gate home_given_as_bin_dir ok ran /tmp/bbjplug.dLzyGT/B/bin/bbjcpl
-gate symlink_absolute_resolved ok ran /tmp/bbjplug.dLzyGT/C/bin/bbjcpl
-gate symlink_relative_resolved ok ran /tmp/bbjplug.dLzyGT/C/bin/bbjcpl
-gate bbjcplw_only ok ran /tmp/bbjplug.dLzyGT/W/bin/bbjcplw
+gate order_option_first ok ran /tmp/bbjplug.AcjTAI/A/bin/bbjcpl
+gate order_bbj_home_before_bbjhome ok ran /tmp/bbjplug.AcjTAI/B/bin/bbjcpl
+gate order_bbjhome_before_path ok ran /tmp/bbjplug.AcjTAI/C/bin/bbjcpl
+gate order_path_before_defaults ok ran /tmp/bbjplug.AcjTAI/D/bin/bbjcpl
+gate order_defaults_last ok ran /tmp/bbjplug.AcjTAI/E/bin/bbjcpl
+gate empty_home_falls_through ok ran /tmp/bbjplug.AcjTAI/B/bin/bbjcpl
+gate home_given_as_bin_dir ok ran /tmp/bbjplug.AcjTAI/B/bin/bbjcpl
+gate symlink_absolute_resolved ok ran /tmp/bbjplug.AcjTAI/C/bin/bbjcpl
+gate symlink_relative_resolved ok ran /tmp/bbjplug.AcjTAI/C/bin/bbjcpl
+gate bbjcplw_only ok ran /tmp/bbjplug.AcjTAI/W/bin/bbjcplw
 gate no_route_notice_then_silent ok first call notice, second call silent
 gate unusable_output_notice_then_silent ok first call notice, second call silent
 gate crash_notice_then_silent ok first call notice, second call silent
-gate p_list_dedup ok -P/tmp/bbjplug.dLzyGT/proj/sub:/tmp/bbjplug.dLzyGT/proj
-gate p_list_three ok -P/tmp/bbjplug.dLzyGT/proj/sub:/tmp/bbjplug.dLzyGT/proj:/tmp/bbjplug.dLzyGT/elsewhere
-gate p_list_drops_separator ok -P/tmp/bbjplug.dLzyGT/proj/sub:/tmp/bbjplug.dLzyGT/proj
-gate windows_p_list ok -PW:/tmp/bbjplug.dLzyGT/proj/sub;W:/tmp/bbjplug.dLzyGT/proj
-gate windows_target ok W:/tmp/bbjplug.dLzyGT/proj/sub/f.bbj
-gate windows_drive_home ok ran /tmp/bbjplug.dLzyGT/drive/bbx/bin/bbjcpl.exe
-gate windows_drive_file ok W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub/f.bbj
-gate windows_space_p_list ok -PW:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test
-gate windows_forward_slash_file ok W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub/f.bbj
-gate windows_p_list_empty_entries ok -PW:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub
-gate windows_p_list_dedup_mixed ok -PW:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test
-gate windows_p_list_order ok -PW:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test;W:/tmp/bbjplug.dLzyGT/drive/Users/x/other
-gate windows_codex_relative ok W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub/f.bbj
-gate windows_codex_absolute ok W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub/f.bbj
-gate windows_codex_backslash_relative ok W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub/f.bbj
-gate windows_codex_verbatim_prefix ok W:/tmp/bbjplug.dLzyGT/drive/Users/x/bbj test/sub/f.bbj
+gate p_list_dedup ok -P/tmp/bbjplug.AcjTAI/proj/sub:/tmp/bbjplug.AcjTAI/proj
+gate p_list_three ok -P/tmp/bbjplug.AcjTAI/proj/sub:/tmp/bbjplug.AcjTAI/proj:/tmp/bbjplug.AcjTAI/elsewhere
+gate p_list_drops_separator ok -P/tmp/bbjplug.AcjTAI/proj/sub:/tmp/bbjplug.AcjTAI/proj
+gate windows_p_list ok -PW:/tmp/bbjplug.AcjTAI/proj/sub;W:/tmp/bbjplug.AcjTAI/proj
+gate windows_target ok W:/tmp/bbjplug.AcjTAI/proj/sub/f.bbj
+gate windows_drive_home ok ran /tmp/bbjplug.AcjTAI/drive/bbx/bin/bbjcpl.exe
+gate windows_drive_file ok W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub/f.bbj
+gate windows_space_p_list ok -PW:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test
+gate windows_forward_slash_file ok W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub/f.bbj
+gate windows_p_list_empty_entries ok -PW:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub
+gate windows_p_list_dedup_mixed ok -PW:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test
+gate windows_p_list_order ok -PW:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub;W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test;W:/tmp/bbjplug.AcjTAI/drive/Users/x/other
+gate windows_codex_relative ok W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub/f.bbj
+gate windows_codex_absolute ok W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub/f.bbj
+gate windows_codex_backslash_relative ok W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub/f.bbj
+gate windows_codex_verbatim_prefix ok W:/tmp/bbjplug.AcjTAI/drive/Users/x/bbj test/sub/f.bbj
 gate windows_codex_backslash_dotdot_skipped ok sub\..\..\x.bbj leaves the workspace: no compiler call, exit 0, silent
 == test_exit_contract.sh
 gate contract_dash_empty_stdin ok exit 0, stdout empty
@@ -200,7 +200,7 @@ gate homeguard_install_codex_checks_incomplete ok home_incomplete is called (lin
 gate symlink_not_checked ok a .bbj link to another file: exit 0, silent, compiler not called
 gate regular_file_still_checked ok a regular file next to the link is still compiled
 gate symlink_not_checked_patch ok a patch naming a link: exit 0, compiler not called
-gate big_patch_linear ok a 2988984 byte patch: header after the bulk found, exit 2 in 0 s
+gate big_patch_linear ok a 2988984 byte patch: header after the bulk found, exit 2 in 1 s
 gate patch_content_cannot_forge_header ok backslash-n inside a content line is not a line break
 == test_install_codex.sh
 gate installer_executable ok mode has the exec bit
@@ -597,7 +597,7 @@ gate notice_mixed_clean_names_noroute_only ok all fragments present
 gate notice_mixed_clean_not_named ok no forbidden fragment present
 gate notice_no_tmp_marker ok no bbj-check-noroute-* entry appeared in /tmp
 == test_path_scrub.sh
-gate pathscrub_fake_on_path ok bbjcpl and bbjcplw resolve to /tmp/bbjplug.An4PeN/cplbin
+gate pathscrub_fake_on_path ok bbjcpl and bbjcplw resolve to /tmp/bbjplug.OzHF9y/cplbin
 gate pathscrub_green_noroute_notice ok test_noroute_notice.sh is green with a compiler first on PATH
 gate pathscrub_green_exit_contract ok test_exit_contract.sh is green with a compiler first on PATH
 gate pathscrub_green_tier2_fake ok test_tier2_fake.sh is green with a compiler first on PATH
@@ -605,7 +605,7 @@ gate pathscrub_mutation_noroute_notice ok test_noroute_notice.sh goes red when t
 gate pathscrub_mutation_exit_contract ok test_exit_contract.sh goes red when the scrub is a no-op
 gate pathscrub_mutation_tier2_fake ok test_tier2_fake.sh goes red when the scrub is a no-op
 gate pathscrub_env_cleared ok BBJ_HOME, BBJHOME and the plugin option are unset; the default homes are empty
-gate pathscrub_compiler_only_dir ok no compiler name resolves on /tmp/bbjplug.An4PeN/pathfarm.Yz71UN:/tmp/bbjplug.An4PeN/u/clean
+gate pathscrub_compiler_only_dir ok no compiler name resolves on /tmp/bbjplug.OzHF9y/pathfarm.rWlkNn:/tmp/bbjplug.OzHF9y/u/clean
 gate pathscrub_shared_dir_keeps_tools ok mytool still runs, none of the four compiler names is in the farm
 gate pathscrub_exe_names ok a directory with only bbjcpl.exe is replaced by a farm without it
 gate pathscrub_clean_unchanged ok clean directories are printed as given
@@ -954,7 +954,7 @@ gate skills_fx_cpl_stdin_eof_exit_ignored ok want ('stdin-eof', 'ok'), got ('std
 gate skills_fx_cpl_canary_silent ok want ('broken', True, {}), got ('broken', True, {})
 gate skills_fx_cpl_canary_good_record ok want ('broken', 'canary_good.bbj got an error record', {}), got ('broken', 'canary_good.bbj got an error record', {})
 gate skills_fx_cpl_stray ok want ('broken', 'unattributed compiler output: stray line from nowhere', {}), got ('broken', 'unattributed compiler output: stray line from nowhere', {})
-gate skills_fx_cpl_zero_blocks ok want (1, ['/tmp/skillfx-zxltcs5k/canary_good.bbj', '/tmp/skillfx-zxltcs5k/canary_bad.bbj'], None, 'ok', {}), got (1, ['/tmp/skillfx-zxltcs5k/canary_good.bbj', '/tmp/skillfx-zxltcs5k/canary_bad.bbj'], None, 'ok', {})
+gate skills_fx_cpl_zero_blocks ok want (1, ['/tmp/skillfx-94enp0gb/canary_good.bbj', '/tmp/skillfx-94enp0gb/canary_bad.bbj'], None, 'ok', {}), got (1, ['/tmp/skillfx-94enp0gb/canary_good.bbj', '/tmp/skillfx-94enp0gb/canary_bad.bbj'], None, 'ok', {})
 gate skills_fx_live_blocks_selection ok want [(0, 'fx', 'a.md', 1, 'bbj'), (1, 'fx', 'a.md', 4, 'bbj should-fail')], got [(0, 'fx', 'a.md', 1, 'bbj'), (1, 'fx', 'a.md', 4, 'bbj should-fail')]
 gate skills_fx_outcome_bbj_pass ok want [], got []
 gate skills_fx_outcome_bbj_fail_cpl ok want [('bbjcpl', 'violation', 'd1')], got [('bbjcpl', 'violation', 'd1')]
