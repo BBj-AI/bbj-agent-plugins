@@ -8,8 +8,10 @@
 # directory. Prefix notice_.
 # Plan 02-02 (D-02 to D-05): a compiler that gives no verdict is no route too ("bbjcpl found but
 # gave no result"); and the notice never appears for a clean file, for compile errors, for a
-# route that was reached without a verdict (every curl exit but 7, an empty or junk reply, an
-# error reply), for a file the hook skips early, or in a mixed patch with compile errors.
+# route that was reached without a verdict (every curl exit but 7, and but an exit 28 whose write-out
+# shows no connection; an empty or junk reply, an error reply), for a file the hook skips early, or in
+# a mixed patch with compile errors. The fake curl prints no write-out (phase 13, FIX-02, D-12), so
+# notice_curl_exit_28_silent keeps its meaning.
 # Fix 02-02 (deferred item D-1): the once-per-session winner is an exclusive claim file inside the
 # marker directory, not mkdir alone (uutils mkdir lets parallel calls of one path all succeed);
 # gates notice_concurrent_once (repeated rounds), notice_claim_present_silent,
