@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 13
 current_phase_name: Windows hook fixes
 status: executing
-stopped_at: Completed 13-03-PLAN.md
-last_updated: "2026-10-15T18:26:39.845Z"
+stopped_at: Completed 13-04-PLAN.md
+last_updated: "2026-10-15T18:41:21.863Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 13 execution started
-state_head: 15f269258bbd6a839501a06df1e8bfa197b194fa
+state_head: 6eaff82544a48e4343969fca0ed8cf49afc4530d
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 13
+  completed_plans: 14
   percent: 40
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 13 (Windows hook fixes) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-10-15 — Phase 13 execution started
 
@@ -161,6 +161,7 @@ Progress: [████░░░░░░] 40%
 | Phase 13 P01 | 13 min | 2 tasks | 4 files |
 | Phase 13 P02 | 7 min | 2 tasks | 3 files |
 | Phase 13 P03 | 12 min | 2 tasks | 2 files |
+| Phase 13 P04 | 25min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -188,6 +189,9 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 13]: 13-01: tier-2 no-route state for a connect timeout is noconn (not the D-12 example word, which fails the static timeout scan); a bbj-ls that accepts and never answers is a reached route, uncached, up to -m 12 per file (D-11, D-13)
 - [Phase 13]: 13-02: commandWindows not-found branch reads stdin only through native findstr (never the automatic input variable) and is silent only after a full read that names no BBj file; the string ends with exit $LASTEXITCODE with the loud branch before the call (D-06, D-07, D-09)
 - [Phase 13]: 13-03: D-17 control is sub\.\f.bbj (the CONTEXT path gives no call); bait lives in the existing gate windows_codex_backslash_dotdot_skipped; prefix hookmut_ (CLAUDE.md prefix list left to Phase 14)
+- [Phase 13]: 13-04: D-20 case 2 hides Git by an environment override in the Codex window (renamed Git folder is the fallback); case 3 uses a junction under a throwaway LOCALAPPDATA or a real per-user install
+- [Phase 13]: 13-04: none_long_bbj and none_long_notes have fixed expectations (rc=2, not-found first line); a silent long BBj payload is recorded as a defect, never a known gap
+- [Phase 13]: 13-04: launcher clean removes only a directory that run marked (launcher.marker), junctions first with a non-recursive rmdir
 
 ### Pending Todos
 
@@ -218,8 +222,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T18:26:39.768Z
-Stopped at: Completed 13-03-PLAN.md
+Last session: 2026-10-15T18:41:21.776Z
+Stopped at: Completed 13-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
