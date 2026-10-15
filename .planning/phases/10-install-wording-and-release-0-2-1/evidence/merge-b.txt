@@ -1,0 +1,14 @@
+Date: 2026-10-15
+Mode: gh pr merge 3 --merge --match-head-commit 38c690cd92eef3cf96fc0a87c09d98d29a060275 (owner reply "merge"; no squash, no rebase, no admin, branch kept)
+pr: https://github.com/BBj-AI/bbj-agent-plugins/pull/3
+merge: 4234e76ccb369d0fe984ac36825e06b3b8fbf3f1
+parent1: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+parent2: 38c690cd92eef3cf96fc0a87c09d98d29a060275
+parents: 2
+tree: f3d3e0bbe67fd976fd5b9571c2b42b18a42472d2
+tree_equal_checked_head: yes
+files: CHANGELOG.md docs/install-codex.md tests/test_release_text.py 
+planning_paths: 0
+main_ci: success https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38679158077
+d23: full release run on a tree equal to M2 (pr-b-checks.txt)
+tag_0.2.1: absent
