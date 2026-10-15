@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "bbj-docs": {
+    "bbj": {
       "type": "http",
       "url": "${user_config.docs_url}",
       "oauth": {

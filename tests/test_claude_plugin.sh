@@ -4,8 +4,8 @@
 #   1. claude plugin validate --strict on the marketplace root and on the plugins
 #   2. install bbj@basis-bbj from the LOCAL directory marketplace into a throwaway
 #      CLAUDE_CONFIG_DIR; the user's own configuration is never touched
-#   3. claude mcp get shows the OAuth client of the plugin's bbj-docs server; claude mcp list
-#      shows the server answering, connected or with its OAuth challenge "Needs authentication"
+#   3. claude mcp get shows the OAuth client of the plugin's docs server bbj; claude mcp list
+#      lists it under the label CC_LABEL holds, answering, connected or with its OAuth challenge "Needs authentication"
 #      (skip when the host is unreachable; quick 261013-cpn)
 #   4. the command string of hooks.json, run with sh -c under a plugin root whose path
 #      contains a space, exits 2 on a bad .bbj and 0 silently on a clean one
@@ -24,6 +24,10 @@ mkwork
 CFG=$WORK/cfg
 mkdir "$CFG"
 DOCS_HOST=mcp.bbj-ai.com
+# the docs server's key in plugins/bbj/.mcp.json (NAME-01, phase 12)
+DOCS_SERVER=bbj
+# the label Claude Code lists for the docs server, as real Claude Code shows it; phase 12 aligns it with the label of its Linux sign-in record (D-08, D-09)
+CC_LABEL='plugin:bbj:bbj'
 
 # cc ARGS...: run claude with the throwaway configuration directory, for this call only.
 cc() {
@@ -89,7 +93,7 @@ state=$(plugin_state bbj)
 # network (quick 261013-cpn). claude mcp get prints "client_id configured", never the id
 # itself, so the value is pinned only by layout_bbj_mcp (tests/test_layout.py); here a missing
 # or empty client id would print something else and fail.
-_get=$(cd "$WORK" && cc mcp get plugin:bbj:bbj-docs 2>&1)
+_get=$(cd "$WORK" && cc mcp get "$CC_LABEL" 2>&1)
 if printf '%s\n' "$_get" | grep -i 'oauth' | grep 'client_id configured' | grep 'callback_port 47613' > /dev/null; then
   gate mcp_docs_oauth ok "claude mcp get shows client_id configured and callback_port 47613 (the id itself is pinned by layout_bbj_mcp)"
 else
@@ -104,9 +108,9 @@ fi
 # connected check it replaced, by design: CI has no sign-in (IN-05). "Disconnected" does not match.
 if curl -s -o /dev/null --connect-timeout 3 "https://$DOCS_HOST/mcp" 2> /dev/null; then
   mcp=$(cd "$WORK" && cc mcp list 2>&1)
-  _line=$(printf '%s\n' "$mcp" | grep -F "https://$DOCS_HOST/mcp" | grep -i -e '[[:space:]]connected' -e 'needs authentication' | grep -i -v 'fail')
+  _line=$(printf '%s\n' "$mcp" | grep -F "$CC_LABEL: https://$DOCS_HOST/mcp" | grep -i -e '[[:space:]]connected' -e 'needs authentication' | grep -i -v 'fail')
   if [ -n "$_line" ]; then
-    gate mcp_docs_answers ok "bbj-docs at https://$DOCS_HOST/mcp answered (nothing past the 401 challenge is proven): $(printf '%s' "$_line" | head -n 1)"
+    gate mcp_docs_answers ok "the docs server $DOCS_SERVER at https://$DOCS_HOST/mcp answered (nothing past the 401 challenge is proven): $(printf '%s' "$_line" | head -n 1)"
   else
     gate mcp_docs_answers FAIL "$(printf '%s' "$mcp" | head -n 6 | tr '\n' ' ')"
   fi
