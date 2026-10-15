@@ -308,8 +308,10 @@ gate("notice_no_provenance",
 # included; terms are assembled from pieces above so this file passes its own scan. Only the
 # CHANGELOG entries of released versions (HISTORY_CUT and older) and .planning/ are exempt.
 def tracked_files(root):
-    """Return (mode, rels): the git-tracked files under root ("git"), or a walk of root ("walk")
-    when git lists nothing (no git, no repository, or a mutation copy). .planning/ is dropped."""
+    """Return (mode, rels): the git-tracked files under root ("git"), or a walk of root ("walk").
+    Only a run given a root argument (a mutation copy, which has no .git) may walk; a checkout
+    run where git lists nothing returns ("nogit", []) so the gate fails instead of scanning
+    untracked trees such as .github/ci-tools/node_modules. .planning/ is dropped."""
     try:
         r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True, timeout=20)
         out = r.stdout if r.returncode == 0 else b""
@@ -319,13 +321,15 @@ def tracked_files(root):
     if out:
         mode = "git"
         rels = [p.decode("utf-8", errors="replace") for p in out.split(b"\0") if p]
+    elif len(sys.argv) < 2:
+        mode = "nogit"
     else:
         mode = "walk"
         for dirpath, dirnames, filenames in os.walk(root):
             top = dirpath == root
             # prune .git, the top-level .planning and any nested checkout or worktree
             dirnames[:] = [d for d in dirnames
-                           if d != ".git" and not (top and d == ".planning")
+                           if d not in (".git", "node_modules") and not (top and d == ".planning")
                            and not os.path.exists(os.path.join(dirpath, d, ".git"))]
             for fn in filenames:
                 if fn != ".git":
@@ -367,10 +371,12 @@ for rel in retired_rels:
     for term in RETIRED_TERMS:
         if term.lower() in low:
             retired_hits.append("%s:%s" % (rel, term))
-if retired_scanned == 0:
+if retired_mode == "nogit":
+    retired_detail = "git ls-files listed nothing in the checkout (git missing, unsafe directory or GIT_DIR set)"
+elif retired_scanned == 0:
     retired_detail = "no file scanned (%s mode)" % (retired_mode,)
 elif retired_hits:
-    retired_detail = "files naming the retired route: %r" % (sorted(retired_hits),)
+    retired_detail = "files naming the retired route (%s mode): %r" % (retired_mode, sorted(retired_hits))
 else:
     retired_detail = ("%d tracked files scanned (%s mode); none names the retired route "
                       "(.planning/ and CHANGELOG entries up to 0.2.1 exempt)" % (retired_scanned, retired_mode))
