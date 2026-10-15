@@ -138,6 +138,7 @@ for _m in \
   'curl -L --url "$u"' \
   'curl -s --url "$u"' \
   "curl --noproxy '*' --url \"\$u\"" \
+  "curl --proto =http --url \"\$u\"" \
   "curl --noproxy '*' --proto =http -L --url \"\$u\""; do
   _mut_n=$((_mut_n + 1))
   curl_check "$_m"
