@@ -7,6 +7,10 @@ Phase 8 (CODEX-01, CODEX-04; D-10, D-11, D-13): pins the Codex overlay
 plugins/bbj/.codex-plugin/plugin.json and its literal-URL file plugins/bbj/.codex-mcp.json.
 Plan 10-02 (D-05, D-16): both MCP files ask for offline_access as a string; the docs_url
 description calls the default the hosted BBj docs server and names no stage of a release.
+Phase 11 (INST-02; D-10 to D-12): layout_no_retired_route scans every tracked file outside
+.planning/ (git ls-files, or a walk of a mutation copy) for the retired Codex route, CHANGELOG
+entries up to 0.2.1 exempt; the layout_mutation_retired_route_* cases plant a mention in each
+scope and in each exemption.
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -379,10 +383,16 @@ gate("no_retired_route", retired_scanned > 0 and not retired_hits, retired_detai
 # print FAIL and the exit code to be 1. A mutation that changes nothing is itself a FAIL. The
 # checkout is never written; the temp directory is removed in a finally.
 def build_copy(dst):
-    for d in (".claude-plugin", "plugins", "docs"):
-        shutil.copytree(os.path.join(ROOT, d), os.path.join(dst, d), symlinks=True)
-    for f in ("README.md", "NOTICE", "CHANGELOG.md"):
-        shutil.copy2(os.path.join(ROOT, f), os.path.join(dst, f))
+    """Copy every tracked file, so the copy run (walk mode) scans what the checkout run (git
+    mode) scans; the copy has no .git."""
+    os.makedirs(dst, exist_ok=True)
+    for rel in tracked_files(ROOT)[1]:
+        src = os.path.join(ROOT, rel)
+        if not os.path.lexists(src) or os.path.isdir(src):
+            continue
+        target = os.path.join(dst, rel)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        shutil.copy2(src, target, follow_symlinks=False)
 
 
 def run_copy(root):
@@ -408,6 +418,18 @@ def plant(dst, rel, line):
         f.write("\n" + line + "\n")
 
 
+def changelog_insert(dst, anchor, new_text, after):
+    """Insert new_text directly after (after=True) or before the first CHANGELOG.md line that
+    equals anchor."""
+    path = os.path.join(dst, "CHANGELOG.md")
+    with open(path, encoding="utf-8", newline="") as f:
+        lines = f.read().split("\n")
+    i = lines.index(anchor) + (1 if after else 0)
+    lines[i:i] = new_text.split("\n")
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        f.write("\n".join(lines))
+
+
 def read_bytes(path):
     try:
         with open(path, "rb") as f:
@@ -427,7 +449,7 @@ def mutation_case(name, rels, change, expect):
         before = [read_bytes(os.path.join(dst, r)) for r in rels]
         change(dst)
         after = [read_bytes(os.path.join(dst, r)) for r in rels]
-        if expect and before == after:
+        if rels and before == after:
             gate("mutation_" + name, False, "the mutation changed nothing in %s" % (", ".join(rels),))
             return
         rc, out = run_copy(dst)
@@ -523,5 +545,40 @@ if len(sys.argv) == 1:
     mutation_case("retired_route_readme", ["README.md"],
                   lambda dst: plant(dst, "README.md", "Or run sh codex/" + RETIRED_SCRIPT + "."),
                   ["no_retired_route"])
+
+    def file_back(dst):
+        target = os.path.join(dst, "codex", RETIRED_SCRIPT)
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        open(target, "w").close()
+
+    CHANGELOG = "CHANGELOG.md"
+    CHANGELOG_TITLE = "# Changelog"
+    CLAUDE_MD = ".claude/CLAUDE.md"
+    mutation_case("retired_route_file_back", ["codex/" + RETIRED_SCRIPT], file_back, ["no_retired_route"])
+    mutation_case("retired_route_word_capitalized", ["docs/install-claude-code.md"],
+                  lambda dst: plant(dst, "docs/install-claude-code.md",
+                                    "The Codex " + RETIRED_WORD.capitalize() + " is gone."),
+                  ["no_retired_route"])
+    mutation_case("retired_route_conventions", [CLAUDE_MD],
+                  lambda dst: plant(dst, CLAUDE_MD, "- see codex/" + RETIRED_SNIPPET + ".md"),
+                  ["no_retired_route"])
+    mutation_case("retired_route_test_comment", ["tests/lib.sh"],
+                  lambda dst: plant(dst, "tests/lib.sh", "# the Codex " + RETIRED_WORD + " route"),
+                  ["no_retired_route"])
+    mutation_case("retired_route_changelog_preamble", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, CHANGELOG_TITLE,
+                                               "Notes on the Codex " + RETIRED_WORD + ".", True),
+                  ["no_retired_route"])
+    mutation_case("retired_route_newer_entry", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1",
+                                               "## 0.2.2\n\n- dropped the Codex " + RETIRED_WORD + ".\n", False),
+                  ["no_retired_route"])
+    mutation_case("retired_route_history_exempt", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1",
+                                               "- the Codex " + RETIRED_WORD + " (history).", True),
+                  [])
+    mutation_case("retired_route_planning_exempt", [".planning/notes.md"],
+                  lambda dst: plant(dst, ".planning/notes.md", "the Codex " + RETIRED_WORD),
+                  [])
 
 sys.exit(1 if failed else 0)
