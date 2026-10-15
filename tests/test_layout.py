@@ -59,6 +59,19 @@ RETIRED_SCRIPT = "install" + "-codex.sh"
 RETIRED_SNIPPET = "AGENTS" + "-snippet"
 RETIRED_WORD = "install" + "er"
 RETIRED_TERMS = (RETIRED_SCRIPT, RETIRED_SNIPPET, RETIRED_WORD)
+# The two file names match as substrings. The word matches as a word (REVIEW IN-03): not inside a
+# longer word such as "uninstaller", but still in snake_case or a file name, so the boundary is
+# "not a letter" rather than \b, and a plural counts.
+RETIRED_WORD_RE = re.compile(r"(?<![a-z])" + RETIRED_WORD + r"s?(?![a-z])")
+
+
+def names_retired(term, low):
+    """True when the lower-cased text (or path) low names the retired term."""
+    if term == RETIRED_WORD:
+        return RETIRED_WORD_RE.search(low) is not None
+    return term.lower() in low
+
+
 # CHANGELOG entries headed with this version or an older one are released history and stay as
 # published (D-03, D-11)
 HISTORY_CUT = (0, 2, 1)
@@ -357,7 +370,7 @@ retired_scanned = 0
 for rel in retired_rels:
     low_rel = rel.lower()
     for term in RETIRED_TERMS:
-        if term.lower() in low_rel:
+        if names_retired(term, low_rel):
             retired_hits.append("%s:path:%s" % (rel, term))
     try:
         with open(os.path.join(ROOT, rel), "rb") as f:
@@ -369,7 +382,7 @@ for rel in retired_rels:
         text = changelog_scan_text(text)
     low = text.lower()
     for term in RETIRED_TERMS:
-        if term.lower() in low:
+        if names_retired(term, low):
             retired_hits.append("%s:%s" % (rel, term))
 if retired_mode == "nogit":
     retired_detail = "git ls-files listed nothing in the checkout (git missing, unsafe directory or GIT_DIR set)"
@@ -579,6 +592,14 @@ if len(sys.argv) == 1:
                   lambda dst: changelog_insert(dst, "## 0.2.1",
                                                "## 0.2.2\n\n- dropped the Codex " + RETIRED_WORD + ".\n", False),
                   ["no_retired_route"])
+    # IN-03: the word matches as a word, also as a plural or inside snake_case, but not inside a
+    # longer word
+    mutation_case("retired_route_word_plural_snake", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "see the codex_" + RETIRED_WORD + "s list"),
+                  ["no_retired_route"])
+    mutation_case("retired_route_longer_word_exempt", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "the un" + RETIRED_WORD + " question"),
+                  [])
     mutation_case("retired_route_history_exempt", [CHANGELOG],
                   lambda dst: changelog_insert(dst, "## 0.2.1",
                                                "- the Codex " + RETIRED_WORD + " (history).", True),
