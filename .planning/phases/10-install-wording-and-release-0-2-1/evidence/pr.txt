@@ -1,0 +1,7 @@
+pr: 2
+url: https://github.com/BBj-AI/bbj-agent-plugins/pull/2
+head: 9c5a226dafe580e38f48c71b3b5cde6c07aa3944
+ci: success https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38673715360 (pull_request); push run https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38673711990 success
+previous_ci: failure https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38606660183 https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38606643333 (bc0eecf; ci_shellcheck SC2317; fixed by 9c5a226)
+install_gate_pr: pass
+ready: yes
