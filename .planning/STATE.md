@@ -25,7 +25,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 12 — Docs server renamed to bbj
+**Current focus:** Phase 13 — Windows hook fixes
 
 ## Current Position
 
@@ -185,10 +185,11 @@ Roadmap v0.2.2 (2026-10-15):
 
 ### Pending Todos
 
-- `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` (oauth): client id as a setting, rename `bbj-docs` → `bbj`; acknowledged at the v0.2.1 close. The rename is Phase 12 (NAME-01, NAME-02) with the CHANGELOG line in Phase 15 (NAME-03); the client id as a setting is out of scope for v0.2.2
+None. `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` closed with Phase 12 (rename done; CHANGELOG line is NAME-03 in Phase 15; client id as a setting stays out of scope).
 
 ### Blockers/Concerns
 
+- [Phase 12]: Code review 12-REVIEW.md left WR-01, WR-02 and IN-01..IN-03 open (12-REVIEW-DISPOSITION.md): WR-01 three needles in `tests/test_install_pages.sh` are prefixes of the old strings, so only `layout_no_old_server_name` catches a revert; WR-02 `mcp_docs_answers` and `claude mcp get "$CC_LABEL"` rely on the `<label>: <url>` list format seen on Claude Code 2.1.299 while CI pins 2.1.293. Fix with `/gsd-code-review 12 --fix` or check against the pinned CLI before the Phase 15 live run
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
 - [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Closed by the installer removal in v0.2.2 Phase 11 (out of scope in REQUIREMENTS.md). The README macOS Claude Code cell qualifier (10-VERIFICATION.md) is v0.2.2 Phase 14 (DOCS-07)
 - [Phase 10]: The `## 0.2.0` CHANGELOG entry on `main` differs from tag `0.2.0`: commits from phases 06, 07, 08 and a quick task edited it and PR #2 published them (10-SECURITY.md observation 1); Phase 10's own commits leave it byte-identical
@@ -217,7 +218,7 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Discuss or plan the first phase: /gsd-discuss-phase 11, then /gsd-plan-phase 11
+- Discuss or plan Phase 13: /gsd-discuss-phase 13, then /gsd-plan-phase 13
 
 ### Quick Tasks Completed
 

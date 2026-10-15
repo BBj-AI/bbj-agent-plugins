@@ -92,12 +92,13 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 - ✓ Install wording per platform and route: README "Verified" table, both install pages, the installer `STATUS_LINE` and closing notes and the CHANGELOG state only what the run records show, with client and BBj versions; every "not run" line names a configuration absent from the records; `release_no_unrun_hint` and the mutation test keep the old hints from returning (DOCS-01..04) — Phase 10
 - ✓ Release 0.2.1: both plugins, both marketplace entries and the Codex overlay at 0.2.1, CHANGELOG `## 0.2.1` with a Tested against section for Linux, Windows and macOS, full suite `ok=979 fail=0 skip=0` with live gates, PR #2 and PR #3 merged, annotated tag `0.2.1` (no `v`) on 4234e76 and GitHub Release published 2026-10-15 (REL-07, REL-08) — Phase 10
+- ✓ Docs server renamed `bbj-docs` → `bbj` in both MCP configs, both skills' check-order block, the hook's no-route notice, README and both install pages; the sign-in labels in the docs (`plugin:bbj:bbj`, `mcp__plugin_bbj_bbj__`, `codex mcp login bbj`) are the ones real Claude Code 2.1.299 and Codex CLI 0.162.1 showed on Linux in an owner run (`12-LINUX-RUN.md`); `layout_no_old_server_name` keeps the old name out of every tracked file outside `.planning/` and released CHANGELOG history (NAME-01, NAME-02) — Phase 12
 
 ### Active
 
 - [ ] Remove the Codex installer route (`install-codex.sh`, `AGENTS-snippet.md`, tests, gates, fakes, mentions); the plugin is the only route for both clients
 - [ ] One plugin-only install page for Claude Code and Codex
-- [ ] Rename the docs server `bbj-docs` → `bbj` everywhere, with the re-sign-in stated in the CHANGELOG
+- [ ] CHANGELOG line that users sign in again under the docs server's new name `bbj`, plus the Windows and macOS sign-in re-confirmation (NAME-03, Phase 15); the rename itself shipped in Phase 12
 - [ ] Consistent terminology across docs, test names and gate names
 - [ ] Phase 9 review WR-01..WR-03: plugin `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe`; 5 s tier-2 connect timeout paid per file can exceed the 30 s hook timeout; `windows_codex_backslash_dotdot_skipped` does not catch a regression
 - [ ] README cell "Claude Code on macOS" carries two readings; add the date or the "run directly" qualifier (10-VERIFICATION.md)
@@ -209,4 +210,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-15 at the start of milestone v0.2.2*
+*Last updated: 2026-10-15 after Phase 12*
