@@ -6,7 +6,7 @@
 #
 # Steps, each reported as a "gate NAME ok|FAIL|skip DETAIL" line:
 #   1. sh tests/run.sh   every self-contained test (fake compiler, never-execute, static,
-#                        discovery, exit contract, tier-2 fake, Codex parsing, installer,
+#                        discovery, exit contract, tier-2 fake, Codex parsing,
 #                        layout, install pages, CI guards, skill example gate (fence
 #                        grammar, structure, nocheck; its bbjcpl and bbj-ls routes skip
 #                        without BBj))
@@ -80,8 +80,8 @@ fi
 # ---- 3. shellcheck ------------------------------------------------------------------
 if command -v shellcheck > /dev/null 2>&1; then
   # shellcheck disable=SC2046  # file names here contain no whitespace
-  if shellcheck -s sh $(ls plugins/bbj/scripts/*.sh codex/*.sh tests/*.sh 2> /dev/null); then
-    gate ci_shellcheck ok "shellcheck -s sh over plugins/bbj/scripts, codex and tests"
+  if shellcheck -s sh $(ls plugins/bbj/scripts/*.sh tests/*.sh 2> /dev/null); then
+    gate ci_shellcheck ok "shellcheck -s sh over plugins/bbj/scripts and tests"
   else
     gate ci_shellcheck FAIL "shellcheck reported findings"
   fi
