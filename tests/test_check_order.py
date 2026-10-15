@@ -9,6 +9,8 @@ stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate checkorder_<name> ok|FAIL <detail>
 and exits 1 when any gate failed. An optional argv[1] is the repository root to check
 (default: the parent of the tests directory); the mutation checks point it at a copy.
+Phase 12 (NAME-02; D-05): step 3 names the docs server `bbj`; route_order looks for "docs server `bbj`"
+after bbj-local.
 Nothing here runs BBj code.
 """
 import os
@@ -33,6 +35,8 @@ MATCHER = "Write" + "|Edit"
 PATCH_TOOL = "apply" + "_patch"
 HOST = "mcp.bbj" + "-ai.com"
 TOOL_BULLET = re.compile(r"^- `bbj_[a-z_]*`:")
+# D-05 of phase 12: step 3 names the docs server by role noun and name; a bare bbj would match inside bbjcpl and bbj-local
+DOCS_SERVER_NEEDLE = "docs server `bbj`"
 
 failed = False
 
@@ -86,12 +90,12 @@ block = texts.get("bbj_programming") or ""
 needed = ["bbjcpl -t -N -X <file>", "writes no output files", "stderr", "bbj_check_syntax",
           "the hosted check", "without asking", "sent to the server", "stock BBj"]
 missing = [s for s in needed if s not in block]
-pos = [block.find(s) for s in ("bbjcpl", "bbj-local", "bbj-docs")]
+pos = [block.find(s) for s in ("bbjcpl", "bbj-local", DOCS_SERVER_NEEDLE)]
 in_order = -1 not in pos and pos[0] < pos[1] < pos[2]
 gate("route_order", texts.get("bbj_programming") is not None and not missing and in_order,
-     "bbjcpl, bbj-local, bbj-docs in that order, disclosure phrases present"
+     "bbjcpl, bbj-local, docs server `bbj` in that order, disclosure phrases present"
      if not missing and in_order else
-     "missing %s; positions bbjcpl/bbj-local/bbj-docs %s" % (missing, pos))
+     "missing %s; positions bbjcpl/bbj-local/docs server %s" % (missing, pos))
 
 # client neutral (D-02, D-03, T-01-14): checked on every copy so the skills stay neutral too
 hits = []
