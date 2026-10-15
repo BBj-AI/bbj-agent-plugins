@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 11
 current_phase_name: installer-removal
 status: executing
-stopped_at: Phase 11 context gathered
-last_updated: "2026-10-15T06:49:25.995Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-10-15T06:53:24.276Z"
 last_activity: 2026-10-15
-last_activity_desc: Roadmap for v0.2.2 created (Phases 11-15, 19/19 requirements mapped)
-state_head: 1c2c57191a0ed23eac25ba2c13bf08f36db4e6ff
+last_activity_desc: Phase 11 execution started
+state_head: 1e8692ac0b913f56627e5580e97b52a07f6f391b
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 11 — Installer removal (milestone v0.2.2 Plugin-only cleanup, Phases 11-15)
+**Current focus:** Phase 11 — installer-removal
 
 ## Current Position
 
-Phase: 11 (installer-removal) — READY TO EXECUTE
-Plan: Not started
+Phase: 11 (installer-removal) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-10-15 — Roadmap for v0.2.2 created (Phases 11-15, 19/19 requirements mapped)
+Last activity: 2026-10-15 — Phase 11 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -146,6 +146,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10 P12 | n/a | 3 tasks | 3 files |
 | Phase 10 P13 | n/a | 3 tasks | 2 files |
 | Phase 10 P14 | 15min | 3 tasks | 5 files |
+| Phase 11 P01 | 8 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -159,6 +160,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Roadmap]: INST-04 and NAME-03 map to Phase 15: `changelog_heading` requires the newest CHANGELOG heading to be the current version and allows no placeholder entry, so the `## 0.2.2` lines can only land in the bump commit. Phase 12 still takes an owner sign-in reading on Linux so the docs name the label the clients show
 - [Roadmap]: DOCS-06 maps to Phase 11: the `install-codex.sh` gate (INST-02) forces the README table and install wording to drop the installer route in the same phase
 - [Roadmap]: The installer mentions in `.claude/CLAUDE.md` and `.planning/codebase/` go with the map refresh in Phase 14 (MAINT-11), since those sections are generated
+- [Phase 11]: D-16: the Codex apply_patch no-route notice has one plugin-commands text; the hook no longer reads CLAUDE_PLUGIN_ROOT
 
 ### Pending Todos
 
@@ -188,9 +190,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T06:13:51.562Z
-Stopped at: Phase 11 context gathered
-Resume file: .planning/phases/11-installer-removal/11-CONTEXT.md
+Last session: 2026-10-15T06:53:24.238Z
+Stopped at: Completed 11-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 

@@ -11,7 +11,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 
 - [ ] **INST-01**: `codex/install-codex.sh`, `codex/AGENTS-snippet.md`, `tests/test_install_codex.sh`, the installer gates in `tests/test_install_pages.sh`, the AGENTS-snippet byte-identity gate in `tests/test_check_order.py` and any fake used only by them are removed
 - [ ] **INST-02**: No tracked file outside `.planning/` and the CHANGELOG entries of 0.2.1 and earlier names `install-codex.sh`, `AGENTS-snippet` or the word "installer"; a gate keeps them out (11-CONTEXT D-10, D-11)
-- [ ] **INST-03**: The hook has no installer-route branch: on Codex the no-route notice names only the plugin commands, and the hook still checks `apply_patch` writes on the plugin route
+- [x] **INST-03**: The hook has no installer-route branch: on Codex the no-route notice names only the plugin commands, and the hook still checks `apply_patch` writes on the plugin route
 
 ### Naming
 
@@ -63,7 +63,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 |-------------|-------|--------|
 | INST-01 | Phase 11 | Pending |
 | INST-02 | Phase 11 | Pending |
-| INST-03 | Phase 11 | Pending |
+| INST-03 | Phase 11 | Complete |
 | NAME-01 | Phase 12 | Pending |
 | NAME-02 | Phase 12 | Pending |
 | NAME-03 | Phase 15 | Pending |
