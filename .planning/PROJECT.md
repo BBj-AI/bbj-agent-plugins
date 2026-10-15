@@ -21,16 +21,28 @@ by the example gate on `bbjcpl -t` and `bbj-ls` (baseline pending `{}`, `nocheck
 `.planning/MILESTONES.md`; archive: `.planning/milestones/` (v0.2.1 phases in
 `milestones/v0.2.1-phases/`). No milestone is open; the next one starts with `/gsd-new-milestone`.
 
-## Next Milestone Goals
+## Current Milestone: v0.2.2 Plugin-only cleanup
 
-Not yet defined; `/gsd-new-milestone` decides. Candidates carried from v0.2.1:
+**Goal:** Ship the plugin as the only install route for Claude Code and Codex, under
+consistent names, with the open review debt cleared, as release 0.2.2.
 
-- OAuth hand-off from the hosted docs server: the client id as a setting (plugin user option,
-  installer flag) with the public id as default, and the server renamed `bbj-docs` → `bbj`
-  (todo `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md`)
-- Copilot CLI support (spike 004)
-- Whether `install-codex.sh` stays as the Codex fallback after its one release
-- Open review warnings from phases 9 and 10 (see Active)
+**Target features:**
+- Installer route removed: `codex/install-codex.sh`, `codex/AGENTS-snippet.md`, their tests,
+  gates and fakes, and every installer mention in the hook, `tests/lib.sh`, release-text gates,
+  README and `.claude/CLAUDE.md`; one CHANGELOG line points 0.2.1 installer users to
+  `install-codex.sh --remove` at tag `0.2.1` (a stale `~/.codex/hooks.json` fires alongside the
+  plugin hook)
+- One plugin-only install page for both clients replaces `docs/install-claude-code.md` and
+  `docs/install-codex.md`
+- Docs server renamed `bbj-docs` → `bbj` in both MCP configs, skills, docs, hook notice and tests;
+  the CHANGELOG states that users sign in again under the new name
+- One set of terms (route, tier, hosted check, ...) across docs, test names and gate names
+- Open Phase 9 review warnings: WR-01 plugin `commandWindows` hardcoded sh.exe, WR-02 5 s tier-2
+  connect timeout per file, WR-03 weak `windows_codex_backslash_dotdot_skipped` gate
+- Drift: gate-prefix list in `.claude/CLAUDE.md` and `CONVENTIONS.md`, README macOS cell
+  qualifier, refreshed codebase map; dead-code sweep of anything that only served the installer
+- Release 0.2.2: five versions bumped, CHANGELOG, full suite with live gates, tag `0.2.2`,
+  GitHub Release
 
 <details>
 <summary>v0.2.1 milestone goal and target features (shipped 2026-10-15)</summary>
@@ -83,12 +95,14 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 ### Active
 
-- [ ] Code-review warnings WR-01..WR-03 on the Windows installer (10-REVIEW.md, all `open` in 10-REVIEW-DISPOSITION.md): WR-01 the `usr\bin` sh.exe refusal is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little
-- [ ] README cell "Claude Code on macOS" (`bbj-ls (hook); Claude Code 2.1.296`) carries two readings (hook script run directly 2026-10-14; owner's 0.2.0 run 2026-10-12, version not recorded); add the date or the "run directly" qualifier (10-VERIFICATION.md)
-- [ ] OAuth client id as a setting (plugin user option, installer flag or environment variable) with `oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t` as the default; rename the server `bbj-docs` → `bbj` (hand-off todo; `offline_access` already shipped in 0.2.1)
-- [ ] Phase 9 review WR-01..WR-03: plugin `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (non-default Git installs make the Codex hook a silent no-op; stated as a known gap); 5 s tier-2 connect timeout paid per file can exceed the 30 s hook timeout; `windows_codex_backslash_dotdot_skipped` does not catch a regression
-- [ ] Gate-prefix block in `.claude/CLAUDE.md` and `CONVENTIONS.md` lacks `windows_`, `command_windows_`, `tier2_connect_timeout_` (MAINT-08 drift)
-- [ ] Record or pin the CI ShellCheck version (0.9.0 in CI, 0.11.0 locally)
+- [ ] Remove the Codex installer route (`install-codex.sh`, `AGENTS-snippet.md`, tests, gates, fakes, mentions); the plugin is the only route for both clients
+- [ ] One plugin-only install page for Claude Code and Codex
+- [ ] Rename the docs server `bbj-docs` → `bbj` everywhere, with the re-sign-in stated in the CHANGELOG
+- [ ] Consistent terminology across docs, test names and gate names
+- [ ] Phase 9 review WR-01..WR-03: plugin `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe`; 5 s tier-2 connect timeout paid per file can exceed the 30 s hook timeout; `windows_codex_backslash_dotdot_skipped` does not catch a regression
+- [ ] README cell "Claude Code on macOS" carries two readings; add the date or the "run directly" qualifier (10-VERIFICATION.md)
+- [ ] Gate-prefix block in `.claude/CLAUDE.md` and `CONVENTIONS.md` matches the gates `sh tests/run.sh` prints (MAINT-08 drift); codebase map refreshed
+- [ ] Release 0.2.2
 
 ### Out of Scope
 
@@ -97,6 +111,10 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - Configurable URL for `bbj-local` — stays fixed at `127.0.0.1:5009`; revisit only on demand
 - Opinionated choices as labelled suggestions — cut entirely instead (GSAP, Swiper, Tabler Icons, fonts, card grid, `Utils` class, `PRECISION 16`, variable naming, etc.)
 - Running the skill-example check against the hosted server in CI — public content, but the gate is local-only by decision
+- Installer review warnings WR-01..WR-03 from 10-REVIEW.md — closed by removing `install-codex.sh` in v0.2.2
+- OAuth client id as a setting — one public client per tenant, pre-production and production share the tenant, and Codex cannot expand `${user_config.*}`, so the setting would be Claude Code only; the literal id stays in both configs. Revisit when a second tenant exists (decided at v0.2.2 start)
+- Renaming the plugins (`bbj`, `bbj-local`) or the marketplace (`basis-bbj`) — users and docs refer to them
+- Pinning or recording the CI ShellCheck version — not chosen for v0.2.2
 - Single go-live constant for the docs URL, installer backups on `--force`, deduplicating hook/installer logic — known concerns, not in 0.2.0
 
 ## Context
@@ -191,4 +209,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-15 after v0.2.1 milestone*
+*Last updated: 2026-10-15 at the start of milestone v0.2.2*
