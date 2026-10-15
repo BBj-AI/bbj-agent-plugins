@@ -10,9 +10,6 @@
 # a test seam read from the environment (tests/test_tier2_fake.sh) must not come from the caller's
 # shell: only tests/test_path_scrub.sh sets it, for its own nested runs (IN-03)
 unset TIER2_TEST_SYSPATH
-# the same for the exit code of the fake codex, set only by the oauthadderr case of
-# tests/test_install_codex.sh (IN-06)
-unset FAKE_CODEX_EXIT
 
 TESTS=$(cd "$(dirname "$0")" && pwd)
 OUT=$(mktemp "${TMPDIR:-/tmp}/bbjplug-run.XXXXXX") || exit 1
