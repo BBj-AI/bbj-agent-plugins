@@ -269,6 +269,56 @@ without any owner action. `marketplace upgrade` replaced the cache version direc
 re-trust prompt anyway is the owner's reading (Task 2); the scripted facts above are what Codex's own
 hook listing says.
 
+Reading 2026-10-15, round 1 (the after half, owner's part and the hook after it)
+
+Owner's look (Task 2, 2026-10-15, Codex 0.162.1 per the screenshot header, `owner.sh trust-upgrade`),
+the reply as sent (home path scrubbed):
+
+        gu-retrust-asked: no
+        gu-hooks-line-after: [x]  1  BBj compile-only check | Event PostToolUse | Matcher Write|Edit | Source Plugin - bbj@basis-bbj | Command sh "<home>/.cache/bbj-phase10/gitupgrade/home/.codex/plugins/cache/basis-bbj/bbj/0.2.1/scripts/bbj-check.sh" | Mode Sync | Timeout 30s | Trust Trusted
+        gu-trusted-after: yes (was already)
+        notes: the screenshot also shows the name was correct, not "Unnamed"
+
+Run: `sh codex-run/run.sh gitupgrade-posttrust <home>/.cache/bbj-phase10/gitupgrade` (keep mode, no
+bypass flag; the owner's Codex TUI had exited and its two app-server daemons of this home were stopped
+before the run, their `CODEX_HOME` read from `/proc` first). Codex CLI 0.162.1, Linux 6.8.0-138-generic.
+
+        gu_posttrust_run: 2026-10-15T03:18:15Z
+        trust_gu_posttrust_before: trusted
+        hash_gu_posttrust_before: sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+        gu_posttrust_exec_rc: 0
+        gu_posttrust_compiler_calls: 1
+        gu_posttrust_feedback_reached_model: yes
+        gu_posttrust_feedback: yes
+        gu_posttrust_header: bbjcpl reported 1 error(s) in <out>/proj/bad.bbj:
+        gu_posttrust_bypass_flag_in_cmd: 0
+        gu_posttrust_hooks: key=bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0 source=plugin trustStatus=trusted currentHash=sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297 command=sh "<out>/home/.codex/plugins/cache/basis-bbj/bbj/0.2.1/scripts/bbj-check.sh"
+        trust_gu_posttrust_after: trusted
+        hash_gu_posttrust_after: sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+
+As observed, not as the plan expected. The plan (D-22) expected the hook "listed with a new hash" and
+`/hooks` "asking for trust again". Neither happened on Linux: the hash before the upgrade (0.2.0), after
+`marketplace upgrade` plus `plugin add` (0.2.1) and after the owner's look is the same
+(`sha256:051732b8...5434297`), Codex did not ask to trust the hook again, and `/hooks` showed the hook
+named "BBj compile-only check", source `Plugin - bbj@basis-bbj`, Trust `Trusted`, with its command under
+`bbj/0.2.1/`. The owner's reply says the hook "was already" trusted. The hook then ran
+with no bypass flag and gave `bbjcpl reported` feedback from the fake compiler.
+
+What can be checked about the cause, and only that: `plugins/bbj/hooks/hooks.json` does differ between
+the 0.2.0 tree (`f15c257`) and the 0.2.1 tree (`dad18f5`); the one change is the added
+`commandWindows` line (`git diff f15c257 dad18f5 -- plugins/bbj/hooks/hooks.json`, 1 insertion). Linux
+Codex still read the same hash for both. This record does not establish why (for example whether Codex
+leaves a platform-specific command out of the hash on Linux); it states the two facts side by side. The
+Windows reading of plan 09 (Codex asked to trust the hook again after the same `commandWindows` change)
+is unchanged and stays the source of the Windows sentence.
+
+Sentence for the docs: Observed on Linux with Codex CLI 0.162.1, a plugin installed from the GitHub
+marketplace at 0.2.0 and trusted in `/hooks` was upgraded to 0.2.1 (after the merge to `main`, before
+the tag) with `codex plugin marketplace upgrade basis-bbj` and `codex plugin add bbj@basis-bbj`;
+`bbj-docs` was at `https://mcp.bbj-ai.com/mcp`, both skills were listed, the hook's hash was unchanged,
+Codex did not ask to trust it again and `/hooks` showed it Trusted, and an `apply_patch` of a bad file
+gave `bbjcpl reported` feedback from the fake compiler with no bypass flag (2026-10-15).
+
 ## Fresh install from main (D-19)
 
 Reading 2026-10-15, round 1
