@@ -4,17 +4,17 @@ milestone: v0.2.2
 milestone_name: Plugin-only cleanup
 current_phase: 12
 current_phase_name: Docs server renamed to bbj
-status: executing
-stopped_at: Completed 12-04-PLAN.md
-last_updated: "2026-10-15T13:43:07.260Z"
+status: verifying
+stopped_at: Completed 12-05-PLAN.md
+last_updated: "2026-10-15T13:49:26.625Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 12 execution started
-state_head: 64934e8a7a6b11f8e3e933c2ab4cd7a788af8882
+state_head: efcae161a676d5b70987876f47c780b8645d57e3
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
   percent: 20
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 Phase: 12 (Docs server renamed to bbj) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-15 — Phase 12 execution started
 
 Progress: [██░░░░░░░░] 20%
@@ -156,6 +156,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 12 P02 | 15min | 3 tasks | 3 files |
 | Phase 12 P03 | 6 min | 2 tasks | 5 files |
 | Phase 12 P04 | 12 min | 2 tasks | 4 files |
+| Phase 12 P05 | 8 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -179,6 +180,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 12]: 12-02: cx_login_command is 'codex mcp login bbj' (Codex accepted it); --no-browser is only a note for machines whose browser is elsewhere; no ROADMAP/REQUIREMENTS amendment
 - [Phase 12]: 12-03: route_order needle is the whole phrase docs server `bbj` (a bare bbj matches inside bbjcpl); notice gates pin the longer fragment 'bbj_check_syntax of the docs server bbj, the hosted check'
 - [Phase 12]: 12-04: Windows and macOS sign-in sentences removed from README and the Codex page, not reworded; sign-in under bbj on those platforms is confirmed in Phase 15 (NAME-03)
+- [Phase 12]: NAME-01 gate layout_no_old_server_name is its own gate in tests/test_layout.py: literal hyphenated name only, case-insensitive, paths and text, .planning/ and CHANGELOG entries up to 0.2.1 exempt, tests and .claude/CLAUDE.md scanned (D-01 to D-03)
 
 ### Pending Todos
 
@@ -208,8 +210,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T13:43:07.210Z
-Stopped at: Completed 12-04-PLAN.md
+Last session: 2026-10-15T13:49:26.563Z
+Stopped at: Completed 12-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
