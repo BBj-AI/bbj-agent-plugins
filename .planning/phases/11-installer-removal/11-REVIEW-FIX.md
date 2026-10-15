@@ -85,7 +85,7 @@ names keep the substring match. Added two mutation cases: `retired_route_word_pl
 
 ## Skipped Issues
 
-### IN-04: No migration path in the docs for 0.2.0/0.2.1 installer users
+### IN-04: No migration path in the docs for 0.2.0/0.2.1 installer users (accepted by D-01/D-02)
 
 **File:** `docs/install-codex.md` (whole page), `README.md`
 **Reason:** contradicts locked decisions D-01/D-02 (no migration text). The review itself marks this as
