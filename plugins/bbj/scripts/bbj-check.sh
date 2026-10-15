@@ -30,14 +30,20 @@
 #                                bbj-local reported N error(s) in <file>:
 # The outcome of tier 2 is one of four (D-01, D-03):
 #   curl exit 7 (connection refused)           no route: the notice
+#   curl exit 28 with no connection made (write-out time_connect 0, no remote_ip): no route:
+#                                              the notice (phase 13, FIX-02, D-12)
 #   curl 0, "No errors found."                 clean, silent
 #   curl 0, "line N, column M:" error lines    errors, exit 2 as above
 #   curl 0 with an empty reply, a JSON-RPC error, an isError result, or text with neither
 #   verdict; and every other curl exit (28 timeout, 52 empty reply, 56 reset, 18 short
 #   body, 1 not HTTP, 6 unresolved host and the rest)
 #                                              route failed, silent
-# Only exit 7 is no route: a reachable but slow or broken bbj-ls must never be reported as
-# absent. No curl on PATH and a URL the loopback check refuses are no route as well (D-01).
+# Only exit 7, and exit 28 with no connection made, are no route: a reachable but slow or broken
+# bbj-ls must never be reported as absent. No curl on PATH and a URL the loopback check refuses
+# are no route as well (D-01). The first no-route outcome of a hook run is remembered, so later
+# files of the same run skip curl and are still listed in the notice (D-11, D-14). The limit that
+# remains: a bbj-ls that accepts the connection and never answers is a reached route, is not
+# remembered and costs up to -m 12 for each file (RESEARCH Open Question 2, D-11, D-13).
 #
 # The no-route notice (HOOK-02): when a BBj file of the call had no check route (no compiler
 # found, and tier 2 is no route) and no file of the call had compiler errors (D-04), the script
@@ -196,6 +202,7 @@ notice() {
   esac
   case "$NR_T2" in
     refused) _why2="no bbj-ls answering on $NR_HOSTPORT" ;;
+    noconn) _why2="no bbj-ls answering on $NR_HOSTPORT (connect timed out)" ;;
     nocurl) _why2='curl not found' ;;
     badurl) _why2='bbj-ls URL refused (not loopback)' ;;
     *) _why2='no bbj-ls answering' ;;
@@ -235,7 +242,8 @@ notice() {
 
 # Where to go when no BBj compiler can be used for the file: tier 2, the loopback bbj-local
 # check (D-14). Returns 0 when a verdict was reached (clean, or report ran), 1 when there is no
-# route (NR_T2 says why: refused = nothing answers on the port, nocurl, badurl; NR_HOSTPORT holds
+# route (NR_T2 says why: refused = nothing answers on the port, noconn = a connect timeout with no
+# connection made, nocurl, badurl; NR_HOSTPORT holds
 # the authority of the URL), 2 when a route was reached but gave no verdict. Every path ends in
 # an explicit return. A "nothing reached" outcome is remembered for the rest of the hook run (FIX-02).
 no_tier1_route() {
@@ -277,11 +285,29 @@ no_tier1_route() {
   # verdict instead of no route (phase 9, W-2). 5 s still fits under -m 12 and the hook timeout.
   _ct=1
   if [ "$WIN" = 1 ]; then _ct=5; fi
-  _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout "$_ct" -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
+  # -w appends "<time_connect> <remote_ip>" on a last line: it tells a connect timeout where no TCP
+  # connection was made (no route) from a transfer timeout after a connection (a reached route)
+  _out=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout "$_ct" -m 12 -w '\n%{time_connect} %{remote_ip}' -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
   _rc=$?
-  # curl exit 7 (connection refused) is the only "nothing answers" outcome; every other failure
+  # split the capture at its last newline: the write-out after it, the reply before it
+  _nl='
+'
+  case "$_out" in
+    *"$_nl"*) _wo=${_out##*"$_nl"}; _reply=${_out%"$_nl"*} ;;
+    *) _wo=; _reply=$_out ;;
+  esac
+  # curl exit 7 (connection refused) is a "nothing answers" outcome; every other failure
   # or an empty reply reached something and is a route that gave no verdict (see the header)
   if [ "$_rc" = 7 ]; then NR_T2=refused; return 1; fi
+  # FIX-02, D-12: a connect timeout where no TCP connection was made (for example a firewall that
+  # drops loopback packets) is no route, told apart from a transfer timeout by the write-out;
+  # anything else with exit 28 (a connection made, or no write-out from an old or fake curl)
+  # stays a reached route without a verdict.
+  if [ "$_rc" = 28 ] && [ -n "$_wo" ] && [ -z "${_wo#* }" ] \
+    && [ -z "$(printf '%s' "${_wo%% *}" | tr -d '0.,')" ]; then
+    NR_T2=noconn
+    return 1
+  fi
   { [ "$_rc" = 0 ] && [ -n "$_reply" ]; } || return 2
 
   # a text/event-stream reply: the payload of the last data: line
