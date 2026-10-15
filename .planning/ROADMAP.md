@@ -65,7 +65,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 7: Test hardening and release prep** - Suite green with `bbjcpl` on `PATH` and a running Codex daemon; 0.2.0 review fixes in the release tree; CONTENT_VERSION policy decided (completed 2026-10-12)
 - [x] **Phase 8: Codex plugin route** - Codex installs `bbj` and the opt-in `bbj-local` from the `basis-bbj` marketplace with a working docs URL and the unchanged hook; installer kept as fallback; gated in CI on fakes (completed 2026-10-13)
 - [x] **Phase 9: Windows and macOS verification** - Owner runs of the Claude Code plugin and the Codex plugin route on Windows and macOS; every defect fixed with a CI gate on fakes or recorded as a known gap (completed 2026-10-13)
-- [ ] **Phase 10: Install wording and release 0.2.1** - Per-client, per-platform, per-route wording backed by the recorded runs and pinned by gates; 0.2.1 merged, tagged and published
+- [x] **Phase 10: Install wording and release 0.2.1** - Per-client, per-platform, per-route wording backed by the recorded runs and pinned by gates; 0.2.1 merged, tagged and published (completed 2026-10-15)
 
 ## Phase Details
 
@@ -200,7 +200,7 @@ Plans:
   4. Both plugins, both marketplace entries, the Codex overlay and `tests/test_layout.py` read 0.2.1, and `claude plugin validate --strict` passes. The `## 0.2.1` CHANGELOG entry's Tested against section covers Linux, Windows and macOS from the recorded runs (REL-07)
   5. The full suite passes on the release tree with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) at skip=0. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.1` (no `v` prefix) is pushed, and the GitHub Release is published (REL-08)
 
-**Plans**: 17/17 plans executed
+**Plans**: 17/17 plans complete
 
 Plans:
 **Wave 1**
@@ -265,4 +265,4 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 9. Windows and macOS verification | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 10. Install wording and release 0.2.1 | v0.2.1 | 17/17 | In Progress | - |
+| 10. Install wording and release 0.2.1 | v0.2.1 | 17/17 | Complete    | 2026-10-15 |

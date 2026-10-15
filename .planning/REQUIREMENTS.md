@@ -36,7 +36,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 
 ### Install wording
 
-- [ ] **DOCS-01**: README states per client (Claude Code, Codex) which platforms and check routes were verified, with versions; no "not yet run" remains for a configuration that was run
+- [x] **DOCS-01**: README states per client (Claude Code, Codex) which platforms and check routes were verified, with versions; no "not yet run" remains for a configuration that was run
 - [x] **DOCS-02**: The Windows and macOS sections of `docs/install-claude-code.md` and `docs/install-codex.md` describe the verified steps; a "not run" line stays only for a configuration that was not run
 - [x] **DOCS-03**: The installer's `STATUS_LINE` and closing notes say the same as the docs
 - [x] **DOCS-04**: Gates pin the new wording (`tests/test_install_codex.sh`, `tests/test_release_text.py`) so the old hints cannot return for a verified configuration
@@ -84,7 +84,7 @@ route (spikes 001-005, `.planning/spikes/`); `install-codex.sh` stays one releas
 | MAINT-06 | Phase 7 | Complete |
 | MAINT-07 | Phase 7 | Complete |
 | MAINT-08 | Phase 7 | Complete |
-| DOCS-01 | Phase 10 | Pending |
+| DOCS-01 | Phase 10 | Complete |
 | DOCS-02 | Phase 10 | Complete |
 | DOCS-03 | Phase 10 | Complete |
 | DOCS-04 | Phase 10 | Complete |
