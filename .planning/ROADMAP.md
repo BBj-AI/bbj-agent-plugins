@@ -42,22 +42,22 @@ Release 0.2.2 has five steps:
   wording. A gate keeps `install-codex.sh` out.
 - **Phase 12** renames the docs server `bbj-docs` to `bbj` in both MCP configs, the skills, the
   hook notice, the docs and the tests. An owner reading on real clients checks that the sign-in
-  commands the docs give are the ones the clients show. A gate keeps `bbj-docs` out.
+  commands the docs give are the ones the clients show. A gate keeps `bbj-docs` out. Nothing refers
+  to the old name or to earlier versions (12-CONTEXT D-12).
 - **Phase 13** closes the three Phase 9 review warnings on the Windows hook: no silent no-op when
   Git is not under `C:\Program Files\Git`, one tier-2 connect timeout per hook run, and a
   backslash gate that catches a regression.
 - **Phase 14** settles docs and conventions on the stable file set: one plugin-only install page
   for both clients, one written term list with a gate, the gate-prefix block checked against the
   suite, the dead-code sweep and a refreshed codebase map.
-- **Phase 15** writes the `## 0.2.2` CHANGELOG entry (sign-in again
-  under `bbj`), bumps the five versions, runs the full suite with live gates, then merges, tags and
+- **Phase 15** writes the `## 0.2.2` CHANGELOG entry, bumps the five versions, runs the full suite with live gates, then merges, tags and
   publishes 0.2.2.
 
 **Order:** The removal comes before the rename, so the rename does not touch files that are about
 to be deleted. Phase 13 needs only Phase 11 and can run alongside Phase 12. The install page waits
 for Phases 11-13 because it carries the new name, no installer, and the Windows hook behaviour that
 Phase 13 leaves. The term pass, the prefix gate and the map refresh run once the file set is
-stable. The CHANGELOG line of NAME-03 waits for the release: `changelog_heading` in
+stable. The `## 0.2.2` entry waits for the release: `changelog_heading` in
 `tests/test_release_text.py` requires the newest heading to be the current version and allows no
 placeholder entry, so `## 0.2.2` can only appear in the bump commit.
 
@@ -135,13 +135,14 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. `plugins/bbj/.mcp.json` and `plugins/bbj/.codex-mcp.json` declare the server as `bbj`, with the URL and the OAuth block otherwise unchanged; `layout_` gates pin the name in both files, and `claude plugin validate --strict` passes (NAME-01)
   2. A gate fails when `bbj-docs` appears in a shipped file (manifests, MCP configs, hook, skills, README, docs) outside the CHANGELOG entries of 0.2.1 and earlier; a planted mention makes it fail (NAME-01)
-  3. Both skills, the check-order block (still byte-identical in the two SKILL.md files), the hook's no-route notice and the docs name the server `bbj` and give the sign-in as `/mcp` → `bbj` in Claude Code and `codex mcp login bbj` in Codex. The `notice_`, `checkorder_` and `skills_` gates pass with the new text (NAME-02)
-  4. Owner-run, Linux: with the plugin installed from a checkout of this phase, real Claude Code lists the renamed server in `/mcp`, real Codex accepts `codex mcp login bbj`, and the sign-in completes in both. The docs use the label the clients show, and the reading lists what a 0.2.1 user has to redo (sign-in, tool approvals or permission rules kept under the old name) for the Phase 15 Upgrading text (NAME-02)
+  3. Both skills, the check-order block (still byte-identical in the two SKILL.md files), the hook's no-route notice and the docs name the server `bbj` ("the docs server `bbj`") and give the sign-in with the exact labels the clients show in the criterion 4 run: `/mcp` and the label Claude Code lists (expected `plugin:bbj:bbj`), and the login command Codex accepts (expected `codex mcp login bbj`). The `notice_`, `checkorder_` and `skills_` gates pass with the new text (NAME-02)
+  4. Owner-run, Linux: with the plugin installed from a checkout of this phase, real Claude Code lists the renamed server in `/mcp`, real Codex accepts `codex mcp login bbj`, and the sign-in completes in both. The run is a fresh install only and is recorded in `12-LINUX-RUN.md`; the docs use the labels it records (NAME-02)
 
 **Plans**: TBD
 
 **Notes**:
-- NAME-03 (sign-in confirmed on real clients and stated in the CHANGELOG) is mapped to Phase 15, because its CHANGELOG half can only land in the bump commit. Criterion 4 is the early reading that keeps the docs from naming the wrong label; Phase 15 repeats the sign-in on the release tree.
+- NAME-03 (sign-in confirmed on real clients on the release tree) is mapped to Phase 15. Criterion 4 is the early reading that keeps the docs from naming the wrong label; Phase 15 repeats the sign-in on the release tree.
+- No upgrade text, redo list or cleanup step for users of earlier versions, anywhere (12-CONTEXT D-12).
 - Tool names that the clients build from the server name change with it; skills and notice must not quote the old prefix.
 - The user-config keys `docs_url` and `bbj_home` keep their names.
 - Real-client runs use throwaway homes, never the real `~/.codex`, and not under `/tmp` (Phase 8 practice).
@@ -187,12 +188,12 @@ Plans:
 
 ### Phase 15: Release 0.2.2
 
-**Goal**: Release 0.2.2 ships the plugin-only route under the new server name with the Windows fixes, and its CHANGELOG tells upgrading users exactly what to do: sign in again under `bbj`.
+**Goal**: Release 0.2.2 ships the plugin-only route under the new server name with the Windows fixes.
 **Depends on**: Phase 14
 **Requirements**: NAME-03, REL-09, REL-10
 **Success Criteria** (what must be TRUE):
   1. Both plugin manifests, both marketplace entries and the Codex overlay read 0.2.2, as do `tests/test_layout.py` and the README version line. The release-text gates are re-pinned to the facts of 0.2.2 and pass, and `claude plugin validate --strict` passes. CHANGELOG `## 0.2.2` has Upgrading, Tested against and Not run, with Tested against taken from the release run (REL-09)
-  2. Owner-run, Linux at least: on the release tree, real Claude Code and real Codex sign in to the docs server under `bbj`. The Upgrading section states that users sign in again and names each per-server setting they redo, as the Phase 12 reading and this run show (NAME-03)
+  2. Owner-run, Linux at least: on the release tree, real Claude Code and real Codex sign in to the docs server under `bbj`. The CHANGELOG names neither the old server name nor what users of earlier versions redo (12-CONTEXT D-12) (NAME-03)
   3. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
   4. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
 

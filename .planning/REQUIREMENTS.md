@@ -16,8 +16,8 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 ### Naming
 
 - [ ] **NAME-01**: The docs server is named `bbj` in `plugins/bbj/.mcp.json` and `plugins/bbj/.codex-mcp.json`; no `bbj-docs` remains in shipped files outside CHANGELOG history; a gate keeps it out
-- [ ] **NAME-02**: Skills, the check-order block, the hook notice and the docs name `bbj` and give the sign-in commands as `/mcp` → `bbj` and `codex mcp login bbj`
-- [ ] **NAME-03**: Sign-in under the new name is confirmed on real Claude Code and real Codex (Linux at least); the CHANGELOG states that users sign in again and any per-server setting they redo
+- [ ] **NAME-02**: Skills, the check-order block, the hook notice and the docs name `bbj` and give the sign-in with the labels the real clients show (expected `/mcp` → `plugin:bbj:bbj` and `codex mcp login bbj`)
+- [ ] **NAME-03**: Sign-in under the new name is confirmed on real Claude Code and real Codex (Linux at least) on the release tree
 - [ ] **NAME-04**: One term list is written down in the conventions (plugin `bbj-local` vs server `bbj-ls`, "docs server", "hosted check", "tier 1"/"tier 2"); docs, skills and test names follow it; a gate rejects the retired variants in shipped Markdown
 
 ### Docs
@@ -55,6 +55,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | OAuth client id as a setting | One public client per tenant, pre-production and production share it, and Codex cannot expand `${user_config.*}`; the literal id stays in both configs until a second tenant exists |
 | Renaming the plugins or the marketplace | Users and docs refer to `bbj`, `bbj-local` and `basis-bbj` |
 | Migration text for installer users (was INST-04) | No outside user ever used the installer; docs and the 0.2.2 CHANGELOG read as if it never existed (Phase 11 CONTEXT D-01, D-02) |
+| Upgrade text for users of earlier versions (sign in again, redo approvals, clean up old-name entries) | The owner does not want earlier versions referenced; docs and the 0.2.2 CHANGELOG read as if the server was always `bbj` (Phase 12 CONTEXT D-12) |
 | Installer review warnings 10-REVIEW WR-01..WR-03 | Closed by removing the installer |
 
 ## Traceability
@@ -89,4 +90,4 @@ Per phase: Phase 11 (4), Phase 12 (2), Phase 13 (3), Phase 14 (6), Phase 15 (3).
 
 ---
 *Requirements defined: 2026-10-15*
-*Last updated: 2026-10-15 after Phase 11 discussion (INST-04 dropped)*
+*Last updated: 2026-10-15 after Phase 12 discussion (no upgrade text; NAME-02/NAME-03 amended)*
