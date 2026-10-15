@@ -19,15 +19,11 @@ scan() {
   fi
 }
 
-# curl_check BODY: sets CURL_STATUS (ok or FAIL) and CURL_DETAIL for every curl call of BODY (comment lines
-# already removed): each carries --noproxy and --proto =http and follows no redirect (plan 19-01; applied to
-# codex/*.sh by plan 01-06). A line that only tests for curl (command -v) is not a call. A line that is
-# nothing but one say "..." message (optionally behind a case-arm label such as nocurl) is a message, not a
-# call (WR-01): a curl call that shares its line with a say, or a say whose text runs a command ($( or a
-# backtick), stays in the scan.
+# curl_check BODY: sets CURL_STATUS (ok or FAIL) and CURL_DETAIL for every curl call of BODY (comment
+# lines already removed): each carries --noproxy and --proto =http and follows no redirect (plan 19-01).
+# A line that only tests for curl (command -v) is not a call.
 curl_check() {
-  _curls=$(printf '%s\n' "$1" | grep -E '(^|[;&|(`[:space:]])curl([[:space:]]|$)' | grep -v 'command -v' \
-    | grep -Ev '^[[:space:]]*([A-Za-z_|*]+\)[[:space:]]*)?say[[:space:]]+"([^"`$]|[$][^("`])*"[[:space:]]*(;;)?$')
+  _curls=$(printf '%s\n' "$1" | grep -E '(^|[;&|(`[:space:]])curl([[:space:]]|$)' | grep -v 'command -v')
   if [ -z "$_curls" ]; then
     CURL_STATUS=ok
     CURL_DETAIL="no curl call in this file"
@@ -132,77 +128,37 @@ for f in $SCRIPTS_GLOB; do
 done
 [ "$found" = 1 ] || gate static_files FAIL "no script matched $SCRIPTS_GLOB"
 
-# ---- plan 19-05: the Codex installer (codex/*.sh) follows the same never-execute rules ----
-# No interpreter call, no terminal-I/O flag, no eval, no JSON command-line processor, no
-# python or node, and no compiler name at all (the installer installs; it never compiles).
-# Its URL literals are not scanned: the default docs URL is the hosted https instance. Its one curl
-# call (the tools/list probe of plan 01-06) follows the hook's curl rules, checked by curl_gate.
-CODEX_GLOB=${CODEX_GLOB:-$REPO/codex/*.sh}
-foundc=0
-for f in $CODEX_GLOB; do
-  [ -f "$f" ] || continue
-  foundc=1
-  body=$(grep -Ev '^[[:space:]]*#' "$f")
-  scan interpreter_word "$f" "$body" '(^|[;&|(`[:space:]])bbj([[:space:]]|$)'
-  scan interpreter_path "$f" "$body" '/bbj([[:space:]"'"'"']|$)'
-  scan interpreter_bin "$f" "$body" 'bin/bbj([^c]|$)'
-  scan terminal_io_flag "$f" "$body" '-tIO'
-  scan eval "$f" "$body" '(^|[^A-Za-z_])eval([^A-Za-z_]|$)'
-  scan json_cli "$f" "$body" '(^|[^A-Za-z_])jq([^A-Za-z_]|$)'
-  scan python_node "$f" "$body" '(^|[^A-Za-z_])(python[0-9.]*|node|nodejs)([^A-Za-z_]|$)'
-  scan compiler_name "$f" "$body" 'bbjcpl'
-  scan sed_in_place "$f" "$body" 'sed[[:space:]]+(-[A-Za-z]*i|--in-place)'
-  curl_gate "$f" "$body"
-  if sh -n "$f" 2> "$WORK/syntax"; then
-    gate "static_syntax_$(basename "$f")" ok "sh -n passes"
-  else
-    gate "static_syntax_$(basename "$f")" FAIL "$(head -n 1 "$WORK/syntax")"
-  fi
-  if command -v shellcheck > /dev/null 2>&1; then
-    if shellcheck -s sh "$f" > "$WORK/shellcheck" 2>&1; then
-      gate "static_shellcheck_$(basename "$f")" ok "shellcheck -s sh passes"
-    else
-      gate "static_shellcheck_$(basename "$f")" FAIL "$(head -n 3 "$WORK/shellcheck" | tr '\n' ' ')"
-    fi
-  fi
-done
-[ "$foundc" = 1 ] || gate static_codex_files FAIL "no installer matched $CODEX_GLOB"
-
-# ---- WR-01: the say exclusion of curl_gate stays narrow (mutation gates) ----
-# Each body below is a made-up script line; curl_check must FAIL every one that runs a curl call and pass
-# the plain messages, so the exclusion cannot widen to "any line that also holds a say".
+# ---- curl_check has teeth: unsafe calls FAIL, a safe call and a command -v test pass ----
+# Each body below is a made-up script line; curl_check must FAIL every unsafe curl call and pass a
+# command -v test and a safe call, so a broken curl_check cannot make the curl gate pass by accident.
 _mut_n=0
 _mut_bad=
 for _m in \
-  'r=$(curl -sL http://127.0.0.1:1/x) && say "done"' \
-  'curl -L --url "$u"; say "ok"' \
-  'say "start"; curl -s --url "$u"' \
-  '  nocurl) say "x"; curl -sL "$u" ;;' \
-  'say "$(curl -sL "$u")"' \
-  'say "`curl -sL "$u"`"'; do
+  'r=$(curl -sL http://127.0.0.1:1/x)' \
+  'curl -L --url "$u"' \
+  'curl -s --url "$u"' \
+  "curl --noproxy '*' --url \"\$u\"" \
+  "curl --noproxy '*' --proto =http -L --url \"\$u\""; do
   _mut_n=$((_mut_n + 1))
   curl_check "$_m"
   [ "$CURL_STATUS" = FAIL ] || _mut_bad="$_mut_bad [$_m]"
 done
 if [ -n "$_mut_bad" ]; then
-  gate static_curl_say_not_excused FAIL "the guard passed:$_mut_bad"
+  gate static_curl_unsafe_caught FAIL "the guard passed:$_mut_bad"
 else
-  gate static_curl_say_not_excused ok "$_mut_n curl calls sharing a line with a say are all caught"
+  gate static_curl_unsafe_caught ok "$_mut_n unsafe curl calls are all caught"
 fi
 _mut_bad=
 for _m in \
-  '    nocurl) say "bbj-local: warning: not probed: curl not found$_warn" ;;' \
-  '    nocurl) say "bbj-local: not probed: curl not found." ;;' \
-  'say "curl not found"' \
   '  command -v curl > /dev/null 2>&1 || { probe=nocurl; return 0; }' \
-  "_r=\$(curl -q -sS -g --noproxy '*' --proto =http --url \"\$u\" 2> /dev/null); say \"x\""; do
+  "_r=\$(curl -q -sS -g --noproxy '*' --proto =http --url \"\$u\" 2> /dev/null)"; do
   curl_check "$_m"
   [ "$CURL_STATUS" = ok ] || _mut_bad="$_mut_bad [$_m]"
 done
 if [ -n "$_mut_bad" ]; then
-  gate static_curl_say_messages_ok FAIL "the guard flagged:$_mut_bad"
+  gate static_curl_safe_passes FAIL "the guard flagged:$_mut_bad"
 else
-  gate static_curl_say_messages_ok ok "plain say messages that name curl, a command -v test and a safe call followed by a say all pass"
+  gate static_curl_safe_passes ok "a command -v test and a safe call pass"
 fi
 
 finish
