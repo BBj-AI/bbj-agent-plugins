@@ -83,8 +83,8 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
 
 ## What you get
 
-- The `bbj-docs` MCP server. Its tools show up in Claude Code as
-  `mcp__plugin_bbj_bbj-docs__<tool>`: `bbj_search`, `bbj_fetch_page`, `bbj_lookup`,
+- The docs server `bbj` (an MCP server). Its tools show up in Claude Code as
+  `mcp__plugin_bbj_bbj__<tool>`: `bbj_search`, `bbj_fetch_page`, `bbj_lookup`,
   `bbj_reserved_word` and `bbj_examples`, plus the language primer as the resource `bbj://primer`.
   Every answer carries the URL of the documentation page it relies on. Where BASIS runs the hosted
   check next to the docs server, as on the hosted server, the server also lists
@@ -103,7 +103,7 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
   them whatever `docs_url` is. `docs_url` must therefore point at a server that accepts this
   client. If you point it at another server (self-hosted, local), that
   server rejects this client id or has no sign-in. Remove the `oauth` block from the plugin's
-  `.mcp.json` (or override the `bbj-docs` entry with your own) so the other server's own
+  `.mcp.json` (or override the entry of the docs server `bbj` with your own) so the other server's own
   registration is used.
 - Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (maintained in this repository).
 - A hook: after every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file Claude Code compiles

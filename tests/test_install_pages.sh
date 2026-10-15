@@ -127,6 +127,7 @@ if [ -f "$CLAUDE_PAGE" ]; then
     '47613' \
     'Needs authentication' \
     'plugin:bbj:bbj' \
+    'mcp__plugin_bbj_bbj__' \
     'oauth.clientId'
   do
     need "$n" "$CLAUDE_PAGE" "$p"
@@ -225,7 +226,7 @@ if [ -f "$CODEX_PAGE" ]; then
     'the hosted BBj docs server' \
     'stop every Codex process' \
     'approval_mode = "approve"' \
-    'plugins."bbj@basis-bbj".mcp_servers.bbj-docs'
+    'plugins."bbj@basis-bbj".mcp_servers.bbj'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
