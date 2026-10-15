@@ -62,9 +62,10 @@ of the hook, in the `config.toml` of the Codex home.
 
 On Windows the plugin's hook carries a `commandWindows` entry, which Codex runs through PowerShell.
 On Windows the hook looks for Git for Windows `sh.exe` in `%ProgramFiles%\Git\bin`, then
-`%ProgramFiles(x86)%\Git\bin`, then `%LOCALAPPDATA%\Programs\Git\bin`, then an `sh` on `PATH`,
-then the `bin` folder next to a `git` on `PATH`, and a test run found Git for Windows in each of
-these places. See "Windows" below for what happens when none of them holds `sh.exe`.
+`%ProgramFiles(x86)%\Git\bin`, then `%LOCALAPPDATA%\Programs\Git\bin`, then an `sh` on `PATH`
+that belongs to Git for Windows (its Git folder holds `cygpath.exe`; any other `sh` on `PATH` is
+passed over), then the `bin` folder next to a `git` on `PATH`, and a test run found Git for
+Windows in each of these places. See "Windows" below for what happens when none of them holds `sh.exe`.
 
 ### Sign in to the docs server
 

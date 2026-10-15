@@ -119,6 +119,23 @@ Two of the cases (`none_long_bbj`, `none_long_notes`) send a payload line longer
 with no Git found. They exist to show whether a long BBj payload can slip through silently; paste
 their lines like all others.
 
+The cases and what each one expects. Round 3 re-runs every case against the string of the review
+fixes (13-REVIEW-FIX.md) and adds the cases marked with a review finding; a case that says
+`differs` is the reading, as always.
+
+| Case | Layout the hook sees | Expected | Proves |
+|------|----------------------|----------|--------|
+| `default_bad`, `default_nonascii`, `default_long` | your own environment | bbjcpl feedback | rounds 1 and 2 |
+| `default_clean` | your own environment | silent, rc 0 | rounds 1 and 2 |
+| `pf86_bad`, `localappdata_bad` | only that location holds Git (junction) | bbjcpl feedback | rounds 1 and 2 |
+| `sh_on_path_bad`, `git_on_path_bad` | only Git's `bin` or `cmd` on PATH | bbjcpl feedback | rounds 1 and 2 |
+| `none_bbj`, `none_long_bbj`, `none_long_notes`, `clm_none_bbj` | no Git anywhere | the not-found message, rc 2 | rounds 1 and 2 |
+| `none_notes` | no Git anywhere | silent, rc 0 | rounds 1 and 2 |
+| `clm_default_bad`, `pwsh_default_bad`, `pwsh_none_bbj` | as `default_bad` / `none_bbj`, other host | as those | rounds 1 and 2 |
+| `usrbin_on_path_bad` | only Git's `usr\bin` on PATH | bbjcpl feedback | WR-01 (a Git `sh` is still taken) |
+| `othersh_none_bbj` | a non-Git `sh.exe` first on PATH, no Git | the not-found message, rc 2, never rc 0 silent | WR-01 |
+| `othersh_then_git_bad` | a non-Git `sh.exe` first on PATH, Git's `bin` after it | bbjcpl feedback | WR-01 |
+
 ### W2 Case 1: the default install (fills c1-*)
 
 Git is at its default place, `C:\Program Files\Git`. In a new PowerShell window:

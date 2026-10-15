@@ -4,6 +4,8 @@
 # Windows PowerShell and pwsh, with each Git for Windows layout faked by environment variables and
 # junctions. Evidence for the phase record (13-WINDOWS-RUN.md), never CI: CI has no Windows and no
 # PowerShell, and nothing here is a gate.
+# Round 3 (the fixes of 13-REVIEW.md, recorded in 13-REVIEW-FIX.md) adds one case or more per fix; the
+# case table of runbook.md names the fix each case proves.
 #
 # Safety rules (threats T-13-13, T-13-14 and T-13-20):
 #   - starts no BBj except through the hook itself, whose compiler call is compile-only (-N);
@@ -32,8 +34,9 @@ REPO=$(cd "$HERE/../../../.." && pwd)
 REALHOME=$HOME
 BASE=$HOME/.cache/bbj-phase13
 HOOKS=$REPO/plugins/bbj/hooks/hooks.json
-# plan 13-02 pin: sha256 of the commandWindows string as hooks.json holds it (before the root is set)
-PIN_SHA=ae8707fbeb83c04b531c0c61f84980447d53c9424749d60c73eeb53070697d51
+# the current pin (13-REVIEW-FIX.md): sha256 of the commandWindows string as hooks.json holds it (before
+# the root is set); rounds 1 and 2 ran the plan 13-02 pin
+PIN_SHA=c8fa021f7d4eb1897304250c3efd84a68b24592ac7617146affa0c2e38963472
 CLM_PREFIX='$ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"; '
 MARKER=launcher.marker
 OUT=
@@ -205,7 +208,7 @@ filler() {
 want_kind() {
   case $1 in
     default_clean | none_notes) echo clean ;;
-    none_bbj | clm_none_bbj | pwsh_none_bbj) echo notfound ;;
+    none_bbj | clm_none_bbj | pwsh_none_bbj | othersh_none_bbj) echo notfound ;;
     none_long_bbj | none_long_notes) echo notfound_first ;;
     *) echo bbjcpl ;;
   esac
@@ -285,6 +288,9 @@ layout_set() {
     pf86) LPF86=$OUTW'\lay\pf86' ;;
     lad) LLAD=$OUTW'\lay\lad' ;;
     shpath) LPATH=$SYSP:$GITBIN_P ;;
+    usrpath) LPATH=$SYSP:$GITUSR_P ;;
+    othersh) LPATH=$SYSP:$OTHERSH_P ;;
+    othersh_git) LPATH=$SYSP:$OTHERSH_P:$GITBIN_P ;;
     gitpath) LPATH=$SYSP:$GITCMD_P ;;
     none) ;;
     *) return 1 ;;
@@ -370,7 +376,7 @@ sys.stdout.write(d["hooks"]["PostToolUse"][0]["hooks"][0]["commandWindows"])' "$
     cmp -s "$_t/py" "$_t/sh" || _fail "extract_cmd differs from python3 json.load"
   fi
   _h=$(printf '%s' "$_c" | sha256sum | awk '{ print $1 }')
-  [ "$_h" = "$PIN_SHA" ] || _fail "sha256 of commandWindows ($_h) is not the plan 13-02 pin"
+  [ "$_h" = "$PIN_SHA" ] || _fail "sha256 of commandWindows ($_h) is not the launcher pin"
   _r=$(subst_root "$_c" 'C:/x y/plugins/bbj')
   case $_r in
     *'${CLAUDE_PLUGIN_ROOT}'*) _fail "subst_root left a placeholder" ;;
@@ -442,6 +448,10 @@ if not cmd.startswith("*** Begin Patch\n*** Add File: C:\\w\\proj\\bad.bbj\n+pri
   [ "$(check_want bbjcpl 1 0 0 '')" != "as expected" ] || _fail "check_want bbjcpl silent"
   [ "$(check_want notfound 2 0 3 'bbj-check: Git for Windows sh.exe not found, so x')" = "as expected" ] || _fail "check_want notfound"
   [ "$(check_want notfound_first 0 0 0 '')" != "as expected" ] || _fail "check_want notfound_first silent"
+  # the expectation table of the round 3 cases (13-REVIEW-FIX.md)
+  for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl; do
+    [ "$(want_kind "${_k%%:*}")" = "${_k#*:}" ] || _fail "want_kind ${_k%%:*}"
+  done
 
   echo "selftest ok"
 }
@@ -479,6 +489,7 @@ do_run() {
   [ -f "$GIT_U/bin/sh.exe" ] || die2 "Git root $GITW holds no bin\\sh.exe"
   GITBIN_P=$(drivepath "$GITW")/bin
   GITCMD_P=$(drivepath "$GITW")/cmd
+  GITUSR_P=$(drivepath "$GITW")/usr/bin
   PWSHEXE=$(command -v pwsh.exe 2> /dev/null || command -v pwsh 2> /dev/null || true)
   PWSHDIR_P=
   [ -z "$PWSHEXE" ] || PWSHDIR_P=$(dirname "$PWSHEXE")
@@ -493,7 +504,12 @@ do_run() {
   OUT=$1
   OUTW=$(cygpath -w "$OUT")
   : > "$OUT/$MARKER"
-  mkdir -p "$OUT/cases" "$OUT/lay/empty" "$OUT/lay/pf86" "$OUT/lay/lad/Programs" || exit 1
+  mkdir -p "$OUT/cases" "$OUT/lay/empty" "$OUT/lay/pf86" "$OUT/lay/lad/Programs" "$OUT/lay/othersh/bin" || exit 1
+  # WR-01: an sh.exe outside any Git for Windows tree (no cygpath.exe in a usr\bin or bin folder of
+  # its Git folder). It is a copy of Git's bin\sh.exe launcher; the hook must never start it, whatever
+  # it would do there
+  cp "$GIT_U/bin/sh.exe" "$OUT/lay/othersh/bin/sh.exe" || exit 1
+  OTHERSH_P=$(drivepath "$OUTW")/lay/othersh/bin
   SCRUBMAP=$OUT/scrub.map
   : > "$SCRUBMAP"
   scrub_add "$OUT" "<work>"
@@ -538,9 +554,9 @@ $_fill" > "$OUT/p_longnotes.json"
   # readings
   _sha=$(printf '%s' "$CMD_RAW" | sha256sum | awk '{ print $1 }')
   if [ "$_sha" = "$PIN_SHA" ]; then
-    res cmd_sha256 "$_sha (equals the plan 13-02 pin)"
+    res cmd_sha256 "$_sha (equals the launcher pin)"
   else
-    res cmd_sha256 "$_sha (DIFFERS from the plan 13-02 pin $PIN_SHA)"
+    res cmd_sha256 "$_sha (DIFFERS from the launcher pin $PIN_SHA)"
   fi
   res cmd_chars "$(printf '%s' "$CMD_RAW" | wc -c | tr -d ' ')"
   res date "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -569,6 +585,9 @@ $_fill" > "$OUT/p_longnotes.json"
   runcase localappdata_bad powershell lad "$OUT/p_bad.json"
   runcase sh_on_path_bad powershell shpath "$OUT/p_bad.json"
   runcase git_on_path_bad powershell gitpath "$OUT/p_bad.json"
+  runcase usrbin_on_path_bad powershell usrpath "$OUT/p_bad.json"
+  runcase othersh_none_bbj powershell othersh "$OUT/p_bad.json"
+  runcase othersh_then_git_bad powershell othersh_git "$OUT/p_bad.json"
   runcase none_bbj powershell none "$OUT/p_bad.json"
   runcase none_notes powershell none "$OUT/p_notes.json"
   runcase none_long_bbj powershell none "$OUT/p_long.json"
