@@ -16,11 +16,11 @@
 # notice_marker_without_claim, notice_claim_symlink_squat.
 # MAINT-06 (D-11, D-12): PATH is scrubbed of any BBj compiler right after mkwork (no_compiler_path),
 # so a maintainer with bbjcpl on PATH still gets the no-route gates.
-# Phase 8 (CODEX-03, D-07 to D-09): the apply_patch enable step follows the route. With
-# CLAUDE_PLUGIN_ROOT non-empty (the Codex plugin route) it names codex plugin add
-# bbj-local@basis-bbj; unset or empty (the install-codex.sh route) it keeps install-codex.sh
-# --with-local; Claude Code keeps its plugin wording, also with the variable set. The variable is
-# set, exported, used and unset as separate statements, never as a prefix on run_check (Pitfall 4).
+# Phase 8 (CODEX-03) and phase 11 (INST-03, D-16): the apply_patch enable step names codex plugin
+# add bbj-local@basis-bbj whether CLAUDE_PLUGIN_ROOT is set, empty or unset (gates
+# notice_codex_unset_root, notice_codex_empty_root, notice_codex_one_text); Claude Code keeps its
+# plugin wording, also with the variable set. The variable is set, exported, used and unset as
+# separate statements, never as a prefix on run_check (Pitfall 4).
 # Nothing here runs BBj; there is no compiler and the bbj-ls URL is a closed port.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -28,8 +28,8 @@ mkwork
 _np=$(no_compiler_path) || { gate notice_path_scrub FAIL "no_compiler_path could not build a PATH"; finish; }
 PATH=$_np
 no_compiler_env
-# an inherited CLAUDE_PLUGIN_ROOT would turn the installer-route gates into plugin-route ones
-# (Phase 8, D-07); the route gates below set, export and unset it themselves
+# an inherited CLAUDE_PLUGIN_ROOT must not decide what a gate sees; the route gates below set,
+# export and unset it themselves
 unset CLAUDE_PLUGIN_ROOT
 
 # plan 02-02 starts fake servers: kill them as well as removing WORK (as tests/test_tier2_fake.sh does)
