@@ -4,17 +4,17 @@ milestone: v0.2.2
 milestone_name: Plugin-only cleanup
 current_phase: 13
 current_phase_name: Windows hook fixes
-status: executing
-stopped_at: Completed 13-04-PLAN.md
-last_updated: "2026-10-15T18:41:21.863Z"
+status: verifying
+stopped_at: Completed 13-06-PLAN.md
+last_updated: "2026-10-15T20:20:14.000Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 13 execution started
-state_head: 6eaff82544a48e4343969fca0ed8cf49afc4530d
+state_head: 5c7c546851e61e3671f353e810fb59d02d5e52ec
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 14
+  completed_plans: 16
   percent: 40
 ---
 
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 13 (Windows hook fixes) — EXECUTING
-Plan: 5 of 6
-Status: Ready to execute
+Plan: 6 of 6
+Status: Phase complete — ready for verification
 Last activity: 2026-10-15 — Phase 13 execution started
 
 Progress: [████░░░░░░] 40%
@@ -162,6 +162,8 @@ Progress: [████░░░░░░] 40%
 | Phase 13 P02 | 7 min | 2 tasks | 3 files |
 | Phase 13 P03 | 12 min | 2 tasks | 2 files |
 | Phase 13 P04 | 25min | 2 tasks | 3 files |
+| Phase 13 P05 | 86 min (owner run) | 2 tasks | 2 files |
+| Phase 13 P06 | 6 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -192,6 +194,9 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 13]: 13-04: D-20 case 2 hides Git by an environment override in the Codex window (renamed Git folder is the fallback); case 3 uses a junction under a throwaway LOCALAPPDATA or a real per-user install
 - [Phase 13]: 13-04: none_long_bbj and none_long_notes have fixed expectations (rc=2, not-found first line); a silent long BBj payload is recorded as a defect, never a known gap
 - [Phase 13]: 13-04: launcher clean removes only a directory that run marked (launcher.marker), junctions first with a non-recursive rmdir
+- [Phase 13]: 13-05: FIX-01 met on Windows 10 19045, Git for Windows 2.52.0, Windows PowerShell 5.1, Codex CLI 0.162.1 (15 launcher cases as expected, 2 pwsh not run, seven Codex readings hold); harness defects H1-H4 fixed in faf5008, planning files only
+- [Phase 13]: 13-06: Codex page Windows text copied from 13-WINDOWS-RUN.md '## For the install page' (DOCS-06); the Codex case 3 sentence left out because that run cannot show the per-user lookup found Git; the timeout paragraph states one bbj-ls try per hook run and up to 12 seconds per file for a reached bbj-ls, not observed in a run
+- [Phase 13]: 13-06: phase 9 review WR-01..WR-03 and IN-02 fixed (open: 2; IN-01, IN-03 stay open); ROADMAP Phase 15 Upgrading trust note removed per D-21; CHANGELOG short-name mentions left to Phase 15
 
 ### Pending Todos
 
@@ -222,8 +227,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T18:41:21.776Z
-Stopped at: Completed 13-04-PLAN.md
+Last session: 2026-10-15T20:20:14.000Z
+Stopped at: Completed 13-06-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

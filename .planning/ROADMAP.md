@@ -173,7 +173,7 @@ Plans:
   3. A mutation run that removes the backslash conversion makes `windows_codex_backslash_dotdot_skipped` fail, and the unmutated tree passes it; the mutation case is kept in the suite (FIX-03)
   4. The exit contract and the safety gates hold after the fixes: exit 0 or 2 with empty stdout, `-N` on every compiler call, loopback-only `curl` with `--noproxy '*'` and `--proto =http`, never the hosted check; `sh tests/ci.sh` passes (FIX-01, FIX-02, FIX-03)
 
-**Plans**: 4/6 plans executed
+**Plans**: 6/6 plans executed
 
 Plans:
 **Wave 1**
@@ -187,10 +187,10 @@ Plans:
 - [x] 13-04-PLAN.md — Windows run harness: Git Bash launcher that runs the shipped `commandWindows` for every Git layout, the owner's runbook for three real-Codex cases in a throwaway Codex home, the 13-WINDOWS-RUN.md skeleton and a bundle of the commit (FIX-01, SC1; wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 13-05-PLAN.md — Owner run on Windows (blocking checkpoint), recorded in 13-WINDOWS-RUN.md with the install-page sentences and the FIX-01 verdict (FIX-01, SC1; wave 4, owner checkpoint)
+- [x] 13-05-PLAN.md — Owner run on Windows (blocking checkpoint), recorded in 13-WINDOWS-RUN.md with the install-page sentences and the FIX-01 verdict (FIX-01, SC1; wave 4, owner checkpoint)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 13-06-PLAN.md — Codex page and README state the shipped lookup and its message from the run record, page pin replaced, the timeout paragraph states the tier-2 limit that remains; phase 9 review WR-01..WR-03 and IN-02 marked fixed; Phase 15 note per D-21 (FIX-01, FIX-02, FIX-03; wave 5)
+- [x] 13-06-PLAN.md — Codex page and README state the shipped lookup and its message from the run record, page pin replaced, the timeout paragraph states the tier-2 limit that remains; phase 9 review WR-01..WR-03 and IN-02 marked fixed; Phase 15 note per D-21 (FIX-01, FIX-02, FIX-03; wave 5)
 
 **Notes**:
 - Source of the three warnings: `09-REVIEW.md` and `09-REVIEW-DISPOSITION.md` in `.planning/milestones/v0.2.1-phases/09-windows-and-macos-verification/`.
@@ -244,6 +244,6 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 |-------|-----------|----------------|--------|-----------|
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
-| 13. Windows hook fixes | v0.2.2 | 4/6 | In Progress | - |
+| 13. Windows hook fixes | v0.2.2 | 6/6 | In Progress | - |
 | 14. One install page and one term list | v0.2.2 | 0/TBD | Not started | - |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |
