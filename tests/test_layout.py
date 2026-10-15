@@ -23,7 +23,7 @@ method call, no short-name path, no unconditional per-user item) and layout_hook
 silent-exit condition, the loud branch before the call, the passthrough last); the six
 layout_mutation_hook_windows_* cases plant each trap (input variable, method call, short name,
 changed passthrough, moved branch, weaker silent-exit test), and one case per review fix of
-13-REVIEW.md takes its fix back out (any_sh: WR-01; localappdata: WR-02).
+13-REVIEW.md takes its fix back out (any_sh: WR-01; localappdata: WR-02; any_mention: WR-03).
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -55,33 +55,39 @@ OAUTH_PORT = 47613
 OAUTH_SCOPES = "offline_access"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # Phase 13 (FIX-01; D-01 to D-09): Codex's Windows override of the hook command. Codex runs it through
-# PowerShell (pwsh before Windows PowerShell 5.1), so the string is written in the 5.1 subset. It tries
-# $env:ProgramFiles, ${env:ProgramFiles(x86)} and the per-user folder (each followed by
-# \Git\bin\sh.exe; the per-user item is $env:LOCALAPPDATA\Programs, built only when LOCALAPPDATA is
-# set, else $env:USERPROFILE\AppData\Local\Programs, else left out: review WR-02, an expandable
-# string is never empty, so an unset LOCALAPPDATA made it \Programs, a path on the root of the current
-# drive), then an sh from Get-Command that belongs to Git for Windows (its Git folder, two
-# levels up, holds usr\bin\cygpath.exe or bin\cygpath.exe: review WR-01, a non-Git sh such as busybox
-# has no cygpath, so the hook would pass every BBj file silently; every sh on PATH is tried in order),
-# then bin\sh.exe next to the directory of git from Get-Command (statements 2 to 4; an empty variable
-# is skipped, one match is taken), and runs the first that exists. The not-found branch (statement 5) reads the payload only through the native findstr,
-# because the PowerShell host swallows all of stdin when the command text names the automatic input
-# variable anywhere, even in a branch that never runs, and sh.exe would then inherit nothing. It stays
-# silent only when findstr exited 0, read every payload line in full (each output element is N:text) and
-# no line names a BBj file (ROADMAP SC1: never a silent no-op: a line findstr cannot read in full, such
-# as one over its 8191-byte limit on piped input, is reported); otherwise it writes three fixed lines to
-# stderr through cmd and exits 2 (accepted D-06 false positive: a non-BBj payload line findstr cannot
-# read in full is reported too). There are no method calls and no type literals, so the string also runs
-# under ConstrainedLanguage (D-05). The string ends with the exit-code passthrough that keeps exit
-# code 2, which a PowerShell -Command wrapper rewrites to 1; statement 7 turns a launch that never set
-# an exit code into exit 1. The logic stays inline (D-08). This pins text, not behaviour: PowerShell
-# cannot run in CI; the Windows run is recorded in 13-WINDOWS-RUN.md.
+# PowerShell (pwsh before Windows PowerShell 5.1), so the string is written in the 5.1 subset.
+# Statements 2 to 4 look for Git for Windows' sh.exe and keep the first match:
+# - statement 2: $env:ProgramFiles, ${env:ProgramFiles(x86)} and the per-user folder, each followed by
+#   \Git\bin\sh.exe; an empty variable is skipped. The per-user item is $env:LOCALAPPDATA\Programs,
+#   built only when LOCALAPPDATA is set, else $env:USERPROFILE\AppData\Local\Programs, else left out
+#   (review WR-02: an expandable string is never empty, so an unset LOCALAPPDATA made it \Programs, a
+#   path on the root of the current drive);
+# - statement 3: an sh from Get-Command that belongs to Git for Windows, that is its Git folder (two
+#   levels up) holds usr\bin\cygpath.exe or bin\cygpath.exe; every sh on PATH is tried in order (review
+#   WR-01: a non-Git sh such as busybox has no cygpath, so the hook would pass every BBj file silently);
+# - statement 4: bin\sh.exe next to the directory of git from Get-Command.
+# The not-found branch (statement 5) reads the payload only through the native findstr, because the
+# PowerShell host swallows all of stdin when the command text names the automatic input variable
+# anywhere, even in a branch that never runs, and sh.exe would then inherit nothing. It stays silent
+# only when findstr exited 0, read every payload line in full (each output element is N:text) and no
+# file name in it is a BBj file: a file name is the path of an "*** Add File: ", "*** Update File: ",
+# "*** Delete File: " or "*** Move to: " header, or the value of "file_path", and it is a BBj file when
+# it ends in .bbj, .src or .bbx (any case) right before the escaped line end or the closing quote
+# (review WR-03: the text of a change, such as img.src in a web file, never counts). ROADMAP SC1, never a
+# silent no-op: a line findstr cannot read in full, such as one over its 8191-byte limit on piped input,
+# is reported (accepted D-06 false positive: a non-BBj payload that long is reported too). Otherwise it
+# writes three fixed lines to stderr through cmd and exits 2. There are no method calls and no type
+# literals, so the string also runs under ConstrainedLanguage (D-05). The string ends with the exit-code
+# passthrough that keeps exit code 2, which a PowerShell -Command wrapper rewrites to 1; the statement
+# before it turns a launch that never set an exit code into exit 1. The logic stays inline (D-08). This
+# pins text, not behaviour: PowerShell cannot run in CI; the Windows run is recorded in
+# 13-WINDOWS-RUN.md.
 HOOK_COMMAND_WINDOWS_STATEMENTS = (
     r'$s = $null',
     r'foreach ($r in $env:ProgramFiles, ${env:ProgramFiles(x86)}, $(if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\Programs" } elseif ($env:USERPROFILE) { "$env:USERPROFILE\AppData\Local\Programs" })) { if ($r -and -not $s) { $p = "$r\Git\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } }',
     r'if (-not $s) { foreach ($c in (Get-Command sh -CommandType Application -ErrorAction SilentlyContinue)) { $q = Split-Path -Parent (Split-Path -Parent $c.Source); if ($q -and -not $s -and ((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source } } }',
     r"if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $p = (Split-Path -Parent (Split-Path -Parent $g.Source)) + '\bin\sh.exe'; if (Test-Path -LiteralPath $p) { $s = $p } } }",
-    r'if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }',
+    r'''if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }''',
     r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"',
     r'if ($null -eq $LASTEXITCODE) { exit 1 }',
     r'exit $LASTEXITCODE',
@@ -98,7 +104,8 @@ HOOK_COMMAND_WINDOWS = "; ".join(HOOK_COMMAND_WINDOWS_STATEMENTS)
 WINDOWS_FORBIDDEN = ("$" + "input", "[console]", "::", ".writeerrorline", ".readtoend", ".invoke(",
                      "progra" + "~", r'"$env:localappdata\programs")')
 # WINDOWS_PARTS, each must occur verbatim: every lookup location, the findstr read, the whole silent-exit
-# condition (silence only after a full read of the payload that names no BBj file: ROADMAP SC1), the
+# condition (silence only after a full read of the payload whose file names are no BBj file: ROADMAP
+# SC1, review WR-03), the
 # loud branch (message and exit 2) and the call; the value must also end with the exit-code
 # passthrough and the loud branch must come before the call.
 WINDOWS_PARTS = (
@@ -109,7 +116,7 @@ WINDOWS_PARTS = (
     r'((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source }',
     r'Get-Command git ',
     r'findstr /n /r "^" 2>&1',
-    r'if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }',
+    r'''if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }''',
     r'Git for Windows sh.exe not found',
     r'exit 2 }',
     r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"',
@@ -677,7 +684,7 @@ if len(sys.argv) == 1:
 
     # the automatic input variable, assembled from pieces (self-scan convention)
     AUTO_INPUT = "$" + "input"
-    SILENT_EXIT = r'if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }'
+    SILENT_EXIT = r'''if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }'''
     NOT_FOUND_START = "if (-not $s) { $o = findstr"
     CALL_START = '& $s "'
 
@@ -718,6 +725,12 @@ if len(sys.argv) == 1:
     # review WR-02: the per-user item is an unconditional expandable string again
     PER_USER = r'$(if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\Programs" } elseif ($env:USERPROFILE) { "$env:USERPROFILE\AppData\Local\Programs" })'
 
+    # review WR-03: any mention of the three extensions counts again, patch text included
+    NAME_MATCH = r'''-not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')'''
+
+    def windows_any_mention(dst):
+        edit_windows(dst, lambda v: v.replace(NAME_MATCH, r'-not ($o -match "\.(bbj|src|bbx)")', 1))
+
     def windows_localappdata(dst):
         edit_windows(dst, lambda v: v.replace(PER_USER + ")", r'"$env:LOCALAPPDATA\Programs")', 1))
 
@@ -745,6 +758,8 @@ if len(sys.argv) == 1:
                   ["hook_command_windows", "hook_windows_parts"])
     mutation_case("hook_windows_localappdata", [HOOKS_FILE], windows_localappdata,
                   ["hook_command_windows", "hook_windows_safe", "hook_windows_parts"])
+    mutation_case("hook_windows_any_mention", [HOOKS_FILE], windows_any_mention,
+                  ["hook_command_windows", "hook_windows_parts"])
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
     mutation_case("docs_url_stage", [CLAUDE_MANIFEST], docs_url_stage, ["docs_url_description"])
