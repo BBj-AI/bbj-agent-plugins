@@ -2,25 +2,25 @@
 # tests/test_release_text_mutation.sh -- review fix IN-01 (phase 06): proves that every gate of
 # tests/test_release_text.py can fail.
 #
-# The release text gate takes an optional repository root. This test copies the six files it
-# reads (README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md, tests/test_layout.py,
-# codex/install-codex.sh) into a temporary root, checks that the copy passes, then changes one
+# The release text gate takes an optional repository root. This test copies the five files it
+# reads (README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md,
+# tests/test_layout.py) into a temporary root, checks that the copy passes, then changes one
 # thing per gate in a fresh copy and requires that gate to print FAIL and the script to exit 1.
 # Older CHANGELOG entries must not matter, so one more case adds an old entry and requires a pass.
 # The later-version cases move the version on (phase 7 D-05, D-07) and require: the generic
-# addressee gate keeps running, the pinned fact gates FAIL until they are re-pinned, and a
+# addressee gate keeps running, the pinned fact gate FAILs until it is re-pinned, and a
 # re-pinned copy passes. The four cases are later_unpinned, later_repinned, later_addressee and
 # later_command.
 # Plan 10-06 (D-02): claude_version_single is per platform, so two cases change one version each,
 # on the Claude Code page and on the README table row (claude_version_single and
 # claude_version_single_readme); mutate takes the case name as an optional fourth argument when
 # one gate has more than one case. Two more cases put an old hint back into the README and into the
-# Claude Code page and require release_no_unrun_hint to fail (DOCS-04). Plan 10-07 adds the same for the Codex
-# page and the installer's STATUS_LINE (no_unrun_hint_codex_page, no_unrun_hint_installer) and the case
-# status_line_in_page (DOCS-03: one changed word in the installer's STATUS_LINE).
-# Plan 10-08 (REL-07): the upgrade_quotes case changes a word inside the --remove "Next:" quote on its
-# installer line, and the not_run case is generic (it prefixes every Not run line), so a later
+# Claude Code page and require release_no_unrun_hint to fail (DOCS-04). Plan 10-07 adds the same for
+# the Codex page (no_unrun_hint_codex_page).
+# Plan 10-08 (REL-07): the not_run case is generic (it prefixes every Not run line), so a later
 # re-pin of NOT_RUN_LINES does not touch this file.
+# Plan 11-02 (D-07 to D-09): the copy holds no Codex script, so the script's quote, status line and
+# hint cases are gone with the gates that read it.
 # Nothing here runs BBj; the only program run is python3 -I on the gate script.
 
 . "$(dirname "$0")/lib.sh"
@@ -37,11 +37,10 @@ VERSION=$(sed -n 's/^VERSION = "\([0-9.]*\)"$/\1/p' "$REPO/tests/test_layout.py"
 
 # fresh_root DIR: a copy of the files the gate reads
 fresh_root() {
-  mkdir -p "$1/tests" "$1/codex" "$1/docs" || return 1
+  mkdir -p "$1/tests" "$1/docs" || return 1
   cp "$REPO/README.md" "$REPO/CHANGELOG.md" "$1/" || return 1
   cp "$REPO/docs/install-claude-code.md" "$REPO/docs/install-codex.md" "$1/docs/" || return 1
   cp "$REPO/tests/test_layout.py" "$1/tests/" || return 1
-  cp "$REPO/codex/install-codex.sh" "$1/codex/" || return 1
 }
 
 # mutate GATE FILE SEDPROGRAM [CASE]: change FILE in a fresh copy; GATE must print FAIL and exit 1.
@@ -89,7 +88,7 @@ else
 fi
 
 # later_root DIR ADDRESSEE_VERSION: a copy whose version is moved on to 9.9.9; the Upgrading text
-# is addressed to users of main before ADDRESSEE_VERSION; the quotes and Not run lines stay as they are
+# is addressed to users of main before ADDRESSEE_VERSION; the Not run lines stay as they are
 later_root() {
   fresh_root "$1" || return 1
   sed 's/^VERSION = ".*"$/VERSION = "9.9.9"/' "$1/tests/test_layout.py" > "$1/tests/test_layout.py.new" \
@@ -100,7 +99,7 @@ later_root() {
     && mv "$1/CHANGELOG.md.new" "$1/CHANGELOG.md" || return 1
 }
 
-# a version bump without new facts: the generic gate is ok, the two pinned gates FAIL with the
+# a version bump without new facts: the generic gate is ok, the pinned gate not_run FAILs with the
 # re-pin text, and nothing prints skip (phase 7 D-05)
 if later_root "$WORK/root-unpinned" 9.9.9; then
   python3 -I "$GATE" "$WORK/root-unpinned" > "$WORK/out" 2> "$WORK/err"
@@ -109,10 +108,9 @@ if later_root "$WORK/root-unpinned" 9.9.9; then
   _nskip=$(grep -c "^gate [^ ]* skip " "$WORK/out")
   if [ "$_rc" = 1 ] \
     && grep -q "^gate release_upgrade_addressed ok " "$WORK/out" \
-    && grep -q "^gate release_upgrade_quotes FAIL version 9.9.9 is not CONTENT_VERSION .*re-pin CONTENT_VERSION and UPGRADE_QUOTES$" "$WORK/out" \
     && grep -q "^gate release_not_run FAIL version 9.9.9 is not CONTENT_VERSION .*re-pin CONTENT_VERSION and NOT_RUN_LINES$" "$WORK/out" \
-    && [ "$_nfail" = 2 ] && [ "$_nskip" = 0 ]; then
-    gate release_mut_later_unpinned ok "a later version without new facts: two pinned gates FAIL with the re-pin text, no skip"
+    && [ "$_nfail" = 1 ] && [ "$_nskip" = 0 ]; then
+    gate release_mut_later_unpinned ok "a later version without new facts: the pinned gate not_run FAILs with the re-pin text, no skip"
   else
     gate release_mut_later_unpinned FAIL "rc=$_rc, $_nfail FAIL line(s), $_nskip skip line(s) for a later version without new facts"
   fi
@@ -183,7 +181,6 @@ mutate changelog_leftovers CHANGELOG.md 's/^### Tested against$/### Next\
 ### Tested against/'
 mutate upgrade_addressed CHANGELOG.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
 mutate upgrade_install_page docs/install-claude-code.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
-mutate upgrade_quotes codex/install-codex.sh 's/then open \/hooks in Codex and trust the BBj check hook/then open \/hooks in Codex and trust the BBj check script/'
 mutate codex_version_single docs/install-codex.md '1,/Codex CLI [0-9][0-9.]*/s/Codex CLI [0-9][0-9.]*/Codex CLI 0.0.1/'
 # one version per platform (D-02): the first "Claude Code N on Windows" of the page, then the first
 # version of the README row "| Claude Code |" (the Linux column); the other mentions stay as they are
@@ -192,11 +189,8 @@ mutate claude_version_single README.md '/^| Claude Code |/s/[0-9][0-9]*\.[0-9][0
 # DOCS-04 (plan 10-06): an old hint put back into the README or the Claude Code page fails the gate
 mutate no_unrun_hint README.md '/^| Claude Code |/s/$/ Tested on Linux only./' no_unrun_hint_readme
 mutate no_unrun_hint docs/install-claude-code.md '1s/$/ The plugin has not yet been run on Windows./' no_unrun_hint_claude_page
-# DOCS-03 (plan 10-07): a changed word in the installer's STATUS_LINE, not on the Codex page, fails the gate
-mutate status_line_in_page codex/install-codex.sh "/^STATUS_LINE=/s/Verified/Checked/"
-# DOCS-04 (plan 10-07): an old hint put back into the Codex page or the installer fails the gate too
+# DOCS-04 (plan 10-07): an old hint put back into the Codex page fails the gate too
 mutate no_unrun_hint docs/install-codex.md '1s/$/ Tested on Linux only./' no_unrun_hint_codex_page
-mutate no_unrun_hint codex/install-codex.sh "/^STATUS_LINE=/s/'\$/ Not yet run on Windows.'/" no_unrun_hint_installer
 mutate not_run CHANGELOG.md '/^### Not run$/,$ s/^- /- x /'
 
 finish
