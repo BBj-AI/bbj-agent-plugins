@@ -2,7 +2,12 @@
   "mcpServers": {
     "bbj-docs": {
       "type": "http",
-      "url": "${user_config.docs_url}"
+      "url": "${user_config.docs_url}",
+      "oauth": {
+        "clientId": "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t",
+        "callbackPort": 47613,
+        "scopes": "offline_access"
+      }
     }
   }
 }

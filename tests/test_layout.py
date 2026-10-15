@@ -1,6 +1,14 @@
 """tests/test_layout.py -- plan 19-03: pins every manifest value the requirements fix.
 Plan 01-01 (VEND-01, VEND-03): the skills are ordinary repository files; the hosted-host rule
 covers them (D-02) and the lock and hash test stay removed.
+Quick 261013-cpn: the bbj-docs entry carries the pre-registered OAuth client; the Codex
+installer holds the same client (layout_oauth_codex_matches_plugin).
+Phase 8 (CODEX-01, CODEX-04; D-10, D-11, D-13): pins the Codex overlay
+plugins/bbj/.codex-plugin/plugin.json and its literal-URL file plugins/bbj/.codex-mcp.json.
+Plan 10-02 (D-05, D-16): both MCP files ask for offline_access as a string; the docs_url
+description calls the default the hosted BBj docs server and names no stage of a release.
+The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
+argument turns them off.
 
 stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate layout_<name> ok|FAIL <detail>
@@ -11,16 +19,31 @@ Nothing here runs BBj code or touches a Claude Code configuration.
 import glob
 import json
 import os
+import shutil
 import subprocess
 import sys
+import tempfile
 
 ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
+OAUTH_CLIENT_ID = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
+OAUTH_PORT = 47613
+OAUTH_SCOPES = "offline_access"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
+# D-11 of phase 9: Codex's Windows override of the hook command, as the owner chose it for W-1 (the
+# 8.3 path of Git for Windows' sh.exe, unquoted, because Codex starts the hook through Windows
+# PowerShell where sh is not on the PATH and where a quoted first token is a parse error; the
+# trailing exit keeps exit code 2, which a PowerShell -Command wrapper rewrites to 1). This pins
+# text, not behaviour: PowerShell cannot run in CI. The plan 09-06 re-run on Windows shows it works.
+HOOK_COMMAND_WINDOWS = 'C:\\PROGRA~1\\Git\\bin\\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE'
+# D-10: the seven identity fields the Codex overlay copies from the Claude manifest, and the
+# relative path of its MCP file
+SHARED_FIELDS = ("name", "version", "description", "author", "homepage", "license", "keywords")
+CODEX_MCP_REF = "./.codex-mcp.json"
 LOCAL_URL = "http://127.0.0.1:5009/mcp"
 # assembled from pieces so this file never names what it searches for (self-scan convention)
 LOCK_NAME = "skills" + ".lock.json"
@@ -52,6 +75,8 @@ local = load("plugins/bbj-local/.claude-plugin/plugin.json")
 bbj_mcp = load("plugins/bbj/.mcp.json")
 local_mcp = load("plugins/bbj-local/.mcp.json")
 hooks = load("plugins/bbj/hooks/hooks.json")
+codex = load("plugins/bbj/.codex-plugin/plugin.json")
+codex_mcp = load("plugins/bbj/.codex-mcp.json")
 
 entries = {e.get("name"): e for e in market.get("plugins", []) if isinstance(e, dict)}
 
@@ -63,19 +88,83 @@ gate("marketplace_entries",
      and len(market.get("plugins", [])) == 2 and sources_ok,
      "name=%r entries=%r sources_exist=%s" % (market.get("name"), sorted(entries), sources_ok))
 
-# versions: two plugin.json and both marketplace entries, all equal to VERSION
+# versions: two plugin.json, both marketplace entries and the Codex overlay (five), all equal to VERSION
 versions = [bbj.get("version"), local.get("version"),
-            entries.get("bbj", {}).get("version"), entries.get("bbj-local", {}).get("version")]
+            entries.get("bbj", {}).get("version"), entries.get("bbj-local", {}).get("version"),
+            codex.get("version")]
 gate("versions", all(v == VERSION for v in versions), "versions=%r want all %s" % (versions, VERSION))
 
 # licence
 gate("license", bbj.get("license") == "Apache-2.0" and local.get("license") == "Apache-2.0",
      "bbj=%r bbj-local=%r" % (bbj.get("license"), local.get("license")))
 
-# bbj .mcp.json: exactly one http server at ${user_config.docs_url}
+# D-10: the Codex overlay holds the seven identity fields of the Claude manifest and the relative
+# path of its MCP file, nothing else (an explicit skills or hooks key would replace Codex's default
+# discovery); the file it names must exist
+codex_keys = sorted(codex) if isinstance(codex, dict) else []
+want_keys = sorted(SHARED_FIELDS + ("mcpServers",))
+differ = [k for k in SHARED_FIELDS if codex.get(k) != bbj.get(k)]
+mcp_file = os.path.isfile(os.path.join(ROOT, "plugins/bbj/.codex-mcp.json"))
+gate("codex_overlay_fields",
+     codex_keys == want_keys and not differ and codex.get("mcpServers") == CODEX_MCP_REF and mcp_file,
+     "keys=%r differ_from_claude=%r mcpServers=%r mcp_file_exists=%s" % (
+         codex_keys, differ, codex.get("mcpServers"), mcp_file))
+
+# bbj .mcp.json: exactly one http server at ${user_config.docs_url}. The entry carries the
+# pre-registered OAuth client of the hosted docs server (quick 261013-cpn); dict equality
+# also rejects a string port and any extra key such as a client secret. Claude Code asks for
+# offline_access only when told, so the plugin names it as a string, never an array and never a
+# key called scope (plan 10-02, D-16).
 servers = bbj_mcp.get("mcpServers", {})
-gate("bbj_mcp", servers == {"bbj-docs": {"type": "http", "url": "${user_config.docs_url}"}},
+gate("bbj_mcp",
+     servers == {"bbj-docs": {"type": "http", "url": "${user_config.docs_url}",
+                              "oauth": {"clientId": OAUTH_CLIENT_ID,
+                                        "callbackPort": OAUTH_PORT,
+                                        "scopes": OAUTH_SCOPES}}},
      "mcpServers=%r" % (servers,))
+
+# D-11: the Codex file registers bbj-docs at the literal docs URL. Plan 08-08 (owner decision
+# "signin: add-block", 2026-10-13): without a pre-registered client the hosted server refuses
+# dynamic client registration on the plugin route, so the file carries the public client id and
+# the registered loopback callback, the object the Linux owner pass signed in with. Dict equality
+# also rejects any extra key such as a client secret, header or token.
+codex_servers = codex_mcp.get("mcpServers", {})
+gate("codex_mcp",
+     codex_servers == {"bbj-docs": {"type": "http", "url": DOCS_DEFAULT,
+                                    "oauth": {"clientId": OAUTH_CLIENT_ID,
+                                              "callbackUrl": "http://localhost:%d/callback" % OAUTH_PORT,
+                                              "callbackPort": OAUTH_PORT,
+                                              "scopes": OAUTH_SCOPES}}},
+     "mcpServers=%r" % (codex_servers,))
+
+# D-05: the docs_url description calls the default the hosted BBj docs server and names no stage of
+# a release. The stage words are assembled from pieces so this file never names them whole.
+STAGE_WORDS = ("pre-" + "production", "go-" + "live", "until the go" + "-live", "tempo" + "rary")
+docs_desc = (bbj.get("userConfig", {}).get("docs_url", {}) or {}).get("description", "")
+stage_hits = [w for w in STAGE_WORDS if w in str(docs_desc).lower()]
+gate("docs_url_description",
+     isinstance(docs_desc, str) and "hosted BBj docs server" in docs_desc and not stage_hits,
+     "description=%r stage words found=%r" % (docs_desc, stage_hits))
+
+# the Codex installer holds the same client as the plugin: one id, one port, the loopback callback
+# built from that port (quick 261013-cpn). Plain startswith parsing of the three literal lines.
+oauth_inst = {}
+try:
+    with open(os.path.join(ROOT, "codex/install-codex.sh"), encoding="utf-8") as f:
+        for line in f.read().splitlines():
+            for key in ("OAUTH_CLIENT_ID", "OAUTH_CALLBACK_PORT", "OAUTH_CALLBACK_URL"):
+                if line.startswith(key + "="):
+                    oauth_inst[key] = line[len(key) + 1:]
+except OSError:
+    pass
+oauth_plugin = servers.get("bbj-docs", {}).get("oauth", {}) if isinstance(servers, dict) else {}
+gate("oauth_codex_matches_plugin",
+     oauth_inst.get("OAUTH_CLIENT_ID") == OAUTH_CLIENT_ID
+     and oauth_inst.get("OAUTH_CLIENT_ID") == oauth_plugin.get("clientId")
+     and oauth_inst.get("OAUTH_CALLBACK_PORT") == str(OAUTH_PORT)
+     and oauth_inst.get("OAUTH_CALLBACK_PORT") == str(oauth_plugin.get("callbackPort"))
+     and oauth_inst.get("OAUTH_CALLBACK_URL") == "http://localhost:%d/callback" % OAUTH_PORT,
+     "installer=%r plugin=%r" % (oauth_inst, oauth_plugin))
 
 # userConfig
 uc = bbj.get("userConfig", {})
@@ -91,6 +180,11 @@ gate("user_config_bbj_home",
      "bbj_home=%r" % (home,))
 gate("user_config_keys", sorted(uc) == ["bbj_home", "docs_url"], "keys=%r" % (sorted(uc),))
 
+# D-13: the Codex url and the docs_url default are one string, compared exactly (no trailing slash)
+codex_url = codex_servers.get("bbj-docs", {}).get("url") if isinstance(codex_servers, dict) else None
+gate("codex_url_equals_default", codex_url is not None and codex_url == docs.get("default"),
+     "codex url=%r docs_url default=%r" % (codex_url, docs.get("default")))
+
 # hooks.json: matcher, one command hook, exact command, timeout
 post = hooks.get("hooks", {}).get("PostToolUse", [])
 hook_list = post[0].get("hooks", []) if len(post) == 1 else []
@@ -100,6 +194,10 @@ gate("hook_command",
      len(hook_list) == 1 and hook_list[0].get("type") == "command"
      and hook_list[0].get("command") == HOOK_COMMAND,
      "hooks=%r" % (hook_list,))
+gate("hook_command_windows",
+     len(hook_list) == 1 and hook_list[0].get("commandWindows") == HOOK_COMMAND_WINDOWS
+     and hook_list[0].get("command") == HOOK_COMMAND,
+     "commandWindows=%r" % (hook_list[0].get("commandWindows") if len(hook_list) == 1 else None,))
 gate("hook_timeout", len(hook_list) == 1 and hook_list[0].get("timeout") == 30,
      "timeout=%r" % (hook_list[0].get("timeout") if hook_list else None,))
 gate("hook_events_only_post_tool_use", list(hooks.get("hooks", {})) == ["PostToolUse"],
@@ -135,7 +233,9 @@ gate("bbj_default_enabled", "defaultEnabled" not in bbj
      and "defaultEnabled" not in entries.get("bbj", {}),
      "bbj does not switch itself off")
 
-# the hosted host name occurs once under plugins/ (the skills included, D-02)
+# the hosted host name occurs in exactly two files under plugins/ (the skills included, D-02): the
+# Claude manifest default and the Codex literal-URL file (D-13). The list is compared sorted because
+# os.walk order is not fixed (Pitfall 11).
 hits = []
 plugins_dir = os.path.join(ROOT, "plugins")
 for dirpath, dirnames, filenames in os.walk(plugins_dir):
@@ -147,7 +247,8 @@ for dirpath, dirnames, filenames in os.walk(plugins_dir):
                     hits.append(os.path.relpath(path, ROOT))
         except OSError:
             pass
-gate("docs_host_single_source", hits == ["plugins/bbj/.claude-plugin/plugin.json"],
+gate("docs_host_single_source",
+     sorted(hits) == ["plugins/bbj/.claude-plugin/plugin.json", "plugins/bbj/.codex-mcp.json"],
      "files naming %s: %r" % (DOCS_HOST, sorted(hits)))
 
 # VEND-01: the lock file and the hash test are gone and nothing names them
@@ -183,7 +284,8 @@ gate("skills_not_executable", not execs,
 # VEND-02: shipped text says the skills are maintained here; no history, no upstream name.
 # CHANGELOG.md is read too (phase 1 UAT ruling).
 texts = ["README.md", "NOTICE", "CHANGELOG.md", ".claude-plugin/marketplace.json",
-         "plugins/bbj/.claude-plugin/plugin.json", "plugins/bbj-local/.claude-plugin/plugin.json"]
+         "plugins/bbj/.claude-plugin/plugin.json", "plugins/bbj-local/.claude-plugin/plugin.json",
+         "plugins/bbj/.codex-plugin/plugin.json"]
 texts.extend(os.path.relpath(p, ROOT) for p in sorted(glob.glob(os.path.join(ROOT, "docs", "*.md"))))
 wording = []
 for rel in texts:
@@ -207,5 +309,146 @@ except OSError:
 gate("notice_no_provenance",
      notice == ["bbj-agent-plugins", "Copyright 2026 BASIS International Ltd."],
      "NOTICE lines=%r" % (notice,))
+
+
+# CODEX-04: prove the gates above can fail. Each case copies the repository files this script
+# reads into a fresh temp directory, changes one thing, runs this file on the copy (a root
+# argument turns this section off, so a copy run never recurses) and requires the named gates to
+# print FAIL and the exit code to be 1. A mutation that changes nothing is itself a FAIL. The
+# checkout is never written; the temp directory is removed in a finally.
+def build_copy(dst):
+    for d in (".claude-plugin", "plugins", "codex", "docs"):
+        shutil.copytree(os.path.join(ROOT, d), os.path.join(dst, d), symlinks=True)
+    for f in ("README.md", "NOTICE", "CHANGELOG.md"):
+        shutil.copy2(os.path.join(ROOT, f), os.path.join(dst, f))
+
+
+def run_copy(root):
+    r = subprocess.run([sys.executable, "-I", os.path.abspath(__file__), root],
+                       capture_output=True, text=True, timeout=60)
+    return r.returncode, r.stdout
+
+
+def edit_json(path, fn):
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
+    fn(data)
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+
+
+def read_bytes(path):
+    try:
+        with open(path, "rb") as f:
+            return f.read()
+    except OSError:
+        return None
+
+
+def mutation_case(name, rels, change, expect):
+    """Run one mutation: rels are the files it touches, change(dst) edits the copy, expect lists
+    the gate names (without the layout_ prefix) that must print FAIL; an empty list is the
+    control: rc 0 and no FAIL line."""
+    tmp = tempfile.mkdtemp(prefix="layoutmut.")
+    try:
+        dst = os.path.join(tmp, "copy")
+        build_copy(dst)
+        before = [read_bytes(os.path.join(dst, r)) for r in rels]
+        change(dst)
+        after = [read_bytes(os.path.join(dst, r)) for r in rels]
+        if expect and before == after:
+            gate("mutation_" + name, False, "the mutation changed nothing in %s" % (", ".join(rels),))
+            return
+        rc, out = run_copy(dst)
+        fails = [ln for ln in out.splitlines() if " FAIL " in ln]
+        if not expect:
+            ok = rc == 0 and not fails
+            detail = "the unchanged copy passes" if ok else "rc=%d first FAIL lines: %r" % (rc, fails[:2])
+        else:
+            missing = [g for g in expect if not any(ln.startswith("gate layout_%s FAIL" % g) for ln in fails)]
+            ok = rc == 1 and not missing
+            detail = ("gate layout_%s fails on the changed copy" % ", layout_".join(expect)) if ok else (
+                "rc=%d missing FAIL for %r, first FAIL lines: %r" % (rc, missing, fails[:2]))
+        gate("mutation_" + name, ok, detail)
+    except (OSError, ValueError, KeyError, subprocess.SubprocessError) as e:
+        gate("mutation_" + name, False, "case error: %s" % (e,))
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+if len(sys.argv) == 1:
+    CLAUDE_MANIFEST = "plugins/bbj/.claude-plugin/plugin.json"
+    CODEX_MANIFEST = "plugins/bbj/.codex-plugin/plugin.json"
+    CODEX_MCP_FILE = "plugins/bbj/.codex-mcp.json"
+    SKILL_FILE = "plugins/bbj/skills/bbj-programming/SKILL.md"
+
+    def set_overlay_version(dst):
+        edit_json(os.path.join(dst, CODEX_MANIFEST), lambda d: d.update(version="9.9.9"))
+
+    def slash_codex_url(dst):
+        def fn(d):
+            d["mcpServers"]["bbj-docs"]["url"] += "/"
+        edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
+
+    def slash_default_url(dst):
+        def fn(d):
+            d["userConfig"]["docs_url"]["default"] += "/"
+        edit_json(os.path.join(dst, CLAUDE_MANIFEST), fn)
+
+    def host_in_third_file(dst):
+        with open(os.path.join(dst, SKILL_FILE), "a", encoding="utf-8") as f:
+            f.write("\nSee https://" + DOCS_HOST + "/mcp for the hosted server.\n")
+
+    def delete_codex_mcp(dst):
+        os.remove(os.path.join(dst, CODEX_MCP_FILE))
+
+    def overlay_extra_key(dst):
+        edit_json(os.path.join(dst, CODEX_MANIFEST), lambda d: d.update(skills="./skills/"))
+
+    def codex_secret(dst):
+        def fn(d):
+            # the key name is assembled from two pieces (self-scan convention)
+            d["mcpServers"]["bbj-docs"]["oauth"] = {"clientId": OAUTH_CLIENT_ID,
+                                                    "client" + "Secret": "not-a-real-value"}
+        edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
+
+    MCP_FILE = "plugins/bbj/.mcp.json"
+
+    def mcp_scopes_missing(dst):
+        def fn(d):
+            d["mcpServers"]["bbj-docs"]["oauth"].pop("scopes", None)
+        edit_json(os.path.join(dst, MCP_FILE), fn)
+
+    def codex_scopes_array(dst):
+        def fn(d):
+            d["mcpServers"]["bbj-docs"]["oauth"]["scopes"] = [OAUTH_SCOPES]
+        edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
+
+    def docs_url_stage(dst):
+        def fn(d):
+            d["userConfig"]["docs_url"]["description"] += " It is the pre-" + "production instance."
+        edit_json(os.path.join(dst, CLAUDE_MANIFEST), fn)
+
+    HOOKS_FILE = "plugins/bbj/hooks/hooks.json"
+
+    def drop_command_windows(dst):
+        def fn(d):
+            d["hooks"]["PostToolUse"][0]["hooks"][0].pop("commandWindows", None)
+        edit_json(os.path.join(dst, HOOKS_FILE), fn)
+
+    mutation_case("control", [], lambda dst: None, [])
+    mutation_case("overlay_version", [CODEX_MANIFEST], set_overlay_version, ["versions"])
+    mutation_case("codex_url", [CODEX_MCP_FILE], slash_codex_url, ["codex_url_equals_default"])
+    mutation_case("default_url", [CLAUDE_MANIFEST], slash_default_url, ["codex_url_equals_default"])
+    mutation_case("host_elsewhere", [SKILL_FILE], host_in_third_file, ["docs_host_single_source"])
+    mutation_case("codex_mcp_missing", [CODEX_MCP_FILE], delete_codex_mcp,
+                  ["codex_overlay_fields", "codex_mcp"])
+    mutation_case("overlay_extra_key", [CODEX_MANIFEST], overlay_extra_key, ["codex_overlay_fields"])
+    mutation_case("codex_secret", [CODEX_MCP_FILE], codex_secret, ["codex_mcp"])
+    mutation_case("hook_command_windows", [HOOKS_FILE], drop_command_windows, ["hook_command_windows"])
+    mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
+    mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
+    mutation_case("docs_url_stage", [CLAUDE_MANIFEST], docs_url_stage, ["docs_url_description"])
 
 sys.exit(1 if failed else 0)

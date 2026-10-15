@@ -2,6 +2,8 @@
 # tests/test_discovery.sh -- plan 19-01 Task 3: where the check script finds BBj, and which
 # -P list it builds. Every home holds a fake compiler whose logged ARG0 names the home that
 # ran; nothing is compiled or run.
+# Phase 9 (plan 09-01, PLAT-02, D-12): drive-letter, backslash and space paths through the fake
+# cygpath seam FAKE_CYGDRIVE_ROOT.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -171,5 +173,134 @@ case "$_t" in
   "W:$WORK/proj/sub/f.bbj") gate windows_target ok "$_t" ;;
   *) gate windows_target FAIL "$_t" ;;
 esac
+
+# Windows branch with drive-letter input (phase 9, plan 09-01, PLAT-02, D-04, D-12): the fake
+# cygpath maps C:\... below $WORK/drive (FAKE_CYGDRIVE_ROOT)
+mkdir -p "$WORK/drive/bbx/bin" "$WORK/drive/Users/x/bbj test/sub"
+cp "$REPO/tests/fake-bin/bbjcpl" "$WORK/drive/bbx/bin/bbjcpl.exe"
+chmod 755 "$WORK/drive/bbx/bin/bbjcpl.exe"
+: > "$WORK/drive/Users/x/bbj test/sub/f.bbj"
+unset CLAUDE_PROJECT_DIR
+FAKE_CYGDRIVE_ROOT=$WORK/drive
+export FAKE_CYGDRIVE_ROOT
+CLAUDE_PLUGIN_OPTION_BBJ_HOME='C:\bbx'
+export CLAUDE_PLUGIN_OPTION_BBJ_HOME
+
+# wcall FILE CWD: a Claude Code Write of FILE with payload cwd CWD, fresh call log
+wcall() {
+  : > "$FAKE_LOG"
+  run_check "$(claude_payload Write "$1" "$2")"
+}
+# wtarget: the file argument (last argument) of the last logged compiler call
+wtarget() {
+  awk '/^CALL$/ { na = 0; next } /^ARG0 / { print a[na]; next } { a[++na] = $0 }' "$FAKE_LOG" | tail -n 1
+}
+WANT_T="W:$WORK/drive/Users/x/bbj test/sub/f.bbj"
+WANT_P="-PW:$WORK/drive/Users/x/bbj test/sub;W:$WORK/drive/Users/x/bbj test"
+
+wcall 'C:\Users\x\bbj test\sub\f.bbj' 'C:\Users\x\bbj test'
+ran "$WORK/drive/bbx/bin/bbjcpl.exe" windows_drive_home
+_t=$(wtarget)
+_n=$(grep -c '^CALL$' "$FAKE_LOG")
+if [ "$_t" = "$WANT_T" ] && [ "$_n" = 1 ]; then
+  gate windows_drive_file ok "$_t"
+else
+  gate windows_drive_file FAIL "target '$_t', want '$WANT_T'; calls $_n, want 1"
+fi
+_n=$(grep -c '^-P' "$FAKE_LOG")
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_n" = 1 ] && [ "$_p" = "$WANT_P" ]; then
+  gate windows_space_p_list ok "$_p"
+else
+  gate windows_space_p_list FAIL "got $_n line(s), last '$_p', want '$WANT_P'"
+fi
+
+# forward-slash drive paths give the same compiler call
+wcall 'C:/Users/x/bbj test/sub/f.bbj' 'C:/Users/x/bbj test'
+_t=$(wtarget)
+_n=$(grep -c '^CALL$' "$FAKE_LOG")
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_n" = 1 ] && [ "$_t" = "$WANT_T" ] && [ "$_p" = "$WANT_P" ]; then
+  gate windows_forward_slash_file ok "$_t"
+else
+  gate windows_forward_slash_file FAIL "calls $_n, target '$_t', -P '$_p'; want '$WANT_T', '$WANT_P'"
+fi
+
+# -P edges: empty entries are skipped (an exported empty project directory, an empty cwd)
+CLAUDE_PROJECT_DIR=
+export CLAUDE_PROJECT_DIR
+wcall 'C:\Users\x\bbj test\sub\f.bbj' ''
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_p" = "-PW:$WORK/drive/Users/x/bbj test/sub" ]; then
+  gate windows_p_list_empty_entries ok "$_p"
+else
+  gate windows_p_list_empty_entries FAIL "got '$_p', want '-PW:$WORK/drive/Users/x/bbj test/sub'"
+fi
+
+# -P edges: the same directory in two forms (forward slashes, then backslashes) appears once
+CLAUDE_PROJECT_DIR='C:/Users/x/bbj test'
+export CLAUDE_PROJECT_DIR
+wcall 'C:\Users\x\bbj test\sub\f.bbj' 'C:\Users\x\bbj test'
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+if [ "$_p" = "$WANT_P" ]; then
+  gate windows_p_list_dedup_mixed ok "$_p"
+else
+  gate windows_p_list_dedup_mixed FAIL "got '$_p', want '$WANT_P'"
+fi
+
+# -P edges: order is the file's directory, the project directory, the cwd
+CLAUDE_PROJECT_DIR='C:\Users\x\bbj test'
+export CLAUDE_PROJECT_DIR
+wcall 'C:\Users\x\bbj test\sub\f.bbj' 'C:\Users\x\other'
+_p=$(grep '^-P' "$FAKE_LOG" | tail -n 1)
+_want="-PW:$WORK/drive/Users/x/bbj test/sub;W:$WORK/drive/Users/x/bbj test;W:$WORK/drive/Users/x/other"
+if [ "$_p" = "$_want" ]; then
+  gate windows_p_list_order ok "$_p"
+else
+  gate windows_p_list_order FAIL "got '$_p', want '$_want'"
+fi
+
+# Codex discovery source (D-04): BBJ_HOME, no plugin option; relative and absolute patch headers
+unset CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR
+BBJ_HOME='C:\bbx'
+export BBJ_HOME
+# wpatch CWD HEADER-PATH: an apply_patch Add File of HEADER-PATH with payload cwd CWD
+wpatch() {
+  : > "$FAKE_LOG"
+  _pt=$(printf '%s\n' '*** Begin Patch' "*** Add File: $2" '+print "a"' '*** End Patch')
+  run_check "$(codex_payload "$1" "$_pt")"
+}
+# wpatch_gate NAME CWD HEADER-PATH: one call, the drive-letter-home compiler, the converted file
+wpatch_gate() {
+  wpatch "$2" "$3"
+  _n=$(grep -c '^CALL$' "$FAKE_LOG")
+  _a=$(sed -n 's/^ARG0 //p' "$FAKE_LOG" | tail -n 1)
+  _t=$(wtarget)
+  if [ "$_n" = 1 ] && [ "$_a" = "$WORK/drive/bbx/bin/bbjcpl.exe" ] && [ "$_t" = "$WANT_T" ]; then
+    gate "$1" ok "$_t"
+  else
+    gate "$1" FAIL "calls $_n, ARG0 '$_a', target '$_t'; want 1, '$WORK/drive/bbx/bin/bbjcpl.exe', '$WANT_T'"
+  fi
+}
+wpatch_gate windows_codex_relative 'C:\Users\x\bbj test' 'sub/f.bbj'
+wpatch_gate windows_codex_absolute 'C:\Users\x\bbj test' 'C:\Users\x\bbj test\sub\f.bbj'
+# Phase 9, W-3 (D-12, RESEARCH Pitfall 2): Codex on Windows may send a relative header with
+# backslashes and the verbatim prefix. Both must give the one call the plain forms give; a ".."
+# segment that only a backslash hides must still leave the workspace and be skipped.
+wpatch_gate windows_codex_backslash_relative 'C:\Users\x\bbj test' 'sub\f.bbj'
+wpatch_gate windows_codex_verbatim_prefix '\\?\C:\Users\x\bbj test' '\\?\C:\Users\x\bbj test\sub\f.bbj'
+: > "$WORK/drive/Users/x/x.bbj"
+wpatch 'C:\Users\x\bbj test' 'sub\..\..\x.bbj'
+_n=$(grep -c '^CALL$' "$FAKE_LOG")
+if [ "$_n" = 0 ] && [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+  gate windows_codex_backslash_dotdot_skipped ok "sub\\..\\..\\x.bbj leaves the workspace: no compiler call, exit 0, silent"
+else
+  gate windows_codex_backslash_dotdot_skipped FAIL "calls $_n, exit $RC, stdout $(wc -c < "$WORK/stdout") byte(s), stderr $(wc -c < "$WORK/stderr") byte(s)"
+fi
+unset BBJ_HOME
+
+unset FAKE_CYGDRIVE_ROOT CLAUDE_PLUGIN_OPTION_BBJ_HOME BBJ_HOME CLAUDE_PROJECT_DIR
+PATH=$BASEPATH
+export PATH
 
 finish

@@ -16,6 +16,27 @@
 #   - the no-route notice wording (plan 02-03, HOOK-02): "once per session" on README, both pages and the
 #     installer, "not compile-checked" on both pages, and the old claim that the hook stays silent when
 #     no check route exists is forbidden on all four (NOROUTE_SILENCE),
+#   - the OAuth sign-in of bbj-docs (quick 261013-cpn): port 47613 and the sign-in steps on both pages,
+#     and the installer messages the Codex page quotes about the OAuth table; the Codex page shows the
+#     client id of the installer (IN-07),
+#   - the Codex plugin route (phase 8, CODEX-05, CODEX-06; D-15, D-16): the plugin-route heading, the
+#     two install commands, the bbj-local opt-in command, the verified line, the first-use prompts, the
+#     upgrade-trust sentence, the switch heading and --remove, the fallback heading and the
+#     plugin-scoped key, on the Codex page; the two plugin commands in README; twelve installer
+#     messages quoted on the page (four more for --remove); and a forbid so that neither the Codex page
+#     nor README recommends the hook-trust bypass flag of codex exec.
+#   - the Codex page, verified platforms (plan 10-07, DOCS-02, DOCS-04; D-03 to D-05, D-10, D-11): the banner "Verified on
+#     Linux, Windows and macOS", "## macOS", the --sh-exe option, the "hook exited" symptom and the plugin's
+#     commandWindows path, the "Observed on <platform> with" lines, the hosted-server wording and the daemon
+#     environment sentence; the two forbids of check_released_wording; and codex_plugin_route_first (the
+#     plugin-route heading comes before the fallback heading).
+#   - the verified platforms (plan 10-06, DOCS-01, DOCS-02, DOCS-04; D-01 to D-05): the banner "Verified on
+#     Linux, Windows and macOS", the three Claude Code versions (one per platform) and the sections
+#     "## Windows" and "## macOS" on the Claude Code page; the README table rows and the BBj version
+#     beside them; the hosted-server wording on both; the plugin commands before the installer in
+#     README (readme_codex_plugin_first); and two forbids on README and the Claude Code page
+#     (check_released_wording): the old "not yet run" platform hints and the pre-production or go-live
+#     wording of the docs server, so neither can come back.
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
 
 . "$(dirname "$0")/lib.sh"
@@ -52,6 +73,15 @@ check_common() {
   # check_common NAME FILE: the claims no page may make
   forbid "$1" "$2" 'bbj-mcp\.basis\.cloud' go_live_host
   forbid "$1" "$2" 'subagent[^.]*not (covered|checked)' subagent_not_covered
+  # WR-06: a pre-merge caveat is a release note (CHANGELOG.md), not install-page text that goes stale on merge
+  forbid "$1" "$2" 'until this release|release is merged to it|this release is on github' release_time_caveat
+}
+
+# check_released_wording NAME FILE: the hints of releases before 0.2.1 must not come back (plan 10-06,
+# DOCS-04, D-03, D-05). "not yet set" (a Claude Code message about two options) is not one of them.
+check_released_wording() {
+  forbid "$1" "$2" 'Tested on Linux only|not yet run|not yet been run|not yet tried|not yet been tried' old_platform_hints
+  forbid "$1" "$2" 'pre-production|go-live|earlier trial' docs_server_stage
 }
 
 # the hook now speaks when no check route exists (plan 02-03, HOOK-02): no text may say it stays silent
@@ -59,6 +89,10 @@ NOROUTE_SILENCE='says nothing|missing compiler is silent'
 
 # the local check must never read as better than the compiler (D-13): bbjcpl also checks types
 LOCAL_ABOVE_BBJCPL='(preferred|better) (than|over) `?bbjcpl'
+
+# nothing may recommend skipping the Codex hook review (phase 8, T-08-26): the flag of codex exec that
+# does it is named by its stem only, so this file never holds the whole flag
+HOOK_TRUST_BYPASS='dangerously-bypass'
 
 # ---- Claude Code page ----
 if [ -f "$CLAUDE_PAGE" ]; then
@@ -82,7 +116,13 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'Git for Windows' \
     'data-handling' \
     'config*.bbx' \
-    'not yet been run on Windows' \
+    '## macOS' \
+    'Verified on Linux, Windows and macOS' \
+    'the hosted BBj docs server' \
+    'commandWindows' \
+    'Claude Code 2.1.299 on Linux' \
+    'Claude Code 2.1.292 on Windows' \
+    'Claude Code 2.1.296 on macOS' \
     '`bbj-local reported' \
     '`bbjcpl reported' \
     'recommended where BBjServices 26.03' \
@@ -91,11 +131,15 @@ if [ -f "$CLAUDE_PAGE" ]; then
     '## 3. Enable the local check' \
     'claude plugin enable bbj-local@basis-bbj' \
     'once per session' \
-    'not compile-checked'
+    'not compile-checked' \
+    '47613' \
+    'Needs authentication' \
+    'oauth.clientId'
   do
     need "$n" "$CLAUDE_PAGE" "$p"
   done
   check_common "$n" "$CLAUDE_PAGE"
+  check_released_wording "$n" "$CLAUDE_PAGE"
   forbid "$n" "$CLAUDE_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$CLAUDE_PAGE" "$NOROUTE_SILENCE" noroute_silence
 
@@ -151,7 +195,7 @@ if [ -f "$CODEX_PAGE" ]; then
   n=codex
   # shellcheck disable=SC2088  # the tilde is literal text searched for in the page
   for p in \
-    'Tested on Linux only' \
+    'Verified on Linux, Windows and macOS' \
     'install-codex.sh' \
     '--docs-url' \
     '--skills-dir' \
@@ -188,15 +232,49 @@ if [ -f "$CODEX_PAGE" ]; then
     'BBJ_LOCAL_MCP_URL' \
     'tools/list' \
     'once per session' \
-    'not compile-checked'
+    'not compile-checked' \
+    '[mcp_servers.bbj-docs.oauth]' \
+    'callback_port = 47613' \
+    'http://localhost:47613/callback' \
+    'codex mcp login bbj-docs' \
+    '## Install with the Codex plugin (recommended)' \
+    'codex plugin marketplace add BBj-AI/bbj-agent-plugins' \
+    'codex plugin add bbj@basis-bbj' \
+    'codex plugin add bbj-local@basis-bbj' \
+    'Verified on Linux with Codex CLI 0.162.1 on' \
+    '### Trust the hook in /hooks' \
+    'first use' \
+    'Observed on Linux with Codex CLI 0.162.1:' \
+    'Observed on Windows with' \
+    'Observed on macOS with' \
+    '## macOS' \
+    '--sh-exe' \
+    'hook exited' \
+    'C:\PROGRA~1\Git\bin\sh.exe' \
+    'the hosted BBj docs server' \
+    'stop every Codex process' \
+    '### Switch from the installer script' \
+    'sh codex/install-codex.sh --remove' \
+    '## Fallback: the installer script' \
+    '## Add the AGENTS.md snippet (both routes)' \
+    'plugins."bbj@basis-bbj".mcp_servers.bbj-docs'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
+  # the client id of the example on the page is the installer's OAUTH_CLIENT_ID, read from the installer
+  # (one source; layout_oauth_codex_matches_plugin ties the installer to the plugin manifest) (IN-07)
+  _oid=$(sed -n 's/^OAUTH_CLIENT_ID=//p' "$REPO/codex/install-codex.sh" | head -n 1)
+  if [ -n "$_oid" ]; then
+    need "$n" "$CODEX_PAGE" "client_id = \"$_oid\""
+  else
+    gate codex_oauth_client_id FAIL "no OAUTH_CLIENT_ID line in codex/install-codex.sh"
+  fi
   check_common "$n" "$CODEX_PAGE"
-  # the Codex route is unverified: the page must not say it was verified or tested on Codex
-  forbid "$n" "$CODEX_PAGE" '(was|has been|is) (verified|tested) (on|with) (a )?Codex' codex_verified_claim
+  check_released_wording "$n" "$CODEX_PAGE"
   forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$CODEX_PAGE" "$NOROUTE_SILENCE" noroute_silence
+  # no text may tell users to skip the hook review (T-08-26, CODEX-05)
+  forbid "$n" "$CODEX_PAGE" "$HOOK_TRUST_BYPASS" hook_trust_bypass
 
   # the bbj-local tool tables of the page are the installer's LOCAL_TOOLS, one list (plan 01-07)
   INSTALLER=$REPO/codex/install-codex.sh
@@ -212,18 +290,37 @@ if [ -f "$CODEX_PAGE" ]; then
   # comment, so the page cannot describe a message the installer does not print (T-01-28)
   grep -v '^[[:space:]]*#' "$INSTALLER" > "$WORK/installer.code"
   quoted_bad=0
+  quoted_n=0
   for p in \
     'a bbj-ls answers at' \
     'no bbj-ls answered at' \
     'not probed: curl not found' \
     'is not a loopback http URL' \
     'registering it anyway' \
-    'already registered in'
+    'already registered in' \
+    'added the OAuth client to' \
+    'OAuth settings of its own' \
+    'nothing to remove' \
+    'left in place' \
+    'holds more than the hook this script writes' \
+    'rerun with --docs-url' \
+    'pass --sh-exe PATH' \
+    'names the launcher bin\sh.exe of the Git for Windows this script ran under'
   do
+    quoted_n=$((quoted_n + 1))
     grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
     grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
   done
-  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "six quoted fragments, each on the page and on a non-comment installer line"
+  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "$quoted_n quoted fragments, each on the page and on a non-comment installer line"
+
+  # the plugin route comes before the installer script on the page (phase 8 D-15, D-16; plan 10-07)
+  _plug=$(grep -n -F -x '## Install with the Codex plugin (recommended)' "$CODEX_PAGE" | head -n 1 | cut -d: -f1)
+  _fall=$(grep -n -F -x '## Fallback: the installer script' "$CODEX_PAGE" | head -n 1 | cut -d: -f1)
+  if [ -n "$_plug" ] && [ -n "$_fall" ] && [ "$_plug" -lt "$_fall" ]; then
+    gate codex_plugin_route_first ok "the plugin-route heading (line $_plug) comes before the fallback heading (line $_fall)"
+  else
+    gate codex_plugin_route_first FAIL "plugin-route heading line '$_plug', fallback heading line '$_fall'"
+  fi
 fi
 
 # ---- README: the local check, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
@@ -236,10 +333,31 @@ if [ -f "$README" ]; then
     'PREFIX, classpath and config' \
     '--with-local' \
     '## Skills' \
-    'once per session'
+    'once per session' \
+    'codex plugin add bbj@basis-bbj' \
+    'codex plugin add bbj-local@basis-bbj' \
+    '| Claude Code |' \
+    '| Codex plugin |' \
+    '| Codex installer |' \
+    'Verified on Linux, Windows and macOS' \
+    'BBj 26.03' \
+    'the hosted BBj docs server'
   do
     need "$n" "$README" "$p"
   done
+  check_released_wording "$n" "$README"
+  # the plugin commands come before the installer script in README (phase 8 D-15, D-16; plan 10-06)
+  _flat=$(tr '\n' ' ' < "$README")
+  _before_plugin=${_flat%%codex plugin add*}
+  _before_installer=${_flat%%install-codex.sh*}
+  if [ "${#_before_plugin}" -lt "${#_flat}" ] && [ "${#_before_installer}" -lt "${#_flat}" ] \
+    && [ "${#_before_plugin}" -lt "${#_before_installer}" ]; then
+    gate "${n}_codex_plugin_first" ok "the first 'codex plugin add' comes before the first 'install-codex.sh'"
+  else
+    gate "${n}_codex_plugin_first" FAIL "README names the installer script before the plugin commands, or lacks one of them"
+  fi
+  forbid "$n" "$README" "$HOOK_TRUST_BYPASS" hook_trust_bypass
+  forbid "$n" "$README" 'until this release|release is merged to it|this release is on github' release_time_caveat
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$README" "$NOROUTE_SILENCE" noroute_silence
 fi
@@ -248,6 +366,8 @@ fi
 if [ -f "$REPO/codex/install-codex.sh" ]; then
   n=installer
   need "$n" "$REPO/codex/install-codex.sh" 'once per session'
+  # plan 10-07 (DOCS-04, D-03, D-05): the installer file, header comment included, holds none of the old hints
+  check_released_wording "$n" "$REPO/codex/install-codex.sh"
   forbid "$n" "$REPO/codex/install-codex.sh" "$NOROUTE_SILENCE" noroute_silence
 fi
 

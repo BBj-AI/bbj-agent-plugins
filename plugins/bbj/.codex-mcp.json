@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "bbj-docs": {
+      "type": "http",
+      "url": "https://mcp.bbj-ai.com/mcp",
+      "oauth": {
+        "clientId": "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t",
+        "callbackUrl": "http://localhost:47613/callback",
+        "callbackPort": 47613,
+        "scopes": "offline_access"
+      }
+    }
+  }
+}

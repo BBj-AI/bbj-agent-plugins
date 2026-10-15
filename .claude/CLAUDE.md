@@ -93,7 +93,7 @@ and `bbj-ls`).
 - Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install-claude-code.md`)
 - Installed for Codex through `codex/install-codex.sh` (`docs/install-codex.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
-- Current version: 0.2.0 for both plugins, the first release (`CHANGELOG.md`)
+- Current version: 0.2.1 for both plugins (`CHANGELOG.md`)
 
 <!-- GSD:stack-end -->
 
@@ -180,7 +180,10 @@ and `bbj-ls`).
 - Validate every option and destination before the first write; a failure before the first write exits 2 with nothing changed.
 - Before changing an existing user file, write a one-time backup (`config.toml.bbj-backup`) and never overwrite a file the user owns (`hooks.json` is only written when absent).
 - A check reports one line through `gate NAME STATUS DETAIL`, where STATUS is `ok`, `FAIL` or `skip`. `tests/lib.sh` sets `LIB_FAILED=1` on any FAIL and `finish()` exits accordingly.
-- Shell test gates use the prefix that matches the file: `contract_`, `argument_`, `no_marker_`, `static_`, `ci_guard_`, `layout_`, `skills_`.
+- Gate names start with a prefix that names their test file, but a prefix does not identify a file by itself: `installer_` is printed by both `test_install_codex.sh` and `test_install_pages.sh`, `ci_` (`test_ci_gates.sh`) is a string prefix of `ci_guard_` (`test_ci_guards.py`), and `release_` (`test_release_text.py`) is a string prefix of `release_mut_`. Pick a prefix that no existing gate name starts with. The prefixes `sh tests/run.sh` prints, in run order:
+  - Shell tests: `test_ci_gates.sh` `ci_`, `run_`; `test_codex_patch.sh` `plugin_route_`, plus free-form names; `test_discovery.sh` `order_`, plus free-form names; `test_exit_contract.sh` `contract_`, `argument_`, `no_marker_`, `glob_newline_not_passed_`, `real_hostile_reached_compiler`; `test_home_guard.sh` `homeguard_`; `test_install_codex.sh` `local_`, `first_`, `probe_`, `docs_`, `foreign_`, `existing_`, `with_`, `installer_`, `oauth_`, `remove_`, plus free-form names; `test_install_pages.sh` `claude_`, `codex_`, `link_`, `readme_`, `installer_`; `test_noroute_notice.sh` `notice_`; `test_path_scrub.sh` `pathscrub_`; `test_release_text_mutation.sh` `release_mut_`; `test_static_guards.sh` `static_`; `test_tier2_fake.sh` `url_`, `req_`, `mode_`, plus free-form names; `test_tier2_live.sh` `live_`, plus the free-form `tier2_syntax_only`.
+  - Python tests: `test_check_order.py` `checkorder_`; `test_ci_guards.py` `ci_guard_`; `test_layout.py` `layout_`; `test_release_text.py` `release_`; `test_skill_examples.py` `skills_`.
+  - Free-form names, no shared prefix: `test_claude_plugin.sh`, `test_hook_review_fixes.sh`, `test_never_execute.sh`, `test_real_compiler.sh`.
 - Python tests print `gate <prefix>_<name> ok|FAIL <detail>` and exit 1 if any gate failed.
 - A test that cannot run because a prerequisite is missing reports `skip`, except under `CI=true`, where the missing prerequisite must be a `FAIL` (`tests/run.sh`, `tests/ci.sh`).
 
@@ -211,7 +214,7 @@ and `bbj-ls`).
 - Shared helpers live in `tests/lib.sh` (gate, mkwork, json_escape, claude_payload, codex_payload, run_check). New test files source it instead of re-defining these.
 - Compiler fakes are copied into each temporary home (`mkhome` in `tests/test_discovery.sh`); tests never call a real compiler unless they opt in.
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
-- Versions are identical across both plugin manifests and both marketplace entries (`0.2.0`), and `tests/test_layout.py` enforces this. Bump all four together.
+- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.1`), and `tests/test_layout.py` enforces this. Bump all five together.
 - Licence is `Apache-2.0` in every manifest.
 
 ## Git and Commit Conventions
@@ -224,7 +227,7 @@ and `bbj-ls`).
 
 - Markdown skill references use the `references/` subdirectory under each skill, one topic per file, lowercase hyphenated names.
 - `README.md`, `docs/install-claude-code.md`, `docs/install-codex.md` describe installation; keep install steps there, not in the scripts' code comments.
-- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.0`).
+- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.1`).
 
 <!-- GSD:conventions-end -->
 
@@ -264,12 +267,12 @@ and `bbj-ls`).
 - Depends on: A BBj compiler (`bbjcpl` / `bbjcplw`) or a running `bbj-ls`; `curl` for tier 2.
 - Used by: The host, after every matching tool call.
 - Purpose: Install the docs server, skills and hook for OpenAI Codex, which has no plugin
-- Location: `codex/install-codex.sh` (527 lines), `codex/AGENTS-snippet.md`
+- Location: `codex/install-codex.sh`, `codex/AGENTS-snippet.md`
 - Contains: Option parsing and validation (`usage`, `refuse`, `say`), pre-flight checks
 - Depends on: `codex` CLI (optional; falls back to a managed `config.toml` block), POSIX
 - Used by: A user running the script from a checkout. Exit codes: 0 done, 2 refusal or usage
 - Purpose: Teach the agent BBj syntax, web (DWC) development and the rules agents get wrong.
-- Location: `plugins/bbj/skills/bbj-programming/` (`SKILL.md` 464 lines, 5 reference files),
+- Location: `plugins/bbj/skills/bbj-programming/` (`SKILL.md` and `references/*.md`),
 - Contains: Markdown only. Skills are loaded by the host on demand; references are read on
 - Depends on: Nothing executable. Content describes the `bbj-docs` and `bbj-ls` tools by name.
 - Used by: The host agent's skill loader (`~/.agents/skills` for Codex, the plugin cache for
@@ -316,7 +319,7 @@ and `bbj-ls`).
 - Location: `.claude-plugin/marketplace.json`
 - Triggers: `claude plugin marketplace add BBj-AI/bbj-agent-plugins`, then
 - Responsibilities: Lists the two plugins and marks `bbj-local` as `defaultEnabled: false`.
-- Location: `plugins/bbj/scripts/bbj-check.sh` (last statement `main`, line 276)
+- Location: `plugins/bbj/scripts/bbj-check.sh` (its last statement is `main`)
 - Triggers: PostToolUse for `Write|Edit` (Claude Code) and `apply_patch` (Codex, via the
 - Responsibilities: Parse input, compile-check, exit 0 or 2 only.
 - Location: `codex/install-codex.sh`

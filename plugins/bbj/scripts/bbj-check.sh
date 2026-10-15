@@ -44,8 +44,9 @@
 # exits 0 and writes ONE line to stdout, the only stdout write of the script:
 #     {"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"<text>"}}
 # The text names the files that were written but not compile-checked, the reasons (D-09),
-# that later BBj files of the session are not checked either, how to enable a check (two
-# texts, by tool_name: D-06), the hosted check as the agent's fallback with its disclosure
+# that later BBj files of the session are not checked either, how to enable a check (three
+# texts: by tool_name, D-06, and for apply_patch by whether CLAUDE_PLUGIN_ROOT is non-empty, the
+# Codex plugin route or the install-codex.sh route: D-07, D-08 of phase 8), the hosted check as the agent's fallback with its disclosure
 # (D-08: it sends the code to a server, so the user must be told; the hook itself never calls
 # it and the text names no address), and asks the agent to tell the user (D-07). It is its own
 # message class and never uses the error header above (D-12). File names are reduced to
@@ -99,7 +100,9 @@
 # that capture: session_id, turn_id, transcript_path, cwd, hook_event_name, model,
 # permission_mode, tool_name, tool_input, tool_response, tool_use_id (transcript_path null,
 # tool_response a plain string, the "*** Add File: " path absolute); session_id before
-# tool_input, read with jget pre and, failing that, jget all.
+# tool_input, read with jget pre and, failing that, jget all. On the Windows branch (cygpath on
+# PATH) the cwd and every header path first lose one leading verbatim prefix and have their
+# backslashes turned into slashes, before the containment and ".." checks (phase 9, D-12).
 #
 # A path that is itself a symlink is skipped silently (a link to another file must not make
 # the hook read or send that file); the same applies to every path a patch names.
@@ -124,6 +127,8 @@
 # launcher bbjcpl finds its BBj home from its own path, so a symlink to it breaks: symlinks
 # are resolved and the real path is called. BBJ_CHECK_STATE_DIR (default ${TMPDIR:-/tmp}) is
 # the directory of the notice's once-per-session marker, a test seam (D-18).
+# CLAUDE_PLUGIN_ROOT (set by Claude Code and by the Codex plugin route, absent on the install-codex.sh
+# route) is read only to choose the notice's enable step; it is never printed.
 # With Git for Windows (cygpath on PATH) paths are converted: the compiler and -P get
 # Windows paths and the -P list is joined with ";".
 # Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname, tr, mkdir.
@@ -212,10 +217,18 @@ notice() {
   fi
   _later='Later BBj files in this session are not checked either unless a check is enabled'
   if [ "$_fresh" = 1 ]; then _later="$_later, and this notice is not repeated"; fi
-  # the enable steps are the only text that differs by tool (D-06)
+  # the enable steps differ by tool (D-06 of phase 2) and, for apply_patch, by route: Codex sets
+  # CLAUDE_PLUGIN_ROOT for a plugin hook, the installer's hooks.json sets nothing (D-07, D-08 of
+  # phase 8). The variable is only tested for non-empty, never printed or interpolated.
   case "$1" in
-    apply_patch) _how='To enable a check, set BBJ_HOME to the BBj installation directory or put bbjcpl on PATH, or rerun install-codex.sh --with-local (BBjServices 26.03+ running on this machine).' ;;
-    *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or enable the bbj-local@basis-bbj plugin (BBjServices 26.03+ running on this machine).' ;;
+    apply_patch)
+      if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
+        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. codex plugin add bbj-local@basis-bbj only gives the model the local bbj_check_syntax tool; the hook does not need it.'
+      else
+        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. install-codex.sh --with-local only registers the local bbj_check_syntax tool for the model; the hook does not need it.'
+      fi
+      ;;
+    *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or start BBjServices 26.03+ on this machine so that bbj-ls answers. The bbj-local@basis-bbj plugin only gives the model the local bbj_check_syntax tool; the hook does not need it.' ;;
   esac
   _txt="$_files $_were written but not compile-checked: $_why1; $_why2. $_later. $_how"
   _txt="$_txt Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
@@ -260,7 +273,12 @@ no_tier1_route() {
     | LC_ALL=C awk '{ printf "%s%s", $0, "\\n" }')
   _body='{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"bbj_check_syntax","arguments":{"code":"'"$_code"'"},"_meta":{"io.modelcontextprotocol/protocolVersion":"2026-07-28","io.modelcontextprotocol/clientCapabilities":{}}}}'
 
-  _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout 1 -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
+  # Windows (WIN=1, cygpath on PATH): a closed loopback port is reported only after about two
+  # seconds there, so 1 s ends in curl exit 28 and the call would count as a route that gave no
+  # verdict instead of no route (phase 9, W-2). 5 s still fits under -m 12 and the hook timeout.
+  _ct=1
+  if [ "$WIN" = 1 ]; then _ct=5; fi
+  _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout "$_ct" -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
   _rc=$?
   # curl exit 7 (connection refused) is the only "nothing answers" outcome; every other failure
   # or an empty reply reached something and is a route that gave no verdict (see the header)
@@ -541,12 +559,24 @@ check_file() {
   return 0
 }
 
+# wpath_norm PATH: prints PATH for the Windows branch of codex_patch (phase 9, D-12, W-3): one
+# leading verbatim prefix (backslash backslash ? backslash, or its slash form) is dropped and every
+# backslash becomes a slash, so the drive-letter, containment and ".." checks that follow see one
+# spelling. Prints only; the caller checks the result.
+wpath_norm() {
+  case "$1" in
+    '\\?\'*|'//?/'*) set -- "${1#????}" ;;
+  esac
+  printf '%s' "$1" | tr '\\' '/'
+}
+
 # codex_patch: the apply_patch branch (see the header). Reads the globals input, hd, WIN;
 # sets cwd. Checks every BBj file the patch headers name, once each.
 codex_patch() {
   cwd=$(printf '%s' "$hd" | jget pre cwd)
   [ -n "$cwd" ] || cwd=$(printf '%s' "$input" | jget all cwd)
   [ -n "$cwd" ] || exit 0
+  if [ "$WIN" = 1 ]; then cwd=$(wpath_norm "$cwd"); fi
   case "$cwd" in
     [A-Za-z]:*) if [ "$WIN" = 1 ]; then cwd=$(cygpath -u "$cwd"); fi ;;
   esac
@@ -582,6 +612,7 @@ codex_patch() {
       *) rest= ;;
     esac
     [ -n "$_p" ] || continue
+    if [ "$WIN" = 1 ]; then _p=$(wpath_norm "$_p"); fi
     case "$_p" in
       [A-Za-z]:*) if [ "$WIN" = 1 ]; then _p=$(cygpath -u "$_p"); fi ;;
     esac

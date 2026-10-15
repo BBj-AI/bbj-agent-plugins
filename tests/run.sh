@@ -7,9 +7,19 @@
 # Exit 1 when any test exited non-zero or printed a FAIL gate. Works from any cwd.
 # Nothing in tests/ executes BBj code (the only compiler call is bbjcpl with -N).
 
+# a test seam read from the environment (tests/test_tier2_fake.sh) must not come from the caller's
+# shell: only tests/test_path_scrub.sh sets it, for its own nested runs (IN-03)
+unset TIER2_TEST_SYSPATH
+# the same for the exit code of the fake codex, set only by the oauthadderr case of
+# tests/test_install_codex.sh (IN-06)
+unset FAKE_CODEX_EXIT
+
 TESTS=$(cd "$(dirname "$0")" && pwd)
 OUT=$(mktemp "${TMPDIR:-/tmp}/bbjplug-run.XXXXXX") || exit 1
-trap 'rm -f "$OUT"' EXIT
+# both temp files go on every way out, an interrupt included (IN-03): the INT/TERM/HUP trap turns a signal
+# into an exit so the EXIT trap runs
+trap 'rm -f "$OUT" "$OUT.gates"' EXIT
+trap 'exit 1' INT TERM HUP
 
 BAD=0
 for t in "$TESTS"/test_*.sh; do

@@ -6,6 +6,8 @@
 # working compiler means no request, and the loopback-only URL rule: refused URLs never reach
 # curl (first call: the no-route notice, then silent; plan 02-01), accepted ones carry
 # --noproxy '*' and --proto =http and no redirect flag.
+# MAINT-06 (D-11, D-12): SYSPATH is scrubbed of any BBj compiler (no_compiler_path), so a compiler
+# in /usr/bin or /bin cannot turn a no-route or tier-2 gate into a tier-1 run.
 # Nothing here runs BBj; the "compiler" is the logging fake.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -18,7 +20,10 @@ cleanup() {
 trap cleanup EXIT
 trap 'exit 1' INT TERM HUP
 
-SYSPATH=/usr/bin:/bin
+# MAINT-06, D-12: a compiler in /usr/bin or /bin would be a tier-1 route. TIER2_TEST_SYSPATH is a
+# test seam for tests/test_path_scrub.sh (IN-02): it replaces /usr/bin:/bin with a PATH that holds a
+# fake compiler directory, so the scrub has something to remove and its removal can be caught.
+SYSPATH=$(no_compiler_path "${TIER2_TEST_SYSPATH:-/usr/bin:/bin}") || { gate url_syspath_scrub FAIL "no_compiler_path could not build SYSPATH"; finish; }
 ORIGPATH=$PATH
 
 # start_fake MODE: starts the fake server, sets FAKE_PID, LOGF and BBJ_LOCAL_MCP_URL.
@@ -254,6 +259,37 @@ accepted http://localhost:5009/mcp localhost
 accepted http://[::1]:5009/mcp ipv6
 accepted http://LOCALHOST:5009/mcp localhost_upper
 accepted http://127.0.0.1:5009/mcp ipv4
+
+# ---- the connect timeout of the tier-2 call (phase 9, W-2, D-12) ----
+# On the owner's Windows machine a closed loopback port answered only after about two seconds, so
+# the 1 s connect timeout ended in curl exit 28 and the call counted as a route that gave no
+# verdict: no no-route notice, no claim file. Under the Windows branch (cygpath on PATH) the
+# connect timeout is longer; elsewhere it stays 1. No fake models the Windows connect timing, so
+# these gates pin the argument, not the effect; the plan 09-06 re-run shows the effect. The other
+# safety flags are unchanged and are checked again here.
+mkdir "$WORK/cygbin"
+cp "$REPO/tests/fake-bin/cygpath" "$WORK/cygbin/cygpath"
+chmod 755 "$WORK/cygbin/cygpath"
+
+# ctimeout NAME WANT PATH: one tier-2 call with PATH, the curl --connect-timeout value must be WANT
+ctimeout() {
+  : > "$FAKE_CURL_LOG"
+  BBJ_LOCAL_MCP_URL=http://127.0.0.1:5009/mcp
+  export BBJ_LOCAL_MCP_URL
+  run_t2 "$PAYLOAD" "$3"
+  _ct=$(awk '/^--connect-timeout$/ { getline; print; exit }' "$FAKE_CURL_LOG")
+  _calls=$(grep -cx CALL "$FAKE_CURL_LOG")
+  if [ "$RC" = 0 ] && [ "$_calls" = 1 ] && [ "$_ct" = "$2" ] \
+    && awk '/^--noproxy$/ { getline; if ($0 == "*") f = 1 } END { exit !f }' "$FAKE_CURL_LOG" \
+    && awk '/^--proto$/ { getline; if ($0 == "=http") f = 1 } END { exit !f }' "$FAKE_CURL_LOG" \
+    && ! grep -Ex -e '-L|--location|--location-trusted|-[A-Za-z]*L[A-Za-z]*' "$FAKE_CURL_LOG" > /dev/null; then
+    gate "$1" ok "--connect-timeout $_ct, with --noproxy '*' --proto =http and no redirect flag"
+  else
+    gate "$1" FAIL "exit $RC, $_calls curl call(s), --connect-timeout '$_ct', want '$2'"
+  fi
+}
+ctimeout tier2_connect_timeout_posix 1 "$CURLPATH"
+ctimeout tier2_connect_timeout_windows 5 "$WORK/cygbin:$CURLPATH"
 
 # ---- no curl on PATH: first call notice (curl not found), then silent ----
 # mkdir is on the farm because the notice's once-per-session marker directory is made with mkdir
