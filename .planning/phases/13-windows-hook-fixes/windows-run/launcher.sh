@@ -13,9 +13,12 @@
 #   - OUTDIR must be an absolute path below $HOME/.cache/bbj-phase13/, must not contain .. and must
 #     not be under /tmp; run also refuses an OUTDIR that exists already, because a previous run's
 #     OUTDIR holds junctions;
-#   - never deletes recursively while a junction exists: clean removes the two junctions first with
+#   - never deletes recursively while a junction exists: clean removes the junctions first with
 #     a non-recursive rmdir, checks that none is left under OUTDIR and that Git's bin\sh.exe still
 #     exists, and only then removes OUTDIR (and only a directory that run marked as its own);
+#   - the one subst drive (case lad_unset_driveroot_bbj, WR-02) is made only on a free drive letter,
+#     its letter is written to OUTDIR/subst.drive at once, and it is removed straight after its case
+#     (clean removes it too when a run stopped early);
 #   - prints no user name: every value that reaches result.txt or the screen goes through scrub
 #     (OUTDIR, the checkout and the Windows home in three forms become <work>, <checkout>, <home>).
 #
@@ -36,7 +39,7 @@ BASE=$HOME/.cache/bbj-phase13
 HOOKS=$REPO/plugins/bbj/hooks/hooks.json
 # the current pin (13-REVIEW-FIX.md): sha256 of the commandWindows string as hooks.json holds it (before
 # the root is set); rounds 1 and 2 ran the plan 13-02 pin
-PIN_SHA=c8fa021f7d4eb1897304250c3efd84a68b24592ac7617146affa0c2e38963472
+PIN_SHA=811fc41546e1b26173b2055bf41f7a179ac19b92e2e6e5952cc42694f4fbb325
 CLM_PREFIX='$ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"; '
 MARKER=launcher.marker
 OUT=
@@ -208,7 +211,7 @@ filler() {
 want_kind() {
   case $1 in
     default_clean | none_notes) echo clean ;;
-    none_bbj | clm_none_bbj | pwsh_none_bbj | othersh_none_bbj) echo notfound ;;
+    none_bbj | clm_none_bbj | pwsh_none_bbj | othersh_none_bbj | lad_unset_driveroot_bbj) echo notfound ;;
     none_long_bbj | none_long_notes) echo notfound_first ;;
     *) echo bbjcpl ;;
   esac
@@ -271,22 +274,53 @@ unjunction() {
   cmd.exe /c rmdir "$_ul" > /dev/null 2>&1
 }
 
+# subst_make: a subst drive for lay\drv on the first free letter of Z to P; sets SUBST_L and writes
+# the letter to OUT/subst.drive at once. A letter in use is never touched.
+subst_make() {
+  SUBST_L=
+  for _l in Z Y X W V U T S R Q P; do
+    cmd.exe /c "if exist $_l:\ (exit 1) else (exit 0)" > /dev/null 2>&1 || continue
+    cmd.exe /c subst "$_l:" "$OUTW\lay\drv" > /dev/null 2>&1 || continue
+    printf '%s\n' "$_l" > "$OUT/subst.drive"
+    if cmd.exe /c "if exist $_l:\Programs\Git\bin\sh.exe (exit 0) else (exit 1)" > /dev/null 2>&1; then
+      SUBST_L=$_l
+      return 0
+    fi
+    subst_drop
+  done
+  return 1
+}
+
+# subst_drop: removes the subst drive named by OUT/subst.drive (one letter A to Z, else nothing)
+subst_drop() {
+  [ -f "$OUT/subst.drive" ] || return 0
+  _sl=$(head -n 1 "$OUT/subst.drive")
+  case $_sl in
+    [A-Z]) cmd.exe /c subst "$_sl:" /d > /dev/null 2>&1 ;;
+  esac
+  rm -f "$OUT/subst.drive"
+}
+
 # caseline LINE: one result line in result.txt (scrubbed) and its pass-through on the screen block
 caseline() {
   _cl=$(scrub "$1")
   printf '%s\n' "$_cl" >> "$OUT/result.txt"
 }
 
-# layout_set LAYOUT [HOST]: sets LPF LPF86 LLAD (Windows paths of the three roots) and LPATH (the
-# cygdrive-form PATH list); fails for an unknown layout
+# layout_set LAYOUT [HOST]: sets LPF LPF86 LLAD (Windows paths of the three roots), LUP (USERPROFILE)
+# and LPATH (the cygdrive-form PATH list); an empty LLAD or LUP leaves the variable unset; fails for an
+# unknown layout
 layout_set() {
   LPF=$OUTW'\lay\empty'
   LPF86=$OUTW'\lay\empty'
   LLAD=$OUTW'\lay\empty'
+  LUP=$(winenv USERPROFILE)
   LPATH=$SYSP
   case $1 in
     pf86) LPF86=$OUTW'\lay\pf86' ;;
     lad) LLAD=$OUTW'\lay\lad' ;;
+    ladunset_prof) LLAD='' LUP=$OUTW'\lay\prof' ;;
+    ladunset_none) LLAD='' LUP='' ;;
     shpath) LPATH=$SYSP:$GITBIN_P ;;
     usrpath) LPATH=$SYSP:$GITUSR_P ;;
     othersh) LPATH=$SYSP:$OTHERSH_P ;;
@@ -301,11 +335,12 @@ layout_set() {
   return 0
 }
 
-# runcase NAME HOST MODE PAYLOADFILE: HOST is powershell, powershell+clm, pwsh or pwsh+clm; MODE is asis
-# or a layout name. The payload goes in through a pipe (as Codex writes it), the command is the shipped
-# string with the plugin root set. Records one result line.
+# runcase NAME HOST MODE PAYLOADFILE [PREFIX]: HOST is powershell, powershell+clm, pwsh or pwsh+clm;
+# MODE is asis or a layout name. The payload goes in through a pipe (as Codex writes it), the command is
+# the shipped string with the plugin root set, after PREFIX (PowerShell text, for example a
+# Set-Location). Records one result line.
 runcase() {
-  _n=$1 _host=$2 _mode=$3 _pf=$4
+  _n=$1 _host=$2 _mode=$3 _pf=$4 _pre=${5:-}
   case $_host in
     pwsh*)
       if [ -z "$PWSHEXE" ]; then
@@ -317,8 +352,8 @@ runcase() {
     *) _exe=$PSEXE ;;
   esac
   case $_host in
-    *+clm) _cmd=$CLM_PREFIX$CMD ;;
-    *) _cmd=$CMD ;;
+    *+clm) _cmd=$CLM_PREFIX$_pre$CMD ;;
+    *) _cmd=$_pre$CMD ;;
   esac
   if [ "$_mode" = asis ]; then
     set -- env "MSYS_NO_PATHCONV=1"
@@ -328,11 +363,13 @@ runcase() {
       return 0
     fi
     set -- env -i "MSYS_NO_PATHCONV=1"
-    for _nm in SYSTEMROOT WINDIR SystemDrive ComSpec PATHEXT TEMP TMP USERPROFILE HOMEDRIVE HOMEPATH APPDATA ProgramData BBJ_HOME; do
+    for _nm in SYSTEMROOT WINDIR SystemDrive ComSpec PATHEXT TEMP TMP HOMEDRIVE HOMEPATH APPDATA ProgramData BBJ_HOME; do
       _nv=$(winenv "$_nm")
       [ -z "$_nv" ] || set -- "$@" "$_nm=$_nv"
     done
-    set -- "$@" "ProgramFiles=$LPF" "ProgramFiles(x86)=$LPF86" "LOCALAPPDATA=$LLAD" "PATH=$LPATH"
+    set -- "$@" "ProgramFiles=$LPF" "ProgramFiles(x86)=$LPF86" "PATH=$LPATH"
+    [ -z "$LLAD" ] || set -- "$@" "LOCALAPPDATA=$LLAD"
+    [ -z "$LUP" ] || set -- "$@" "USERPROFILE=$LUP"
   fi
   cat < "$_pf" | "$@" "$_exe" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$_cmd" \
     > "$OUT/cases/$_n.out" 2> "$OUT/cases/$_n.err"
@@ -449,7 +486,8 @@ if not cmd.startswith("*** Begin Patch\n*** Add File: C:\\w\\proj\\bad.bbj\n+pri
   [ "$(check_want notfound 2 0 3 'bbj-check: Git for Windows sh.exe not found, so x')" = "as expected" ] || _fail "check_want notfound"
   [ "$(check_want notfound_first 0 0 0 '')" != "as expected" ] || _fail "check_want notfound_first silent"
   # the expectation table of the round 3 cases (13-REVIEW-FIX.md)
-  for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl; do
+  for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl \
+    lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound; do
     [ "$(want_kind "${_k%%:*}")" = "${_k#*:}" ] || _fail "want_kind ${_k%%:*}"
   done
 
@@ -504,7 +542,8 @@ do_run() {
   OUT=$1
   OUTW=$(cygpath -w "$OUT")
   : > "$OUT/$MARKER"
-  mkdir -p "$OUT/cases" "$OUT/lay/empty" "$OUT/lay/pf86" "$OUT/lay/lad/Programs" "$OUT/lay/othersh/bin" || exit 1
+  mkdir -p "$OUT/cases" "$OUT/lay/empty" "$OUT/lay/pf86" "$OUT/lay/lad/Programs" "$OUT/lay/othersh/bin" \
+    "$OUT/lay/prof/AppData/Local/Programs" "$OUT/lay/drv/Programs" || exit 1
   # WR-01: an sh.exe outside any Git for Windows tree (no cygpath.exe in a usr\bin or bin folder of
   # its Git folder). It is a copy of Git's bin\sh.exe launcher; the hook must never start it, whatever
   # it would do there
@@ -547,9 +586,10 @@ $_fill" > "$OUT/p_longnotes.json"
   [ "$(wc -c < "$OUT/p_long.json" | tr -d ' ')" -gt 8192 ] || exit 1
   [ "$(wc -c < "$OUT/p_longnotes.json" | tr -d ' ')" -gt 8192 ] || exit 1
 
-  # layouts: two junctions to the Git root (removed first by clean)
-  junction "$OUT/lay/pf86/Git" "$GITW" || { echo "launcher.sh: junction lay/pf86/Git failed; run clean" >&2; exit 1; }
-  junction "$OUT/lay/lad/Programs/Git" "$GITW" || { echo "launcher.sh: junction lay/lad/Programs/Git failed; run clean" >&2; exit 1; }
+  # layouts: junctions to the Git root (removed first by clean)
+  for _j in lay/pf86/Git lay/lad/Programs/Git lay/prof/AppData/Local/Programs/Git lay/drv/Programs/Git; do
+    junction "$OUT/$_j" "$GITW" || { echo "launcher.sh: junction $_j failed; run clean" >&2; exit 1; }
+  done
 
   # readings
   _sha=$(printf '%s' "$CMD_RAW" | sha256sum | awk '{ print $1 }')
@@ -588,6 +628,16 @@ $_fill" > "$OUT/p_longnotes.json"
   runcase usrbin_on_path_bad powershell usrpath "$OUT/p_bad.json"
   runcase othersh_none_bbj powershell othersh "$OUT/p_bad.json"
   runcase othersh_then_git_bad powershell othersh_git "$OUT/p_bad.json"
+  # WR-02: LOCALAPPDATA unset, the per-user folder taken from USERPROFILE
+  runcase lad_unset_profile_bad powershell ladunset_prof "$OUT/p_bad.json"
+  # WR-02: LOCALAPPDATA and USERPROFILE unset, the PowerShell location on a subst drive whose root holds
+  # Programs\Git: the old string probed \Programs\Git\bin\sh.exe there and ran it
+  if subst_make; then
+    runcase lad_unset_driveroot_bbj powershell ladunset_none "$OUT/p_bad.json" "Set-Location -LiteralPath '$SUBST_L:\\'; "
+    subst_drop
+  else
+    caseline "lad_unset_driveroot_bbj: -> not run (no free drive letter for subst)"
+  fi
   runcase none_bbj powershell none "$OUT/p_bad.json"
   runcase none_notes powershell none "$OUT/p_notes.json"
   runcase none_long_bbj powershell none "$OUT/p_long.json"
@@ -621,7 +671,13 @@ do_clean() {
   _gw=${_gw%\\}
   _gu=$(drivepath "$_gw")
   [ -f "$_gu/bin/sh.exe" ] || die2 "Git root $_gw holds no bin\\sh.exe before the cleanup; nothing removed"
-  for _j in "$1/lay/pf86/Git" "$1/lay/lad/Programs/Git"; do
+  OUT=$1
+  subst_drop
+  if cmd.exe /c subst 2> /dev/null | tr -d '\r' | grep -iF -- "$(cygpath -w "$1")" > /dev/null; then
+    echo "launcher.sh: a subst drive still points into OUTDIR; nothing removed (subst X: /d it first)" >&2
+    exit 1
+  fi
+  for _j in "$1/lay/pf86/Git" "$1/lay/lad/Programs/Git" "$1/lay/prof/AppData/Local/Programs/Git" "$1/lay/drv/Programs/Git"; do
     if [ -e "$_j" ]; then
       unjunction "$_j" || { echo "launcher.sh: could not remove the junction $_j; nothing else removed" >&2; exit 1; }
     fi

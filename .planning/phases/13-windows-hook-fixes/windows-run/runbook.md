@@ -35,8 +35,10 @@ Rules:
 - Trust the Codex hook only in the `/hooks` screen of Codex, the way a user does. Do not start
   Codex with any option that skips hook review.
 - Do not delete the launcher folder `%USERPROFILE%\.cache\bbj-phase13\launcher` by hand. It holds
-  two directory junctions that point at your real Git folder, and a recursive delete can follow
-  them. W5 removes the junctions first and checks that Git is untouched.
+  directory junctions that point at your real Git folder (four from round 3 on), and a recursive
+  delete can follow them. W5 removes the junctions first and checks that Git is untouched. From
+  round 3 on, one case also maps a free drive letter (Z down to P) to a folder inside it with
+  `subst` for the length of that case; W5 removes it as well if a run stopped early.
 - If a step fails, write the error text as the value and go on. A failure is a reading too. When
   a line of the launcher block says `differs`, that is the reading; do not repeat the case until
   it passes.
@@ -99,7 +101,7 @@ is empty, that is fine here; W1 sets it for Git Bash and the Codex windows set i
 ### W1 Launcher check, Git Bash (fills launcher-block)
 
 This runs the shipped `commandWindows` string outside Codex, through Windows PowerShell and (when
-installed) `pwsh`, with each Git layout faked by environment variables and two junctions. It writes
+installed) `pwsh`, with each Git layout faked by environment variables and junctions. It writes
 only under `$HOME/.cache/bbj-phase13/launcher`, which must not exist yet.
 
 In Git Bash:
@@ -135,6 +137,8 @@ fixes (13-REVIEW-FIX.md) and adds the cases marked with a review finding; a case
 | `usrbin_on_path_bad` | only Git's `usr\bin` on PATH | bbjcpl feedback | WR-01 (a Git `sh` is still taken) |
 | `othersh_none_bbj` | a non-Git `sh.exe` first on PATH, no Git | the not-found message, rc 2, never rc 0 silent | WR-01 |
 | `othersh_then_git_bad` | a non-Git `sh.exe` first on PATH, Git's `bin` after it | bbjcpl feedback | WR-01 |
+| `lad_unset_profile_bad` | `LOCALAPPDATA` unset, Git under `USERPROFILE\AppData\Local\Programs` (junction) | bbjcpl feedback | WR-02 |
+| `lad_unset_driveroot_bbj` | `LOCALAPPDATA` and `USERPROFILE` unset, the PowerShell location on a `subst` drive whose root holds `Programs\Git` (junction) | the not-found message, rc 2 (the old string ran that `sh.exe`) | WR-02 |
 
 ### W2 Case 1: the default install (fills c1-*)
 
@@ -253,8 +257,9 @@ In Git Bash:
 sh ~/bbj-p13/.planning/phases/13-windows-hook-fixes/windows-run/launcher.sh clean "$HOME/.cache/bbj-phase13/launcher"
 ```
 
-It removes the two junctions with a non-recursive `rmdir`, checks that no link is left and that
-Git's `bin\sh.exe` still exists, and only then removes the folder. If it stops with a message,
+It removes a `subst` drive left by the launcher, then the junctions with a non-recursive `rmdir`,
+checks that no link is left and that Git's `bin\sh.exe` still exists, and only then removes the
+folder. If it stops with a message,
 paste the message in `notes` and do not delete the folder by hand.
 
 The throwaway Codex home `%USERPROFILE%\.cache\bbj-phase13\codex` holds no junction; delete it

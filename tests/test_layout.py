@@ -19,11 +19,11 @@ Phase 13 (FIX-01; D-01 to D-09): pins the new commandWindows of plugins/bbj/hook
 exactly (layout_hook_command_windows): the ordered lookup of Git for Windows' sh.exe, the loud
 not-found branch and the exit-code passthrough. It pins text; the Windows run is 13-WINDOWS-RUN.md.
 Two guards outlive any re-pin: layout_hook_windows_safe (no automatic input variable, no Console or
-method call, no short-name path) and layout_hook_windows_parts (every lookup location, the findstr
+method call, no short-name path, no unconditional per-user item) and layout_hook_windows_parts (every lookup location, the findstr
 silent-exit condition, the loud branch before the call, the passthrough last); the six
 layout_mutation_hook_windows_* cases plant each trap (input variable, method call, short name,
 changed passthrough, moved branch, weaker silent-exit test), and one case per review fix of
-13-REVIEW.md takes its fix back out (any_sh: WR-01).
+13-REVIEW.md takes its fix back out (any_sh: WR-01; localappdata: WR-02).
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -56,8 +56,11 @@ OAUTH_SCOPES = "offline_access"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # Phase 13 (FIX-01; D-01 to D-09): Codex's Windows override of the hook command. Codex runs it through
 # PowerShell (pwsh before Windows PowerShell 5.1), so the string is written in the 5.1 subset. It tries
-# $env:ProgramFiles, ${env:ProgramFiles(x86)} and $env:LOCALAPPDATA\Programs (each followed by
-# \Git\bin\sh.exe), then an sh from Get-Command that belongs to Git for Windows (its Git folder, two
+# $env:ProgramFiles, ${env:ProgramFiles(x86)} and the per-user folder (each followed by
+# \Git\bin\sh.exe; the per-user item is $env:LOCALAPPDATA\Programs, built only when LOCALAPPDATA is
+# set, else $env:USERPROFILE\AppData\Local\Programs, else left out: review WR-02, an expandable
+# string is never empty, so an unset LOCALAPPDATA made it \Programs, a path on the root of the current
+# drive), then an sh from Get-Command that belongs to Git for Windows (its Git folder, two
 # levels up, holds usr\bin\cygpath.exe or bin\cygpath.exe: review WR-01, a non-Git sh such as busybox
 # has no cygpath, so the hook would pass every BBj file silently; every sh on PATH is tried in order),
 # then bin\sh.exe next to the directory of git from Get-Command (statements 2 to 4; an empty variable
@@ -75,7 +78,7 @@ HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # cannot run in CI; the Windows run is recorded in 13-WINDOWS-RUN.md.
 HOOK_COMMAND_WINDOWS_STATEMENTS = (
     r'$s = $null',
-    r'foreach ($r in $env:ProgramFiles, ${env:ProgramFiles(x86)}, "$env:LOCALAPPDATA\Programs") { if ($r -and -not $s) { $p = "$r\Git\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } }',
+    r'foreach ($r in $env:ProgramFiles, ${env:ProgramFiles(x86)}, $(if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\Programs" } elseif ($env:USERPROFILE) { "$env:USERPROFILE\AppData\Local\Programs" })) { if ($r -and -not $s) { $p = "$r\Git\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } }',
     r'if (-not $s) { foreach ($c in (Get-Command sh -CommandType Application -ErrorAction SilentlyContinue)) { $q = Split-Path -Parent (Split-Path -Parent $c.Source); if ($q -and -not $s -and ((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source } } }',
     r"if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $p = (Split-Path -Parent (Split-Path -Parent $g.Source)) + '\bin\sh.exe'; if (Test-Path -LiteralPath $p) { $s = $p } } }",
     r'if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }',
@@ -89,9 +92,11 @@ HOOK_COMMAND_WINDOWS = "; ".join(HOOK_COMMAND_WINDOWS_STATEMENTS)
 # automatic input variable (the PowerShell host then reads all of stdin itself and sh.exe inherits
 # nothing: stdin starvation; assembled from two pieces so this file never names it whole, the
 # self-scan convention), [console], :: and the method calls (a type literal or a method call is
-# refused under ConstrainedLanguage), and the 8.3 short-name path (it only fits one Git location).
+# refused under ConstrainedLanguage), the 8.3 short-name path (it only fits one Git location), and the
+# per-user list item as an unconditional expandable string (review WR-02: \Programs on the current
+# drive when LOCALAPPDATA is unset).
 WINDOWS_FORBIDDEN = ("$" + "input", "[console]", "::", ".writeerrorline", ".readtoend", ".invoke(",
-                     "progra" + "~")
+                     "progra" + "~", r'"$env:localappdata\programs")')
 # WINDOWS_PARTS, each must occur verbatim: every lookup location, the findstr read, the whole silent-exit
 # condition (silence only after a full read of the payload that names no BBj file: ROADMAP SC1), the
 # loud branch (message and exit 2) and the call; the value must also end with the exit-code
@@ -99,7 +104,7 @@ WINDOWS_FORBIDDEN = ("$" + "input", "[console]", "::", ".writeerrorline", ".read
 WINDOWS_PARTS = (
     r'$env:ProgramFiles,',
     r'${env:ProgramFiles(x86)}',
-    r'$env:LOCALAPPDATA\Programs',
+    r'$(if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\Programs" } elseif ($env:USERPROFILE) { "$env:USERPROFILE\AppData\Local\Programs" })',
     r'Get-Command sh ',
     r'((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source }',
     r'Get-Command git ',
@@ -710,6 +715,12 @@ if len(sys.argv) == 1:
     def windows_any_sh(dst):
         edit_windows(dst, lambda v: v.replace(GIT_SH_TEST, 'if (-not $s) { $s = $c.Source }', 1))
 
+    # review WR-02: the per-user item is an unconditional expandable string again
+    PER_USER = r'$(if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\Programs" } elseif ($env:USERPROFILE) { "$env:USERPROFILE\AppData\Local\Programs" })'
+
+    def windows_localappdata(dst):
+        edit_windows(dst, lambda v: v.replace(PER_USER + ")", r'"$env:LOCALAPPDATA\Programs")', 1))
+
 
     mutation_case("control", [], lambda dst: None, [])
     mutation_case("overlay_version", [CODEX_MANIFEST], set_overlay_version, ["versions"])
@@ -732,6 +743,8 @@ if len(sys.argv) == 1:
                   ["hook_command_windows", "hook_windows_parts"])
     mutation_case("hook_windows_any_sh", [HOOKS_FILE], windows_any_sh,
                   ["hook_command_windows", "hook_windows_parts"])
+    mutation_case("hook_windows_localappdata", [HOOKS_FILE], windows_localappdata,
+                  ["hook_command_windows", "hook_windows_safe", "hook_windows_parts"])
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
     mutation_case("docs_url_stage", [CLAUDE_MANIFEST], docs_url_stage, ["docs_url_description"])
