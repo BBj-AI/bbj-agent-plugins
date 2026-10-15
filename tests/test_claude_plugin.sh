@@ -108,7 +108,9 @@ fi
 # connected check it replaced, by design: CI has no sign-in (IN-05). "Disconnected" does not match.
 if curl -s -o /dev/null --connect-timeout 3 "https://$DOCS_HOST/mcp" 2> /dev/null; then
   mcp=$(cd "$WORK" && cc mcp list 2>&1)
-  _line=$(printf '%s\n' "$mcp" | grep -F "$CC_LABEL: https://$DOCS_HOST/mcp" | grep -i -e '[[:space:]]connected' -e 'needs authentication' | grep -i -v 'fail')
+  # the URL is the primary match and the label is pinned separately, so a change of the
+  # "label: url" separator between Claude Code versions (WR-02) does not fail this gate
+  _line=$(printf '%s\n' "$mcp" | grep -F "https://$DOCS_HOST/mcp" | grep -F "$CC_LABEL" | grep -i -e '[[:space:]]connected' -e 'needs authentication' | grep -i -v 'fail')
   if [ -n "$_line" ]; then
     gate mcp_docs_answers ok "the docs server $DOCS_SERVER at https://$DOCS_HOST/mcp answered (nothing past the 401 challenge is proven): $(printf '%s' "$_line" | head -n 1)"
   else
