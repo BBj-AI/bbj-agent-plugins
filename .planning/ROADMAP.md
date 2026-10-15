@@ -85,7 +85,7 @@ placeholder entry, so `## 0.2.2` can only appear in the bump commit.
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 11: Installer removal** - The plugin is the only install route: installer, snippet, their tests, gates and fakes, the hook's installer branch and the installer wording are gone; a gate keeps `install-codex.sh` out (completed 2026-10-15)
-- [ ] **Phase 12: Docs server renamed to bbj** - `bbj-docs` becomes `bbj` in both MCP configs, the skills, the hook notice, the docs and the tests; sign-in commands read on real clients; a gate keeps the old name out
+- [x] **Phase 12: Docs server renamed to bbj** - `bbj-docs` becomes `bbj` in both MCP configs, the skills, the hook notice, the docs and the tests; sign-in commands read on real clients; a gate keeps the old name out (completed 2026-10-15)
 - [ ] **Phase 13: Windows hook fixes** - Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location, one tier-2 connect timeout per hook run, a backslash gate that catches a regression
 - [ ] **Phase 14: One install page and one term list** - One plugin-only install page for both clients, one written term list with a gate, the gate-prefix block checked against the suite, dead code swept, codebase map refreshed
 - [ ] **Phase 15: Release 0.2.2** - `## 0.2.2` entry with the sign-in under `bbj`, five versions bumped, full suite with live gates, merged, tagged `0.2.2`, published
@@ -138,7 +138,7 @@ Plans:
   3. Both skills, the check-order block (still byte-identical in the two SKILL.md files), the hook's no-route notice and the docs name the server `bbj` ("the docs server `bbj`") and give the sign-in with the exact labels the clients show in the criterion 4 run: `/mcp` and the label Claude Code lists (expected `plugin:bbj:bbj`), and the login command Codex accepts (expected `codex mcp login bbj`). The `notice_`, `checkorder_` and `skills_` gates pass with the new text (NAME-02)
   4. Owner-run, Linux: with the plugin installed from a checkout of this phase, real Claude Code lists the renamed server in `/mcp`, real Codex accepts `codex mcp login bbj`, and the sign-in completes in both. The run is a fresh install only and is recorded in `12-LINUX-RUN.md`; the docs use the labels it records (NAME-02)
 
-**Plans**: 5/5 plans executed
+**Plans**: 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -226,7 +226,7 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
-| 12. Docs server renamed to bbj | v0.2.2 | 5/5 | In Progress | - |
+| 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 0/TBD | Not started | - |
 | 14. One install page and one term list | v0.2.2 | 0/TBD | Not started | - |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |
