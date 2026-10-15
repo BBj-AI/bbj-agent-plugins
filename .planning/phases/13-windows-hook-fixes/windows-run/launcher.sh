@@ -39,7 +39,7 @@ BASE=$HOME/.cache/bbj-phase13
 HOOKS=$REPO/plugins/bbj/hooks/hooks.json
 # the current pin (13-REVIEW-FIX.md): sha256 of the commandWindows string as hooks.json holds it (before
 # the root is set); rounds 1 and 2 ran the plan 13-02 pin
-PIN_SHA=fd0ffc864175148b8e08c9263482a349a0100a102e30b403e598ea1c2edc8296
+PIN_SHA=35b49f770dfb0c1b205fc069cd85b3069f52140ba74a40aa934d2972f086fb35
 CLM_PREFIX='$ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"; '
 MARKER=launcher.marker
 OUT=
@@ -341,8 +341,9 @@ layout_set() {
 
 # runcase NAME HOST MODE PAYLOADFILE [PREFIX]: HOST is powershell, powershell+clm, pwsh or pwsh+clm;
 # MODE is asis or a layout name. The payload goes in through a pipe (as Codex writes it), the command is
-# the shipped string with the plugin root set, after PREFIX (PowerShell text, for example a
-# Set-Location). Records one result line.
+# CASE_CMD (the shipped string with the plugin root set), after PREFIX (PowerShell text, for example a
+# Set-Location). CLAUDE_PLUGIN_ROOT is set to CASE_ROOTW, as Codex sets it for a plugin hook, or left
+# unset when CASE_ROOTW is empty. Records one result line.
 runcase() {
   _n=$1 _host=$2 _mode=$3 _pf=$4 _pre=${5:-}
   case $_host in
@@ -356,11 +357,11 @@ runcase() {
     *) _exe=$PSEXE ;;
   esac
   case $_host in
-    *+clm) _cmd=$CLM_PREFIX$_pre$CMD ;;
-    *) _cmd=$_pre$CMD ;;
+    *+clm) _cmd=$CLM_PREFIX$_pre$CASE_CMD ;;
+    *) _cmd=$_pre$CASE_CMD ;;
   esac
   if [ "$_mode" = asis ]; then
-    set -- env "MSYS_NO_PATHCONV=1"
+    set -- env -u CLAUDE_PLUGIN_ROOT "MSYS_NO_PATHCONV=1"
   else
     if ! layout_set "$_mode" "$_host"; then
       caseline "$_n: -> not run (unknown layout $_mode)"
@@ -375,6 +376,7 @@ runcase() {
     [ -z "$LLAD" ] || set -- "$@" "LOCALAPPDATA=$LLAD"
     [ -z "$LUP" ] || set -- "$@" "USERPROFILE=$LUP"
   fi
+  [ -z "$CASE_ROOTW" ] || set -- "$@" "CLAUDE_PLUGIN_ROOT=$CASE_ROOTW"
   cat < "$_pf" | "$@" "$_exe" -NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "$_cmd" \
     > "$OUT/cases/$_n.out" 2> "$OUT/cases/$_n.err"
   _rc=$?
@@ -408,6 +410,10 @@ selftest() {
   esac
   case $_c in
     *'\"'*) _fail "a backslash sits directly before a double quote (MSVC quoting would differ)" ;;
+  esac
+  case $_c in
+    *'"$env:CLAUDE_PLUGIN_ROOT/scripts/bbj-check.sh"'*) ;;
+    *) _fail "extract_cmd does not take the root from CLAUDE_PLUGIN_ROOT (WR-04)" ;;
   esac
   if have_python3; then
     python3 -I -c 'import json, sys
@@ -491,7 +497,8 @@ if not cmd.startswith("*** Begin Patch\n*** Add File: C:\\w\\proj\\bad.bbj\n+pri
   [ "$(check_want notfound_first 0 0 0 '')" != "as expected" ] || _fail "check_want notfound_first silent"
   # the expectation table of the round 3 cases (13-REVIEW-FIX.md)
   for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl \
-    lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound none_web_src:clean none_update_src:notfound; do
+    lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound none_web_src:clean none_update_src:notfound \
+    rootvar_unset_bad:bbjcpl dollar_root_bad:bbjcpl; do
     [ "$(want_kind "${_k%%:*}")" = "${_k#*:}" ] || _fail "want_kind ${_k%%:*}"
   done
 
@@ -536,11 +543,18 @@ do_run() {
   PWSHDIR_P=
   [ -z "$PWSHEXE" ] || PWSHDIR_P=$(dirname "$PWSHEXE")
   ROOT_M=$(cygpath -m "$REPO/plugins/bbj")
+  # the checkout root also goes into the text the hook falls back to when CLAUDE_PLUGIN_ROOT is unset
+  # (rootvar_unset_bad), which PowerShell reads as a double-quoted string; dollar_root_bad makes its
+  # own root with a dollar sign and a backtick
   case $ROOT_M in
     *'$'* | *'`'* | *'"'* | *"'"*) die2 "the plugin root holds a dollar sign, a backtick or a quote: $ROOT_M" ;;
   esac
   CMD_RAW=$(extract_cmd) || die2 "commandWindows could not be read from hooks.json"
   CMD=$(subst_root "$CMD_RAW" "$ROOT_M")
+  # the value Codex gives CLAUDE_PLUGIN_ROOT: the plugin folder in its Windows form
+  ROOT_W=$(cygpath -w "$REPO/plugins/bbj")
+  CASE_CMD=$CMD
+  CASE_ROOTW=$ROOT_W
 
   safe_out "$1" || exit 2
   OUT=$1
@@ -594,6 +608,11 @@ $_fill" > "$OUT/p_longnotes.json"
 +see prog.bbj and x.BBX' > "$OUT/p_web.json"
   payload_patch "$_pw" "$(printf '*** Begin Patch\n*** Update File: %s\n@@\n-rem a\n+rem b\n*** End Patch' "$_pw\\lib\\x.SRC")" > "$OUT/p_updsrc.json"
   [ "$(wc -c < "$OUT/p_long.json" | tr -d ' ')" -gt 8192 ] || exit 1
+  # WR-04: a copy of the hook script under a plugin root that holds a dollar sign and a backtick, as a
+  # Windows user name may (single quotes: both are literal here)
+  DROOT=$OUT/'r$x`y'/plugins/bbj
+  mkdir -p "$DROOT/scripts" || exit 1
+  cp "$REPO/plugins/bbj/scripts/bbj-check.sh" "$DROOT/scripts/bbj-check.sh" || exit 1
   [ "$(wc -c < "$OUT/p_longnotes.json" | tr -d ' ')" -gt 8192 ] || exit 1
 
   # layouts: junctions to the Git root (removed first by clean)
@@ -655,6 +674,16 @@ $_fill" > "$OUT/p_longnotes.json"
   runcase none_web_src powershell none "$OUT/p_web.json"
   runcase none_update_src powershell none "$OUT/p_updsrc.json"
   runcase clm_default_bad powershell+clm asis "$OUT/p_bad.json"
+  # WR-04: CLAUDE_PLUGIN_ROOT unset, so the call falls back to the substituted text
+  CASE_ROOTW=
+  runcase rootvar_unset_bad powershell asis "$OUT/p_bad.json"
+  # WR-04: the root with a dollar sign and a backtick, substituted into the text and set in
+  # CLAUDE_PLUGIN_ROOT, as Codex does; the old string lost "$x" and the backtick and ran a missing script
+  CASE_CMD=$(subst_root "$CMD_RAW" "$(cygpath -m "$DROOT")")
+  CASE_ROOTW=$(cygpath -w "$DROOT")
+  runcase dollar_root_bad powershell asis "$OUT/p_bad.json"
+  CASE_CMD=$CMD
+  CASE_ROOTW=$ROOT_W
   runcase clm_none_bbj powershell+clm none "$OUT/p_bad.json"
   runcase pwsh_default_bad pwsh asis "$OUT/p_bad.json"
   runcase pwsh_none_bbj pwsh none "$OUT/p_bad.json"

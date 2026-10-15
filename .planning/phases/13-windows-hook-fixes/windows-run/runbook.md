@@ -140,6 +140,8 @@ fixes (13-REVIEW-FIX.md) and adds the cases marked with a review finding; a case
 | `lad_unset_profile_bad` | `LOCALAPPDATA` unset, Git under `USERPROFILE\AppData\Local\Programs` (junction) | bbjcpl feedback | WR-02 |
 | `none_web_src` | no Git anywhere; an `.html` file whose text holds `img.src`, `prog.bbj` and `x.BBX` | silent, rc 0 | WR-03 |
 | `none_update_src` | no Git anywhere; an `*** Update File:` of `lib\x.SRC` | the not-found message, rc 2 | WR-03 |
+| `rootvar_unset_bad` | your own environment, `CLAUDE_PLUGIN_ROOT` unset (every other case sets it, as Codex does) | bbjcpl feedback | WR-04 (the fallback to the substituted text) |
+| `dollar_root_bad` | your own environment, a copy of the hook script under a plugin root holding `$` and a backtick | bbjcpl feedback (the old string ran a missing script) | WR-04 |
 | `lad_unset_driveroot_bbj` | `LOCALAPPDATA` and `USERPROFILE` unset, the PowerShell location on a `subst` drive whose root holds `Programs\Git` (junction) | the not-found message, rc 2 (the old string ran that `sh.exe`) | WR-02 |
 
 ### W2 Case 1: the default install (fills c1-*)
