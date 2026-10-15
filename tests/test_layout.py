@@ -18,6 +18,11 @@ plant two other spellings it does not match.
 Phase 13 (FIX-01; D-01 to D-09): pins the new commandWindows of plugins/bbj/hooks/hooks.json
 exactly (layout_hook_command_windows): the ordered lookup of Git for Windows' sh.exe, the loud
 not-found branch and the exit-code passthrough. It pins text; the Windows run is 13-WINDOWS-RUN.md.
+Two guards outlive any re-pin: layout_hook_windows_safe (no automatic input variable, no Console or
+method call, no short-name path) and layout_hook_windows_parts (every lookup location, the findstr
+silent-exit condition, the loud branch before the call, the passthrough last); the six
+layout_mutation_hook_windows_* cases plant each trap (input variable, method call, short name,
+changed passthrough, moved branch, weaker silent-exit test).
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -76,6 +81,30 @@ HOOK_COMMAND_WINDOWS_STATEMENTS = (
     r'exit $LASTEXITCODE',
 )
 HOOK_COMMAND_WINDOWS = "; ".join(HOOK_COMMAND_WINDOWS_STATEMENTS)
+# Guards that outlive any re-pin of the string above (phase 13; D-05, D-07, D-09), so the two traps research
+# found cannot come back. WINDOWS_FORBIDDEN, matched case-insensitively in the decoded value: the
+# automatic input variable (the PowerShell host then reads all of stdin itself and sh.exe inherits
+# nothing: stdin starvation; assembled from two pieces so this file never names it whole, the
+# self-scan convention), [console], :: and the method calls (a type literal or a method call is
+# refused under ConstrainedLanguage), and the 8.3 short-name path (it only fits one Git location).
+WINDOWS_FORBIDDEN = ("$" + "input", "[console]", "::", ".writeerrorline", ".readtoend", ".invoke(",
+                     "progra" + "~")
+# WINDOWS_PARTS, each must occur verbatim: every lookup location, the findstr read, the whole silent-exit
+# condition (silence only after a full read of the payload that names no BBj file: ROADMAP SC1), the
+# loud branch (message and exit 2) and the call; the value must also end with the exit-code
+# passthrough and the loud branch must come before the call.
+WINDOWS_PARTS = (
+    r'$env:ProgramFiles,',
+    r'${env:ProgramFiles(x86)}',
+    r'$env:LOCALAPPDATA\Programs',
+    r'Get-Command sh ',
+    r'Get-Command git ',
+    r'findstr /n /r "^" 2>&1',
+    r'if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }',
+    r'Git for Windows sh.exe not found',
+    r'exit 2 }',
+    r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"',
+)
 # D-10: the seven identity fields the Codex overlay copies from the Claude manifest, and the
 # relative path of its MCP file
 SHARED_FIELDS = ("name", "version", "description", "author", "homepage", "license", "keywords")
@@ -238,6 +267,23 @@ gate("hook_command_windows",
      len(hook_list) == 1 and hook_list[0].get("commandWindows") == HOOK_COMMAND_WINDOWS
      and hook_list[0].get("command") == HOOK_COMMAND,
      "commandWindows=%r" % (hook_list[0].get("commandWindows") if len(hook_list) == 1 else None,))
+# phase 13 (FIX-01; D-05, D-07, D-09): guards on the decoded commandWindows, independent of the exact pin
+cw = (hook_list[0].get("commandWindows") or "") if len(hook_list) == 1 else ""
+if not isinstance(cw, str):
+    cw = ""
+found = [t for t in WINDOWS_FORBIDDEN if t in cw.lower()]
+gate("hook_windows_safe", not found,
+     ("forbidden construct(s) in commandWindows: %r" % (found,)) if found
+     else "none of %d forbidden constructs" % len(WINDOWS_FORBIDDEN))
+missing = [p for p in WINDOWS_PARTS if p not in cw]
+problems = ["missing %r" % (p,) for p in missing]
+if not cw.endswith("exit $LASTEXITCODE"):
+    problems.append("does not end with the exit-code passthrough")
+if not missing:
+    if cw.index("exit 2 }") > cw.index('& $s "'):
+        problems.append("the not-found branch (exit 2 }) does not come before the call")
+gate("hook_windows_parts", not problems,
+     ("; ".join(problems)) if problems else "all %d parts present, passthrough last, not-found branch before the call" % len(WINDOWS_PARTS))
 gate("hook_timeout", len(hook_list) == 1 and hook_list[0].get("timeout") == 30,
      "timeout=%r" % (hook_list[0].get("timeout") if hook_list else None,))
 gate("hook_events_only_post_tool_use", list(hooks.get("hooks", {})) == ["PostToolUse"],
