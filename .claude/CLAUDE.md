@@ -4,7 +4,7 @@
 
 **bbj-agent-plugins**
 
-The `basis-bbj` plugin marketplace for coding agents (Claude Code, with an installer for
+The `basis-bbj` plugin marketplace for coding agents (Claude Code and
 OpenAI Codex). It gives an agent the BBj documentation MCP server, two BBj skills
 (`bbj-programming`, `bbj-web-programming`), and a hook that compile-checks every BBj file the
 agent writes, so agents write BBj that compiles. Release 0.2.0 makes this repository the home of
@@ -17,7 +17,7 @@ and `bbj-ls`).
 
 ### Constraints
 
-- **Tech stack**: POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime deps — matches existing hook/installer/tests
+- **Tech stack**: POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime deps — matches the existing hook and tests
 - **Safety**: BBj code is never executed; hook never calls the hosted check — enforced by `tests/test_never_execute.sh`
 - **Compatibility**: `bbj-local` stays opt-in in both Claude Code and Codex — a registered but stopped server shows as failed on every start
 - **Verification**: Skill code checks need a real BBj 26.03+ (`bbj-ls` or `bbjcpl`) locally; CI has none
@@ -31,7 +31,7 @@ and `bbj-ls`).
 
 ## Languages
 
-- POSIX shell (`sh`) - Claude Code and Codex hook script, Codex installer, test harness: `plugins/bbj/scripts/bbj-check.sh`, `codex/install-codex.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/lib.sh`, `tests/test_*.sh`
+- POSIX shell (`sh`) - Claude Code and Codex hook script, test harness: `plugins/bbj/scripts/bbj-check.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/lib.sh`, `tests/test_*.sh`
 - Python 3 (standard library only) - Repository and layout tests, a fake MCP server: `tests/test_layout.py`, `tests/test_ci_guards.py`, `tests/test_codex_patch.sh` (helpers), `tests/fake_mcp.py`
 - Markdown - Skills, references, install docs, changelog: `plugins/bbj/skills/**/*.md`, `docs/*.md`, `README.md`, `CHANGELOG.md`
 - JSON - Plugin and marketplace manifests, hooks, MCP config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/bbj/hooks/hooks.json`, `plugins/*/.mcp.json`
@@ -43,7 +43,7 @@ and `bbj-ls`).
 - No application runtime. The repository ships configuration, Markdown skills, and shell hooks that run inside Claude Code or Codex.
 - Node.js is required only in CI, to run the pinned Claude CLI: `.github/ci-tools/package.json` (`tests/ci.sh` prints the node version when present).
 - Hook runtime: `sh` with `awk`, `sed`, `grep`, `head`, `cat`, `dirname`, `tr`, `cp`, `mv`, `cmp`, `diff`, `mktemp`, and `curl` (optional, for the loopback tier-2 check).
-- Target platforms for the hook: Linux, macOS, and Windows through Git for Windows (`cygpath` on `PATH` triggers path conversion). Install script is verified on Linux only, per `codex/install-codex.sh` header.
+- Target platforms for the hook: Linux, macOS, and Windows through Git for Windows (`cygpath` on `PATH` triggers path conversion).
 - npm, used only for the CI tool: `.github/ci-tools/package.json`
 - Lockfile: present - `.github/ci-tools/package-lock.json` (9 `node_modules/*` entries, lockfileVersion with integrity hashes)
 - No package manager for the plugins themselves; there is no root `package.json`.
@@ -52,9 +52,9 @@ and `bbj-ls`).
 
 - Claude Code plugin system - Marketplace and plugin layout: `.claude-plugin/marketplace.json`, `plugins/bbj/.claude-plugin/plugin.json`, `plugins/bbj-local/.claude-plugin/plugin.json`
 - Model Context Protocol (MCP) - Two MCP server registrations, both `type: "http"`: `plugins/bbj/.mcp.json`, `plugins/bbj-local/.mcp.json`
-- Codex CLI integration - Config written to `config.toml`, hooks, and skills via `codex/install-codex.sh`; docs in `docs/install-codex.md`, guidance in `codex/AGENTS-snippet.md`
+- Codex plugin overlay - Plugin manifest and MCP registration for the Codex plugin route: `plugins/bbj/.codex-plugin/plugin.json`, `plugins/bbj/.codex-mcp.json`; docs in `docs/install-codex.md`
 - Custom shell and Python test harness, no third-party framework: `tests/run.sh` (runs every self-contained test), entry point `tests/ci.sh`
-- Shell test helpers: `tests/lib.sh`; fake binaries in `tests/fake-bin/` (`bbj`, `bbjcpl`, `codex`, `curl`, `cygpath`)
+- Shell test helpers: `tests/lib.sh`; fake binaries in `tests/fake-bin/` (`bbj`, `bbjcpl`, `curl`, `cygpath`)
 - Python test scripts run as `python3 -I` (isolated mode)
 - ShellCheck - Lint of all shipped and test shell scripts, `sh` dialect: `.shellcheckrc`, invoked from `tests/ci.sh`
 - `claude plugin validate --strict` - Manifest validation, invoked from `tests/ci.sh` via the CI-installed CLI
@@ -74,7 +74,6 @@ and `bbj-ls`).
 - No application environment file. `.env` files are not used by the repository (only `.gitignore` entries for `*.swp` and `*.swo` exist; see `.gitignore`).
 - Plugin user options (Claude Code `userConfig`), defined in `plugins/bbj/.claude-plugin/plugin.json`:
 - Environment variables read by the hook: `CLAUDE_PLUGIN_ROOT`, `CLAUDE_PLUGIN_OPTION_BBJ_HOME`, `CLAUDE_PROJECT_DIR`, `BBJ_HOME`, `BBJHOME`, `BBJ_LOCAL_MCP_URL` (default `http://127.0.0.1:5009/mcp`), `BBJ_CHECK_DEFAULT_HOMES` (test seam)
-- Codex: `CODEX_HOME` (default `~/.codex`); skills directory default `~/.agents/skills`
 - CI: `CI=true` makes missing `claude` or `shellcheck` a failure instead of a skip
 - `.shellcheckrc` - ShellCheck configuration
 - `.gitattributes` - `* text=auto eol=lf` (LF line endings enforced)
@@ -91,7 +90,7 @@ and `bbj-ls`).
 - Node.js and npm only to run the CI CLI install locally (optional; the gate is skipped outside CI)
 - Optional: ShellCheck, a BBj installation (`bbjcpl`), or a running BBjServices with `bbj-ls` on `127.0.0.1:5009`. The real-compiler and live tests skip without BBj: `tests/test_real_compiler.sh`, `tests/test_tier2_live.sh` (enabled with `BBJ_LS_LIVE=1`)
 - Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install-claude-code.md`)
-- Installed for Codex through `codex/install-codex.sh` (`docs/install-codex.md`)
+- Installed for Codex through the Codex plugin (`codex plugin add bbj@basis-bbj`, `docs/install-codex.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
 - Current version: 0.2.1 for both plugins (`CHANGELOG.md`)
 
@@ -103,15 +102,15 @@ and `bbj-ls`).
 
 ## Scope of the Code
 
-- POSIX shell scripts (shipped hooks and installers): `plugins/bbj/scripts/bbj-check.sh`, `codex/install-codex.sh`
+- POSIX shell scripts (the shipped hook): `plugins/bbj/scripts/bbj-check.sh`
 - Shell and Python test suites: `tests/*.sh`, `tests/*.py`, plus fakes in `tests/fake-bin/` and `tests/fake_mcp.py`
 - JSON manifests and hook config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/*/.mcp.json`, `plugins/bbj/hooks/hooks.json`
-- Markdown skills and docs: `plugins/bbj/skills/**/SKILL.md`, `plugins/bbj/skills/**/references/*.md`, `docs/*.md`, `codex/AGENTS-snippet.md`, `README.md`, `CHANGELOG.md`
+- Markdown skills and docs: `plugins/bbj/skills/**/SKILL.md`, `plugins/bbj/skills/**/references/*.md`, `docs/*.md`, `README.md`, `CHANGELOG.md`
 - GitHub Actions workflow and CI tooling: `.github/workflows/ci.yml`, `.github/ci-tools/package.json`
 
 ## Naming Patterns
 
-- Shell scripts and tests are lowercase with hyphens for shipped scripts (`bbj-check.sh`, `install-codex.sh`) and underscores for tests (`test_exit_contract.sh`, `test_layout.py`, `test_ci_guards.py`). Every test file starts with `test_`; `tests/run.sh` discovers them by that glob.
+- Shell scripts and tests are lowercase with hyphens for shipped scripts (`bbj-check.sh`) and underscores for tests (`test_exit_contract.sh`, `test_layout.py`, `test_ci_guards.py`). Every test file starts with `test_`; `tests/run.sh` discovers them by that glob.
 - Helper and fixture files: `tests/lib.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/fake_mcp.py`, `tests/fake-bin/<tool>` (fake binaries use hyphens for the directory, no extension).
 - Skill reference docs use lowercase hyphenated names: `plugins/bbj/skills/bbj-programming/references/callback-performance.md`.
 - Skill entry points are always named `SKILL.md` inside a directory named after the skill.
@@ -176,12 +175,9 @@ and `bbj-ls`).
 
 - Report to the user through stderr with a fixed grammar. Example header from `report()` in `plugins/bbj/scripts/bbj-check.sh`: `bbj-local reported N error(s) in <file>:`.
 - Cap feedback at 40 lines and print `(M more line(s) not shown)` for the rest.
-- Installers use documented exit codes: 0 done, 2 usage error or refusal (nothing written), 3 something left to merge by hand. Document any new exit code in the header comment of the script, as `codex/install-codex.sh` does.
-- Validate every option and destination before the first write; a failure before the first write exits 2 with nothing changed.
-- Before changing an existing user file, write a one-time backup (`config.toml.bbj-backup`) and never overwrite a file the user owns (`hooks.json` is only written when absent).
 - A check reports one line through `gate NAME STATUS DETAIL`, where STATUS is `ok`, `FAIL` or `skip`. `tests/lib.sh` sets `LIB_FAILED=1` on any FAIL and `finish()` exits accordingly.
-- Gate names start with a prefix that names their test file, but a prefix does not identify a file by itself: `installer_` is printed by both `test_install_codex.sh` and `test_install_pages.sh`, `ci_` (`test_ci_gates.sh`) is a string prefix of `ci_guard_` (`test_ci_guards.py`), and `release_` (`test_release_text.py`) is a string prefix of `release_mut_`. Pick a prefix that no existing gate name starts with. The prefixes `sh tests/run.sh` prints, in run order:
-  - Shell tests: `test_ci_gates.sh` `ci_`, `run_`; `test_codex_patch.sh` `plugin_route_`, plus free-form names; `test_discovery.sh` `order_`, plus free-form names; `test_exit_contract.sh` `contract_`, `argument_`, `no_marker_`, `glob_newline_not_passed_`, `real_hostile_reached_compiler`; `test_home_guard.sh` `homeguard_`; `test_install_codex.sh` `local_`, `first_`, `probe_`, `docs_`, `foreign_`, `existing_`, `with_`, `installer_`, `oauth_`, `remove_`, plus free-form names; `test_install_pages.sh` `claude_`, `codex_`, `link_`, `readme_`, `installer_`; `test_noroute_notice.sh` `notice_`; `test_path_scrub.sh` `pathscrub_`; `test_release_text_mutation.sh` `release_mut_`; `test_static_guards.sh` `static_`; `test_tier2_fake.sh` `url_`, `req_`, `mode_`, plus free-form names; `test_tier2_live.sh` `live_`, plus the free-form `tier2_syntax_only`.
+- Gate names start with a prefix that names their test file, but a prefix does not identify a file by itself: `ci_` (`test_ci_gates.sh`) is a string prefix of `ci_guard_` (`test_ci_guards.py`), and `release_` (`test_release_text.py`) is a string prefix of `release_mut_`. Pick a prefix that no existing gate name starts with. The prefixes `sh tests/run.sh` prints, in run order:
+  - Shell tests: `test_ci_gates.sh` `ci_`, `run_`; `test_codex_patch.sh` `plugin_route_`, plus free-form names; `test_discovery.sh` `order_`, plus free-form names; `test_exit_contract.sh` `contract_`, `argument_`, `no_marker_`, `glob_newline_not_passed_`, `real_hostile_reached_compiler`; `test_install_pages.sh` `claude_`, `codex_`, `link_`, `readme_`; `test_noroute_notice.sh` `notice_`; `test_path_scrub.sh` `pathscrub_`; `test_release_text_mutation.sh` `release_mut_`; `test_static_guards.sh` `static_`; `test_tier2_fake.sh` `url_`, `req_`, `mode_`, plus free-form names; `test_tier2_live.sh` `live_`, plus the free-form `tier2_syntax_only`.
   - Python tests: `test_check_order.py` `checkorder_`; `test_ci_guards.py` `ci_guard_`; `test_layout.py` `layout_`; `test_release_text.py` `release_`; `test_skill_examples.py` `skills_`.
   - Free-form names, no shared prefix: `test_claude_plugin.sh`, `test_hook_review_fixes.sh`, `test_never_execute.sh`, `test_real_compiler.sh`.
 - Python tests print `gate <prefix>_<name> ok|FAIL <detail>` and exit 1 if any gate failed.
@@ -244,7 +240,7 @@ and `bbj-ls`).
 ## Pattern Overview
 
 - No compiled code and no package-managed runtime. The only executables are POSIX `sh`
-- The hook and the installer are deliberately stateless: each invocation reads its input
+- The hook is deliberately stateless: each invocation reads its input
 - BBj code is never executed. The check path calls the BBj compiler with `-N` (compile-only)
 - Two MCP servers are declared, not implemented here: the hosted `bbj-docs` server (URL from
 - The skills are maintained in this repository under the normal tests (`tests/test_layout.py`).
@@ -266,17 +262,12 @@ and `bbj-ls`).
 - Contains: Tool-input parsing (`jget`, `UNESC_AWK`), compiler discovery (`discover`,
 - Depends on: A BBj compiler (`bbjcpl` / `bbjcplw`) or a running `bbj-ls`; `curl` for tier 2.
 - Used by: The host, after every matching tool call.
-- Purpose: Install the docs server, skills and hook for OpenAI Codex, which has no plugin
-- Location: `codex/install-codex.sh`, `codex/AGENTS-snippet.md`
-- Contains: Option parsing and validation (`usage`, `refuse`, `say`), pre-flight checks
-- Depends on: `codex` CLI (optional; falls back to a managed `config.toml` block), POSIX
-- Used by: A user running the script from a checkout. Exit codes: 0 done, 2 refusal or usage
 - Purpose: Teach the agent BBj syntax, web (DWC) development and the rules agents get wrong.
 - Location: `plugins/bbj/skills/bbj-programming/` (`SKILL.md` and `references/*.md`),
 - Contains: Markdown only. Skills are loaded by the host on demand; references are read on
 - Depends on: Nothing executable. Content describes the `bbj-docs` and `bbj-ls` tools by name.
-- Used by: The host agent's skill loader (`~/.agents/skills` for Codex, the plugin cache for
-- Purpose: Gate every change to manifests, hook, installer and skills.
+- Used by: The host agent's skill loader (the plugin cache for
+- Purpose: Gate every change to manifests, hook and skills.
 - Location: `tests/run.sh` (runner), `tests/ci.sh` (entry point), `tests/test_*.sh` and
 - Contains: Shell and Python tests that print `gate NAME ok|FAIL|skip` lines and a
 - Depends on: `python3`, `shellcheck`, `claude` CLI (mandatory in CI, skipped locally).
@@ -288,13 +279,10 @@ and `bbj-ls`).
 
 ### Secondary Flow: Codex `apply_patch`
 
-### Installation Flow: Codex
-
 ### Testing Flow
 
 - The plugin itself holds no state. The hook is one process per tool call.
 - `tests/run.sh` and `tests/ci.sh` keep counters only for the duration of one run.
-- Codex configuration state lives in `config.toml` and `hooks.json` under the Codex home;
 
 ## Key Abstractions
 
@@ -310,9 +298,6 @@ and `bbj-ls`).
 - Purpose: The text the agent sees after a failed check.
 - Examples: `report` in `plugins/bbj/scripts/bbj-check.sh`
 - Pattern: Header `<route> reported N error(s) in <file>:`, compiler lines verbatim (at most
-- Purpose: Idempotent edit of a `config.toml` the installer does not own entirely.
-- Examples: `analyze`, `print_block`, `state` in `codex/install-codex.sh`
-- Pattern: Writes only the tables it manages; refuses and exits 3 for forms it does not
 
 ## Entry Points
 
@@ -322,9 +307,6 @@ and `bbj-ls`).
 - Location: `plugins/bbj/scripts/bbj-check.sh` (its last statement is `main`)
 - Triggers: PostToolUse for `Write|Edit` (Claude Code) and `apply_patch` (Codex, via the
 - Responsibilities: Parse input, compile-check, exit 0 or 2 only.
-- Location: `codex/install-codex.sh`
-- Triggers: Run by the user from a checkout, e.g. `sh codex/install-codex.sh`.
-- Responsibilities: Register docs server, install skills and hook, print the next steps.
 - Location: `plugins/bbj/.mcp.json` (`bbj-docs`), `plugins/bbj-local/.mcp.json` (`bbj-ls`)
 - Triggers: The host connects when the plugin is enabled.
 - Responsibilities: Serve documentation tools and the hosted or local syntax check.
@@ -349,13 +331,10 @@ and `bbj-ls`).
 
 ### Adding a second feedback format
 
-### Writing config tables Codex's installer does not own
-
 ## Error Handling
 
 - Every failure path in `bbj-check.sh` ends in an explicit `return 0` or `exit 0`, and there is
 - `no_tier1_route` discards a reply that is a JSON-RPC `error` or `isError: true`.
-- The installer pre-flights every destination (skills directory, `<codex home>/bbj`,
 
 ## Cross-Cutting Concerns
 
