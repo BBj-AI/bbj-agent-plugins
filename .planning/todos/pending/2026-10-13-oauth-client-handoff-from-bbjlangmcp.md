@@ -9,6 +9,7 @@ files:
 
   - plugins/bbj/.mcp.json
   - codex/install-codex.sh
+resolves_phase: 12
 audit_acknowledged:
   milestone: v0.2.1
   at: 2026-10-15
