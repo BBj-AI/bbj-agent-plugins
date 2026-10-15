@@ -1,0 +1,14 @@
+Date: 2026-10-15
+pr: 3
+url: https://github.com/BBj-AI/bbj-agent-plugins/pull/3
+branch: gsd/release-0.2.1-amend
+base: main
+head: 38c690cd92eef3cf96fc0a87c09d98d29a060275
+pushed: git push origin gsd/release-0.2.1-amend (plain, one ref); origin head equals the recorded head
+opened_as: ready (not a draft); gh pr ready not needed
+ci: success https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38677587369
+ci_push_run: success https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38677567220
+ci_head_sha: 38c690cd92eef3cf96fc0a87c09d98d29a060275 (both runs)
+ready: yes
+origin_main: dad18f5ef9caca3c50b0c25fff09b6487c29705e (unchanged)
+tag_0.2.1_on_origin: none
