@@ -1,7 +1,7 @@
 """tests/test_layout.py -- plan 19-03: pins every manifest value the requirements fix.
 Plan 01-01 (VEND-01, VEND-03): the skills are ordinary repository files; the hosted-host rule
 covers them (D-02) and the lock and hash test stay removed.
-Quick 261013-cpn: the bbj-docs entry carries the pre-registered OAuth client, pinned in both
+Quick 261013-cpn: the entry of the docs server bbj carries the pre-registered OAuth client, pinned in both
 MCP files (layout_bbj_mcp, layout_codex_mcp).
 Phase 8 (CODEX-01, CODEX-04; D-10, D-11, D-13): pins the Codex overlay
 plugins/bbj/.codex-plugin/plugin.json and its literal-URL file plugins/bbj/.codex-mcp.json.
@@ -151,18 +151,18 @@ gate("bbj_mcp",
                                          "scopes": OAUTH_SCOPES}}},
      "mcpServers=%r" % (servers,))
 
-# D-11: the Codex file registers bbj-docs at the literal docs URL. Plan 08-08 (owner decision
+# D-11: the Codex file registers the docs server bbj at the literal docs URL. Plan 08-08 (owner decision
 # "signin: add-block", 2026-10-13): without a pre-registered client the hosted server refuses
 # dynamic client registration on the plugin route, so the file carries the public client id and
 # the registered loopback callback, the object the Linux owner pass signed in with. Dict equality
 # also rejects any extra key such as a client secret, header or token.
 codex_servers = codex_mcp.get("mcpServers", {})
 gate("codex_mcp",
-     codex_servers == {"bbj-docs": {"type": "http", "url": DOCS_DEFAULT,
-                                    "oauth": {"clientId": OAUTH_CLIENT_ID,
-                                              "callbackUrl": "http://localhost:%d/callback" % OAUTH_PORT,
-                                              "callbackPort": OAUTH_PORT,
-                                              "scopes": OAUTH_SCOPES}}},
+     codex_servers == {DOCS_SERVER: {"type": "http", "url": DOCS_DEFAULT,
+                                     "oauth": {"clientId": OAUTH_CLIENT_ID,
+                                               "callbackUrl": "http://localhost:%d/callback" % OAUTH_PORT,
+                                               "callbackPort": OAUTH_PORT,
+                                               "scopes": OAUTH_SCOPES}}},
      "mcpServers=%r" % (codex_servers,))
 
 # D-05: the docs_url description calls the default the hosted BBj docs server and names no stage of
@@ -189,7 +189,7 @@ gate("user_config_bbj_home",
 gate("user_config_keys", sorted(uc) == ["bbj_home", "docs_url"], "keys=%r" % (sorted(uc),))
 
 # D-13: the Codex url and the docs_url default are one string, compared exactly (no trailing slash)
-codex_url = codex_servers.get("bbj-docs", {}).get("url") if isinstance(codex_servers, dict) else None
+codex_url = codex_servers.get(DOCS_SERVER, {}).get("url") if isinstance(codex_servers, dict) else None
 gate("codex_url_equals_default", codex_url is not None and codex_url == docs.get("default"),
      "codex url=%r docs_url default=%r" % (codex_url, docs.get("default")))
 
@@ -501,7 +501,7 @@ if len(sys.argv) == 1:
 
     def slash_codex_url(dst):
         def fn(d):
-            d["mcpServers"]["bbj-docs"]["url"] += "/"
+            d["mcpServers"][DOCS_SERVER]["url"] += "/"
         edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
 
     def slash_default_url(dst):
@@ -522,7 +522,7 @@ if len(sys.argv) == 1:
     def codex_secret(dst):
         def fn(d):
             # the key name is assembled from two pieces (self-scan convention)
-            d["mcpServers"]["bbj-docs"]["oauth"] = {"clientId": OAUTH_CLIENT_ID,
+            d["mcpServers"][DOCS_SERVER]["oauth"] = {"clientId": OAUTH_CLIENT_ID,
                                                     "client" + "Secret": "not-a-real-value"}
         edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
 
@@ -535,7 +535,7 @@ if len(sys.argv) == 1:
 
     def codex_scopes_array(dst):
         def fn(d):
-            d["mcpServers"]["bbj-docs"]["oauth"]["scopes"] = [OAUTH_SCOPES]
+            d["mcpServers"][DOCS_SERVER]["oauth"]["scopes"] = [OAUTH_SCOPES]
         edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
 
     def docs_url_stage(dst):
