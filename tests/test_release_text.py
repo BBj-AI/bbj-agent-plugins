@@ -67,7 +67,8 @@ NOT_RUN_LINES = [
     "- Windows: the hook's tier 2 inside a Claude Code or Codex session; tier 2 was seen as the hook script run from Git Bash, and the `bbj-local` plugin as a connected server, each without the other.",
     "- macOS: the `bbj-local` plugin in either client; only the hook's own tier 2 was seen there.",
     "- macOS: the Codex installer on the `bbjcpl` route; the 0.2.0 run saw tier 2 only.",
-    "- Every platform: a plugin upgrade through a Git marketplace and across a real release.",
+    "- Linux: the Claude Code plugin upgrade through a Git marketplace (`claude plugin marketplace update`, `claude plugin update`); Claude Code was installed from `main`, not upgraded.",
+    "- Windows and macOS: a plugin upgrade through a Git marketplace in either client; the Codex upgrade was run on Linux only.",
 ]
 
 failed = False

@@ -46,9 +46,10 @@ If you installed from `main` before 0.2.1:
   bbj@basis-bbj` (and `claude plugin update bbj-local@basis-bbj` if you installed it), then
   restart Claude Code or run `/reload-plugins`.
 - Codex plugin: refresh the marketplace (`codex plugin marketplace upgrade basis-bbj`) and add the
-  plugin again (`codex plugin add bbj@basis-bbj`), then trust the hook again in `/hooks`. The hook
-  definition gained a `commandWindows` entry, and Codex trusts a hook by a hash of its
-  definition, so it asks again (observed on Windows).
+  plugin again (`codex plugin add bbj@basis-bbj`), then trust the hook in `/hooks` if Codex asks.
+  The hook definition gained a `commandWindows` entry, and Codex trusts a hook by a hash of its
+  definition: on Windows it asked again; on Linux (Codex CLI 0.162.1) the hash was unchanged and
+  Codex did not ask (2026-10-15).
 - Installed with the installer script: the recommended switch is `sh codex/install-codex.sh
   --remove`, then `codex plugin marketplace add BBj-AI/bbj-agent-plugins` and
   `codex plugin add bbj@basis-bbj`; the installer's own words for the last step are
@@ -68,6 +69,11 @@ If you installed from `main` before 0.2.1:
   checkout into a throwaway configuration; the hook gave `bbjcpl reported 1 error(s)` (exit 2)
   for a bad `.bbj` and stayed silent for a clean one; `bbj-local` installed disabled and, once
   enabled with BBjServices running, `claude mcp list` showed it Connected, 2026-10-14.
+- Claude Code 2.1.299 on Linux (BBj 26.03 at `/opt/bbx`), after the merge to `main` (merge commit
+  `dad18f5`): `claude plugin marketplace add BBj-AI/bbj-agent-plugins` and `bbj@basis-bbj` installed
+  0.2.1 from `main` into a throwaway configuration; the hook gave `bbjcpl reported 1 error(s)`
+  (exit 2) for a bad `.bbj` and stayed silent for a clean one; `bbj-local` installed disabled,
+  2026-10-15.
 - Claude Code 2.1.292 on Windows (Windows 10.0.19045.6466, Git for Windows 2.52.0, BBj 26.03 at
   `C:\bbx`, `bbj_home` given): `bbjcpl reported` after the Write tool and after the Edit tool, also
   in a project path with a space, a clean file silent; `bbj-local` Connected and `bbj_check_syntax`
@@ -81,6 +87,20 @@ If you installed from `main` before 0.2.1:
   real compiler, and with no compiler route and BBjServices answering, `bbj-local reported`; a
   clean file silent in both, 2026-10-14. The installer on Linux was last run with the 0.2.0
   installer, 2026-10-12.
+- Codex CLI 0.162.1 on Linux, after the merge to `main`: in a fresh throwaway home,
+  `codex plugin marketplace add BBj-AI/bbj-agent-plugins` followed by `codex plugin add
+  bbj@basis-bbj` installed the plugin route at 0.2.1 from `main` (the shorthand now installs the
+  plugin route from `main`): `bbj-docs` at `https://mcp.bbj-ai.com/mcp`, both skills and the hook
+  listed (untrusted until reviewed), and `apply_patch` of a bad file gave `bbjcpl reported` from
+  the fake compiler (trust bypass in the throwaway home only), 2026-10-15.
+- Codex CLI 0.162.1 on Linux, upgrade through a Git marketplace: a home that had installed 0.2.0
+  from the GitHub marketplace and trusted its hook in `/hooks` was upgraded to 0.2.1 on `main`
+  (after the merge, before the tag) with `codex plugin marketplace upgrade basis-bbj` and `codex
+  plugin add bbj@basis-bbj`. `bbj-docs` was at `https://mcp.bbj-ai.com/mcp` and both skills were
+  listed. The hook's hash was the same before and after although `hooks.json` gained the
+  `commandWindows` line, Codex did not ask to trust the hook again, and `/hooks` showed `BBj
+  compile-only check` as Trusted. With no bypass flag, `apply_patch` of a bad file then gave
+  `bbjcpl reported` from the fake compiler, 2026-10-15.
 - Codex CLI 0.162.1 on Windows: the plugin route with the `commandWindows` entry: Codex asked to
   trust the hook again, then `bbjcpl reported` after `apply_patch` create and update, a clean file
   silent, 2026-10-14; `codex mcp list` showed `bbj-local` enabled at `http://127.0.0.1:5009/mcp`
@@ -100,6 +120,9 @@ If you installed from `main` before 0.2.1:
 - BBj 26.03: `bbjcpl` for the local compiler route and `bbj-ls` on `127.0.0.1:5009` for the
   `bbj-local` route, on all three machines.
 - The skills `bbj-programming` and `bbj-web-programming` as shipped, unchanged since 0.2.0.
+- GitHub CI passed on the head of the release pull request (PR #2,
+  https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38673715360) and on `main` after the merge
+  (https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38674487506), 2026-10-15.
 - The plugin test suite, `CI=true BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1 BBJ_TEST_CODEX=<path to codex>
   sh tests/ci.sh` with busybox, ShellCheck 0.11.0, claude 2.1.299 and no Codex daemon running:
   `SUMMARY: ok=979 fail=0 skip=0` and `CI SUMMARY: ok=6 fail=0 skip=0 run_sh_exit=0`, 2026-10-14.
@@ -113,7 +136,8 @@ If you installed from `main` before 0.2.1:
 - Windows: the hook's tier 2 inside a Claude Code or Codex session; tier 2 was seen as the hook script run from Git Bash, and the `bbj-local` plugin as a connected server, each without the other.
 - macOS: the `bbj-local` plugin in either client; only the hook's own tier 2 was seen there.
 - macOS: the Codex installer on the `bbjcpl` route; the 0.2.0 run saw tier 2 only.
-- Every platform: a plugin upgrade through a Git marketplace and across a real release.
+- Linux: the Claude Code plugin upgrade through a Git marketplace (`claude plugin marketplace update`, `claude plugin update`); Claude Code was installed from `main`, not upgraded.
+- Windows and macOS: a plugin upgrade through a Git marketplace in either client; the Codex upgrade was run on Linux only.
 
 ## 0.2.0
 
