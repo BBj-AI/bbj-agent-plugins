@@ -200,7 +200,7 @@ Plans:
   4. Both plugins, both marketplace entries, the Codex overlay and `tests/test_layout.py` read 0.2.1, and `claude plugin validate --strict` passes. The `## 0.2.1` CHANGELOG entry's Tested against section covers Linux, Windows and macOS from the recorded runs (REL-07)
   5. The full suite passes on the release tree with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) at skip=0. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.1` (no `v` prefix) is pushed, and the GitHub Release is published (REL-08)
 
-**Plans**: 14/17 plans executed
+**Plans**: 15/17 plans executed
 
 Plans:
 **Wave 1**
@@ -242,7 +242,7 @@ Plans:
 - [x] 10-11-PLAN.md — D-19, D-22, D-23: Codex install from main and the Git-marketplace upgrade reading, owner re-trust, the CHANGELOG amendment (wave 12, checkpoint)
 
 **Wave 13** *(blocked on Wave 12 completion)*
-- [ ] 10-12-PLAN.md — D-23: amendment branch from M1, checks, owner-confirmed push and PR (wave 13, checkpoint)
+- [x] 10-12-PLAN.md — D-23: amendment branch from M1, checks, owner-confirmed push and PR (wave 13, checkpoint)
 
 **Wave 14** *(blocked on Wave 13 completion)*
 - [ ] 10-13-PLAN.md — D-23: owner-confirmed merge commit M2, proofs, CI on main (wave 14, checkpoint)
@@ -265,4 +265,4 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 9. Windows and macOS verification | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 10. Install wording and release 0.2.1 | v0.2.1 | 14/17 | In Progress | - |
+| 10. Install wording and release 0.2.1 | v0.2.1 | 15/17 | In Progress | - |

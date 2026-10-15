@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-11-PLAN.md
-last_updated: "2026-10-15T03:23:53.033Z"
+stopped_at: Completed 10-12-PLAN.md
+last_updated: "2026-10-15T03:43:56.239Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 10 execution started
-state_head: a9f1c5b77506f6a266d0d47310a97d8b1d7d3ef5
+state_head: 477910bbc10ad16420678eb4d467532c5305cf4f
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 39
-  completed_plans: 36
+  completed_plans: 37
   percent: 75
 ---
 
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 15 of 17 (14 done; next 10-12)
+Plan: 16 of 17 (15 done; next 10-13)
 Status: Ready to execute
-Last activity: 2026-10-15 — Plan 10-11 complete; D-19 and D-22 read on Linux (hook hash unchanged, no re-trust asked), D-23 amendment committed locally (de43974), not pushed
+Last activity: 2026-10-15 — Plan 10-12 complete; PR #3 (gsd/release-0.2.1-amend, 38c690c) open and ready, CI green on that head; main still dad18f5, no tag
 
 Progress: [████████████████████] 22/22 plans ([████████░░] 75%) — phases 3/4 complete
 
@@ -142,6 +142,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 10 P08 | 25min | 2 tasks | 13 files |
 | Phase 10 P09 | 2 sessions | 3 tasks | 3 files |
 | Phase 10 P11 | 20min | 3 tasks | 5 files |
+| Phase 10 P12 | n/a | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -234,8 +235,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T03:23:52.920Z
-Stopped at: Completed 10-11-PLAN.md
+Last session: 2026-10-15T03:43:56.121Z
+Stopped at: Completed 10-12-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
