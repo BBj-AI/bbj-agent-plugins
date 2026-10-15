@@ -1,0 +1,1 @@
+No external API integration: Phase 12 renames the docs server's key in the two MCP configs and the text that names it; the hosted server, its OAuth client (id, port 47613, offline_access) and its tools are unchanged and were integrated by quick task 261013-cpn.
