@@ -560,7 +560,7 @@ if len(sys.argv) == 1:
         def fn(d):
             # the key name is assembled from two pieces (self-scan convention)
             d["mcpServers"][DOCS_SERVER]["oauth"] = {"clientId": OAUTH_CLIENT_ID,
-                                                    "client" + "Secret": "not-a-real-value"}
+                                                     "client" + "Secret": "not-a-real-value"}
         edit_json(os.path.join(dst, CODEX_MCP_FILE), fn)
 
     MCP_FILE = "plugins/bbj/.mcp.json"
