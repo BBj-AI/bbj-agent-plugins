@@ -46,6 +46,50 @@
 
 ---
 
+## Milestone: v0.2.1 — Platform verification and release hygiene
+
+**Shipped:** 2026-10-15
+**Phases:** 4 | **Plans:** 39 | **Sessions:** not recorded
+
+### What Was Built
+- A maintainer-proof suite: `PATH` scrub for the no-route gates, content snapshots for `real_home_untouched`, and release-text fact gates that FAIL with a re-pin message at a new version
+- The Codex native plugin route (`.codex-plugin` overlay, literal-URL `.codex-mcp.json` with the public OAuth client, unchanged hook after `/hooks` trust) and `install-codex.sh --remove` as the switch
+- Real runs on Windows and macOS with an owner smoke driver, runbooks, and a record checker; three Windows defects fixed with gates written red first
+- The Windows installer launcher fix (`<Git root>\bin\sh.exe`), met in a second owner round
+- Per-platform, per-route install wording backed only by the run records, and release 0.2.1 (tag `0.2.1` on M2 `4234e76`)
+
+### What Worked
+- Owner runbooks with fixed reply templates, plus a record checker with verdict rules: each Windows and macOS round produced a record that Phase 10 could quote without interpretation
+- Every platform defect got a fake-based CI gate written red first, so the fixes stay pinned without a Windows or macOS runner
+- Real Codex in throwaway homes (never `~/.codex`, never `/tmp`) settled the plugin-route facts: hook trust, version-only upgrades, the double install
+- "Not run" lines that name exactly the configurations missing from the records, with gates and mutation cases that ban the old hints
+
+### What Was Inefficient
+- Windows installer round 1 was a recorded negative: the `Git\usr\bin\sh.exe` call form had not been tried from PowerShell before it shipped to the owner, which cost three gap-closure plans (10-15 to 10-17)
+- The D-22 upgrade reading came after merge M1 and changed the CHANGELOG, so a second PR and merge (M2) were needed before the tag
+- The gate-prefix block needed two gap-closure plans in Phase 7 (07-05, 07-06) and still drifted again by the end of the milestone
+- The review-fix commits reached tag `0.2.1` as patch-equal cherry-picks, so the Phase 7 ancestry proof did not carry over to the tag
+- Phase 10 grew to 17 plans because owner rounds and release steps were each a separate checkpoint plan
+
+### Patterns Established
+- Run records with a per-line verdict rule (`met`, `fixed and re-run met`, `known gap`), checked by `platform-run/check-records.sh` in final mode
+- One plugin tree serves both hosts: Claude Code reads `.claude-plugin`, Codex reads the `.codex-plugin` overlay; layout gates pin version and URL drift between them
+- Route detection by testing a host variable (`CLAUDE_PLUGIN_ROOT`) without ever printing it
+- Billed real-client runs only with the owner's approval for each run
+
+### Key Lessons
+1. Try a launch form on the real platform and shell the host uses (PowerShell for Codex on Windows) before shipping it to an owner round
+2. Finish every real-client reading that can change release text before the first merge, not between the merge and the tag
+3. A doc block copied by hand with no gate drifts within one milestone; gate it, or generate it from the suite transcript
+4. Prove "in the release" against the tag with `git cherry` or patch IDs, not ancestry on a working branch
+
+### Cost Observations
+- Model mix: not recorded
+- Sessions: not recorded
+- Notable: most wall-clock time went to owner-paced platform rounds, not to agent execution
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -53,13 +97,16 @@
 | Milestone | Sessions | Phases | Key Change |
 |-----------|----------|--------|------------|
 | v0.2.0 | — | 6 | Claim ledgers plus a compile gate as the definition of done for skill content |
+| v0.2.1 | — | 4 | Owner-run platform records with verdict rules as the only source for install wording |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Coverage | Zero-Dep Additions |
 |-----------|-------|----------|-------------------|
 | v0.2.0 | 738 gates | — | 0 (stdlib and POSIX sh only) |
+| v0.2.1 | 979 gates | — | 0 (stdlib and POSIX sh only) |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. (Needs a second milestone to cross-check.)
+1. Real-client runs establish facts that docs alone do not (v0.2.0: Codex `apply_patch` delivery; v0.2.1: PowerShell hook launch, plugin upgrade trust); plan them early and in throwaway homes
+2. Work that lands after a merge or tag point misses that point (v0.2.0: review fixes after the tag; v0.2.1: the D-22 reading after M1); put all release-text inputs before the first merge
