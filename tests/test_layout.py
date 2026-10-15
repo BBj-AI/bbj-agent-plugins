@@ -35,6 +35,8 @@ ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
 VERSION = "0.2.1"
 DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
+# NAME-01 (phase 12): the key of the docs server in both MCP files
+DOCS_SERVER = "bbj"
 OAUTH_CLIENT_ID = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
 OAUTH_PORT = 47613
 OAUTH_SCOPES = "offline_access"
@@ -143,10 +145,10 @@ gate("codex_overlay_fields",
 # key called scope (plan 10-02, D-16).
 servers = bbj_mcp.get("mcpServers", {})
 gate("bbj_mcp",
-     servers == {"bbj-docs": {"type": "http", "url": "${user_config.docs_url}",
-                              "oauth": {"clientId": OAUTH_CLIENT_ID,
-                                        "callbackPort": OAUTH_PORT,
-                                        "scopes": OAUTH_SCOPES}}},
+     servers == {DOCS_SERVER: {"type": "http", "url": "${user_config.docs_url}",
+                               "oauth": {"clientId": OAUTH_CLIENT_ID,
+                                         "callbackPort": OAUTH_PORT,
+                                         "scopes": OAUTH_SCOPES}}},
      "mcpServers=%r" % (servers,))
 
 # D-11: the Codex file registers bbj-docs at the literal docs URL. Plan 08-08 (owner decision
@@ -528,7 +530,7 @@ if len(sys.argv) == 1:
 
     def mcp_scopes_missing(dst):
         def fn(d):
-            d["mcpServers"]["bbj-docs"]["oauth"].pop("scopes", None)
+            d["mcpServers"][DOCS_SERVER]["oauth"].pop("scopes", None)
         edit_json(os.path.join(dst, MCP_FILE), fn)
 
     def codex_scopes_array(dst):
