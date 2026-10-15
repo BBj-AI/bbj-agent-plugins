@@ -39,7 +39,7 @@ BASE=$HOME/.cache/bbj-phase13
 HOOKS=$REPO/plugins/bbj/hooks/hooks.json
 # the current pin (13-REVIEW-FIX.md): sha256 of the commandWindows string as hooks.json holds it (before
 # the root is set); rounds 1 and 2 ran the plan 13-02 pin
-PIN_SHA=6ff66b74df2c2e6501fb8f1c3d53434d83789c1dcbb49d00a0279206b6fbc1c9
+PIN_SHA=fb95f06e0e5a902fc1cf737b24b9fcef9bbf9f7bea4ec54229c96426c2570533
 CLM_PREFIX='$ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"; '
 MARKER=launcher.marker
 OUT=
@@ -311,10 +311,11 @@ caseline() {
   printf '%s\n' "$_cl" >> "$OUT/result.txt"
 }
 
-# layout_set LAYOUT [HOST]: sets LPF LPF86 LLAD (Windows paths of the three roots), LUP (USERPROFILE)
-# and LPATH (the cygdrive-form PATH list); an empty LLAD or LUP leaves the variable unset; fails for an
-# unknown layout
+# layout_set LAYOUT [HOST]: sets LPF LPF86 LLAD (Windows paths of the three roots), LW64 (ProgramW6432),
+# LUP (USERPROFILE) and LPATH (the cygdrive-form PATH list); an empty LLAD, LW64 or LUP leaves the
+# variable unset; fails for an unknown layout
 layout_set() {
+  LW64=
   LPF=$OUTW'\lay\empty'
   LPF86=$OUTW'\lay\empty'
   LLAD=$OUTW'\lay\empty'
@@ -322,6 +323,7 @@ layout_set() {
   LPATH=$SYSP
   case $1 in
     pf86) LPF86=$OUTW'\lay\pf86' ;;
+    w6432) LW64=$OUTW'\lay\w64' ;;
     lad) LLAD=$OUTW'\lay\lad' ;;
     ladunset_prof) LLAD='' LUP=$OUTW'\lay\prof' ;;
     ladunset_none) LLAD='' LUP='' ;;
@@ -340,7 +342,8 @@ layout_set() {
   return 0
 }
 
-# runcase NAME HOST MODE PAYLOADFILE [PREFIX]: HOST is powershell, powershell+clm, pwsh or pwsh+clm;
+# runcase NAME HOST MODE PAYLOADFILE [PREFIX]: HOST is powershell, powershell+clm, powershell32 (the
+# 32-bit Windows PowerShell of SysWOW64), pwsh or pwsh+clm;
 # MODE is asis or a layout name. The payload goes in through a pipe (as Codex writes it), the command is
 # CASE_CMD (the shipped string with the plugin root set), after PREFIX (PowerShell text, for example a
 # Set-Location). CLAUDE_PLUGIN_ROOT is set to CASE_ROOTW, as Codex sets it for a plugin hook, or left
@@ -354,6 +357,13 @@ runcase() {
         return 0
       fi
       _exe=$PWSHEXE
+      ;;
+    powershell32*)
+      if [ -z "$PS32EXE" ]; then
+        caseline "$_n: -> not run (no 32-bit Windows PowerShell under SysWOW64)"
+        return 0
+      fi
+      _exe=$PS32EXE
       ;;
     *) _exe=$PSEXE ;;
   esac
@@ -375,6 +385,7 @@ runcase() {
     done
     set -- "$@" "ProgramFiles=$LPF" "ProgramFiles(x86)=$LPF86" "PATH=$LPATH"
     [ -z "$LLAD" ] || set -- "$@" "LOCALAPPDATA=$LLAD"
+    [ -z "$LW64" ] || set -- "$@" "ProgramW6432=$LW64"
     [ -z "$LUP" ] || set -- "$@" "USERPROFILE=$LUP"
   fi
   [ -z "$CASE_ROOTW" ] || set -- "$@" "CLAUDE_PLUGIN_ROOT=$CASE_ROOTW"
@@ -499,7 +510,8 @@ if not cmd.startswith("*** Begin Patch\n*** Add File: C:\\w\\proj\\bad.bbj\n+pri
   # the expectation table of the round 3 cases (13-REVIEW-FIX.md)
   for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl \
     lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound none_web_src:clean none_update_src:notfound \
-    rootvar_unset_bad:bbjcpl dollar_root_bad:bbjcpl git_mingw_on_path_bad:bbjcpl; do
+    rootvar_unset_bad:bbjcpl dollar_root_bad:bbjcpl git_mingw_on_path_bad:bbjcpl w6432_bad:bbjcpl \
+    wow64_w6432_bad:bbjcpl; do
     [ "$(want_kind "${_k%%:*}")" = "${_k#*:}" ] || _fail "want_kind ${_k%%:*}"
   done
 
@@ -523,6 +535,8 @@ do_run() {
   SYSP=$(drivepath "$_sr")/System32:$(drivepath "$_sr"):$(drivepath "$_sr")/System32/WindowsPowerShell/v1.0
   PSEXE=$SR_U/System32/WindowsPowerShell/v1.0/powershell.exe
   [ -f "$PSEXE" ] || die2 "powershell.exe not found under SYSTEMROOT"
+  PS32EXE=$SR_U/SysWOW64/WindowsPowerShell/v1.0/powershell.exe
+  [ -f "$PS32EXE" ] || PS32EXE=
   _bw=$(winenv BBJ_HOME)
   [ -n "$_bw" ] || die2 "BBJ_HOME is not set"
   _bu=$(cygpath -u "$_bw")
@@ -563,7 +577,7 @@ do_run() {
   OUTW=$(cygpath -w "$OUT")
   : > "$OUT/$MARKER"
   mkdir -p "$OUT/cases" "$OUT/lay/empty" "$OUT/lay/pf86" "$OUT/lay/lad/Programs" "$OUT/lay/othersh/bin" \
-    "$OUT/lay/prof/AppData/Local/Programs" "$OUT/lay/drv/Programs" || exit 1
+    "$OUT/lay/prof/AppData/Local/Programs" "$OUT/lay/drv/Programs" "$OUT/lay/w64" || exit 1
   # WR-01: an sh.exe outside any Git for Windows tree (no cygpath.exe in a usr\bin or bin folder of
   # its Git folder). It is a copy of Git's bin\sh.exe launcher; the hook must never start it, whatever
   # it would do there
@@ -618,7 +632,7 @@ $_fill" > "$OUT/p_longnotes.json"
   [ "$(wc -c < "$OUT/p_longnotes.json" | tr -d ' ')" -gt 8192 ] || exit 1
 
   # layouts: junctions to the Git root (removed first by clean)
-  for _j in lay/pf86/Git lay/lad/Programs/Git lay/prof/AppData/Local/Programs/Git lay/drv/Programs/Git; do
+  for _j in lay/pf86/Git lay/lad/Programs/Git lay/prof/AppData/Local/Programs/Git lay/drv/Programs/Git lay/w64/Git; do
     junction "$OUT/$_j" "$GITW" || { echo "launcher.sh: junction $_j failed; run clean" >&2; exit 1; }
   done
 
@@ -653,6 +667,10 @@ $_fill" > "$OUT/p_longnotes.json"
   runcase default_nonascii powershell asis "$OUT/p_nonascii.json"
   runcase default_long powershell asis "$OUT/p_long.json"
   runcase pf86_bad powershell pf86 "$OUT/p_bad.json"
+  # IN-03: only ProgramW6432 holds Git, in the 64-bit and in the 32-bit Windows PowerShell (where
+  # ProgramFiles names the x86 folder)
+  runcase w6432_bad powershell w6432 "$OUT/p_bad.json"
+  runcase wow64_w6432_bad powershell32 w6432 "$OUT/p_bad.json"
   runcase localappdata_bad powershell lad "$OUT/p_bad.json"
   runcase sh_on_path_bad powershell shpath "$OUT/p_bad.json"
   runcase git_on_path_bad powershell gitpath "$OUT/p_bad.json"
@@ -726,7 +744,8 @@ do_clean() {
     echo "launcher.sh: a subst drive still points into OUTDIR; nothing removed (subst X: /d it first)" >&2
     exit 1
   fi
-  for _j in "$1/lay/pf86/Git" "$1/lay/lad/Programs/Git" "$1/lay/prof/AppData/Local/Programs/Git" "$1/lay/drv/Programs/Git"; do
+  for _j in "$1/lay/pf86/Git" "$1/lay/lad/Programs/Git" "$1/lay/prof/AppData/Local/Programs/Git" "$1/lay/drv/Programs/Git" \
+    "$1/lay/w64/Git"; do
     if [ -e "$_j" ]; then
       unjunction "$_j" || { echo "launcher.sh: could not remove the junction $_j; nothing else removed" >&2; exit 1; }
     fi

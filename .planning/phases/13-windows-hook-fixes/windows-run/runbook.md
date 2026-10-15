@@ -35,7 +35,7 @@ Rules:
 - Trust the Codex hook only in the `/hooks` screen of Codex, the way a user does. Do not start
   Codex with any option that skips hook review.
 - Do not delete the launcher folder `%USERPROFILE%\.cache\bbj-phase13\launcher` by hand. It holds
-  directory junctions that point at your real Git folder (four from round 3 on), and a recursive
+  directory junctions that point at your real Git folder (more of them from round 3 on), and a recursive
   delete can follow them. W5 removes the junctions first and checks that Git is untouched. From
   round 3 on, one case also maps a free drive letter (Z down to P) to a folder inside it with
   `subst` for the length of that case; W5 removes it as well if a run stopped early.
@@ -137,6 +137,8 @@ fixes (13-REVIEW-FIX.md) and adds the cases marked with a review finding; a case
 | `usrbin_on_path_bad` | only Git's `usr\bin` on PATH | bbjcpl feedback | WR-01 (a Git `sh` is still taken) |
 | `othersh_none_bbj` | a non-Git `sh.exe` first on PATH, no Git | the not-found message, rc 2, never rc 0 silent | WR-01 |
 | `othersh_then_git_bad` | a non-Git `sh.exe` first on PATH, Git's `bin` after it | bbjcpl feedback | WR-01 |
+| `w6432_bad` | only `ProgramW6432` holds Git (junction) | bbjcpl feedback | IN-03 |
+| `wow64_w6432_bad` | as `w6432_bad`, in the 32-bit Windows PowerShell of `SysWOW64` | bbjcpl feedback | IN-03 |
 | `git_mingw_on_path_bad` | only Git's `mingw64\bin` (it holds `git.exe`) on PATH | bbjcpl feedback | IN-02 |
 | `lad_unset_profile_bad` | `LOCALAPPDATA` unset, Git under `USERPROFILE\AppData\Local\Programs` (junction) | bbjcpl feedback | WR-02 |
 | `none_web_src` | no Git anywhere; an `.html` file whose text holds `img.src`, `prog.bbj` and `x.BBX` | silent, rc 0 | WR-03 |
