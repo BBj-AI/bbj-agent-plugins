@@ -96,6 +96,12 @@ drivepath() {
   }'
 }
 
+# have_python3: a python3 that runs. On Windows `command -v python3` can find the Microsoft Store
+# alias stub in WindowsApps, which only prints a hint and exits non-zero (Windows run, H1).
+have_python3() {
+  command -v python3 > /dev/null 2>&1 && python3 -I -c pass > /dev/null 2>&1
+}
+
 # extract_cmd: the commandWindows JSON string of hooks.json, unescaped (\" and \\ only; anything else
 # or a count of lines other than one fails), printed without a newline
 extract_cmd() {
@@ -356,7 +362,7 @@ selftest() {
   case $_c in
     *'\"'*) _fail "a backslash sits directly before a double quote (MSVC quoting would differ)" ;;
   esac
-  if command -v python3 > /dev/null 2>&1; then
+  if have_python3; then
     python3 -I -c 'import json, sys
 d = json.load(open(sys.argv[1]))
 sys.stdout.write(d["hooks"]["PostToolUse"][0]["hooks"][0]["commandWindows"])' "$HOOKS" > "$_t/py" || _fail "python3 json.load"
@@ -406,7 +412,7 @@ sys.stdout.write(d["hooks"]["PostToolUse"][0]["hooks"][0]["commandWindows"])' "$
   _long=$(payload 'C:\w\proj' 'C:\w\proj\bad.bbj' "$(printf '%s\n%s' '+print "a"   rem same line' "$(filler)")")
   [ "$(printf '%s' "$_long" | wc -c | tr -d ' ')" -gt 8192 ] || _fail "the long payload is not over 8192 bytes"
   [ "$(printf '%s' "$_long" | wc -l | tr -d ' ')" = 0 ] || _fail "the payload is not one physical line"
-  if command -v python3 > /dev/null 2>&1; then
+  if have_python3; then
     printf '%s' "$_long" | python3 -I -c 'import json, sys
 pairs = json.loads(sys.stdin.read(), object_pairs_hook=lambda p: p)
 keys = [k for k, v in pairs]
@@ -469,7 +475,7 @@ do_run() {
   [ -n "$_cpl" ] || die2 "BBJ_HOME holds no bbjcpl (looked in bin and in the home itself)"
   GITW=$(cygpath -w /)
   GITW=${GITW%\\}
-  GIT_U=$(cygpath -u "$GITW")
+  GIT_U=$(drivepath "$GITW")
   [ -f "$GIT_U/bin/sh.exe" ] || die2 "Git root $GITW holds no bin\\sh.exe"
   GITBIN_P=$(drivepath "$GITW")/bin
   GITCMD_P=$(drivepath "$GITW")/cmd
@@ -538,7 +544,8 @@ $_fill" > "$OUT/p_longnotes.json"
   fi
   res cmd_chars "$(printf '%s' "$CMD_RAW" | wc -c | tr -d ' ')"
   res date "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  res checkout "$(git -C "$REPO" rev-parse --short HEAD 2> /dev/null || echo unknown)"
+  # native git.exe cannot read the MSYS form of REPO while MSYS_NO_PATHCONV is set (Windows run, H3)
+  res checkout "$(git -C "$(cygpath -w "$REPO")" rev-parse --short HEAD 2> /dev/null || echo unknown)"
   res ps_version "$("$PSEXE" -NoLogo -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()' 2>&1 | tr -d '\r')"
   if [ -n "$PWSHEXE" ]; then
     res pwsh_version "$("$PWSHEXE" -NoLogo -NoProfile -NonInteractive -Command '$PSVersionTable.PSVersion.ToString()' 2>&1 | tr -d '\r')"
@@ -593,7 +600,7 @@ do_clean() {
   export MSYS_NO_PATHCONV
   _gw=$(cygpath -w /)
   _gw=${_gw%\\}
-  _gu=$(cygpath -u "$_gw")
+  _gu=$(drivepath "$_gw")
   [ -f "$_gu/bin/sh.exe" ] || die2 "Git root $_gw holds no bin\\sh.exe before the cleanup; nothing removed"
   for _j in "$1/lay/pf86/Git" "$1/lay/lad/Programs/Git"; do
     if [ -e "$_j" ]; then

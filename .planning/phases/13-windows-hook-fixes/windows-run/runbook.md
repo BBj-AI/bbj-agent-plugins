@@ -132,10 +132,14 @@ codex login
 codex plugin marketplace add "$HOME\bbj-p13"
 codex plugin add bbj@basis-bbj
 Set-Location "$base\proj-c1"
-codex
+codex -a on-request
 ```
 
 `codex login` signs in this throwaway home only; do not paste anything it prints.
+
+Always start Codex as `codex -a on-request` in W2 to W4 and approve each `apply_patch` when Codex
+asks. With the default approval Codex refuses the writes as outside the project, and the hook
+never runs.
 
 In Codex:
 
@@ -152,30 +156,32 @@ Leave this Codex session with `/quit`.
 
 ### W3 Case 2: sh.exe cannot be found (fills c2-*)
 
-You hide Git from the window that starts Codex, so the hook's lookup finds nothing. In a new
-PowerShell window (the same throwaway Codex home):
+Codex on Windows starts the hook with the machine's own `PATH` and `ProgramFiles`, not those of
+the window that started it, so changing them in PowerShell does not hide Git from the hook. Hide
+Git by renaming its folder. Close every Git Bash window, then in an elevated prompt:
+
+```
+Rename-Item 'C:\Program Files\Git' 'Git-off'
+```
+
+In a new plain PowerShell window (the same throwaway Codex home):
 
 ```
 $base = "$HOME\.cache\bbj-phase13"
-$work = "$base\launcher"
 $env:CODEX_HOME = "$base\codex"
 $env:BBJ_HOME = 'C:\bbx'
-$env:ProgramFiles = "$work\lay\empty"
-${env:ProgramFiles(x86)} = "$work\lay\empty"
-if (Test-Path "$env:LOCALAPPDATA\Programs\Git") { $env:LOCALAPPDATA = "$work\lay\empty" }
-$env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch '\\Git(\\|$)' }) -join ';'
 Get-Command sh, git -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force "$base\proj-c2" | Out-Null
 Set-Location "$base\proj-c2"
+codex -a on-request
 ```
 
-The `Get-Command` line must print nothing. If it prints a `sh` or `git`, remove that folder from
-`$env:PATH` too and run it again. Then start `codex`. If Codex does not start this way (say so in
-`c2-method`), close the window and use the other method instead: rename `C:\Program Files\Git`
-to `C:\Program Files\Git-off` in an elevated prompt, close every Git Bash window, run the same two
-Codex prompts from a plain PowerShell window with `CODEX_HOME` and `BBJ_HOME` set as above, and
-rename the folder back straight afterwards. Never leave Git renamed, and rename it back before W5
-(the junctions of the launcher point at it).
+The `Get-Command` line must print nothing; if it prints a `sh` or `git`, that copy of Git is also
+reachable from the Windows settings, and this case cannot be run without hiding it too (say so in
+`c2-method`). If your Git for Windows is not in `C:\Program Files\Git`, rename the folder it is in.
+Straight after the two prompts below, rename the folder back in the elevated prompt
+(`Rename-Item 'C:\Program Files\Git-off' 'Git'`). Never leave Git renamed, and rename it back
+before W4 and W5 (the junctions of the launcher point at it).
 
 In Codex (the hook is already trusted for this home):
 
@@ -184,13 +190,16 @@ In Codex (the hook is already trusted for this home):
    Codex shows for `c2-bad`. Silence or "Hook failed" is a reading too, and an important one.
 2. Send X4. Expected: no hook text at all. Copy what Codex shows for `c2-notes`.
 
-Say in `c2-method` which way you hid Git (environment override, or renamed folder), and quit Codex.
+Say in `c2-method` which folder you renamed, and quit Codex.
 
 ### W4 Case 3: Git in a per-user location (fills c3-*)
 
 Git for Windows can be installed per user, under `%LOCALAPPDATA%\Programs\Git`. If you have such an
 install, use it as it is. Otherwise fake one: the launcher folder holds a junction
-`lay\lad\Programs\Git` to your Git folder. In a new PowerShell window:
+`lay\lad\Programs\Git` to your Git folder. Because Codex starts the hook with the machine's own `PATH` and `ProgramFiles` (see W3), a
+junction under a changed `LOCALAPPDATA` only shows that a Codex check still works; the launcher
+case `localappdata_bad` of W1 is what shows the per-user lookup. A real per-user install, with no
+Git under Program Files, shows it under Codex too. In a new PowerShell window:
 
 ```
 $base = "$HOME\.cache\bbj-phase13"
@@ -204,7 +213,7 @@ $env:PATH = (($env:PATH -split ';') | Where-Object { $_ -notmatch '\\Git(\\|$)' 
 Get-Command sh, git -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force "$base\proj-c3" | Out-Null
 Set-Location "$base\proj-c3"
-codex
+codex -a on-request
 ```
 
 With a real per-user install, leave `$env:LOCALAPPDATA` alone (drop that line). The two Program Files
@@ -254,7 +263,7 @@ launcher-block:
 c1-hooks: <the command text /hooks showed, with <home> for your user folder> | not shown; trust prompt: yes | no
 c1-bad: blocked by hook with bbjcpl feedback | silent | hook failed: TEXT | other: TEXT
 c1-clean: silent | feedback | hook failed: TEXT | other: TEXT
-c2-method: environment override | renamed Git folder | other: TEXT
+c2-method: renamed Git folder: <folder> | other: TEXT
 c2-bad: blocked by hook with the sh.exe not found message | silent | hook failed: TEXT | other: TEXT
 c2-notes: silent | blocked by hook: TEXT | hook failed: TEXT | other: TEXT
 c3-method: junction | real per-user install
