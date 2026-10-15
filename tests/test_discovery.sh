@@ -312,8 +312,11 @@ else
 fi
 # Phase 13 (D-17): the control. The header goes through the same conversion, stays inside the
 # workspace, and "/./" collapses to sub/f.bbj, so exactly one call on the converted file: this
-# proves the conversion runs before the ".." check. The control CONTEXT named (sub, dotdot, sub)
-# gives no call, because codex_patch skips every path with a ".." segment.
+# proves the conversion runs before the "/./" collapse (an unconverted backslash name holds no
+# "/./" and names no file). That it also runs before the ".." check is proven by the bait gate
+# windows_codex_backslash_dotdot_skipped above: converted after that check, the bait would resolve
+# to the outside x.bbj and be compiled. The control CONTEXT named (sub, dotdot, sub) gives no call,
+# because codex_patch skips every path with a ".." segment (the D-17 deviation of 13-03-SUMMARY.md).
 wpatch_gate windows_codex_backslash_dot_control 'C:\Users\x\bbj test' 'sub\.\f.bbj'
 unset BBJ_HOME
 
