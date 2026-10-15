@@ -7,16 +7,21 @@ its own plugin commands, with `install-codex.sh` kept one release as a fallback)
 (`bbj-programming`, `bbj-web-programming`), and a hook that compile-checks every BBj file the
 agent writes, so agents write BBj that compiles. Release 0.2.0 (shipped 2026-10-12) made this
 repository the home of the two skills, rewrote them to state only verified facts, and made the
-local `bbj-ls` check the preferred route over the hosted one wherever it is available.
+local `bbj-ls` check the preferred route over the hosted one wherever it is available. Release
+0.2.1 (shipped 2026-10-15) added the Codex plugin route and states, per platform and per route,
+what was verified on real machines.
 
 ## Current State
 
-Shipped **v0.2.0** (plugin release 0.2.0, tag `0.2.0` on f15c257, GitHub Release published
-2026-10-12). Both skills are maintained here and fully enforced by the example gate on `bbjcpl -t`
-and `bbj-ls` (baseline pending `{}`, `nocheck` 0). The full suite passes at `ok=738 fail=0 skip=0`
-with live gates. Milestone record: `.planning/MILESTONES.md`; archive: `.planning/milestones/`.
+Shipped **v0.2.1** (plugin release 0.2.1, annotated tag `0.2.1` on merge commit 4234e76, GitHub
+Release published 2026-10-15: https://github.com/BBj-AI/bbj-agent-plugins/releases/tag/0.2.1).
+The full suite passes at `ok=979 fail=0 skip=0` with live gates. Both skills stay fully enforced
+by the example gate on `bbjcpl -t` and `bbj-ls` (baseline pending `{}`, `nocheck` 0). Previous:
+**v0.2.0** (tag `0.2.0` on f15c257, Release 2026-10-12). Milestone record:
+`.planning/MILESTONES.md`; archive: `.planning/milestones/`. v0.2.1 is complete and waits for
+`/gsd-complete-milestone`.
 
-## Current Milestone: v0.2.1 Platform verification and release hygiene
+## Current Milestone: v0.2.1 Platform verification and release hygiene (complete, awaiting archive)
 
 **Goal:** Replace every "not yet run on Windows/macOS" hint with wording backed by real runs, and
 ship it, with the fixes left over from 0.2.0, as release 0.2.1.
@@ -59,11 +64,13 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - ✓ Windows verified on a real machine (Windows 10, Git for Windows 2.52, Claude Code 2.1.292, Codex CLI 0.162.1, BBj 26.03): Claude Code hook and Codex plugin route on `bbjcpl`, `bbj-local` connected in both clients with BBjServices running; three defects found and fixed with CI gates on fakes (`commandWindows` for the Codex hook, 5 s tier-2 connect timeout, verbatim and backslash path forms), each confirmed by a dated round-2 re-run; records in `09-WINDOWS-RUN.md` (PLAT-01..04, PLAT-06) — Phase 9
 - ✓ macOS verified on the `bbjcpl` route (macOS 27.0.1, bash 3.2, Claude Code 2.1.296, Codex CLI 0.162.1, BBj 26.03 at `<home>/bbx`): Claude Code and Codex plugin route both give tier-1 `bbjcpl` feedback, tier 2 and the no-route notice read as expected, no defect; record in `09-MACOS-RUN.md` (PLAT-05, PLAT-06) — Phase 9
 
+- ✓ Install wording per platform and route: README "Verified" table, both install pages, the installer `STATUS_LINE` and closing notes and the CHANGELOG state only what the run records show, with client and BBj versions; every "not run" line names a configuration absent from the records; `release_no_unrun_hint` and the mutation test keep the old hints from returning (DOCS-01..04) — Phase 10
+- ✓ Release 0.2.1: both plugins, both marketplace entries and the Codex overlay at 0.2.1, CHANGELOG `## 0.2.1` with a Tested against section for Linux, Windows and macOS, full suite `ok=979 fail=0 skip=0` with live gates, PR #2 and PR #3 merged, annotated tag `0.2.1` (no `v`) on 4234e76 and GitHub Release published 2026-10-15 (REL-07, REL-08) — Phase 10
+
 ### Active
 
-- [ ] Test suite passes on a maintainer machine that has bbjcpl on PATH or a running Codex daemon
-- [ ] Install docs, installer and CHANGELOG state per platform and per route what was verified
-- [ ] Release 0.2.1 carries the 0.2.0 review fixes and is tagged and published
+- [ ] Code-review warnings WR-01..WR-03 on the Windows installer (10-REVIEW.md, all `open` in 10-REVIEW-DISPOSITION.md): WR-01 the `usr\bin` sh.exe refusal is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little
+- [ ] README cell "Claude Code on macOS" (`bbj-ls (hook); Claude Code 2.1.296`) carries two readings (hook script run directly 2026-10-14; owner's 0.2.0 run 2026-10-12, version not recorded); add the date or the "run directly" qualifier (10-VERIFICATION.md)
 
 ### Out of Scope
 
@@ -138,6 +145,10 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 | Every platform defect is the owner's call: fix, alternative fix, known gap or capture first, at a blocking-human gate with no auto_select (D-10) | A fix or gap changes what Phase 10 may claim per platform | ✓ Good — Phase 9 (W-1, W-2, W-3 all `fix`; no macOS defect) |
 | `hooks.json` ships a `commandWindows` entry (`C:\PROGRA~1\Git\bin\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE`) pinned by `layout_hook_command_windows` | Codex on Windows runs hooks through PowerShell, where `sh` is not on PATH; the entry made the Codex hook run and changes the hook hash, so Codex asks for trust again after upgrade | ✓ Good — Phase 9 (honoured by Codex, ignored without harm by Claude Code; limit: a default Git install on C: with 8.3 names, review WR-01) |
 | PLAT-05 is tier 1 only: a `bbj-local reported` header for a bad file is a defect, not a pass | The 0.2.0 UAT on the Mac saw tier 2 only because BBj was not installed; the requirement asks for `bbjcpl` feedback | ✓ Good — Phase 9 (both macOS clients read `bbjcpl reported`) |
+| D-09 (Windows installer route) met in round 2 after the launcher fix: `commandWindows` names `<Git root>\bin\sh.exe` from `cygpath -w /`, `--sh-exe` is written as given, `usr\bin` and paths without a drive letter are refused (D-27..D-29) | Round 1 was a tested negative: `Git\usr\bin\sh.exe` is silent from PowerShell because Git `usr\bin` is not on PATH | ✓ Good — Phase 10 (round-1 verdict superseded; WR-01 leaves one bypass of the `usr\bin` refusal, open) |
+| The 0.2.1 tag targets the D-23 amendment merge M2 `4234e76`, not the first merge M1 `dad18f5` | The Git-marketplace upgrade reading (D-22) changed the 0.2.1 entry after M1; the tag must carry the final text | ✓ Good — Phase 10 (tag peels to `4234e76` = `origin/main`) |
+| CI ShellCheck 0.9.0 reports SC2317 where local 0.11.0 reports SC2329; the directive in `tests/test_path_scrub.sh` names both codes | The same line must pass on both versions; recording or pinning the CI ShellCheck version is a follow-up | ✓ Good — Phase 10 (10-09; follow-up not implemented) |
+| Codex plugin upgrade from a Git marketplace on Linux (Codex 0.162.1) keeps the hook hash and the trust; CHANGELOG states only that reading, the installer-route re-trust sentence stays | Observed 0.2.0 to 0.2.1, no re-trust asked; other upgrade cases stay under "Not run" | ✓ Good — Phase 10 (D-22, plan 10-11) |
 
 ## Evolution
 
@@ -157,4 +168,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-13 after Phase 9*
+*Last updated: 2026-10-15 after Phase 10*

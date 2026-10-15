@@ -4,7 +4,7 @@ milestone: v0.2.1
 milestone_name: Platform verification and release hygiene
 current_phase: 10
 status: completed
-stopped_at: Phase 10 complete — all phases complete
+stopped_at: Phase 10 complete; milestone v0.2.1 ready to complete
 last_updated: "2026-10-15T04:41:20.474Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 10 complete
@@ -21,10 +21,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-13)
+See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 10 — Install wording and release 0.2.1
+**Current focus:** Milestone v0.2.1 complete (0.2.1 tagged and released 2026-10-15); ready for /gsd-complete-milestone
 
 ## Current Position
 
@@ -33,7 +33,7 @@ Plan: Not started
 Status: All phases complete
 Last activity: 2026-10-15 — Phase 10 complete
 
-Progress: [████████████████████] 22/22 plans ([██████████] 100%) — phases 3/4 complete
+Progress: [████████████████████] 39/39 plans (100%) — phases 4/4 complete
 
 ## Performance Metrics
 
@@ -208,6 +208,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: 10-10: PR #2 merged with a merge commit M1 dad18f5 (parents f15c257, 9c5a226; tree 8af800f); CI on main and the Claude Code install gate from main pass; the D-22 trust was read from config.toml, not a live hooks_list.py
 - [Phase 10]: 10-11: D-22 recorded as observed on Linux (Codex 0.162.1): hook hash unchanged across 0.2.0 to 0.2.1 and no re-trust asked; 0.2.1 entry amended (Tested against, Not run, Upgrading Codex-plugin bullet); installer-route re-trust sentence left unchanged
 - [Phase 10]: 10-13: PR #3 merged as M2 4234e76 (merge commit, checked head 38c690c, tree f3d3e0b) after the owner's 'merge'; D-23 evidence is RQ-5 (a)
+- [Phase 10]: Release 0.2.1 published 2026-10-15; annotated tag `0.2.1` peels to M2 `4234e76` (= origin/main); D-09 met in Windows round 2 after the launcher fix D-27..D-29; Git-marketplace Codex upgrade on Linux kept the hook hash and trust (D-22)
 
 ### Pending Todos
 
@@ -215,15 +216,14 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Phase 4]: real_home_untouched in tests/test_install_codex.sh races a local Codex daemon writing under ~/.codex; owner accepted it as an environmental flake at UAT (test 3); hardening the gate is open for a later phase (planned: Phase 7, MAINT-07)
-- [Phase 6]: Review-fix commits b0a4c62, 3a42ebf, b600ac4, 172e6a5 (CHANGELOG/docs wording refinements, release-text gates) are on the planning branch only, not in tag 0.2.0; they ship with the next release (planned: Phase 7, REL-05)
-- [Phase 6]: install-codex.sh and docs still say "not yet run on macOS"; the owner ran it on macOS at UAT (2026-10-12, Codex hook feedback confirmed) — update the wording in a later release (planned: Phase 10, DOCS-01..03, from the Phase 9 runs)
-- [Roadmap v0.2.1]: `tests/test_release_text.py` prints `skip` for its three content gates at any version other than CONTENT_VERSION (0.2.0). At 0.2.1 that would break the skip=0 release run (REL-08), so the Phase 7 policy decision (REL-06) has to settle it
-- [Phase 8]: Only a version-only upgrade from a local marketplace (hooks.json unchanged) was observed to keep hook trust; a Git-marketplace upgrade, an upgrade that changes the hook definition, the first-use tool prompt and a repeat sign-in on a fresh install were not run. Phase 10 wording may claim the observed case only
-- [Phase 8]: `codex plugin marketplace add BBj-AI/bbj-agent-plugins` serves the plugin route only once the Phase 8 files are on the GitHub default branch; the caveat sits in the 0.2.0 section of CHANGELOG.md (review fix WR-06) and must be reworded or dropped at the 0.2.1 merge (Phase 10)
+- [Phase 4]: real_home_untouched in tests/test_install_codex.sh races a local Codex daemon writing under ~/.codex; owner accepted it as an environmental flake at UAT (test 3); hardening the gate is open for a later phase (planned: Phase 7, MAINT-07) (MAINT-07 hardened the gate in Phase 7 and it is marked complete; no new occurrence is recorded here, kept until a clean maintainer run confirms)
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
-- [Phase 9]: Code review 09-REVIEW.md left three warnings open in 09-REVIEW-DISPOSITION.md: WR-01 `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (a non-default Git location fails, and probably silently); WR-02 the 5 s Windows tier-2 connect timeout is paid per file, so a many-file `apply_patch` with no route can hit the 30 s hook timeout; WR-03 `windows_codex_backslash_dotdot_skipped` also passes without the backslash conversion (the property is covered by the sibling gates, not independently). Phase 10 states the WR-01 limit; WR-02/WR-03 are candidates for a later fix
-- [Phase 9]: Facts for the Phase 10 wording, from the records: Codex asks for hook trust again after an upgrade that changes `hooks.json`; `BBJ_HOME` must be in the Codex app-server daemon's environment on macOS (a shell export does not reach a daemon started earlier; D-04 observation); the Mac's BBj home `<home>/bbx` is not a built-in default home; a stale installer `~/.codex/hooks.json` fires alongside the plugin hook until `install-codex.sh --remove`; Claude Code on Windows ignores `commandWindows` without harm; bbjcpl reports `line 10` for a one-line file
+- [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Also open: the README macOS Claude Code cell qualifier (10-VERIFICATION.md)
+- [Phase 10]: The `## 0.2.0` CHANGELOG entry on `main` differs from tag `0.2.0`: commits from phases 06, 07, 08 and a quick task edited it and PR #2 published them (10-SECURITY.md observation 1); Phase 10's own commits leave it byte-identical
+- [Phase 10]: The dev path `/home/coder` appears in `evidence/install-gate-main.txt` and `evidence/install-gate-pr.txt` (local, unpushed) and in `10-RESEARCH.md` and `10-VALIDATION.md` (already pushed); scrub before the next planning-branch push
+- [Phase 10]: Planning branch `gsd/planning-setup` is ahead of `origin/gsd/planning-setup` (148 commits, including the merge-back of main); not pushed
+- [Phase 10]: CI ShellCheck is 0.9.0 and local is 0.11.0; the SC2317/SC2329 directive covers both, pinning or recording the CI version is not done (10-09)
+- [Phase 9]: Code review 09-REVIEW.md left three warnings open in 09-REVIEW-DISPOSITION.md: WR-01 `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (a non-default Git location fails, and probably silently); WR-02 the 5 s Windows tier-2 connect timeout is paid per file, so a many-file `apply_patch` with no route can hit the 30 s hook timeout; WR-03 `windows_codex_backslash_dotdot_skipped` also passes without the backslash conversion (the property is covered by the sibling gates, not independently). Phase 10 stated the WR-01 limit in the install wording and replaced the hardcoded launcher in the installer (D-27..D-29); WR-02/WR-03 stay candidates for a later fix
 
 ## Deferred Items
 
@@ -238,13 +238,13 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T04:17:03.319Z
-Stopped at: Phase 10 complete — all phases complete
+Last session: 2026-10-15
+Stopped at: Phase 10 complete; milestone v0.2.1 ready to complete
 Resume file: None
 
 ## Operator Next Steps
 
-- After roadmap approval, start Phase 7 with /gsd-discuss-phase 7 (then /gsd-plan-phase 7)
+- Run /gsd-complete-milestone to archive v0.2.1
 
 ### Quick Tasks Completed
 
