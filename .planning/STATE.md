@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 12
 current_phase_name: Docs server renamed to bbj
 status: executing
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-10-15T13:33:07.713Z"
+stopped_at: Completed 12-03-PLAN.md
+last_updated: "2026-10-15T13:37:28.769Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 12 execution started
-state_head: 0ebbe9f23fc9f4b3e3e6442c33fff25bf5b415dd
+state_head: bee75386c6fc6071bea4a4876c6529f559bba8ad
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
   percent: 20
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 12 (Docs server renamed to bbj) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-10-15 — Phase 12 execution started
 
@@ -154,6 +154,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 11 P05 | 10 min | 2 tasks | 2 files |
 | Phase 12 P01 | 6 min | 2 tasks | 4 files |
 | Phase 12 P02 | 15min | 3 tasks | 3 files |
+| Phase 12 P03 | 6 min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -175,6 +176,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 11]: D-11/D-12: layout_no_retired_route scans tracked files outside .planning/ with the CHANGELOG cut at 0.2.1 by integer-tuple heading; mutation copies hold every tracked file so walk mode matches git mode
 - [Phase 12]: D-08/D-09: CC_LABEL in tests/test_claude_plugin.sh is plugin:bbj:bbj, read from real Claude Code 2.1.299; mcp_docs_answers pins the listed label
 - [Phase 12]: 12-02: cx_login_command is 'codex mcp login bbj' (Codex accepted it); --no-browser is only a note for machines whose browser is elsewhere; no ROADMAP/REQUIREMENTS amendment
+- [Phase 12]: 12-03: route_order needle is the whole phrase docs server `bbj` (a bare bbj matches inside bbjcpl); notice gates pin the longer fragment 'bbj_check_syntax of the docs server bbj, the hosted check'
 
 ### Pending Todos
 
@@ -204,8 +206,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T13:33:07.655Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-10-15T13:37:28.709Z
+Stopped at: Completed 12-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
