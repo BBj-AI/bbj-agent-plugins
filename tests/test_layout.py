@@ -22,7 +22,8 @@ Two guards outlive any re-pin: layout_hook_windows_safe (no automatic input vari
 method call, no short-name path) and layout_hook_windows_parts (every lookup location, the findstr
 silent-exit condition, the loud branch before the call, the passthrough last); the six
 layout_mutation_hook_windows_* cases plant each trap (input variable, method call, short name,
-changed passthrough, moved branch, weaker silent-exit test).
+changed passthrough, moved branch, weaker silent-exit test), and one case per review fix of
+13-REVIEW.md takes its fix back out (any_sh: WR-01).
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -56,9 +57,11 @@ HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # Phase 13 (FIX-01; D-01 to D-09): Codex's Windows override of the hook command. Codex runs it through
 # PowerShell (pwsh before Windows PowerShell 5.1), so the string is written in the 5.1 subset. It tries
 # $env:ProgramFiles, ${env:ProgramFiles(x86)} and $env:LOCALAPPDATA\Programs (each followed by
-# \Git\bin\sh.exe), then sh from Get-Command, then bin\sh.exe next to the directory of git from
-# Get-Command (statements 2 to 4; an empty variable is skipped, one match is taken), and runs the first
-# that exists. The not-found branch (statement 5) reads the payload only through the native findstr,
+# \Git\bin\sh.exe), then an sh from Get-Command that belongs to Git for Windows (its Git folder, two
+# levels up, holds usr\bin\cygpath.exe or bin\cygpath.exe: review WR-01, a non-Git sh such as busybox
+# has no cygpath, so the hook would pass every BBj file silently; every sh on PATH is tried in order),
+# then bin\sh.exe next to the directory of git from Get-Command (statements 2 to 4; an empty variable
+# is skipped, one match is taken), and runs the first that exists. The not-found branch (statement 5) reads the payload only through the native findstr,
 # because the PowerShell host swallows all of stdin when the command text names the automatic input
 # variable anywhere, even in a branch that never runs, and sh.exe would then inherit nothing. It stays
 # silent only when findstr exited 0, read every payload line in full (each output element is N:text) and
@@ -73,9 +76,9 @@ HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 HOOK_COMMAND_WINDOWS_STATEMENTS = (
     r'$s = $null',
     r'foreach ($r in $env:ProgramFiles, ${env:ProgramFiles(x86)}, "$env:LOCALAPPDATA\Programs") { if ($r -and -not $s) { $p = "$r\Git\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } }',
-    r'if (-not $s) { $c = Get-Command sh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($c) { $s = $c.Source } }',
+    r'if (-not $s) { foreach ($c in (Get-Command sh -CommandType Application -ErrorAction SilentlyContinue)) { $q = Split-Path -Parent (Split-Path -Parent $c.Source); if ($q -and -not $s -and ((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source } } }',
     r"if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $p = (Split-Path -Parent (Split-Path -Parent $g.Source)) + '\bin\sh.exe'; if (Test-Path -LiteralPath $p) { $s = $p } } }",
-    r'if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }',
+    r'if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }',
     r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"',
     r'if ($null -eq $LASTEXITCODE) { exit 1 }',
     r'exit $LASTEXITCODE',
@@ -98,6 +101,7 @@ WINDOWS_PARTS = (
     r'${env:ProgramFiles(x86)}',
     r'$env:LOCALAPPDATA\Programs',
     r'Get-Command sh ',
+    r'((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source }',
     r'Get-Command git ',
     r'findstr /n /r "^" 2>&1',
     r'if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }',
@@ -700,6 +704,12 @@ if len(sys.argv) == 1:
     def windows_silent_exit(dst):
         edit_windows(dst, lambda v: v.replace(SILENT_EXIT, 'if ($LASTEXITCODE -eq 1 -and -not $o) { exit 0 }', 1))
 
+    # review WR-01: any sh on PATH is taken again, Git for Windows or not
+    GIT_SH_TEST = r'if ($q -and -not $s -and ((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source }'
+
+    def windows_any_sh(dst):
+        edit_windows(dst, lambda v: v.replace(GIT_SH_TEST, 'if (-not $s) { $s = $c.Source }', 1))
+
 
     mutation_case("control", [], lambda dst: None, [])
     mutation_case("overlay_version", [CODEX_MANIFEST], set_overlay_version, ["versions"])
@@ -719,6 +729,8 @@ if len(sys.argv) == 1:
     mutation_case("hook_windows_passthrough", [HOOKS_FILE], windows_passthrough, ["hook_windows_parts"])
     mutation_case("hook_windows_order", [HOOKS_FILE], windows_order, ["hook_windows_parts"])
     mutation_case("hook_windows_silent_exit", [HOOKS_FILE], windows_silent_exit,
+                  ["hook_command_windows", "hook_windows_parts"])
+    mutation_case("hook_windows_any_sh", [HOOKS_FILE], windows_any_sh,
                   ["hook_command_windows", "hook_windows_parts"])
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
