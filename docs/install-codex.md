@@ -61,13 +61,21 @@ lines (`bbjcpl reported 1 error(s) in <file>:`), once. Codex keeps the trust per
 of the hook, in the `config.toml` of the Codex home.
 
 On Windows the plugin's hook carries a `commandWindows` entry, which Codex runs through PowerShell.
-On Windows the hook looks for Git for Windows `sh.exe` in `%ProgramFiles%\Git\bin`, then
-`%ProgramFiles(x86)%\Git\bin`, then `%LOCALAPPDATA%\Programs\Git\bin` (or
-`%USERPROFILE%\AppData\Local\Programs\Git\bin` when `LOCALAPPDATA` is not set), then an `sh` on `PATH`
-that belongs to Git for Windows (its Git folder holds `cygpath.exe`; any other `sh` on `PATH` is
-passed over), then the `bin` folder of the Git for Windows folder of a `git` on `PATH` (a
-`git.exe` in its `cmd`, `bin` or `mingw64\bin` folder), and a test run found Git for Windows in each
-of these places. See "Windows" below for what happens when none of them holds `sh.exe`.
+On Windows the hook looks for Git for Windows `sh.exe` in these places, in this order:
+
+1. `%ProgramW6432%\Git\bin`, the 64-bit `Program Files`; it is the same folder as
+   `%ProgramFiles%` unless PowerShell runs as a 32-bit program.
+2. `%ProgramFiles%\Git\bin`, then `%ProgramFiles(x86)%\Git\bin`.
+3. `%LOCALAPPDATA%\Programs\Git\bin`, or `%USERPROFILE%\AppData\Local\Programs\Git\bin` when
+   `LOCALAPPDATA` is not set.
+4. An `sh` on `PATH` that belongs to Git for Windows: its Git folder holds `cygpath.exe`. Any other
+   `sh` on `PATH` is passed over.
+5. The `bin` folder of the Git for Windows folder of a `git` on `PATH`, for a `git.exe` in the
+   `cmd`, `bin` or `mingw64\bin` folder of Git for Windows.
+
+A test run on Windows found Git for Windows under `%ProgramFiles%`, `%ProgramFiles(x86)%` and
+`%LOCALAPPDATA%\Programs`, through its `bin` folder on `PATH` and through its `cmd` folder on `PATH`.
+See "Windows" below for what happens when none of these places holds `sh.exe`.
 
 ### Sign in to the docs server
 
@@ -221,7 +229,7 @@ the change it just made, for a clean file as well as a bad one. Observed on Wind
 Windows 2.52.0, Codex CLI 0.162.1 and BBj 26.03, before the plugin carried a `commandWindows`
 entry: that was the result on every write, because `sh` is not on PowerShell's `PATH`.
 
-If none of the five places listed under "Trust the hook in /hooks" holds `sh.exe`, a Codex edit of
+If none of the places listed under "Trust the hook in /hooks" holds `sh.exe`, a Codex edit of
 a BBj file is blocked with the message
 `bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.`, followed by
 the places the hook looked and how to fix it: install Git for Windows or put its `bin` folder on
@@ -239,8 +247,11 @@ the hook, so a `$` or a backtick in that path (a Windows user name may hold eith
 written.
 
 Not run: Git for Windows on another drive or under a custom install folder, a real per-user Git for
-Windows install (a junction stood in for it), PowerShell 7 (`pwsh`), and Windows PowerShell under a
-system-wide ConstrainedLanguage policy.
+Windows install (a junction stood in for it), PowerShell 7 (`pwsh`), Windows PowerShell under a
+system-wide ConstrainedLanguage policy, and on Windows these parts of the lookup: `%ProgramW6432%`
+as the only place that holds Git, the `%USERPROFILE%` form of the per-user folder, a `git.exe` in
+`mingw64\bin`, an `sh` on `PATH` that is not Git's, and a plugin folder whose path holds a `$` or a
+backtick.
 
 Observed on Windows with Windows 10 (build 19045.6466), Git for Windows 2.52.0, Windows PowerShell
 5.1 and Codex CLI 0.162.1, on 2026-10-15: run through Windows PowerShell 5.1 outside Codex, the
