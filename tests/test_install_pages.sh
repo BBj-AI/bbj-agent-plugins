@@ -25,8 +25,8 @@
 #   - the verified platforms (plan 10-06, 10-07, DOCS-01, DOCS-02, DOCS-04; D-01 to D-05): the banner
 #     "Verified on Linux, Windows and macOS" on both pages, the three Claude Code versions (one per
 #     platform) and the sections "## Windows" and "## macOS" on the Claude Code page; the "Observed on
-#     <platform> with" lines, "## macOS", the "hook exited" symptom, the plugin's commandWindows path,
-#     the hosted-server wording and the daemon environment sentence on the Codex page; the README table
+#     <platform> with" lines, "## macOS", the "hook exited" symptom, the plugin's commandWindows lookup
+#     and its not-found message (phase 13, D-10), the hosted-server wording and the daemon environment sentence on the Codex page; the README table
 #     rows and the BBj version beside them; and two forbids on README and both pages
 #     (check_released_wording): the old "not yet run" platform hints and the pre-production or go-live
 #     wording of the docs server, so neither can come back.
@@ -222,7 +222,8 @@ if [ -f "$CODEX_PAGE" ]; then
     'Observed on macOS with' \
     '## macOS' \
     'hook exited' \
-    'C:\PROGRA~1\Git\bin\sh.exe' \
+    '%LOCALAPPDATA%\Programs\Git' \
+    'Git for Windows sh.exe not found' \
     'the hosted BBj docs server' \
     'stop every Codex process' \
     'approval_mode = "approve"' \

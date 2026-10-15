@@ -64,8 +64,10 @@ answering, either through the hook's second route (`hook`) or through the `bbj-l
 | Codex plugin | `bbjcpl`, `bbj-ls` (hook); Codex CLI 0.162.1 | `bbjcpl`, `bbj-ls` (bbj-local plugin); Codex CLI 0.162.1 | `bbjcpl`, `bbj-ls` (hook); Codex CLI 0.162.1 |
 
 Not run, so not claimed: on macOS the `bbj-local` plugin in either client; on Windows the Codex
-plugin route with Git for Windows installed anywhere but its default location. The CHANGELOG lists
-what each release was tested against and what was not run.
+plugin route with Git for Windows on another drive or under a custom install folder, with a real
+per-user Git for Windows install (a junction stood in for it), with PowerShell 7 (`pwsh`), and
+under a system-wide ConstrainedLanguage policy. The CHANGELOG lists what each release was tested
+against and what was not run.
 
 ## The check hook
 
