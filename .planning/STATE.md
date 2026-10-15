@@ -5,7 +5,7 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-09-PLAN.md
+stopped_at: Completed 10-10-PLAN.md
 last_updated: "2026-10-15T03:00:05.123Z"
 last_activity: 2026-10-14
 last_activity_desc: Phase 10 execution started
@@ -14,7 +14,7 @@ progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 39
-  completed_plans: 33
+  completed_plans: 34
   percent: 75
 ---
 
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 13 of 17 (12 done; next 10-10)
+Plan: 14 of 17 (13 done; next 10-11)
 Status: Ready to execute
-Last activity: 2026-10-15 — Plan 10-09 complete; release PR #2 open, CI green, ready
+Last activity: 2026-10-15 — Plan 10-10 complete; PR #2 merged (M1 dad18f5), CI green on main, Claude Code install gate from main ok
 
 Progress: [████████████████████] 22/22 plans ([████████░░] 75%) — phases 3/4 complete
 
@@ -201,6 +201,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: 10-07: Codex STATUS_LINE says 'compiler route' (static guard bans the compiler name on installer code lines); Windows clause follows round 2 (D-09: met)
 - [Phase 10]: 10-08: UPGRADE_QUOTES are the --remove Next line, the re-trust line and the STATUS_LINE; Not run holds all eight matrix gaps; the D-15 shorthand-install sentence waits for the D-22 reading
 - [Phase 10]: 10-09: CI ShellCheck 0.9.0 flagged SC2317 where local 0.11.0 reports SC2329; the directive in tests/test_path_scrub.sh names both codes; recommend pinning or recording the CI ShellCheck version (follow-up, not implemented)
+- [Phase 10]: 10-10: PR #2 merged with a merge commit M1 dad18f5 (parents f15c257, 9c5a226; tree 8af800f); CI on main and the Claude Code install gate from main pass; the D-22 trust was read from config.toml, not a live hooks_list.py
 
 ### Pending Todos
 
@@ -232,7 +233,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-15T03:00:05.006Z
-Stopped at: Completed 10-09-PLAN.md
+Stopped at: Completed 10-10-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

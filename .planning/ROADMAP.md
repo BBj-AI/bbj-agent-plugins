@@ -236,7 +236,7 @@ Plans:
 - [x] 10-09-PLAN.md — REL-08: release run at skip=0, suite line, strict PR branch, owner-confirmed push and PR, CI and install gate on the pushed ref (wave 10, checkpoint)
 
 **Wave 11** *(blocked on Wave 10 completion)*
-- [ ] 10-10-PLAN.md — REL-08, D-19: owner-confirmed merge commit M1, proofs, CI on main, Claude Code install gate from main (wave 11, checkpoint)
+- [x] 10-10-PLAN.md — REL-08, D-19: owner-confirmed merge commit M1, proofs, CI on main, Claude Code install gate from main (wave 11, checkpoint)
 
 **Wave 12** *(blocked on Wave 11 completion)*
 - [ ] 10-11-PLAN.md — D-19, D-22, D-23: Codex install from main and the Git-marketplace upgrade reading, owner re-trust, the CHANGELOG amendment (wave 12, checkpoint)
@@ -265,4 +265,4 @@ Phases execute in numeric order: 7 → 8 → 9 → 10
 | 7. Test hardening and release prep | v0.2.1 | 6/6 | Complete    | 2026-10-13 |
 | 8. Codex plugin route | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
 | 9. Windows and macOS verification | v0.2.1 | 8/8 | Complete    | 2026-10-13 |
-| 10. Install wording and release 0.2.1 | v0.2.1 | 12/17 | In Progress | - |
+| 10. Install wording and release 0.2.1 | v0.2.1 | 13/17 | In Progress | - |
