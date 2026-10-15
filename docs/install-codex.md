@@ -60,9 +60,11 @@ after it, trusted, and a bad BBj file written through `apply_patch` came back wi
 lines (`bbjcpl reported 1 error(s) in <file>:`), once. Codex keeps the trust per hook, with a hash
 of the hook, in the `config.toml` of the Codex home.
 
-On Windows the plugin's hook carries a `commandWindows` entry, `C:\PROGRA~1\Git\bin\sh.exe` with
-the script path, which Codex runs through PowerShell. It names Git for Windows at its default
-location; see "Windows" below for what that needs.
+On Windows the plugin's hook carries a `commandWindows` entry, which Codex runs through PowerShell.
+On Windows the hook looks for Git for Windows `sh.exe` in `%ProgramFiles%\Git\bin`, then
+`%ProgramFiles(x86)%\Git\bin`, then `%LOCALAPPDATA%\Programs\Git\bin`, then an `sh` on `PATH`,
+then the `bin` folder next to a `git` on `PATH`, and a test run found Git for Windows in each of
+these places. See "Windows" below for what happens when none of them holds `sh.exe`.
 
 ### Sign in to the docs server
 
@@ -216,18 +218,29 @@ the change it just made, for a clean file as well as a bad one. Observed on Wind
 Windows 2.52.0, Codex CLI 0.162.1 and BBj 26.03, before the plugin carried a `commandWindows`
 entry: that was the result on every write, because `sh` is not on PowerShell's `PATH`.
 
-The plugin's `commandWindows` entry names `C:\PROGRA~1\Git\bin\sh.exe`, the launcher of Git for
-Windows at its default location `C:\Program Files\Git` written with the 8.3 short name `PROGRA~1`,
-and ends in `exit $LASTEXITCODE` so that exit code 2 reaches Codex as feedback. That path is the
-limit of the plugin route: it needs Git for Windows at the default location with 8.3 names on. Not
-run: Git for Windows installed anywhere else. The path would not exist there, so the hook cannot
-start, and you should expect the same `hook exited` symptom.
+If none of the five places listed under "Trust the hook in /hooks" holds `sh.exe`, a Codex edit of
+a BBj file is blocked with the message
+`bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.`, followed by
+the places the hook looked and how to fix it: install Git for Windows or put its `bin` folder on
+`PATH`. Edits of other files are not blocked, except a very large change, which gets the same
+message. Codex starts the hook with the `PATH` set in the Windows settings, not one set only in the
+window that started Codex, so Git for Windows must be found through the system or user settings.
+The plugin's `commandWindows` entry ends in `exit $LASTEXITCODE` so that exit code 2 reaches Codex
+as feedback.
 
-Observed on Windows with Git for Windows 2.52.0, Codex CLI 0.162.1 and BBj 26.03, the plugin route
-(2026-10-14, after the plugin's `hooks.json` gained the `commandWindows` entry): the hook ran
-through Windows PowerShell and printed `bbjcpl reported 1 error(s)` for a bad .bbj file after
-`apply_patch` (create and update) and stayed silent for a clean file, and Codex asked to trust the
-changed hook again. The Codex runs gave the BBj home as `BBJ_HOME` (`C:\bbx`).
+Not run: Git for Windows on another drive or under a custom install folder, a real per-user Git for
+Windows install (a junction stood in for it), PowerShell 7 (`pwsh`), and Windows PowerShell under a
+system-wide ConstrainedLanguage policy.
+
+Observed on Windows with Windows 10 (build 19045.6466), Git for Windows 2.52.0, Windows PowerShell
+5.1 and Codex CLI 0.162.1, on 2026-10-15: run through Windows PowerShell 5.1 outside Codex, the
+hook compile-checked a BBj file with Git for Windows in each of the five places it looks, also in
+ConstrainedLanguage mode, and printed the sh.exe not found message when none of them held sh.exe.
+With Git for Windows in its default place, Codex asked to trust the hook, blocked a BBj file that
+does not compile with the compiler's error, and showed nothing from the hook for a clean BBj file.
+With no Git for Windows sh.exe on the machine, Codex blocked a BBj file with the message that
+sh.exe was not found and where the hook looked, and wrote a Markdown file with no hook message. The
+Codex runs gave the BBj home as `BBJ_HOME` (`C:\bbx`).
 
 Observed on Windows with Git for Windows 2.52.0 and BBj 26.03, the hook script run from Git Bash
 with the real compiler: the compiler under the drive-letter home `C:\bbx` was found (the hook maps
@@ -239,10 +252,13 @@ running (2026-10-13): `bbj-local` is absent from `codex mcp list` until `codex p
 bbj-local@basis-bbj`, after which it is listed as enabled at `http://127.0.0.1:5009/mcp` and
 `bbj_check_syntax` returned one SyntaxError at line 1, column 1.
 
-With no compiler on the route and no `bbj-ls` answering, a patch that touches several BBj files can
-reach the hook's 30 second timeout, because the hook waits up to 5 seconds to connect to `bbj-ls`
-for each file. This follows from the two timeouts and was not observed in a run. The remedy is to
-set `BBJ_HOME` or to start BBjServices.
+With no compiler on the route and no `bbj-ls` answering, the hook tries `bbj-ls` once per hook run;
+the other BBj files of the same patch skip that try and are listed in the same notice. A `bbj-ls`
+that accepts the connection but does not answer is running, so this is not the no-route case: it is
+asked for every file, and the hook waits up to 12 seconds for each answer, so a patch that touches
+three or more BBj files can reach the hook's 30 second timeout. This follows from the hook's
+timeouts and its tests on fakes and was not observed in a run. The remedy is to set `BBJ_HOME`, so
+that the compiler checks the files.
 
 Not run on Windows: the hook's second route (`bbj-ls`) inside a Codex session; it was run from Git
 Bash only.
