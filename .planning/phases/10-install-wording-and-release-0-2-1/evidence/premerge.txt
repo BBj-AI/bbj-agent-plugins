@@ -1,0 +1,25 @@
+Date: 2026-10-15
+Mode: read only; nothing published, nothing changed (plan 10-10 Task 1)
+pr: 2
+url: https://github.com/BBj-AI/bbj-agent-plugins/pull/2
+branch: gsd/release-0.2.1
+state: OPEN
+head: 9c5a226dafe580e38f48c71b3b5cde6c07aa3944
+draft: false
+mergeable: MERGEABLE
+merge_state: CLEAN
+checks: all success
+checks_detail: ci/plugins COMPLETED SUCCESS (pull_request run 38673715360), ci/plugins COMPLETED SUCCESS (push run 38673711990)
+base: f15c257f6fba6e5d4cde60e49ad06727de44f68f
+planning_paths: 0
+planning_paths_in_tree: 0
+tree: 8af800f30f2966072f8a7bbc6bbd8bd094823c9b
+commits: 101 (merge commits in range: 0; GitHub API pulls/2 commits: 101)
+files_changed: 31 files, 4522 insertions, 301 deletions against main
+version_in_head: 0.2.1 (plugins/bbj/.claude-plugin/plugin.json)
+install_gate_pr: pass (7 of 7 gates ok, evidence/install-gate-pr.txt)
+branch_protection_main: none (gh api branches/main protected=false); the owner checkpoint is the access control
+tag_0.2.1: absent
+tags_on_origin: 0.2.0 only
+d22_home: trusted sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+d22_home_method: read from config.toml of $HOME/.cache/bbj-phase10/gitupgrade/home/.codex ([hooks.state."bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0"] trusted_hash, enabled = true); the hash equals the currentHash of 10-LINUX-RUN.md (D-22 before half); plugin cache holds 0.2.0 only; codex was not started
