@@ -183,8 +183,8 @@ gate("codex_version_single", len(codex_versions) == 1,
 # "Claude Code N.N.N on <platform>" in README.md, both install pages and the newest CHANGELOG
 # entry, and as the N.N.N in the "| Claude Code |" row of the README table under the
 # "| Client | Linux | Windows | macOS |" header (the header gives the platform of each column).
-# The "on <platform>" anchor keeps "Claude Code 2.1.281 or later" and the subagent check on 2.1.294
-# (different facts, REVIEW IN-01) out of the count.
+# The "on <platform>" anchor keeps "Claude Code 2.1.281 or later" (a different fact) out of the
+# count.
 PLATFORMS = ("Linux", "Windows", "macOS")
 VERSION_NNN = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
 CLAUDE_ON_PLATFORM = re.compile(r"Claude Code ([0-9]+\.[0-9]+\.[0-9]+) on (Linux|Windows|macOS)")
