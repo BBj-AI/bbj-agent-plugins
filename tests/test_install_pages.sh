@@ -331,14 +331,13 @@ if [ -f "$README" ]; then
     'recommended where BBjServices 26.03' \
     'preferred over the hosted check' \
     'PREFIX, classpath and config' \
-    '--with-local' \
+    'only the Claude Code plugin has the `docs_url` option' \
     '## Skills' \
     'once per session' \
     'codex plugin add bbj@basis-bbj' \
     'codex plugin add bbj-local@basis-bbj' \
     '| Claude Code |' \
     '| Codex plugin |' \
-    '| Codex installer |' \
     'Verified on Linux, Windows and macOS' \
     'BBj 26.03' \
     'the hosted BBj docs server'
@@ -346,16 +345,6 @@ if [ -f "$README" ]; then
     need "$n" "$README" "$p"
   done
   check_released_wording "$n" "$README"
-  # the plugin commands come before the installer script in README (phase 8 D-15, D-16; plan 10-06)
-  _flat=$(tr '\n' ' ' < "$README")
-  _before_plugin=${_flat%%codex plugin add*}
-  _before_installer=${_flat%%install-codex.sh*}
-  if [ "${#_before_plugin}" -lt "${#_flat}" ] && [ "${#_before_installer}" -lt "${#_flat}" ] \
-    && [ "${#_before_plugin}" -lt "${#_before_installer}" ]; then
-    gate "${n}_codex_plugin_first" ok "the first 'codex plugin add' comes before the first 'install-codex.sh'"
-  else
-    gate "${n}_codex_plugin_first" FAIL "README names the installer script before the plugin commands, or lacks one of them"
-  fi
   forbid "$n" "$README" "$HOOK_TRUST_BYPASS" hook_trust_bypass
   forbid "$n" "$README" 'until this release|release is merged to it|this release is on github' release_time_caveat
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
