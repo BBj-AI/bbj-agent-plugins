@@ -65,6 +65,9 @@ RETIRED_TERMS = (RETIRED_SCRIPT, RETIRED_SNIPPET, RETIRED_WORD)
 # longer word such as "uninstaller", but still in snake_case or a file name, so the boundary is
 # "not a letter" rather than \b, and a plural counts.
 RETIRED_WORD_RE = re.compile(r"(?<![a-z])" + RETIRED_WORD + r"s?(?![a-z])")
+# NAME-01 (phase 12, D-03): the docs server's old name, matched literally and case-insensitively;
+# other spellings are not matched
+OLD_SERVER_NAME = "bbj" + "-docs"
 
 
 def names_retired(term, low):
@@ -398,6 +401,36 @@ else:
 gate("no_retired_route", retired_scanned > 0 and not retired_hits, retired_detail)
 
 
+# NAME-01 (D-01 to D-03 of phase 12): the docs server's old name stays out of every tracked file,
+# comments included; same file list and CHANGELOG cut as no_retired_route; .planning/ and
+# CHANGELOG entries up to 0.2.1 exempt
+old_hits = []
+old_scanned = 0
+for rel in retired_rels:
+    if OLD_SERVER_NAME in rel.lower():
+        old_hits.append("%s:path" % (rel,))
+    try:
+        with open(os.path.join(ROOT, rel), "rb") as f:
+            text = f.read().decode("utf-8", errors="replace")
+    except OSError:
+        continue
+    old_scanned += 1
+    if rel == "CHANGELOG.md":
+        text = changelog_scan_text(text)
+    if OLD_SERVER_NAME in text.lower():
+        old_hits.append(rel)
+if retired_mode == "nogit":
+    old_detail = "git ls-files listed nothing in the checkout (git missing, unsafe directory or GIT_DIR set)"
+elif old_scanned == 0:
+    old_detail = "no file scanned (%s mode)" % (retired_mode,)
+elif old_hits:
+    old_detail = "files naming the docs server's old name (%s mode): %r" % (retired_mode, sorted(old_hits))
+else:
+    old_detail = ("%d tracked files scanned (%s mode); none names the docs server's old name "
+                  "(.planning/ and CHANGELOG entries up to 0.2.1 exempt)" % (old_scanned, retired_mode))
+gate("no_old_server_name", old_scanned > 0 and not old_hits, old_detail)
+
+
 # CODEX-04: prove the gates above can fail. Each case copies the repository files this script
 # reads into a fresh temp directory, changes one thing, runs this file on the copy (a root
 # argument turns this section off, so a copy run never recurses) and requires the named gates to
@@ -609,5 +642,10 @@ if len(sys.argv) == 1:
     mutation_case("retired_route_planning_exempt", [".planning/notes.md"],
                   lambda dst: plant(dst, ".planning/notes.md", "the Codex " + RETIRED_WORD),
                   [])
+
+    # NAME-01 (phase 12, D-02): a planted mention of the docs server's old name fails its gate
+    mutation_case("old_server_name_readme", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "Sign in to the docs server " + OLD_SERVER_NAME + "."),
+                  ["no_old_server_name"])
 
 sys.exit(1 if failed else 0)
