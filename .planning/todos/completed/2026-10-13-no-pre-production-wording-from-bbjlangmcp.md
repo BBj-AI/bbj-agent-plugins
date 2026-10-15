@@ -56,3 +56,13 @@ not yet, go-live, and similar; `plugins/bbj/skills` excluded, its copy is gated 
 - CHANGELOG: leave entries of released versions as history (`CHANGELOG.md:68`); only the Unreleased entry (`:8` if it is still unreleased) is changed, and the change itself is described in a new Unreleased line.
 - `docs/install-codex.md:171`: say "In an earlier build of this release" or state the fact the sentence carries without the word trial.
 - The installer's STATUS_LINE is user-visible output; the installer test suite may pin it (check the `codex/` tests) and needs the same edit.
+
+## Closed 2026-10-15
+
+Folded into Phase 10 and shipped in release 0.2.1. Plan 10-02 replaced the pre-production / go-live description of the
+default docs server with "the hosted BBj docs server" in the plugin manifest. Plan 10-06 rewrote the README and the Claude
+Code install page to state the verified platforms (Linux, Windows, macOS) as tested facts, with the hosted-server wording.
+Plan 10-07 did the same for the Codex install page and the installer (header, STATUS_LINE, Known-gaps lines), and the
+release-text tests now pin the old wording out. Release 0.2.1: annotated tag `0.2.1` on 4234e76, GitHub Release
+https://github.com/BBj-AI/bbj-agent-plugins/releases/tag/0.2.1, published 2026-10-15. Entries of released versions in
+CHANGELOG.md stay as history. The OAuth todo is a separate item and stays pending.
