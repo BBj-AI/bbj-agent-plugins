@@ -100,7 +100,7 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
   client. If you point it at another server (self-hosted, local), that
   server rejects this client id or has no sign-in. Remove the `oauth` block from the plugin's
   `.mcp.json` (or override the `bbj-docs` entry with your own) so the other server's own
-  registration is used; the Codex installer does this by itself, see its page.
+  registration is used.
 - Two skills, `/bbj:bbj-programming` and `/bbj:bbj-web-programming` (maintained in this repository).
 - A hook: after every `Write` or `Edit` of a `.bbj`, `.src` or `.bbx` file Claude Code compiles
   the file and hands any compiler error back to Claude, which can then repair it. The hook has
