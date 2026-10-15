@@ -84,7 +84,7 @@ placeholder entry, so `## 0.2.2` can only appear in the bump commit.
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 11: Installer removal** - The plugin is the only install route: installer, snippet, their tests, gates and fakes, the hook's installer branch and the installer wording are gone; a gate keeps `install-codex.sh` out
+- [x] **Phase 11: Installer removal** - The plugin is the only install route: installer, snippet, their tests, gates and fakes, the hook's installer branch and the installer wording are gone; a gate keeps `install-codex.sh` out (completed 2026-10-15)
 - [ ] **Phase 12: Docs server renamed to bbj** - `bbj-docs` becomes `bbj` in both MCP configs, the skills, the hook notice, the docs and the tests; sign-in commands read on real clients; a gate keeps the old name out
 - [ ] **Phase 13: Windows hook fixes** - Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location, one tier-2 connect timeout per hook run, a backslash gate that catches a regression
 - [ ] **Phase 14: One install page and one term list** - One plugin-only install page for both clients, one written term list with a gate, the gate-prefix block checked against the suite, dead code swept, codebase map refreshed
@@ -103,7 +103,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. On a Codex `apply_patch` payload with no check route, the no-route notice names only the plugin commands (`codex plugin add bbj-local@basis-bbj`), with or without `CLAUDE_PLUGIN_ROOT` set, and the hook has no code path for the installer route. The `plugin_route_` gates still give `bbjcpl` feedback for a bad file and silence for a clean one (INST-03)
   4. The README "Verified" table, the README install text and both install pages no longer describe the installer route. Every per-platform claim left traces to a run record (`08-LINUX-RUN.md`, `09-WINDOWS-RUN.md`, `09-MACOS-RUN.md`, `10-LINUX-RUN.md` in `.planning/milestones/v0.2.1-phases/`); no claim remains that only the installer record `10-WINDOWS-INSTALLER-RUN.md` backed (DOCS-06)
 
-**Plans**: 5/5 plans executed
+**Plans**: 5/5 plans complete
 
 Plans:
 **Wave 1**
@@ -210,7 +210,7 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 11. Installer removal | v0.2.2 | 5/5 | In Progress | - |
+| 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 12. Docs server renamed to bbj | v0.2.2 | 0/TBD | Not started | - |
 | 13. Windows hook fixes | v0.2.2 | 0/TBD | Not started | - |
 | 14. One install page and one term list | v0.2.2 | 0/TBD | Not started | - |
