@@ -143,7 +143,16 @@ Observed on Windows with Codex CLI 0.162.1: after the plugin's `hooks.json` gain
 start of the session, before `/hooks` was opened, because Codex trusts a hook by its hash and the
 changed definition has a new one. Trust the hook again in `/hooks` whenever Codex asks.
 
-Not run: an upgrade through a Git marketplace, and an upgrade across a real release.
+Observed on Linux with Codex CLI 0.162.1, upgrading through the Git marketplace from 0.2.0 to 0.2.1
+(2026-10-15, after the 0.2.1 merge to `main`, before the tag): a home that had installed 0.2.0 from
+`codex plugin marketplace add BBj-AI/bbj-agent-plugins` and trusted the hook in `/hooks` was upgraded
+with `codex plugin marketplace upgrade basis-bbj` and `codex plugin add bbj@basis-bbj`. The hook's
+hash was unchanged although `hooks.json` gained the `commandWindows` line, Codex did not ask to trust
+the hook again, `/hooks` showed it Trusted, and an `apply_patch` of a bad file gave `bbjcpl reported`
+feedback with no trust bypass. The Windows paragraph above is a different observation, and this page
+does not explain the difference.
+
+Not run: an upgrade through a Git marketplace on Windows or macOS.
 
 ### Switch from the installer script
 
