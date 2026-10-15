@@ -167,6 +167,9 @@ patch() {
 }
 
 # ---- Codex: its own enable steps; several, long and hostile file names (plan 02-01 Task 2) ----
+# Phase 8 (D-07, D-08) and phase 11 (INST-03, D-16): the one Codex text names codex plugin add. The
+# script reads no CLAUDE_PLUGIN_ROOT, so there is one Codex text gate here; notice_codex_one_text
+# below is the contract that the variable changes nothing.
 CPROJ=$WORK/cproj
 mkdir "$CPROJ"
 : > "$CPROJ/a.bbj"
@@ -180,28 +183,10 @@ if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
     'codex plugin add bbj-local@basis-bbj only gives the model' \
     'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found'
   holds_none notice_codex_text_no_claude_steps "$CTEXT" 'bbj_home' \
-    'The bbj-local@basis-bbj plugin' 'running on this machine)'
+    'The bbj-local@basis-bbj plugin' 'or run codex plugin add' 'running on this machine)'
 else
   gate notice_codex_text FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
   gate notice_codex_text_no_claude_steps FAIL "no valid notice object"
-fi
-
-# ---- Phase 8, CODEX-03 (D-07, D-08): the plugin route names codex plugin add ----
-CLAUDE_PLUGIN_ROOT=$WORK/plugins/cache/basis-bbj/bbj/0.2.0
-export CLAUDE_PLUGIN_ROOT
-fresh_state
-run_check "$(codex_payload "$CPROJ" "$(patch '*** Add File: a.bbj' '+print "a"')")"
-unset CLAUDE_PLUGIN_ROOT
-RTEXT=$(notice_text "$WORK/stdout")
-_nr=$?
-if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
-  holds_all notice_codex_plugin_route "$RTEXT" 'codex plugin add bbj-local@basis-bbj' 'BBJ_HOME' \
-    'bbjcpl on PATH' 'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found'
-  holds_none notice_codex_plugin_route_no_other_steps "$RTEXT" 'bbj_home' \
-    'The bbj-local@basis-bbj plugin' 'or run codex plugin add' 'running on this machine)'
-else
-  gate notice_codex_plugin_route FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
-  gate notice_codex_plugin_route_no_other_steps FAIL "no valid notice object"
 fi
 
 # route_run ROOT PAYLOAD: one hook call in a fresh session with CLAUDE_PLUGIN_ROOT exported as ROOT,
