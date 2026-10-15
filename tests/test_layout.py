@@ -11,6 +11,10 @@ Phase 11 (INST-02; D-10 to D-12): layout_no_retired_route scans every tracked fi
 .planning/ (git ls-files, or a walk of a mutation copy) for the retired Codex route, CHANGELOG
 entries up to 0.2.1 exempt; the layout_mutation_retired_route_* cases plant a mention in each
 scope and in each exemption.
+Phase 12 (NAME-01; D-01 to D-03): layout_no_old_server_name scans the same tracked files with the
+same CHANGELOG cut for the docs server's old name (a literal, case-insensitive match in paths and
+text); the layout_mutation_old_server_name_* cases plant it in each scope and each exemption, and
+plant two other spellings it does not match.
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -647,5 +651,56 @@ if len(sys.argv) == 1:
     mutation_case("old_server_name_readme", ["README.md"],
                   lambda dst: plant(dst, "README.md", "Sign in to the docs server " + OLD_SERVER_NAME + "."),
                   ["no_old_server_name"])
+
+    def old_name_key(dst):
+        def fn(d):
+            d["mcpServers"] = {OLD_SERVER_NAME: d["mcpServers"][DOCS_SERVER]}
+        edit_json(os.path.join(dst, MCP_FILE), fn)
+
+    def old_name_path(dst):
+        target = os.path.join(dst, "docs", OLD_SERVER_NAME + ".md")
+        os.makedirs(os.path.dirname(target), exist_ok=True)
+        open(target, "w").close()
+
+    # the rename undone in the MCP file fails the key gate too
+    mutation_case("old_server_name_key", [MCP_FILE], old_name_key, ["bbj_mcp", "no_old_server_name"])
+    # case-insensitive
+    mutation_case("old_server_name_capitalized", ["docs/install-claude-code.md"],
+                  lambda dst: plant(dst, "docs/install-claude-code.md",
+                                    "Choose plugin:bbj:" + OLD_SERVER_NAME.title() + " in /mcp."),
+                  ["no_old_server_name"])
+    # a tool name the client builds (D-03)
+    mutation_case("old_server_name_tool_name", [SKILL_FILE],
+                  lambda dst: plant(dst, SKILL_FILE, "Call mcp__plugin_bbj_" + OLD_SERVER_NAME + "__bbj_search."),
+                  ["no_old_server_name"])
+    # no exemption for the conventions file or the tests (D-01)
+    mutation_case("old_server_name_conventions", [CLAUDE_MD],
+                  lambda dst: plant(dst, CLAUDE_MD, "- the hosted " + OLD_SERVER_NAME + " server"),
+                  ["no_old_server_name"])
+    mutation_case("old_server_name_test_comment", ["tests/lib.sh"],
+                  lambda dst: plant(dst, "tests/lib.sh", "# plugin:bbj:" + OLD_SERVER_NAME),
+                  ["no_old_server_name"])
+    # a file whose path holds the name
+    mutation_case("old_server_name_path", ["docs/" + OLD_SERVER_NAME + ".md"], old_name_path,
+                  ["no_old_server_name"])
+    # CHANGELOG: text above the first heading and a newer entry are scanned, 0.2.1 is exempt
+    mutation_case("old_server_name_changelog_preamble", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, CHANGELOG_TITLE, "Sign in to " + OLD_SERVER_NAME + ".", True),
+                  ["no_old_server_name"])
+    mutation_case("old_server_name_newer_entry", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1",
+                                               "## 0.2.2\n\n- the docs server " + OLD_SERVER_NAME + ".\n", False),
+                  ["no_old_server_name"])
+    mutation_case("old_server_name_history_exempt", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1", "- " + OLD_SERVER_NAME + " (history).", True),
+                  [])
+    mutation_case("old_server_name_planning_exempt", [".planning/notes.md"],
+                  lambda dst: plant(dst, ".planning/notes.md", "the docs server " + OLD_SERVER_NAME),
+                  [])
+    # D-03: only the literal hyphenated name; planted in a test comment, outside shipped Markdown
+    mutation_case("old_server_name_variants_exempt", ["tests/lib.sh"],
+                  lambda dst: plant(dst, "tests/lib.sh",
+                                    "# " + "bbj_" + "docs and " + "bbj" + "docs are other spellings"),
+                  [])
 
 sys.exit(1 if failed else 0)
