@@ -1,0 +1,17 @@
+Date: 2026-10-15
+pr: https://github.com/BBj-AI/bbj-agent-plugins/pull/3
+state: OPEN
+head: 38c690cd92eef3cf96fc0a87c09d98d29a060275
+draft: false
+mergeable: MERGEABLE
+merge_state: CLEAN
+checks: all success
+check_runs: https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38677587369 (pull_request), https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38677567220 (push)
+base: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+merge_base: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+files: CHANGELOG.md docs/install-codex.md tests/test_release_text.py 
+planning_paths: 0
+tree: f3d3e0bbe67fd976fd5b9571c2b42b18a42472d2
+tree_equal_pr_b_branch: yes
+origin_branch_head: 38c690cd92eef3cf96fc0a87c09d98d29a060275
+tag_0.2.1: absent
