@@ -161,25 +161,25 @@ No BBj write was silent in the sh.exe-missing branch (none_bbj, none_long_bbj, c
 c2-bad blocked).
 
 Harness and runbook defects (planning files only, not shipped, not part of the hook; they do not
-change the FIX-01 verdict, and no code is changed in this plan):
+change the FIX-01 verdict; fixed after the run, at the owner's request, in faf5008):
 
 - H1, `launcher.sh selftest`: refused with `python3 json.load`, because `command -v python3`
   finds the Microsoft Store alias stub in `<home>\AppData\Local\Microsoft\WindowsApps`, which
   exits non-zero. With that folder off PATH, `selftest ok`. A fix would run the python3
-  cross-check only when `python3 -I -c pass` succeeds. Verdict: defect, decision pending.
+  cross-check only when `python3 -I -c pass` succeeds. Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
 - H2, `launcher.sh run` and `clean`: refused (`Git root C:\Program Files\Git holds no bin\sh.exe`),
   because `cygpath -u` of the Git root is `/` in Git Bash, so the test path becomes `//bin/sh.exe`,
   which MSYS reads as a UNC path; the script's own `drivepath` helper exists for this. The owner
   patched the two lines (`GIT_U=$(drivepath "$GITW")` in do_run, `_gu=$(drivepath "$_gw")` in
   do_clean) in the clone; the launcher block and the W5 clean are from the patched launcher.
-  Verdict: defect, decision pending.
+  Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
 - H3, `checkout: unknown` in the launcher block: with MSYS_NO_PATHCONV=1 exported, native git.exe
   cannot change to the MSYS path of the clone. Cosmetic; `git rev-parse` outside the launcher gives
-  fe5bc6a. Verdict: defect, decision pending.
+  fe5bc6a. Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
 - H4, runbook W2 to W4 start Codex as plain `codex`: Codex's automatic approval refused both
   apply_patch writes as outside the project, so the hook was never reached. The Phase 10 runbook
   used `codex -a on-request` for this reason. Re-run with `codex -a on-request`, approving each
-  apply_patch; the readings above are from that run. Verdict: defect, decision pending.
+  apply_patch; the readings above are from that run. Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
 
 Observations, not defects:
 

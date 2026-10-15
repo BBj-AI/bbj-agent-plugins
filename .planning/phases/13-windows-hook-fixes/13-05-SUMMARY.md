@@ -11,7 +11,7 @@ key-files:
     - .planning/phases/13-windows-hook-fixes/13-WINDOWS-RUN.md
 decisions:
   - "FIX-01: met. 15 launcher cases as expected, 2 pwsh cases not run (pwsh absent), all seven Codex readings hold; cmd_sha256 equals the plan 13-02 pin"
-  - "Harness and runbook defects H1-H4 (python3 Store alias, cygpath -u of the Git root, checkout unknown, missing codex -a on-request) recorded as defect, decision pending; planning files only, not shipped, verdict unaffected"
+  - "Harness and runbook defects H1-H4 (python3 Store alias, cygpath -u of the Git root, checkout unknown, missing codex -a on-request) recorded; fixed afterwards in faf5008 at the owner's request; planning files only, not shipped, verdict unaffected"
 metrics:
   completed: 2026-10-15
 ---
