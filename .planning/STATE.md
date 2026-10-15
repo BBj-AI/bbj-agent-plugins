@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-12-PLAN.md
-last_updated: "2026-10-15T03:43:56.239Z"
+stopped_at: Completed 10-13-PLAN.md
+last_updated: "2026-10-15T04:02:39.829Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 10 execution started
-state_head: 477910bbc10ad16420678eb4d467532c5305cf4f
+state_head: aa073cd7abdbef4a7d084390044f88b74fd3c079
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 39
-  completed_plans: 37
+  completed_plans: 38
   percent: 75
 ---
 
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 16 of 17 (15 done; next 10-13)
+Plan: 17 of 17 (16 done; next 10-14)
 Status: Ready to execute
-Last activity: 2026-10-15 — Plan 10-12 complete; PR #3 (gsd/release-0.2.1-amend, 38c690c) open and ready, CI green on that head; main still dad18f5, no tag
+Last activity: 2026-10-15 — Plan 10-13 complete; PR #3 merged as M2 4234e76 on main, CI green on main, no tag yet (REL-08 open until 10-14)
 
 Progress: [████████████████████] 22/22 plans ([████████░░] 75%) — phases 3/4 complete
 
@@ -143,6 +143,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 10 P09 | 2 sessions | 3 tasks | 3 files |
 | Phase 10 P11 | 20min | 3 tasks | 5 files |
 | Phase 10 P12 | n/a | 3 tasks | 3 files |
+| Phase 10 P13 | n/a | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -205,6 +206,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: 10-09: CI ShellCheck 0.9.0 flagged SC2317 where local 0.11.0 reports SC2329; the directive in tests/test_path_scrub.sh names both codes; recommend pinning or recording the CI ShellCheck version (follow-up, not implemented)
 - [Phase 10]: 10-10: PR #2 merged with a merge commit M1 dad18f5 (parents f15c257, 9c5a226; tree 8af800f); CI on main and the Claude Code install gate from main pass; the D-22 trust was read from config.toml, not a live hooks_list.py
 - [Phase 10]: 10-11: D-22 recorded as observed on Linux (Codex 0.162.1): hook hash unchanged across 0.2.0 to 0.2.1 and no re-trust asked; 0.2.1 entry amended (Tested against, Not run, Upgrading Codex-plugin bullet); installer-route re-trust sentence left unchanged
+- [Phase 10]: 10-13: PR #3 merged as M2 4234e76 (merge commit, checked head 38c690c, tree f3d3e0b) after the owner's 'merge'; D-23 evidence is RQ-5 (a)
 
 ### Pending Todos
 
@@ -235,8 +237,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T03:43:56.121Z
-Stopped at: Completed 10-12-PLAN.md
+Last session: 2026-10-15T04:02:39.715Z
+Stopped at: Completed 10-13-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
