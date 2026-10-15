@@ -231,7 +231,7 @@ Plans:
 **Plans**: TBD
 
 **Notes**:
-- If Phase 13 changed `commandWindows`, the Upgrading section also says that Codex asks for `/hooks` trust again after the upgrade.
+- No Upgrading line about trusting the hook again in `/hooks`; no text refers to earlier versions (13-CONTEXT D-21, 12-CONTEXT D-12).
 - The Not run section lists only configurations absent from the run records, as in 0.2.1.
 - The release follows the Phase 6 and Phase 10 pattern: the tag goes on the final merge commit that carries the released text.
 
