@@ -177,7 +177,7 @@ Plans:
 
 **Notes**:
 - Source of the three warnings: `09-REVIEW.md` and `09-REVIEW-DISPOSITION.md` in `.planning/milestones/v0.2.1-phases/09-windows-and-macos-verification/`.
-- A new `commandWindows` changes the hook hash, so Codex asks for `/hooks` trust again after the upgrade; the Phase 15 Upgrading text says so.
+- A new `commandWindows` changes the hook hash, so Codex asks for `/hooks` trust again; no text refers to earlier versions (Phase 12 D-12), so no Upgrading line says so (13-CONTEXT D-21).
 - CI has no Windows runner. The fake `cygpath` seams (`FAKE_CYGDRIVE_ROOT`) and the `windows_` and `tier2_connect_timeout_` gates are the CI proof; real Windows is an owner run. Fix or known gap per defect is the owner's call (D-10 precedent from Phase 9).
 
 ### Phase 14: One install page and one term list
