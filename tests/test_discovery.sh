@@ -310,6 +310,11 @@ elif [ "${CI:-}" = true ]; then
 else
   gate windows_codex_backslash_dotdot_skipped skip "this file system cannot hold a file name with a backslash"
 fi
+# Phase 13 (D-17): the control. The header goes through the same conversion, stays inside the
+# workspace, and "/./" collapses to sub/f.bbj, so exactly one call on the converted file: this
+# proves the conversion runs before the ".." check. The control CONTEXT named (sub, dotdot, sub)
+# gives no call, because codex_patch skips every path with a ".." segment.
+wpatch_gate windows_codex_backslash_dot_control 'C:\Users\x\bbj test' 'sub\.\f.bbj'
 unset BBJ_HOME
 
 unset FAKE_CYGDRIVE_ROOT CLAUDE_PLUGIN_OPTION_BBJ_HOME BBJ_HOME CLAUDE_PROJECT_DIR
