@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 12
 current_phase_name: Docs server renamed to bbj
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-10-15T12:50:01.608Z"
+stopped_at: Completed 12-01-PLAN.md
+last_updated: "2026-10-15T13:14:59.522Z"
 last_activity: 2026-10-15
-last_activity_desc: Phase 11 complete, transitioned to Phase 12
-state_head: 800ccfbd2973184dfefbbf9d6a66ce67b1a9cbc7
+last_activity_desc: Phase 12 execution started
+state_head: 540abbdffaa7539c8efc66e8e88651a95c3d1c52
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 6
   percent: 20
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 11 — installer-removal
+**Current focus:** Phase 12 — Docs server renamed to bbj
 
 ## Current Position
 
-Phase: 12 (Docs server renamed to bbj) — READY TO EXECUTE
-Plan: Not started
+Phase: 12 (Docs server renamed to bbj) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-10-15 — Phase 11 complete, transitioned to Phase 12
+Last activity: 2026-10-15 — Phase 12 execution started
 
 Progress: [██░░░░░░░░] 20%
 
@@ -152,6 +152,7 @@ Progress: [██░░░░░░░░] 20%
 | Phase 11 P03 | 17 min | 3 tasks | 6 files |
 | Phase 11 P04 | 14 min | 2 tasks | 8 files |
 | Phase 11 P05 | 10 min | 2 tasks | 2 files |
+| Phase 12 P01 | 6 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -171,6 +172,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 11]: D-04/D-05: the Codex page and README say only the Claude Code plugin has the docs_url option; the 2.1.294 subagent claim was removed because no run record backs it
 - [Phase 11]: D-13/D-15: the Codex-home guard test, its four snapshot helpers, the fake codex and the FAKE_CODEX_EXIT seam are deleted; test_home_guard.sh went in the tracer commit because it read the deleted install test
 - [Phase 11]: D-11/D-12: layout_no_retired_route scans tracked files outside .planning/ with the CHANGELOG cut at 0.2.1 by integer-tuple heading; mutation copies hold every tracked file so walk mode matches git mode
+- [Phase 12]: D-08/D-09: CC_LABEL in tests/test_claude_plugin.sh is plugin:bbj:bbj, read from real Claude Code 2.1.299; mcp_docs_answers pins the listed label
 
 ### Pending Todos
 
@@ -200,9 +202,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T11:20:59.080Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-docs-server-renamed-to-bbj/12-CONTEXT.md
+Last session: 2026-10-15T13:14:59.463Z
+Stopped at: Completed 12-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
