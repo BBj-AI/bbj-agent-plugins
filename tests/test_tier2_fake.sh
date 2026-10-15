@@ -8,6 +8,7 @@
 # --noproxy '*' and --proto =http and no redirect flag.
 # MAINT-06 (D-11, D-12): SYSPATH is scrubbed of any BBj compiler (no_compiler_path), so a compiler
 # in /usr/bin or /bin cannot turn a no-route or tier-2 gate into a tier-1 run.
+# Phase 13 (FIX-02, D-15) adds the once-per-run gates on a many-file Codex patch.
 # Nothing here runs BBj; the "compiler" is the logging fake.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -315,5 +316,62 @@ else
   gate no_curl_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
 fi
 stop_fake
+
+# ---- one tier-2 attempt per hook run on a many-file Codex patch (phase 13, FIX-02, D-14, D-15) ----
+# WR-02 of the phase 9 review: every BBj file of one apply_patch paid the tier-2 connect again, and on
+# the Windows branch (cygpath on PATH, 5 s connect timeout per attempt) a many-file patch with no
+# check route ran past the 30 s hook timeout. The gates run on that branch for this reason. No clock
+# is asserted: the fake does not sleep; the bound is one call at --connect-timeout 5 plus -m 12.
+NMANY=12
+mkdir "$WORK/many"
+_i=1
+_patch='*** Begin Patch'
+while [ "$_i" -le "$NMANY" ]; do
+  printf 'print "a"\n' > "$WORK/many/f$_i.bbj"
+  _patch="$_patch
+*** Add File: f$_i.bbj
++print \"a\""
+  _i=$((_i + 1))
+done
+_patch="$_patch
+*** End Patch"
+MANYPAYLOAD=$(codex_payload "$WORK/many" "$_patch")
+
+# oncegate NAME EXIT WRITEOUT WANTCALLS TEXT: one hook call over the NMANY-file patch on the Windows
+# branch, fake curl exiting EXIT (printing WRITEOUT when it is not empty), no compiler. Ok when curl
+# was called WANTCALLS times with --connect-timeout 5 and the call exits 0 with either no output at
+# all (TEXT is the word silent) or one valid no-route notice that holds TEXT.
+oncegate() {
+  fresh_state
+  : > "$FAKE_CURL_LOG"
+  BBJ_LOCAL_MCP_URL=http://127.0.0.1:5009/mcp
+  FAKE_CURL_EXIT=$2
+  export BBJ_LOCAL_MCP_URL FAKE_CURL_EXIT
+  if [ -n "$3" ]; then
+    FAKE_CURL_WRITEOUT=$3
+    export FAKE_CURL_WRITEOUT
+  fi
+  run_t2 "$MANYPAYLOAD" "$WORK/cygbin:$CURLPATH"
+  unset FAKE_CURL_EXIT FAKE_CURL_WRITEOUT
+  _calls=$(grep -cx CALL "$FAKE_CURL_LOG")
+  _ct=$(awk '/^--connect-timeout$/ { getline; print; exit }' "$FAKE_CURL_LOG")
+  if [ "$5" = silent ]; then
+    if [ "$RC" = 0 ] && [ "$_calls" = "$4" ] && [ "$_ct" = 5 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+      gate "$1" ok "$NMANY files, $_calls curl call(s), --connect-timeout $_ct, silent"
+    else
+      gate "$1" FAIL "exit $RC, $_calls curl call(s) want $4, connect timeout '$_ct', output: $(head -c 200 "$WORK/stdout" "$WORK/stderr")"
+    fi
+    return 0
+  fi
+  _ntext=$(notice_text "$WORK/stdout")
+  _nrc=$?
+  if [ "$RC" = 0 ] && [ "$_calls" = "$4" ] && [ "$_ct" = 5 ] && [ "$_nrc" = 0 ] && [ ! -s "$WORK/stderr" ] \
+    && printf '%s' "$_ntext" | grep -F -- "$5" > /dev/null; then
+    gate "$1" ok "$NMANY files, $_calls curl call(s), --connect-timeout $_ct, notice holds '$5'"
+  else
+    gate "$1" FAIL "exit $RC, $_calls curl call(s) want $4, connect timeout '$_ct', notice_text $_nrc: $(printf '%s' "$_ntext" | head -c 200)"
+  fi
+}
+oncegate tier2_once_windows_refused 7 '' 1 'and 7 more' # the 11 cached files are counted and listed (D-14)
 
 finish
