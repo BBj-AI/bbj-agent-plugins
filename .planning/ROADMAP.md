@@ -173,7 +173,24 @@ Plans:
   3. A mutation run that removes the backslash conversion makes `windows_codex_backslash_dotdot_skipped` fail, and the unmutated tree passes it; the mutation case is kept in the suite (FIX-03)
   4. The exit contract and the safety gates hold after the fixes: exit 0 or 2 with empty stdout, `-N` on every compiler call, loopback-only `curl` with `--noproxy '*'` and `--proto =http`, never the hosted check; `sh tests/ci.sh` passes (FIX-01, FIX-02, FIX-03)
 
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+**Wave 1**
+- [ ] 13-01-PLAN.md — Tier-2 outcome cached per hook run: a 12-file Codex patch with no route on the Windows path tries curl once and lists every file; a connect timeout with no connection becomes the no-route state `noconn`; reached routes are still asked per file (FIX-02; wave 1)
+- [ ] 13-02-PLAN.md — `commandWindows` looks up `sh.exe` (Program Files, Program Files (x86), `%LOCALAPPDATA%\Programs\Git`, `sh` and `git` on PATH) and blocks a BBj write with a message when none exists; exact pin, stdin and ConstrainedLanguage guards with mutation cases, IN-02 gate tightened (FIX-01; wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 13-03-PLAN.md — Bait file arms `windows_codex_backslash_dotdot_skipped`, `sub\.\f.bbj` control, new `tests/test_hook_mutation.sh` (prefix `hookmut_`) keeps the conversion, `..`-check and tier-2-cache mutations in the suite; `sh tests/ci.sh` green (FIX-03, FIX-02; wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 13-04-PLAN.md — Windows run harness: Git Bash launcher that runs the shipped `commandWindows` for every Git layout, the owner's runbook for three real-Codex cases in a throwaway Codex home, the 13-WINDOWS-RUN.md skeleton and a bundle of the commit (FIX-01, SC1; wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 13-05-PLAN.md — Owner run on Windows (blocking checkpoint), recorded in 13-WINDOWS-RUN.md with the install-page sentences and the FIX-01 verdict (FIX-01, SC1; wave 4, owner checkpoint)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 13-06-PLAN.md — Codex page and README state the shipped lookup and its message from the run record, page pin replaced, the timeout paragraph states the tier-2 limit that remains; phase 9 review WR-01..WR-03 and IN-02 marked fixed; Phase 15 note per D-21 (FIX-01, FIX-02, FIX-03; wave 5)
 
 **Notes**:
 - Source of the three warnings: `09-REVIEW.md` and `09-REVIEW-DISPOSITION.md` in `.planning/milestones/v0.2.1-phases/09-windows-and-macos-verification/`.
