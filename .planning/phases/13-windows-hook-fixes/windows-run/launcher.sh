@@ -39,7 +39,7 @@ BASE=$HOME/.cache/bbj-phase13
 HOOKS=$REPO/plugins/bbj/hooks/hooks.json
 # the current pin (13-REVIEW-FIX.md): sha256 of the commandWindows string as hooks.json holds it (before
 # the root is set); rounds 1 and 2 ran the plan 13-02 pin
-PIN_SHA=811fc41546e1b26173b2055bf41f7a179ac19b92e2e6e5952cc42694f4fbb325
+PIN_SHA=fd0ffc864175148b8e08c9263482a349a0100a102e30b403e598ea1c2edc8296
 CLM_PREFIX='$ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"; '
 MARKER=launcher.marker
 OUT=
@@ -198,8 +198,12 @@ jesc() {
 # codex_payload in tests/lib.sh, captured from Codex CLI 0.162.1); PATCHBODY holds the "+" lines of
 # one Add File. One physical line, no trailing newline.
 payload() {
-  _pt=$(printf '*** Begin Patch\n*** Add File: %s\n%s\n*** End Patch' "$2" "$3")
-  printf '%s' '{"session_id":"s1","turn_id":"t1","transcript_path":null,"cwd":"'"$(jesc "$1")"'","hook_event_name":"PostToolUse","model":"m1","permission_mode":"bypassPermissions","tool_name":"apply_patch","tool_input":{"command":"'"$(jesc "$_pt")"'"},"tool_response":"Exit code: 0\nWall time: 0 seconds\nOutput:\nSuccess. Updated the following files:\n","tool_use_id":"u1"}'
+  payload_patch "$1" "$(printf '*** Begin Patch\n*** Add File: %s\n%s\n*** End Patch' "$2" "$3")"
+}
+
+# payload_patch CWDWIN PATCH: the same payload with the whole patch text given
+payload_patch() {
+  printf '%s' '{"session_id":"s1","turn_id":"t1","transcript_path":null,"cwd":"'"$(jesc "$1")"'","hook_event_name":"PostToolUse","model":"m1","permission_mode":"bypassPermissions","tool_name":"apply_patch","tool_input":{"command":"'"$(jesc "$2")"'"},"tool_response":"Exit code: 0\nWall time: 0 seconds\nOutput:\nSuccess. Updated the following files:\n","tool_use_id":"u1"}'
 }
 
 # filler: "+rem" lines, about 11 KB, enough to push a payload past 8192 bytes
@@ -210,8 +214,8 @@ filler() {
 # want_kind CASE: the expectation of the case table
 want_kind() {
   case $1 in
-    default_clean | none_notes) echo clean ;;
-    none_bbj | clm_none_bbj | pwsh_none_bbj | othersh_none_bbj | lad_unset_driveroot_bbj) echo notfound ;;
+    default_clean | none_notes | none_web_src) echo clean ;;
+    none_bbj | clm_none_bbj | pwsh_none_bbj | othersh_none_bbj | lad_unset_driveroot_bbj | none_update_src) echo notfound ;;
     none_long_bbj | none_long_notes) echo notfound_first ;;
     *) echo bbjcpl ;;
   esac
@@ -487,7 +491,7 @@ if not cmd.startswith("*** Begin Patch\n*** Add File: C:\\w\\proj\\bad.bbj\n+pri
   [ "$(check_want notfound_first 0 0 0 '')" != "as expected" ] || _fail "check_want notfound_first silent"
   # the expectation table of the round 3 cases (13-REVIEW-FIX.md)
   for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl \
-    lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound; do
+    lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound none_web_src:clean none_update_src:notfound; do
     [ "$(want_kind "${_k%%:*}")" = "${_k#*:}" ] || _fail "want_kind ${_k%%:*}"
   done
 
@@ -583,6 +587,12 @@ $_fill" > "$OUT/p_long.json"
   payload "$_pw" "$_pw\\notes.md" "+notes" > "$OUT/p_notes.json"
   payload "$_pw" "$_pw\\notes.md" "+notes
 $_fill" > "$OUT/p_longnotes.json"
+  # WR-03: a web file whose text names .src (and .bbj) but whose file name is no BBj file, and an
+  # Update File of an upper-case .SRC file
+  payload "$_pw" "$_pw\\page.html" '+<img src="a.png" onload="this.src = b.src">
++var u = img.src
++see prog.bbj and x.BBX' > "$OUT/p_web.json"
+  payload_patch "$_pw" "$(printf '*** Begin Patch\n*** Update File: %s\n@@\n-rem a\n+rem b\n*** End Patch' "$_pw\\lib\\x.SRC")" > "$OUT/p_updsrc.json"
   [ "$(wc -c < "$OUT/p_long.json" | tr -d ' ')" -gt 8192 ] || exit 1
   [ "$(wc -c < "$OUT/p_longnotes.json" | tr -d ' ')" -gt 8192 ] || exit 1
 
@@ -642,6 +652,8 @@ $_fill" > "$OUT/p_longnotes.json"
   runcase none_notes powershell none "$OUT/p_notes.json"
   runcase none_long_bbj powershell none "$OUT/p_long.json"
   runcase none_long_notes powershell none "$OUT/p_longnotes.json"
+  runcase none_web_src powershell none "$OUT/p_web.json"
+  runcase none_update_src powershell none "$OUT/p_updsrc.json"
   runcase clm_default_bad powershell+clm asis "$OUT/p_bad.json"
   runcase clm_none_bbj powershell+clm none "$OUT/p_bad.json"
   runcase pwsh_default_bad pwsh asis "$OUT/p_bad.json"

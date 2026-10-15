@@ -224,8 +224,13 @@ If none of the five places listed under "Trust the hook in /hooks" holds `sh.exe
 a BBj file is blocked with the message
 `bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.`, followed by
 the places the hook looked and how to fix it: install Git for Windows or put its `bin` folder on
-`PATH`. Edits of other files are not blocked, except a very large change, which gets the same
-message. Codex starts the hook with the `PATH` set in the Windows settings, not one set only in the
+`PATH`. The message comes only for a change that names a BBj file: a file named by an
+`*** Add File:`, `*** Update File:`, `*** Delete File:` or `*** Move to:` line of the patch whose
+name ends in `.bbj`, `.src` or `.bbx`, in any case. The text of the change does not count, so the
+edit of another file is not blocked, even when its text names a BBj file or holds `img.src`. One
+exception: the hook input of a change is one line, and when that line is about 8 KB or longer the
+hook cannot read the file names, so the change gets the same message whatever files it names.
+Codex starts the hook with the `PATH` set in the Windows settings, not one set only in the
 window that started Codex, so Git for Windows must be found through the system or user settings.
 The plugin's `commandWindows` entry ends in `exit $LASTEXITCODE` so that exit code 2 reaches Codex
 as feedback.
