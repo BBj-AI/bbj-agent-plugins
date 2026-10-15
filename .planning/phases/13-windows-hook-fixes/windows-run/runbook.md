@@ -73,11 +73,42 @@ Type these exactly into Codex.
 X1: Use apply_patch to create the file bad.bbj in this folder with exactly this one line and nothing else: print "a"   rem same line
 X3: Use apply_patch to create the file clean.bbj in this folder with exactly this one line: print "a"; rem ok
 X4: Use apply_patch to create the file notes.md in this folder with exactly this one line: notes
+X5: Use apply_patch to create the file page.html in this folder with exactly this one line: <img src="prog.bbj"> img.src x.BBX
 Q:  Quote, word for word, the text the BBj check hook returned after your last file change.
 ```
 
 Q is for when Codex shows no hook text. When the agent starts to fix `bad.bbj` after the feedback,
 press Esc. The reading is the feedback, not the fix.
+
+## Round 3: what to run
+
+Round 3 checks the `commandWindows` string of the review fixes (13-REVIEW-FIX.md). Its sha256 is
+`812f6bbfa6466334d87995c6528f5b0d6f46c83c496e483c1f99533404de3c51`, 1817 characters; the
+launcher's `cmd_sha256` reading must say `equals the launcher pin` (the pin in the launcher is
+this new value).
+
+1. Update the clone: `git -C "$HOME\bbj-p13" pull --ff-only`; `rev-parse --short HEAD` must print
+   the commit the hand-over message names.
+2. W0 and W1 in full (every case of the table, the new ones included), then W5 clean.
+3. Codex uses its own installed copy of the plugin, which still holds the old string. Start from a
+   fresh throwaway Codex home: delete `%USERPROFILE%\.cache\bbj-phase13\codex` (it holds no
+   junction) and the `proj-c1` to `proj-c3` folders, then do the setup block of W2 again
+   (`codex login` once more). Before starting Codex, check that the installed copy is the new one:
+
+   ```
+   Get-ChildItem -Recurse -Filter hooks.json "$HOME\.cache\bbj-phase13\codex" | Get-FileHash
+   Get-FileHash "$HOME\bbj-p13\plugins\bbj\hooks\hooks.json"
+   ```
+
+   The hashes must be equal; say so in `notes`.
+4. W2 (case 1) and W3 (case 2, renamed Git folder, now with X5). The hook command changed, so
+   `/hooks` should ask for trust again: say whether it did in `c1-hooks`. These two cases are
+   what shows, under Codex, that the hook finds its script through `CLAUDE_PLUGIN_ROOT` (WR-04)
+   and that a non-BBj file name stays silent (WR-03).
+5. W4 (case 3) is optional in round 3: under Codex it cannot show which lookup found Git (round 1),
+   and the launcher's `localappdata_bad` and `lad_unset_profile_bad` cases cover the per-user
+   lookup. If you skip it, write `c3-*: not run (optional in round 3)`.
+6. W5, then paste the round 3 reply below with `round: 3`.
 
 ## Steps
 
@@ -217,6 +248,8 @@ In Codex (the hook is already trusted for this home):
    `bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.` Copy what
    Codex shows for `c2-bad`. Silence or "Hook failed" is a reading too, and an important one.
 2. Send X4. Expected: no hook text at all. Copy what Codex shows for `c2-notes`.
+3. From round 3 on, send X5. Expected: no hook text at all (the file name is not a BBj file,
+   whatever its text says; WR-03). Copy what Codex shows for `c2-websrc`.
 
 Say in `c2-method` which folder you renamed, and quit Codex.
 
@@ -278,7 +311,7 @@ Fill every line. Allowed values are shown as `a | b | other: TEXT`. Then add the
 If you decide against the run, reply with `declined: <reason>` only.
 
 ```
-round: 1
+round: <1, 2 or 3>
 date: YYYY-MM-DD
 env-windows: <text from cmd /c ver>
 env-git: <text from git --version>
@@ -295,7 +328,8 @@ c1-clean: silent | feedback | hook failed: TEXT | other: TEXT
 c2-method: renamed Git folder: <folder> | other: TEXT
 c2-bad: blocked by hook with the sh.exe not found message | silent | hook failed: TEXT | other: TEXT
 c2-notes: silent | blocked by hook: TEXT | hook failed: TEXT | other: TEXT
-c3-method: junction | real per-user install
+c2-websrc: silent | blocked by hook: TEXT | hook failed: TEXT | other: TEXT (from round 3 on)
+c3-method: junction | real per-user install | not run (optional in round 3)
 c3-bad: blocked by hook with bbjcpl feedback | silent | hook failed: TEXT | other: TEXT
 c3-clean: silent | feedback | hook failed: TEXT | other: TEXT
 declined: no | <the reason, when you decide against the run>

@@ -299,3 +299,8 @@ Sentences plan 13-06 may copy; each comes from a result block above.
 ## Verdicts
 
 - FIX-01: met
+
+Round 3 pending: the phase 13 code review fixes (13-REVIEW-FIX.md) changed `commandWindows` to sha256
+`812f6bbfa6466334d87995c6528f5b0d6f46c83c496e483c1f99533404de3c51` (1817 characters). The `met` above was
+measured on `ae8707fbeb83c04b531c0c61f84980447d53c9424749d60c73eeb53070697d51` (rounds 1 and 2); FIX-01 is
+re-judged on the new string when round 3 is recorded.
