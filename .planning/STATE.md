@@ -5,16 +5,16 @@ milestone_name: Platform verification and release hygiene
 current_phase: 10
 current_phase_name: Install wording and release 0.2.1
 status: executing
-stopped_at: Completed 10-10-PLAN.md
-last_updated: "2026-10-15T03:00:05.123Z"
-last_activity: 2026-10-14
+stopped_at: Completed 10-11-PLAN.md
+last_updated: "2026-10-15T03:23:53.033Z"
+last_activity: 2026-10-15
 last_activity_desc: Phase 10 execution started
-state_head: 568e65ce1fd01702fe1097c0a7953a7ad463a258
+state_head: a9f1c5b77506f6a266d0d47310a97d8b1d7d3ef5
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 39
-  completed_plans: 34
+  completed_plans: 36
   percent: 75
 ---
 
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-10-13)
 ## Current Position
 
 Phase: 10 (Install wording and release 0.2.1) — EXECUTING
-Plan: 14 of 17 (13 done; next 10-11)
+Plan: 15 of 17 (14 done; next 10-12)
 Status: Ready to execute
-Last activity: 2026-10-15 — Plan 10-10 complete; PR #2 merged (M1 dad18f5), CI green on main, Claude Code install gate from main ok
+Last activity: 2026-10-15 — Plan 10-11 complete; D-19 and D-22 read on Linux (hook hash unchanged, no re-trust asked), D-23 amendment committed locally (de43974), not pushed
 
 Progress: [████████████████████] 22/22 plans ([████████░░] 75%) — phases 3/4 complete
 
@@ -141,6 +141,7 @@ Progress: [████████████████████] 22/22 p
 | Phase 10 P07 | ~50min | 3 tasks | 6 files |
 | Phase 10 P08 | 25min | 2 tasks | 13 files |
 | Phase 10 P09 | 2 sessions | 3 tasks | 3 files |
+| Phase 10 P11 | 20min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -202,6 +203,7 @@ The v0.2.0 decision log is archived with the milestone (`.planning/milestones/v0
 - [Phase 10]: 10-08: UPGRADE_QUOTES are the --remove Next line, the re-trust line and the STATUS_LINE; Not run holds all eight matrix gaps; the D-15 shorthand-install sentence waits for the D-22 reading
 - [Phase 10]: 10-09: CI ShellCheck 0.9.0 flagged SC2317 where local 0.11.0 reports SC2329; the directive in tests/test_path_scrub.sh names both codes; recommend pinning or recording the CI ShellCheck version (follow-up, not implemented)
 - [Phase 10]: 10-10: PR #2 merged with a merge commit M1 dad18f5 (parents f15c257, 9c5a226; tree 8af800f); CI on main and the Claude Code install gate from main pass; the D-22 trust was read from config.toml, not a live hooks_list.py
+- [Phase 10]: 10-11: D-22 recorded as observed on Linux (Codex 0.162.1): hook hash unchanged across 0.2.0 to 0.2.1 and no re-trust asked; 0.2.1 entry amended (Tested against, Not run, Upgrading Codex-plugin bullet); installer-route re-trust sentence left unchanged
 
 ### Pending Todos
 
@@ -232,8 +234,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T03:00:05.006Z
-Stopped at: Completed 10-10-PLAN.md
+Last session: 2026-10-15T03:23:52.920Z
+Stopped at: Completed 10-11-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
