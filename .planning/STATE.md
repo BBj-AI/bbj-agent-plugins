@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 11
 current_phase_name: installer-removal
 status: executing
-stopped_at: Completed 11-02-PLAN.md
-last_updated: "2026-10-15T06:58:52.625Z"
+stopped_at: Completed 11-03-PLAN.md
+last_updated: "2026-10-15T07:16:16.479Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 11 execution started
-state_head: 83aaaad70fefdd8597835eff97e1cf6989f60ab2
+state_head: 6940a470a713015bdb155ceec6a946c4d72e903d
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 11 (installer-removal) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-10-15 — Phase 11 execution started
 
@@ -148,6 +148,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 10 P14 | 15min | 3 tasks | 5 files |
 | Phase 11 P01 | 8 min | 2 tasks | 2 files |
 | Phase 11 P02 | 7 min | 3 tasks | 5 files |
+| Phase 11 P03 | 17 min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -164,6 +165,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 11]: D-16: the Codex apply_patch no-route notice has one plugin-commands text; the hook no longer reads CLAUDE_PLUGIN_ROOT
 - [Phase 11]: D-15: curl_check lost its message-line exclusion; static_curl_unsafe_caught and static_curl_safe_passes keep a mutation proof that it fails an unsafe curl call
 - [Phase 11]: D-10: NOT_RUN_LINES keeps the frozen 0.2.1 text; the retired route word is assembled from pieces (RETIRED_WORD) in tests/test_release_text.py
+- [Phase 11]: D-04/D-05: the Codex page and README say only the Claude Code plugin has the docs_url option; the 2.1.294 subagent claim was removed because no run record backs it
 
 ### Pending Todos
 
@@ -193,8 +195,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T06:58:52.588Z
-Stopped at: Completed 11-02-PLAN.md
+Last session: 2026-10-15T07:16:16.442Z
+Stopped at: Completed 11-03-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
