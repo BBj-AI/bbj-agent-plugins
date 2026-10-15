@@ -21,6 +21,8 @@
 # notice_codex_unset_root, notice_codex_empty_root, notice_codex_one_text); Claude Code keeps its
 # plugin wording, also with the variable set. The variable is set, exported, used and unset as
 # separate statements, never as a prefix on run_check (Pitfall 4).
+# Phase 12 (NAME-02, D-07): both texts name the hosted check as bbj_check_syntax of the docs server bbj
+# (a fragment of notice_text_claude and notice_codex_text).
 # Nothing here runs BBj; there is no compiler and the bbj-ls URL is a closed port.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -102,7 +104,7 @@ if [ "$_nr" = 0 ]; then
   holds_all notice_text_claude "$TEXT" "$FILE" 'was written but not compile-checked' 'no bbjcpl found' \
     'no bbj-ls answering on 127.0.0.1:9' 'Later BBj files in this session are not checked either' \
     'this notice is not repeated' 'bbj_home' 'bbj-local@basis-bbj' 'start BBjServices 26.03' 'the hook does not need it' \
-    'bbj_check_syntax' 'sends the code' 'stock BBj'
+    'bbj_check_syntax' 'sends the code' 'stock BBj' 'bbj_check_syntax of the docs server bbj, the hosted check'
   case "${TEXT##*. }" in
     'Tell the user'*) gate notice_last_sentence ok "the last sentence starts Tell the user" ;;
     *) gate notice_last_sentence FAIL "last sentence: ${TEXT##*. }" ;;
@@ -181,7 +183,8 @@ _nr=$?
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
   holds_all notice_codex_text "$CTEXT" 'BBJ_HOME' 'bbjcpl on PATH' \
     'codex plugin add bbj-local@basis-bbj only gives the model' \
-    'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found'
+    'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found' \
+    'bbj_check_syntax of the docs server bbj, the hosted check'
   holds_none notice_codex_text_no_claude_steps "$CTEXT" 'bbj_home' \
     'The bbj-local@basis-bbj plugin' 'or run codex plugin add' 'running on this machine)'
 else
