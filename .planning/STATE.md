@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 13
 current_phase_name: Windows hook fixes
 status: executing
-stopped_at: Phase 13 context gathered
-last_updated: "2026-10-15T17:56:19.243Z"
+stopped_at: Completed 13-01-PLAN.md
+last_updated: "2026-10-15T18:10:49.464Z"
 last_activity: 2026-10-15
-last_activity_desc: Phase 12 complete, transitioned to Phase 13
-state_head: fde7530246f79ed5e2202eb704f40c33d88a8e3a
+last_activity_desc: Phase 13 execution started
+state_head: 0aad6d63ce159af13b22fe1adbf2fead7550287a
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 10
+  completed_plans: 11
   percent: 40
 ---
 
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 ## Current Position
 
-Phase: 13 (Windows hook fixes) — READY TO EXECUTE
-Plan: Not started
+Phase: 13 (Windows hook fixes) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-10-15 — Phase 12 complete, transitioned to Phase 13
+Last activity: 2026-10-15 — Phase 13 execution started
 
 Progress: [████░░░░░░] 40%
 
@@ -158,6 +158,7 @@ Progress: [████░░░░░░] 40%
 | Phase 12 P03 | 6 min | 2 tasks | 5 files |
 | Phase 12 P04 | 12 min | 2 tasks | 4 files |
 | Phase 12 P05 | 8 min | 2 tasks | 2 files |
+| Phase 13 P01 | 13 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 12]: 12-03: route_order needle is the whole phrase docs server `bbj` (a bare bbj matches inside bbjcpl); notice gates pin the longer fragment 'bbj_check_syntax of the docs server bbj, the hosted check'
 - [Phase 12]: 12-04: Windows and macOS sign-in sentences removed from README and the Codex page, not reworded; sign-in under bbj on those platforms is confirmed in Phase 15 (NAME-03)
 - [Phase 12]: NAME-01 gate layout_no_old_server_name is its own gate in tests/test_layout.py: literal hyphenated name only, case-insensitive, paths and text, .planning/ and CHANGELOG entries up to 0.2.1 exempt, tests and .claude/CLAUDE.md scanned (D-01 to D-03)
+- [Phase 13]: 13-01: tier-2 no-route state for a connect timeout is noconn (not the D-12 example word, which fails the static timeout scan); a bbj-ls that accepts and never answers is a reached route, uncached, up to -m 12 per file (D-11, D-13)
 
 ### Pending Todos
 
@@ -212,9 +214,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T15:59:43.176Z
-Stopped at: Phase 13 context gathered
-Resume file: .planning/phases/13-windows-hook-fixes/13-CONTEXT.md
+Last session: 2026-10-15T18:10:49.389Z
+Stopped at: Completed 13-01-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
