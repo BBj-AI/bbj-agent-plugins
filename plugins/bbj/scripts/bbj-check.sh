@@ -224,7 +224,8 @@ notice() {
     *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or start BBjServices 26.03+ on this machine so that bbj-ls answers. The bbj-local@basis-bbj plugin only gives the model the local bbj_check_syntax tool; the hook does not need it.' ;;
   esac
   _txt="$_files $_were written but not compile-checked: $_why1; $_why2. $_later. $_how"
-  _txt="$_txt Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
+  # phase 12 (NAME-02, D-07): the hosted check is named by role noun and name, the docs server bbj
+  _txt="$_txt Otherwise bbj_check_syntax of the docs server bbj, the hosted check, can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
   _txt="$_txt Tell the user that $_these not compile-checked and how to enable a check."
   # user data (file names) only ever goes in the printf arguments, never in the format
   printf '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' \
