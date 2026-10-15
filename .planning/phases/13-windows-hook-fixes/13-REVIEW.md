@@ -163,6 +163,18 @@ These fall through to the loud branch (not silent), but the docs sentence "the b
 - (d) The new gate prefix `hookmut_` and the `tier2_once_*` / `tier2_every_file_*` names are not yet in the prefix block of `.claude/CLAUDE.md` (planned for Phase 14, MAINT-09).
 **Fix:** No code change required in this phase. Carry (a) to (c) into the Phase 14 install page and the Phase 15 "Not run" list, and (d) into MAINT-09.
 
+**Disposition (2026-10-15, 13-REVIEW-FIX.md):** accepted, no code change. Kept visible here:
+- (a) stays as written: D-11 does not cache a reached route; caching "connected but timed out" needs an owner decision. Stated in the `bbj-check.sh` header and on `docs/install-codex.md`.
+- (b) stays open: the string is still exercised under pwsh 7.6.7 only on Linux with fakes (the review-fix harness, all lookup, filter and root cases, FullLanguage and ConstrainedLanguage). The launcher's `pwsh_*` cases cover it when the owner has pwsh.
+- (c) partly closed: the round 3 launcher cases `othersh_then_git_bad` (a non-Git `sh` before Git's) and `usrbin_on_path_bad` test precedence on PATH, and every case now sets `CLAUDE_PLUGIN_ROOT` as Codex does. The other layouts still offer one location each, and `asis` still inherits the Git Bash environment.
+- (d) not done in this fix run: `.claude/CLAUDE.md` is an agent instruction file, which the fixer does not edit on an agent's request. Carry into MAINT-09 as planned. The lines to add to its prefix block: `test_hook_mutation.sh` `hookmut_`, and for `test_tier2_fake.sh` the free-form `tier2_once_*`, `tier2_every_file_*`, `tier2_transfer_timeout_not_cached` and `tier2_noconn_needs_*`.
+
+Limits that remain after the fixes (accepted, recorded for Phase 14 and Phase 15):
+- WR-04: if `CLAUDE_PLUGIN_ROOT` is unset (a host other than Codex rust-v0.162.1, or a later Codex that stops setting it), the call falls back to the substituted text in a double-quoted string, which has the old exposure. Also, PowerShell parses the whole command before it runs any of it, so a plugin root with an unbalanced `$(` or `${` makes the fallback statement a parse error even when the variable is set. A single-quoted fallback would fail on a `'` instead, which a Windows user name is more likely to hold, so the double quotes stay.
+- WR-02: the per-user item falls back to `USERPROFILE\AppData\Local\Programs`; with both variables unset the per-user location is skipped. The launcher case `lad_unset_driveroot_bbj` reproduces the root-relative probe on a `subst` drive. No case writes to a real drive root.
+- IN-02: shim managers stay out of reach. scoop's `~\scoop\shims\git.exe` gives `~\scoop\bin\sh.exe`, and chocolatey's `C:\ProgramData\chocolatey\bin\git.exe` gives `C:\ProgramData\chocolatey\bin\sh.exe`; neither normally holds `sh.exe` (the review's chocolatey path was one level too high). A miss ends in the loud not-found branch, never in silence. `bin\git.exe` already worked before the fix (its Git folder is the parent of `bin`).
+- WR-03: the filter is a regular expression over the JSON text of the payload. A file name written with a JSON escape other than `\\`, `\/` or `\uXXXX` is not seen as a BBj file; Codex (serde_json) and Claude Code do not write such escapes in a path. A `+` content line that itself reads `*** Add File: x.bbj` counts as a file name: an accepted D-06 false positive.
+
 ---
 
 _Reviewed: 2026-10-15T20:33:49Z_
