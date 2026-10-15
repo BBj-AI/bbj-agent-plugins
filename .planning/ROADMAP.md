@@ -102,13 +102,21 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. A gate fails when `install-codex.sh`, `AGENTS-snippet` or the word "installer" appears in a tracked file outside `.planning/` and the CHANGELOG entries of 0.2.1 and earlier; a planted mention makes it fail. `tests/test_release_text.py` and `tests/test_release_text_mutation.sh` pass at 0.2.1 without reading the installer (INST-02)
   3. On a Codex `apply_patch` payload with no check route, the no-route notice names only the plugin commands (`codex plugin add bbj-local@basis-bbj`), with or without `CLAUDE_PLUGIN_ROOT` set, and the hook has no code path for the installer route. The `plugin_route_` gates still give `bbjcpl` feedback for a bad file and silence for a clean one (INST-03)
   4. The README "Verified" table, the README install text and both install pages no longer describe the installer route. Every per-platform claim left traces to a run record (`08-LINUX-RUN.md`, `09-WINDOWS-RUN.md`, `09-MACOS-RUN.md`, `10-LINUX-RUN.md` in `.planning/milestones/v0.2.1-phases/`); no claim remains that only the installer record `10-WINDOWS-INSTALLER-RUN.md` backed (DOCS-06)
+
 **Plans**: 5 plans
 
 Plans:
+**Wave 1**
 - [ ] 11-01-PLAN.md — Hook gives one Codex no-route text (plugin commands) whether CLAUDE_PLUGIN_ROOT is set, empty or unset; notice gates prove it (INST-03; wave 1)
 - [ ] 11-02-PLAN.md — Release-text, check-order, layout and static gates stop reading the installer and snippet while they still exist (INST-01, INST-02; wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 11-03-PLAN.md — README and both install pages drop the installer route; page pins follow; every per-platform claim traced to a run record in 11-CLAIM-TRACE.md (DOCS-06; wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 11-04-PLAN.md — Delete the installer, snippet, their test, the home guard, fake codex and the snapshot helpers; `sh tests/ci.sh` green (INST-01; wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
 - [ ] 11-05-PLAN.md — `layout_no_retired_route` gate with mutation proof of every scope and exemption; `.claude/CLAUDE.md` cleaned (INST-02; wave 4)
 
 **Notes**:
@@ -129,6 +137,7 @@ Plans:
   2. A gate fails when `bbj-docs` appears in a shipped file (manifests, MCP configs, hook, skills, README, docs) outside the CHANGELOG entries of 0.2.1 and earlier; a planted mention makes it fail (NAME-01)
   3. Both skills, the check-order block (still byte-identical in the two SKILL.md files), the hook's no-route notice and the docs name the server `bbj` and give the sign-in as `/mcp` → `bbj` in Claude Code and `codex mcp login bbj` in Codex. The `notice_`, `checkorder_` and `skills_` gates pass with the new text (NAME-02)
   4. Owner-run, Linux: with the plugin installed from a checkout of this phase, real Claude Code lists the renamed server in `/mcp`, real Codex accepts `codex mcp login bbj`, and the sign-in completes in both. The docs use the label the clients show, and the reading lists what a 0.2.1 user has to redo (sign-in, tool approvals or permission rules kept under the old name) for the Phase 15 Upgrading text (NAME-02)
+
 **Plans**: TBD
 
 **Notes**:
@@ -148,6 +157,7 @@ Plans:
   2. A gate on fakes runs one hook call over a Codex `apply_patch` that writes many BBj files, with no route, on the Windows path (5 s connect timeout): tier 2 is tried once, the other files skip it, and the run ends well under 30 s. When `bbj-ls` answers, every file is still checked. Restoring the per-file connect makes the gate fail (FIX-02)
   3. A mutation run that removes the backslash conversion makes `windows_codex_backslash_dotdot_skipped` fail, and the unmutated tree passes it; the mutation case is kept in the suite (FIX-03)
   4. The exit contract and the safety gates hold after the fixes: exit 0 or 2 with empty stdout, `-N` on every compiler call, loopback-only `curl` with `--noproxy '*'` and `--proto =http`, never the hosted check; `sh tests/ci.sh` passes (FIX-01, FIX-02, FIX-03)
+
 **Plans**: TBD
 
 **Notes**:
@@ -166,6 +176,7 @@ Plans:
   3. One term list is written down in the conventions (`.planning/codebase/CONVENTIONS.md` and `.claude/CLAUDE.md`): plugin `bbj-local` vs server `bbj-ls`, "docs server", "hosted check", "tier 1" and "tier 2". The README, the install page, both skills and the test and gate names follow it, and a gate rejects the retired variants in shipped Markdown; a planted variant makes it fail (NAME-04)
   4. The gate-prefix block in `.claude/CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` lists exactly the prefixes `sh tests/run.sh` prints after this milestone's removals and renames, and a gate fails on a missing or an extra prefix (MAINT-09)
   5. No function, fake, fixture or gate remains whose only user was the installer or another retired feature, and a recorded sweep lists what went. `.planning/codebase/` and the generated sections of `.claude/CLAUDE.md` are refreshed and name neither the installer nor `bbj-docs` (MAINT-10, MAINT-11)
+
 **Plans**: TBD
 
 **Notes**:
@@ -184,6 +195,7 @@ Plans:
   2. Owner-run, Linux at least: on the release tree, real Claude Code and real Codex sign in to the docs server under `bbj`. The Upgrading section states that users sign in again and names each per-server setting they redo, as the Phase 12 reading and this run show (NAME-03)
   3. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
   4. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
+
 **Plans**: TBD
 
 **Notes**:
