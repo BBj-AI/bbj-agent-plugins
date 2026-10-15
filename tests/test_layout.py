@@ -15,6 +15,9 @@ Phase 12 (NAME-01; D-01 to D-03): layout_no_old_server_name scans the same track
 same CHANGELOG cut for the docs server's old name (a literal, case-insensitive match in paths and
 text); the layout_mutation_old_server_name_* cases plant it in each scope and each exemption, and
 plant two other spellings it does not match.
+Phase 13 (FIX-01; D-01 to D-09): pins the new commandWindows of plugins/bbj/hooks/hooks.json
+exactly (layout_hook_command_windows): the ordered lookup of Git for Windows' sh.exe, the loud
+not-found branch and the exit-code passthrough. It pins text; the Windows run is 13-WINDOWS-RUN.md.
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -45,12 +48,34 @@ OAUTH_CLIENT_ID = "oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t"
 OAUTH_PORT = 47613
 OAUTH_SCOPES = "offline_access"
 HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
-# D-11 of phase 9: Codex's Windows override of the hook command, as the owner chose it for W-1 (the
-# 8.3 path of Git for Windows' sh.exe, unquoted, because Codex starts the hook through Windows
-# PowerShell where sh is not on the PATH and where a quoted first token is a parse error; the
-# trailing exit keeps exit code 2, which a PowerShell -Command wrapper rewrites to 1). This pins
-# text, not behaviour: PowerShell cannot run in CI. The plan 09-06 re-run on Windows shows it works.
-HOOK_COMMAND_WINDOWS = 'C:\\PROGRA~1\\Git\\bin\\sh.exe "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"; exit $LASTEXITCODE'
+# Phase 13 (FIX-01; D-01 to D-09): Codex's Windows override of the hook command. Codex runs it through
+# PowerShell (pwsh before Windows PowerShell 5.1), so the string is written in the 5.1 subset. It tries
+# $env:ProgramFiles, ${env:ProgramFiles(x86)} and $env:LOCALAPPDATA\Programs (each followed by
+# \Git\bin\sh.exe), then sh from Get-Command, then bin\sh.exe next to the directory of git from
+# Get-Command (statements 2 to 4; an empty variable is skipped, one match is taken), and runs the first
+# that exists. The not-found branch (statement 5) reads the payload only through the native findstr,
+# because the PowerShell host swallows all of stdin when the command text names the automatic input
+# variable anywhere, even in a branch that never runs, and sh.exe would then inherit nothing. It stays
+# silent only when findstr exited 0, read every payload line in full (each output element is N:text) and
+# no line names a BBj file (ROADMAP SC1: never a silent no-op: a line findstr cannot read in full, such
+# as one over its 8191-byte limit on piped input, is reported); otherwise it writes three fixed lines to
+# stderr through cmd and exits 2 (accepted D-06 false positive: a non-BBj payload line findstr cannot
+# read in full is reported too). There are no method calls and no type literals, so the string also runs
+# under ConstrainedLanguage (D-05). The string ends with the exit-code passthrough that keeps exit
+# code 2, which a PowerShell -Command wrapper rewrites to 1; statement 7 turns a launch that never set
+# an exit code into exit 1. The logic stays inline (D-08). This pins text, not behaviour: PowerShell
+# cannot run in CI; the Windows run is recorded in 13-WINDOWS-RUN.md.
+HOOK_COMMAND_WINDOWS_STATEMENTS = (
+    r'$s = $null',
+    r'foreach ($r in $env:ProgramFiles, ${env:ProgramFiles(x86)}, "$env:LOCALAPPDATA\Programs") { if ($r -and -not $s) { $p = "$r\Git\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } }',
+    r'if (-not $s) { $c = Get-Command sh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($c) { $s = $c.Source } }',
+    r"if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $p = (Split-Path -Parent (Split-Path -Parent $g.Source)) + '\bin\sh.exe'; if (Test-Path -LiteralPath $p) { $s = $p } } }",
+    r'if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }',
+    r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"',
+    r'if ($null -eq $LASTEXITCODE) { exit 1 }',
+    r'exit $LASTEXITCODE',
+)
+HOOK_COMMAND_WINDOWS = "; ".join(HOOK_COMMAND_WINDOWS_STATEMENTS)
 # D-10: the seven identity fields the Codex overlay copies from the Claude manifest, and the
 # relative path of its MCP file
 SHARED_FIELDS = ("name", "version", "description", "author", "homepage", "license", "keywords")

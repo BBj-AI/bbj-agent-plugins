@@ -7,7 +7,7 @@
           {
             "type": "command",
             "command": "sh \"${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh\"",
-            "commandWindows": "C:\\PROGRA~1\\Git\\bin\\sh.exe \"${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh\"; exit $LASTEXITCODE",
+            "commandWindows": "$s = $null; foreach ($r in $env:ProgramFiles, ${env:ProgramFiles(x86)}, \"$env:LOCALAPPDATA\\Programs\") { if ($r -and -not $s) { $p = \"$r\\Git\\bin\\sh.exe\"; if (Test-Path -LiteralPath $p) { $s = $p } } }; if (-not $s) { $c = Get-Command sh -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($c) { $s = $c.Source } }; if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $p = (Split-Path -Parent (Split-Path -Parent $g.Source)) + '\\bin\\sh.exe'; if (Test-Path -LiteralPath $p) { $s = $p } } }; if (-not $s) { $o = findstr /n /r \"^\" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch \"^[0-9]+:\") -and -not ($o -match \"\\.(bbj|src|bbx)\")) { exit 0 }; cmd /c \"echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2\"; exit 2 }; & $s \"${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh\"; if ($null -eq $LASTEXITCODE) { exit 1 }; exit $LASTEXITCODE",
             "timeout": 30,
             "statusMessage": "BBj compile-only check"
           }
