@@ -166,20 +166,32 @@ change the FIX-01 verdict; fixed after the run, at the owner's request, in faf50
 - H1, `launcher.sh selftest`: refused with `python3 json.load`, because `command -v python3`
   finds the Microsoft Store alias stub in `<home>\AppData\Local\Microsoft\WindowsApps`, which
   exits non-zero. With that folder off PATH, `selftest ok`. A fix would run the python3
-  cross-check only when `python3 -I -c pass` succeeds. Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
+  cross-check only when `python3 -I -c pass` succeeds. Verdict: defect, fixed in faf5008, re-run met (round 2).
 - H2, `launcher.sh run` and `clean`: refused (`Git root C:\Program Files\Git holds no bin\sh.exe`),
   because `cygpath -u` of the Git root is `/` in Git Bash, so the test path becomes `//bin/sh.exe`,
   which MSYS reads as a UNC path; the script's own `drivepath` helper exists for this. The owner
   patched the two lines (`GIT_U=$(drivepath "$GITW")` in do_run, `_gu=$(drivepath "$_gw")` in
   do_clean) in the clone; the launcher block and the W5 clean are from the patched launcher.
-  Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
+  Verdict: defect, fixed in faf5008, re-run met (round 2).
 - H3, `checkout: unknown` in the launcher block: with MSYS_NO_PATHCONV=1 exported, native git.exe
   cannot change to the MSYS path of the clone. Cosmetic; `git rev-parse` outside the launcher gives
-  fe5bc6a. Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
+  fe5bc6a. Verdict: defect, fixed in faf5008, re-run met (round 2).
 - H4, runbook W2 to W4 start Codex as plain `codex`: Codex's automatic approval refused both
   apply_patch writes as outside the project, so the hook was never reached. The Phase 10 runbook
   used `codex -a on-request` for this reason. Re-run with `codex -a on-request`, approving each
-  apply_patch; the readings above are from that run. Verdict: fixed in faf5008, not re-run on Windows (harness only; the FIX-01 readings above stand).
+  apply_patch; the readings above are from that run. Verdict: defect, fixed in faf5008, re-run met (round 2).
+
+Reading 2026-10-15, round 2
+
+The owner re-ran the committed harness at 81f1b5c (clone clean, the local patch discarded):
+
+        H1: selftest with the Store python3 stub first on PATH: selftest ok, rc 0
+        H2: run as committed: no refusal; summary 15 as expected, 0 differs, 2 not run (pwsh absent); cmd_sha256 equals the plan 13-02 pin; clean as committed: cleaned <home>/.cache/bbj-phase13/launcher, rc 0, C:\Program Files\Git\bin\sh.exe present
+        H3: checkout: 81f1b5c
+        H4: runbook W2 to W4 start Codex as codex -a on-request and say to approve each apply_patch; W3 hides Git by renaming its folder; W4 points to localappdata_bad for the per-user lookup
+
+The Codex cases were not repeated: the hook string is unchanged (same sha256) and the fixes touch
+only the harness and the runbook.
 
 Observations, not defects:
 
@@ -259,6 +271,18 @@ notes: |
   11. Why W3 found Git: nothing on the filtered PATH offers sh.exe or git.exe (checked the registry PATH, Machine plus User, with the runbook filter applied: no sh.exe, git.exe or bash.exe in any remaining entry; TortoiseGit\bin holds none; GitHub Desktop's embedded Git is not on PATH). With the same five lookups, the launcher's none_bbj case run directly through PowerShell produced the not-found message. So the environment Codex hands to the hook's PowerShell process is not the window's environment: ProgramFiles and PATH were back to the real values. Codex here runs with [windows] sandbox = "unelevated" and sandbox_policy workspace-write. The environment-override method therefore cannot test case 2 under Codex 0.162.1 on Windows; only the renamed-folder method can.
       Consistent with the published description of the Codex Windows sandbox: before a child process launches, "HOME, PATH and a curated allowlist are rebuilt from scratch" (https://codex.danielvaughan.com/2026/04/08/codex-sandbox-platform-implementation/; Codex Windows docs https://developers.openai.com/codex/windows.md). A hook run that way sees the registry PATH and the real ProgramFiles, whatever the launching window set.
   12. In the renamed-folder W3 run, Codex's own follow-up shell command (a PowerShell one-liner reading bad.bbj with [System.IO.File]::ReadAllText) failed with MethodInvocationNotSupportedInConstrainedLanguage. That is the agent's verification step, not the hook, but it shows Codex's Windows sandbox runs PowerShell in ConstrainedLanguage mode, which is why the clm_* launcher cases matter. The hook message itself came through complete in that mode.
+```
+
+Reply of 2026-10-15, round 2, verbatim:
+
+```text
+verification of H1-H4 at 81f1b5c (Windows, 2026-10-15)
+clone: git -C ~/bbj-p13 checkout -- .planning, then pull --ff-only; HEAD 81f1b5c, working tree clean (my local patch discarded, the committed change is identical)
+H1: `launcher.sh selftest` with the Store python3 stub still first on PATH (command -v python3 = <home>/AppData/Local/Microsoft/WindowsApps/python3): prints `selftest ok`, rc 0. Fixed.
+H2: `launcher.sh run <home>/.cache/bbj-phase13/launcher` as committed: no refusal; block identical to round 1 except date and checkout; summary 15 as expected, 0 differs, 2 not run (pwsh absent); cmd_sha256 equals the plan 13-02 pin. `launcher.sh clean` as committed: `cleaned <home>/.cache/bbj-phase13/launcher`, rc 0, folder gone, C:\Program Files\Git\bin\sh.exe present. Fixed.
+H3: block line now reads `checkout: 81f1b5c`. Fixed.
+H4: runbook W2 (line 135) and W3, W4 start Codex as `codex -a on-request`; line 140 says to approve each apply_patch. W3 hides Git only by renaming C:\Program Files\Git to Git-off in an elevated prompt and renames it back before W4 and W5. W4 states that a junction under a changed LOCALAPPDATA cannot show which lookup found Git under Codex and points to localappdata_bad. Matches what was done in round 1.
+Codex cases not repeated: the hook string is unchanged (same SHA), the fixes touch only the harness and runbook.
 ```
 
 ## For the install page
