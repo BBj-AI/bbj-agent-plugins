@@ -23,7 +23,8 @@ method call, no short-name path, no unconditional per-user item) and layout_hook
 silent-exit condition, the loud branch before the call, the passthrough last); the six
 layout_mutation_hook_windows_* cases plant each trap (input variable, method call, short name,
 changed passthrough, moved branch, weaker silent-exit test), and one case per review fix of
-13-REVIEW.md takes its fix back out (any_sh: WR-01; localappdata: WR-02; any_mention: WR-03).
+13-REVIEW.md takes its fix back out (any_sh: WR-01; localappdata: WR-02; any_mention: WR-03;
+root_text: WR-04).
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -76,7 +77,12 @@ HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # (review WR-03: the text of a change, such as img.src in a web file, never counts). ROADMAP SC1, never a
 # silent no-op: a line findstr cannot read in full, such as one over its 8191-byte limit on piped input,
 # is reported (accepted D-06 false positive: a non-BBj payload that long is reported too). Otherwise it
-# writes three fixed lines to stderr through cmd and exits 2. There are no method calls and no type
+# writes three fixed lines to stderr through cmd and exits 2. The call takes the script path from
+# $env:CLAUDE_PLUGIN_ROOT, which Codex sets for a plugin hook (codex rust-v0.162.1 discovery.rs), because
+# PowerShell never expands a variable's value again: a $ or a backtick in the plugin root (a Windows user
+# name may hold both) is kept as it is (review WR-04). Only when the variable is unset does the call
+# fall back to the ${CLAUDE_PLUGIN_ROOT} text that Codex substitutes into the command, inside a
+# double-quoted string. There are no method calls and no type
 # literals, so the string also runs under ConstrainedLanguage (D-05). The string ends with the exit-code
 # passthrough that keeps exit code 2, which a PowerShell -Command wrapper rewrites to 1; the statement
 # before it turns a launch that never set an exit code into exit 1. The logic stays inline (D-08). This
@@ -88,7 +94,9 @@ HOOK_COMMAND_WINDOWS_STATEMENTS = (
     r'if (-not $s) { foreach ($c in (Get-Command sh -CommandType Application -ErrorAction SilentlyContinue)) { $q = Split-Path -Parent (Split-Path -Parent $c.Source); if ($q -and -not $s -and ((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source } } }',
     r"if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $p = (Split-Path -Parent (Split-Path -Parent $g.Source)) + '\bin\sh.exe'; if (Test-Path -LiteralPath $p) { $s = $p } } }",
     r'''if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }''',
-    r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"',
+    r'$b = "$env:CLAUDE_PLUGIN_ROOT/scripts/bbj-check.sh"',
+    r'if (-not $env:CLAUDE_PLUGIN_ROOT) { $b = "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh" }',
+    r'& $s $b',
     r'if ($null -eq $LASTEXITCODE) { exit 1 }',
     r'exit $LASTEXITCODE',
 )
@@ -119,7 +127,9 @@ WINDOWS_PARTS = (
     r'''if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }''',
     r'Git for Windows sh.exe not found',
     r'exit 2 }',
-    r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"',
+    r'$b = "$env:CLAUDE_PLUGIN_ROOT/scripts/bbj-check.sh"',
+    r'if (-not $env:CLAUDE_PLUGIN_ROOT) { $b = "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh" }',
+    r'& $s $b',
 )
 # D-10: the seven identity fields the Codex overlay copies from the Claude manifest, and the
 # relative path of its MCP file
@@ -296,7 +306,7 @@ problems = ["missing %r" % (p,) for p in missing]
 if not cw.endswith("exit $LASTEXITCODE"):
     problems.append("does not end with the exit-code passthrough")
 if not missing:
-    if cw.index("exit 2 }") > cw.index('& $s "'):
+    if cw.index("exit 2 }") > cw.index('& $s $b'):
         problems.append("the not-found branch (exit 2 }) does not come before the call")
 gate("hook_windows_parts", not problems,
      ("; ".join(problems)) if problems else "all %d parts present, passthrough last, not-found branch before the call" % len(WINDOWS_PARTS))
@@ -686,7 +696,7 @@ if len(sys.argv) == 1:
     AUTO_INPUT = "$" + "input"
     SILENT_EXIT = r'''if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }'''
     NOT_FOUND_START = "if (-not $s) { $o = findstr"
-    CALL_START = '& $s "'
+    CALL_START = '& $s $b'
 
     def windows_input(dst):
         edit_windows(dst, lambda v: v.replace("$s = $null", "$s = $null; $x = @(" + AUTO_INPUT + ")", 1))
@@ -731,6 +741,13 @@ if len(sys.argv) == 1:
     def windows_any_mention(dst):
         edit_windows(dst, lambda v: v.replace(NAME_MATCH, r'-not ($o -match "\.(bbj|src|bbx)")', 1))
 
+    # review WR-04: the plugin root is read from the substituted text only, inside a double-quoted
+    # string, so PowerShell expands a $ or a backtick in it
+    ROOT_FROM_ENV = r'$b = "$env:CLAUDE_PLUGIN_ROOT/scripts/bbj-check.sh"; if (-not $env:CLAUDE_PLUGIN_ROOT) { $b = "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh" }; & $s $b'
+
+    def windows_root_text(dst):
+        edit_windows(dst, lambda v: v.replace(ROOT_FROM_ENV, r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"', 1))
+
     def windows_localappdata(dst):
         edit_windows(dst, lambda v: v.replace(PER_USER + ")", r'"$env:LOCALAPPDATA\Programs")', 1))
 
@@ -759,6 +776,8 @@ if len(sys.argv) == 1:
     mutation_case("hook_windows_localappdata", [HOOKS_FILE], windows_localappdata,
                   ["hook_command_windows", "hook_windows_safe", "hook_windows_parts"])
     mutation_case("hook_windows_any_mention", [HOOKS_FILE], windows_any_mention,
+                  ["hook_command_windows", "hook_windows_parts"])
+    mutation_case("hook_windows_root_text", [HOOKS_FILE], windows_root_text,
                   ["hook_command_windows", "hook_windows_parts"])
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])

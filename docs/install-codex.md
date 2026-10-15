@@ -233,7 +233,9 @@ hook cannot read the file names, so the change gets the same message whatever fi
 Codex starts the hook with the `PATH` set in the Windows settings, not one set only in the
 window that started Codex, so Git for Windows must be found through the system or user settings.
 The plugin's `commandWindows` entry ends in `exit $LASTEXITCODE` so that exit code 2 reaches Codex
-as feedback.
+as feedback. It takes the plugin folder from the `CLAUDE_PLUGIN_ROOT` variable that Codex sets for
+the hook, so a `$` or a backtick in that path (a Windows user name may hold either) reaches `sh` as
+written.
 
 Not run: Git for Windows on another drive or under a custom install folder, a real per-user Git for
 Windows install (a junction stood in for it), PowerShell 7 (`pwsh`), and Windows PowerShell under a
