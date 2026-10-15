@@ -62,11 +62,33 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| INST-01 | Phase 11 | Pending |
+| INST-02 | Phase 11 | Pending |
+| INST-03 | Phase 11 | Pending |
+| INST-04 | Phase 15 | Pending |
+| NAME-01 | Phase 12 | Pending |
+| NAME-02 | Phase 12 | Pending |
+| NAME-03 | Phase 15 | Pending |
+| NAME-04 | Phase 14 | Pending |
+| DOCS-05 | Phase 14 | Pending |
+| DOCS-06 | Phase 11 | Pending |
+| DOCS-07 | Phase 14 | Pending |
+| FIX-01 | Phase 13 | Pending |
+| FIX-02 | Phase 13 | Pending |
+| FIX-03 | Phase 13 | Pending |
+| MAINT-09 | Phase 14 | Pending |
+| MAINT-10 | Phase 14 | Pending |
+| MAINT-11 | Phase 14 | Pending |
+| REL-09 | Phase 15 | Pending |
+| REL-10 | Phase 15 | Pending |
 
 **Coverage:**
 - v0.2.2 requirements: 19 total
-- Mapped to phases: 0 (roadmap pending)
+- Mapped to phases: 19
+- Unmapped: 0
+
+Per phase: Phase 11 (4), Phase 12 (2), Phase 13 (3), Phase 14 (6), Phase 15 (4).
 
 ---
 *Requirements defined: 2026-10-15*
-*Last updated: 2026-10-15 after initial definition*
+*Last updated: 2026-10-15 after roadmap creation (traceability filled)*

@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v0.2.2
 milestone_name: Plugin-only cleanup
 status: planning
-last_updated: "2026-10-15T05:40:09.395Z"
+last_updated: "2026-10-15T05:52:42.000Z"
 last_activity: 2026-10-15
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Planning next milestone (v0.2.1 shipped and archived 2026-10-15)
+**Current focus:** Phase 11 — Installer removal (milestone v0.2.2 Plugin-only cleanup, Phases 11-15)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-10-15 — Milestone v0.2.2 started
+Phase: 11 of 15 (Installer removal) — first of 5 phases in v0.2.2
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-15 — Roadmap for v0.2.2 created (Phases 11-15, 19/19 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -146,19 +148,26 @@ Last activity: 2026-10-15 — Milestone v0.2.2 started
 
 The v0.2.0 and v0.2.1 decision logs are archived with their milestones (`.planning/milestones/v0.2.0-phases/`, `.planning/milestones/v0.2.1-phases/`); the lasting decisions are in the Key Decisions table of PROJECT.md.
 
+Roadmap v0.2.2 (2026-10-15):
+
+- [Roadmap]: Five phases, 11-15: installer removal → rename `bbj-docs` → `bbj` → Windows hook fixes (may run alongside the rename) → one install page, one term list and the maintenance sweep → release 0.2.2
+- [Roadmap]: INST-04 and NAME-03 map to Phase 15: `changelog_heading` requires the newest CHANGELOG heading to be the current version and allows no placeholder entry, so the `## 0.2.2` lines can only land in the bump commit. Phase 12 still takes an owner sign-in reading on Linux so the docs name the label the clients show
+- [Roadmap]: DOCS-06 maps to Phase 11: the `install-codex.sh` gate (INST-02) forces the README table and install wording to drop the installer route in the same phase
+- [Roadmap]: The installer mentions in `.claude/CLAUDE.md` and `.planning/codebase/` go with the map refresh in Phase 14 (MAINT-11), since those sections are generated
+
 ### Pending Todos
 
-- `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` (oauth): client id as a setting, rename `bbj-docs` → `bbj`; acknowledged at the v0.2.1 close
+- `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` (oauth): client id as a setting, rename `bbj-docs` → `bbj`; acknowledged at the v0.2.1 close. The rename is Phase 12 (NAME-01, NAME-02) with the CHANGELOG line in Phase 15 (NAME-03); the client id as a setting is out of scope for v0.2.2
 
 ### Blockers/Concerns
 
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
-- [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Also open: the README macOS Claude Code cell qualifier (10-VERIFICATION.md)
+- [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Closed by the installer removal in v0.2.2 Phase 11 (out of scope in REQUIREMENTS.md). The README macOS Claude Code cell qualifier (10-VERIFICATION.md) is v0.2.2 Phase 14 (DOCS-07)
 - [Phase 10]: The `## 0.2.0` CHANGELOG entry on `main` differs from tag `0.2.0`: commits from phases 06, 07, 08 and a quick task edited it and PR #2 published them (10-SECURITY.md observation 1); Phase 10's own commits leave it byte-identical
 - [Phase 10]: The dev path `/home/coder` appears in `evidence/install-gate-main.txt` and `evidence/install-gate-pr.txt` (local, unpushed) and in `10-RESEARCH.md` and `10-VALIDATION.md` (already pushed); scrub before the next planning-branch push
 - [Phase 10]: Planning branch `gsd/planning-setup` is ahead of `origin/gsd/planning-setup` (148 commits, including the merge-back of main); not pushed
-- [Phase 10]: CI ShellCheck is 0.9.0 and local is 0.11.0; the SC2317/SC2329 directive covers both, pinning or recording the CI version is not done (10-09)
-- [Phase 9]: Code review 09-REVIEW.md left three warnings open in 09-REVIEW-DISPOSITION.md: WR-01 `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (a non-default Git location fails, and probably silently); WR-02 the 5 s Windows tier-2 connect timeout is paid per file, so a many-file `apply_patch` with no route can hit the 30 s hook timeout; WR-03 `windows_codex_backslash_dotdot_skipped` also passes without the backslash conversion (the property is covered by the sibling gates, not independently). Phase 10 stated the WR-01 limit in the install wording and replaced the hardcoded launcher in the installer (D-27..D-29); WR-02/WR-03 stay candidates for a later fix
+- [Phase 10]: CI ShellCheck is 0.9.0 and local is 0.11.0; the SC2317/SC2329 directive covers both, pinning or recording the CI version is not done (10-09); listed under Future Requirements in REQUIREMENTS.md, not in v0.2.2
+- [Phase 9]: Code review 09-REVIEW.md left three warnings open in 09-REVIEW-DISPOSITION.md: WR-01 `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (a non-default Git location fails, and probably silently); WR-02 the 5 s Windows tier-2 connect timeout is paid per file, so a many-file `apply_patch` with no route can hit the 30 s hook timeout; WR-03 `windows_codex_backslash_dotdot_skipped` also passes without the backslash conversion (the property is covered by the sibling gates, not independently). Phase 10 stated the WR-01 limit in the install wording and replaced the hardcoded launcher in the installer (D-27..D-29). All three are v0.2.2 Phase 13 (FIX-01..FIX-03); FIX-01 needs an owner run on Windows or a recorded known gap
 
 ## Deferred Items
 
@@ -175,12 +184,12 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-15
-Stopped at: Milestone v0.2.1 completed and archived
+Stopped at: Roadmap for milestone v0.2.2 created (Phases 11-15); Phase 11 ready to plan
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Discuss or plan the first phase: /gsd-discuss-phase 11, then /gsd-plan-phase 11
 
 ### Quick Tasks Completed
 
