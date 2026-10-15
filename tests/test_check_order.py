@@ -1,5 +1,5 @@
 """tests/test_check_order.py -- plan 01-05, LOCAL-05 (decisions D-01..D-07): pins the check-order
-block that codex/AGENTS-snippet.md and both SKILL.md files carry byte for byte.
+block that both SKILL.md files carry byte for byte.
 
 The block sits between <!-- bbj-check-order:begin --> and <!-- bbj-check-order:end --> (D-05).
 This test extracts the text between the markers of each copy and compares exact bytes: no strip,
@@ -21,7 +21,6 @@ ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
 BEGIN = "<!-- bbj-check-order:begin -->"
 END = "<!-- bbj-check-order:end -->"
 FILES = {
-    "snippet": "codex/AGENTS-snippet.md",
     "bbj_programming": "plugins/bbj/skills/bbj-programming/SKILL.md",
     "bbj_web_programming": "plugins/bbj/skills/bbj-web-programming/SKILL.md",
 }
@@ -33,8 +32,6 @@ QUALIFIED = "mcp" + "__"
 MATCHER = "Write" + "|Edit"
 PATCH_TOOL = "apply" + "_patch"
 HOST = "mcp.bbj" + "-ai.com"
-OLD_CHECK_OPENING = "Check" + ": after each"
-SHELL_SENTENCE = "files written through shell commands are not checked"
 TOOL_BULLET = re.compile(r"^- `bbj_[a-z_]*`:")
 
 failed = False
@@ -77,20 +74,21 @@ for tag, rel in FILES.items():
              rel, len(begins), len(ends), "in order" if ordered else "not in order",
              len([l for l in body.split("\n") if l.strip()])))
 
-snippet_text = texts.get("snippet")
-differs = [tag for tag in SKILLS if texts.get(tag) is None or texts.get(tag) != snippet_text]
-gate("identical", snippet_text is not None and not differs,
-     "all three copies equal" if not differs and snippet_text is not None
-     else "%s differs from the snippet copy" % (differs[0] if differs else "snippet"))
+unreadable = [tag for tag in SKILLS if texts.get(tag) is None]
+differs = [] if unreadable else [tag for tag in SKILLS[1:] if texts.get(tag) != texts.get(SKILLS[0])]
+gate("identical", not unreadable and not differs,
+     "both SKILL.md copies equal" if not unreadable and not differs
+     else "%s unreadable" % unreadable[0] if unreadable
+     else "%s differs from %s" % (differs[0], SKILLS[0]))
 
 # route order and disclosure (D-01, D-04; T-01-13): hosted check last, with the disclosure phrases
-block = snippet_text if snippet_text is not None else ""
+block = texts.get("bbj_programming") or ""
 needed = ["bbjcpl -t -N -X <file>", "writes no output files", "stderr", "bbj_check_syntax",
           "the hosted check", "without asking", "sent to the server", "stock BBj"]
 missing = [s for s in needed if s not in block]
 pos = [block.find(s) for s in ("bbjcpl", "bbj-local", "bbj-docs")]
 in_order = -1 not in pos and pos[0] < pos[1] < pos[2]
-gate("route_order", snippet_text is not None and not missing and in_order,
+gate("route_order", texts.get("bbj_programming") is not None and not missing and in_order,
      "bbjcpl, bbj-local, bbj-docs in that order, disclosure phrases present"
      if not missing and in_order else
      "missing %s; positions bbjcpl/bbj-local/bbj-docs %s" % (missing, pos))
@@ -122,24 +120,10 @@ for tag in SKILLS:
          "frontmatter close %s, begin %s, first H1 %s, or text between the frontmatter and the block"
          % (close, begins, h1))
 
-# snippet: the old Check paragraph is gone, the Codex-only sentence stays outside the block (D-07)
-lines = read_lines(FILES["snippet"]) or []
-begins, ends = markers(lines)
-outside = lines
-if len(begins) == 1 and len(ends) == 1 and begins[0] < ends[0]:
-    outside = lines[:begins[0]] + lines[ends[0] + 1:]
-old_back = [l for l in lines if l.startswith(OLD_CHECK_OPENING)]
-shell_ok = SHELL_SENTENCE in "\n".join(outside).lower()
-built_in = any(l.startswith("Built in: no USE needed.") for l in outside)
-gate("snippet_check_paragraph_replaced", not old_back and shell_ok and built_in,
-     "old paragraph gone, shell-command sentence and Built in line outside the block"
-     if not old_back and shell_ok and built_in else
-     "old opening back: %d, shell sentence outside: %s, Built in line outside: %s"
-     % (len(old_back), shell_ok, built_in))
-
-# no tool bullets (keeps tools_list_single_source reading exactly the five docs tools)
+# no tool bullets in the block: the block names routes, not the docs tools (keeps
+# tools_list_single_source reading exactly the five docs tools)
 bullets = [l for l in block.split("\n") if TOOL_BULLET.match(l)]
-gate("no_tool_bullets", snippet_text is not None and not bullets,
+gate("no_tool_bullets", texts.get("bbj_programming") is not None and not bullets,
      "no '- `bbj_...`:' line in the block" if not bullets else "tool bullet in the block: %s" % bullets[0])
 
 sys.exit(1 if failed else 0)
