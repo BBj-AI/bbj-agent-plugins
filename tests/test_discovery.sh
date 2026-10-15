@@ -4,6 +4,7 @@
 # ran; nothing is compiled or run.
 # Phase 9 (plan 09-01, PLAT-02, D-12): drive-letter, backslash and space paths through the fake
 # cygpath seam FAKE_CYGDRIVE_ROOT.
+# Phase 13 (FIX-03, D-16, D-17) arms the backslash gate with a bait file and adds a control.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -289,13 +290,25 @@ wpatch_gate windows_codex_absolute 'C:\Users\x\bbj test' 'C:\Users\x\bbj test\su
 # segment that only a backslash hides must still leave the workspace and be skipped.
 wpatch_gate windows_codex_backslash_relative 'C:\Users\x\bbj test' 'sub\f.bbj'
 wpatch_gate windows_codex_verbatim_prefix '\\?\C:\Users\x\bbj test' '\\?\C:\Users\x\bbj test\sub\f.bbj'
+# Phase 13 (FIX-03, D-16; review WR-03 of phase 9): a real file inside the workspace carries the
+# literal name sub\..\..\x.bbj. Without the backslash conversion the hook would find that file and
+# compile it, so the gate fails; with the ".." check gone the converted path resolves to the
+# outside file x.bbj, which is compiled, so the gate fails then too. The old gate passed with the
+# conversion removed because the unconverted name did not exist.
+BAIT=$WORK'/drive/Users/x/bbj test/sub\..\..\x.bbj'
 : > "$WORK/drive/Users/x/x.bbj"
-wpatch 'C:\Users\x\bbj test' 'sub\..\..\x.bbj'
-_n=$(grep -c '^CALL$' "$FAKE_LOG")
-if [ "$_n" = 0 ] && [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
-  gate windows_codex_backslash_dotdot_skipped ok "sub\\..\\..\\x.bbj leaves the workspace: no compiler call, exit 0, silent"
+if ( : > "$BAIT" ) 2> /dev/null && [ -f "$BAIT" ]; then
+  wpatch 'C:\Users\x\bbj test' 'sub\..\..\x.bbj'
+  _n=$(grep -c '^CALL$' "$FAKE_LOG")
+  if [ "$_n" = 0 ] && [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+    gate windows_codex_backslash_dotdot_skipped ok "the bait sub\\..\\..\\x.bbj inside the workspace and x.bbj outside are both left alone: no compiler call, exit 0, silent"
+  else
+    gate windows_codex_backslash_dotdot_skipped FAIL "calls $_n, exit $RC, stdout $(wc -c < "$WORK/stdout") byte(s), stderr $(wc -c < "$WORK/stderr") byte(s)"
+  fi
+elif [ "${CI:-}" = true ]; then
+  gate windows_codex_backslash_dotdot_skipped FAIL "this file system cannot hold a file name with a backslash"
 else
-  gate windows_codex_backslash_dotdot_skipped FAIL "calls $_n, exit $RC, stdout $(wc -c < "$WORK/stdout") byte(s), stderr $(wc -c < "$WORK/stderr") byte(s)"
+  gate windows_codex_backslash_dotdot_skipped skip "this file system cannot hold a file name with a backslash"
 fi
 unset BBJ_HOME
 
