@@ -379,6 +379,12 @@ oncegate tier2_once_windows_connect_timeout 28 '0.000000 ' 1 '(connect timed out
 # D-11, D-15 case 2: a transfer timeout after a connection was made is a reached route, never cached:
 # curl is asked once per file and the call stays silent
 oncegate tier2_transfer_timeout_not_cached 28 '0.000129 127.0.0.1' 12 silent
+# review IN-01: exit 28 is no route only when both write-out fields say no connection was made. A
+# connect time of 0 with a remote address, or a connect time above 0 without one (curl builds may fill
+# the two fields differently), stays a reached route: asked once per file, silent. Each case fails when
+# its half of the condition is dropped (hookmut_noconn_ip, hookmut_noconn_time).
+oncegate tier2_noconn_needs_no_ip 28 '0.000000 127.0.0.1' 12 silent
+oncegate tier2_noconn_needs_zero_time 28 '0.000500 ' 12 silent
 
 # D-11: a bbj-ls that answers is a reached route, so every file of the patch is checked (the real
 # curl against the fake server; one request per file)

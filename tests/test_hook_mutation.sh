@@ -9,7 +9,8 @@
 # control), and a mutation that changes nothing is a FAIL. The real hook is never written.
 #
 # Gates: hookmut_discovery_control, hookmut_tier2_control (the unchanged copies pass), then
-# hookmut_backslash_conversion, hookmut_dotdot_check and hookmut_t2_cache (one mutation each).
+# hookmut_backslash_conversion, hookmut_dotdot_check and hookmut_t2_cache (one mutation each), and
+# hookmut_noconn_ip and hookmut_noconn_time (review IN-01: each half of the connect-timeout test).
 # Nested output stays under $WORK, so every stdout line of this file is a gate line with prefix
 # hookmut_ (Phase 14 adds the prefix to the prefix list).
 #
@@ -110,7 +111,7 @@ mutant() {
 }
 
 control discovery test_discovery.sh 'windows_codex_backslash_dotdot_skipped windows_codex_backslash_dot_control'
-control tier2 test_tier2_fake.sh 'tier2_once_windows_refused tier2_once_windows_connect_timeout'
+control tier2 test_tier2_fake.sh 'tier2_once_windows_refused tier2_once_windows_connect_timeout tier2_noconn_needs_no_ip tier2_noconn_needs_zero_time'
 
 # FIX-03, SC3: wpath_norm no longer turns backslashes into slashes; the bait is compiled, and the
 # control sub\.\f.bbj finds no file (D-17: the conversion runs before the ".." check)
@@ -126,5 +127,15 @@ mutant dotdot_check test_discovery.sh 'windows_codex_backslash_dotdot_skipped' \
 # patch pays the tier-2 connect again
 mutant t2_cache test_tier2_fake.sh 'tier2_once_windows_refused tier2_once_windows_connect_timeout' \
   '/# t2-cache$/d'
+
+# review IN-01: the "no remote_ip" half of the connect-timeout test is dropped, so a write-out with a
+# connect time of 0 and a remote address counts as no route and is cached
+mutant noconn_ip test_tier2_fake.sh 'tier2_noconn_needs_no_ip' \
+  's/ && \[ -z "\${_wo#\* }" \]//'
+
+# review IN-01: the "time_connect is 0" half is dropped, so a write-out with a connect time above 0 and
+# no remote address counts as no route and is cached
+mutant noconn_time test_tier2_fake.sh 'tier2_noconn_needs_zero_time' \
+  's/^    && \[ -z "\$(printf .%s. "\${_wo%% \*}" | tr -d .0\.,.)" \]; then$/    ; then/'
 
 finish
