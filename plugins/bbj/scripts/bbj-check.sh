@@ -237,8 +237,13 @@ notice() {
 # check (D-14). Returns 0 when a verdict was reached (clean, or report ran), 1 when there is no
 # route (NR_T2 says why: refused = nothing answers on the port, nocurl, badurl; NR_HOSTPORT holds
 # the authority of the URL), 2 when a route was reached but gave no verdict. Every path ends in
-# an explicit return.
+# an explicit return. A "nothing reached" outcome is remembered for the rest of the hook run (FIX-02).
 no_tier1_route() {
+  # FIX-02 (phase 13, D-11, D-14): the outcome "nothing reached" of the first tier-2 attempt of this
+  # hook run holds for every later file of the same run (one process per tool call), so one run pays
+  # the connect cost once; a reached route is never cached; skipped files are still counted and
+  # listed by note_noroute.
+  case "$NR_T2" in refused|nocurl|badurl|noconn) return 1 ;; esac # t2-cache
   _url=${BBJ_LOCAL_MCP_URL:-http://127.0.0.1:5009/mcp}
   # loopback only: plain http to 127.0.0.1, localhost or [::1], an optional port and path;
   # no whitespace, backslash, userinfo (@), query (?) or fragment (#). A refused URL is
