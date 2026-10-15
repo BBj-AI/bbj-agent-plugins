@@ -65,8 +65,9 @@ On Windows the hook looks for Git for Windows `sh.exe` in `%ProgramFiles%\Git\bi
 `%ProgramFiles(x86)%\Git\bin`, then `%LOCALAPPDATA%\Programs\Git\bin` (or
 `%USERPROFILE%\AppData\Local\Programs\Git\bin` when `LOCALAPPDATA` is not set), then an `sh` on `PATH`
 that belongs to Git for Windows (its Git folder holds `cygpath.exe`; any other `sh` on `PATH` is
-passed over), then the `bin` folder next to a `git` on `PATH`, and a test run found Git for
-Windows in each of these places. See "Windows" below for what happens when none of them holds `sh.exe`.
+passed over), then the `bin` folder of the Git for Windows folder of a `git` on `PATH` (a
+`git.exe` in its `cmd`, `bin` or `mingw64\bin` folder), and a test run found Git for Windows in each
+of these places. See "Windows" below for what happens when none of them holds `sh.exe`.
 
 ### Sign in to the docs server
 

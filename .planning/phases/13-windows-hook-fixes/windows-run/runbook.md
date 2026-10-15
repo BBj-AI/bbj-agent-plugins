@@ -137,6 +137,7 @@ fixes (13-REVIEW-FIX.md) and adds the cases marked with a review finding; a case
 | `usrbin_on_path_bad` | only Git's `usr\bin` on PATH | bbjcpl feedback | WR-01 (a Git `sh` is still taken) |
 | `othersh_none_bbj` | a non-Git `sh.exe` first on PATH, no Git | the not-found message, rc 2, never rc 0 silent | WR-01 |
 | `othersh_then_git_bad` | a non-Git `sh.exe` first on PATH, Git's `bin` after it | bbjcpl feedback | WR-01 |
+| `git_mingw_on_path_bad` | only Git's `mingw64\bin` (it holds `git.exe`) on PATH | bbjcpl feedback | IN-02 |
 | `lad_unset_profile_bad` | `LOCALAPPDATA` unset, Git under `USERPROFILE\AppData\Local\Programs` (junction) | bbjcpl feedback | WR-02 |
 | `none_web_src` | no Git anywhere; an `.html` file whose text holds `img.src`, `prog.bbj` and `x.BBX` | silent, rc 0 | WR-03 |
 | `none_update_src` | no Git anywhere; an `*** Update File:` of `lib\x.SRC` | the not-found message, rc 2 | WR-03 |

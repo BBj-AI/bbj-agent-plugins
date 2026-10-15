@@ -24,7 +24,7 @@ silent-exit condition, the loud branch before the call, the passthrough last); t
 layout_mutation_hook_windows_* cases plant each trap (input variable, method call, short name,
 changed passthrough, moved branch, weaker silent-exit test), and one case per review fix of
 13-REVIEW.md takes its fix back out (any_sh: WR-01; localappdata: WR-02; any_mention: WR-03;
-root_text: WR-04).
+root_text: WR-04; git_cmd_only: IN-02).
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -66,7 +66,10 @@ HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # - statement 3: an sh from Get-Command that belongs to Git for Windows, that is its Git folder (two
 #   levels up) holds usr\bin\cygpath.exe or bin\cygpath.exe; every sh on PATH is tried in order (review
 #   WR-01: a non-Git sh such as busybox has no cygpath, so the hook would pass every BBj file silently);
-# - statement 4: bin\sh.exe next to the directory of git from Get-Command.
+# - statement 4: bin\sh.exe of the Git folder of git from Get-Command: the parent of the folder that
+#   holds git.exe (cmd\git.exe and bin\git.exe), one level more when that parent is mingw*, clang* or
+#   ucrt* (mingw64\bin\git.exe: review IN-02); never taken when the Git folder comes out empty, which
+#   would make \bin\sh.exe a path on the root of the current drive.
 # The not-found branch (statement 5) reads the payload only through the native findstr, because the
 # PowerShell host swallows all of stdin when the command text names the automatic input variable
 # anywhere, even in a branch that never runs, and sh.exe would then inherit nothing. It stays silent
@@ -92,8 +95,8 @@ HOOK_COMMAND_WINDOWS_STATEMENTS = (
     r'$s = $null',
     r'foreach ($r in $env:ProgramFiles, ${env:ProgramFiles(x86)}, $(if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\Programs" } elseif ($env:USERPROFILE) { "$env:USERPROFILE\AppData\Local\Programs" })) { if ($r -and -not $s) { $p = "$r\Git\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } }',
     r'if (-not $s) { foreach ($c in (Get-Command sh -CommandType Application -ErrorAction SilentlyContinue)) { $q = Split-Path -Parent (Split-Path -Parent $c.Source); if ($q -and -not $s -and ((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source } } }',
-    r"if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $p = (Split-Path -Parent (Split-Path -Parent $g.Source)) + '\bin\sh.exe'; if (Test-Path -LiteralPath $p) { $s = $p } } }",
-    r'''if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, bin next to git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }''',
+    r'''if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $q = Split-Path -Parent (Split-Path -Parent $g.Source); if ($q -and ((Split-Path -Leaf $q) -match '^(mingw|clang|ucrt)')) { $q = Split-Path -Parent $q }; if ($q) { $p = "$q\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } } }''',
+    r'''if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, the Git folder of a git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }''',
     r'$b = "$env:CLAUDE_PLUGIN_ROOT/scripts/bbj-check.sh"',
     r'if (-not $env:CLAUDE_PLUGIN_ROOT) { $b = "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh" }',
     r'& $s $b',
@@ -123,6 +126,7 @@ WINDOWS_PARTS = (
     r'Get-Command sh ',
     r'((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source }',
     r'Get-Command git ',
+    r"if ($q -and ((Split-Path -Leaf $q) -match '^(mingw|clang|ucrt)')) { $q = Split-Path -Parent $q }; if ($q) {",
     r'findstr /n /r "^" 2>&1',
     r'''if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }''',
     r'Git for Windows sh.exe not found',
@@ -748,6 +752,12 @@ if len(sys.argv) == 1:
     def windows_root_text(dst):
         edit_windows(dst, lambda v: v.replace(ROOT_FROM_ENV, r'& $s "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"', 1))
 
+    # review IN-02: the git-derived lookup fits cmd\git.exe only again
+    MINGW_STEP = r"if ($q -and ((Split-Path -Leaf $q) -match '^(mingw|clang|ucrt)')) { $q = Split-Path -Parent $q }; "
+
+    def windows_git_cmd_only(dst):
+        edit_windows(dst, lambda v: v.replace(MINGW_STEP, "", 1))
+
     def windows_localappdata(dst):
         edit_windows(dst, lambda v: v.replace(PER_USER + ")", r'"$env:LOCALAPPDATA\Programs")', 1))
 
@@ -778,6 +788,8 @@ if len(sys.argv) == 1:
     mutation_case("hook_windows_any_mention", [HOOKS_FILE], windows_any_mention,
                   ["hook_command_windows", "hook_windows_parts"])
     mutation_case("hook_windows_root_text", [HOOKS_FILE], windows_root_text,
+                  ["hook_command_windows", "hook_windows_parts"])
+    mutation_case("hook_windows_git_cmd_only", [HOOKS_FILE], windows_git_cmd_only,
                   ["hook_command_windows", "hook_windows_parts"])
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])

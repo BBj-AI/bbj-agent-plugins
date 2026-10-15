@@ -39,7 +39,7 @@ BASE=$HOME/.cache/bbj-phase13
 HOOKS=$REPO/plugins/bbj/hooks/hooks.json
 # the current pin (13-REVIEW-FIX.md): sha256 of the commandWindows string as hooks.json holds it (before
 # the root is set); rounds 1 and 2 ran the plan 13-02 pin
-PIN_SHA=35b49f770dfb0c1b205fc069cd85b3069f52140ba74a40aa934d2972f086fb35
+PIN_SHA=6ff66b74df2c2e6501fb8f1c3d53434d83789c1dcbb49d00a0279206b6fbc1c9
 CLM_PREFIX='$ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"; '
 MARKER=launcher.marker
 OUT=
@@ -327,6 +327,7 @@ layout_set() {
     ladunset_none) LLAD='' LUP='' ;;
     shpath) LPATH=$SYSP:$GITBIN_P ;;
     usrpath) LPATH=$SYSP:$GITUSR_P ;;
+    mingwpath) LPATH=$SYSP:$GITMINGW_P ;;
     othersh) LPATH=$SYSP:$OTHERSH_P ;;
     othersh_git) LPATH=$SYSP:$OTHERSH_P:$GITBIN_P ;;
     gitpath) LPATH=$SYSP:$GITCMD_P ;;
@@ -498,7 +499,7 @@ if not cmd.startswith("*** Begin Patch\n*** Add File: C:\\w\\proj\\bad.bbj\n+pri
   # the expectation table of the round 3 cases (13-REVIEW-FIX.md)
   for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl \
     lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound none_web_src:clean none_update_src:notfound \
-    rootvar_unset_bad:bbjcpl dollar_root_bad:bbjcpl; do
+    rootvar_unset_bad:bbjcpl dollar_root_bad:bbjcpl git_mingw_on_path_bad:bbjcpl; do
     [ "$(want_kind "${_k%%:*}")" = "${_k#*:}" ] || _fail "want_kind ${_k%%:*}"
   done
 
@@ -539,6 +540,7 @@ do_run() {
   GITBIN_P=$(drivepath "$GITW")/bin
   GITCMD_P=$(drivepath "$GITW")/cmd
   GITUSR_P=$(drivepath "$GITW")/usr/bin
+  GITMINGW_P=$(drivepath "$GITW")/mingw64/bin
   PWSHEXE=$(command -v pwsh.exe 2> /dev/null || command -v pwsh 2> /dev/null || true)
   PWSHDIR_P=
   [ -z "$PWSHEXE" ] || PWSHDIR_P=$(dirname "$PWSHEXE")
@@ -654,6 +656,12 @@ $_fill" > "$OUT/p_longnotes.json"
   runcase localappdata_bad powershell lad "$OUT/p_bad.json"
   runcase sh_on_path_bad powershell shpath "$OUT/p_bad.json"
   runcase git_on_path_bad powershell gitpath "$OUT/p_bad.json"
+  # IN-02: only Git's mingw64\bin (git.exe, no sh.exe) on PATH
+  if [ -f "$GIT_U/mingw64/bin/git.exe" ]; then
+    runcase git_mingw_on_path_bad powershell mingwpath "$OUT/p_bad.json"
+  else
+    caseline "git_mingw_on_path_bad: -> not run (this Git has no mingw64\\bin\\git.exe)"
+  fi
   runcase usrbin_on_path_bad powershell usrpath "$OUT/p_bad.json"
   runcase othersh_none_bbj powershell othersh "$OUT/p_bad.json"
   runcase othersh_then_git_bad powershell othersh_git "$OUT/p_bad.json"
