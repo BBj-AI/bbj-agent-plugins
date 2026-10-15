@@ -138,14 +138,14 @@ Plans:
   3. Both skills, the check-order block (still byte-identical in the two SKILL.md files), the hook's no-route notice and the docs name the server `bbj` ("the docs server `bbj`") and give the sign-in with the exact labels the clients show in the criterion 4 run: `/mcp` and the label Claude Code lists (expected `plugin:bbj:bbj`), and the login command Codex accepts (expected `codex mcp login bbj`). The `notice_`, `checkorder_` and `skills_` gates pass with the new text (NAME-02)
   4. Owner-run, Linux: with the plugin installed from a checkout of this phase, real Claude Code lists the renamed server in `/mcp`, real Codex accepts `codex mcp login bbj`, and the sign-in completes in both. The run is a fresh install only and is recorded in `12-LINUX-RUN.md`; the docs use the labels it records (NAME-02)
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
 - [x] 12-01-PLAN.md — Both MCP configs name the docs server `bbj`; layout pins and the Claude Code client test follow; `claude plugin validate --strict` and `claude mcp get` on the label Claude Code lists (expected `plugin:bbj:bbj`) pass (NAME-01; wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 12-02-PLAN.md — Owner run on Linux: fresh install from the checkout in throwaway homes, sign-in in real Claude Code and real Codex, labels recorded in 12-LINUX-RUN.md (NAME-02, SC4; wave 2, owner checkpoint)
+- [x] 12-02-PLAN.md — Owner run on Linux: fresh install from the checkout in throwaway homes, sign-in in real Claude Code and real Codex, labels recorded in 12-LINUX-RUN.md (NAME-02, SC4; wave 2, owner checkpoint)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 12-03-PLAN.md — Check-order step 3 in both skills and the hook's no-route notice name the docs server `bbj`; checkorder_ and notice_ gates pin it (NAME-02; wave 3)
@@ -226,7 +226,7 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
-| 12. Docs server renamed to bbj | v0.2.2 | 1/5 | In Progress | - |
+| 12. Docs server renamed to bbj | v0.2.2 | 2/5 | In Progress | - |
 | 13. Windows hook fixes | v0.2.2 | 0/TBD | Not started | - |
 | 14. One install page and one term list | v0.2.2 | 0/TBD | Not started | - |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |
