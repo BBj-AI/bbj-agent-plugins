@@ -19,6 +19,7 @@ Nothing here runs BBj code or touches a Claude Code configuration.
 import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -50,6 +51,14 @@ LOCK_NAME = "skills" + ".lock.json"
 HASH_TEST = "test_sk" + "ills_hash"
 VEND_WORD = "vend" + "or"
 UPSTREAM_NAME = "bbj" + "skills"
+RETIRED_SCRIPT = "install" + "-codex.sh"
+RETIRED_SNIPPET = "AGENTS" + "-snippet"
+RETIRED_WORD = "install" + "er"
+RETIRED_TERMS = (RETIRED_SCRIPT, RETIRED_SNIPPET, RETIRED_WORD)
+# CHANGELOG entries headed with this version or an older one are released history and stay as
+# published (D-03, D-11)
+HISTORY_CUT = (0, 2, 1)
+VERSION_HEADING = re.compile(r"^## (\d+)\.(\d+)\.(\d+)(?:\s|$)")
 
 failed = False
 
@@ -291,6 +300,79 @@ gate("notice_no_provenance",
      "NOTICE lines=%r" % (notice,))
 
 
+# INST-02 (D-10 to D-12): the retired Codex route stays out of every tracked file, comments
+# included; terms are assembled from pieces above so this file passes its own scan. Only the
+# CHANGELOG entries of released versions (HISTORY_CUT and older) and .planning/ are exempt.
+def tracked_files(root):
+    """Return (mode, rels): the git-tracked files under root ("git"), or a walk of root ("walk")
+    when git lists nothing (no git, no repository, or a mutation copy). .planning/ is dropped."""
+    try:
+        r = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True, timeout=20)
+        out = r.stdout if r.returncode == 0 else b""
+    except (OSError, subprocess.SubprocessError):
+        out = b""
+    rels = []
+    if out:
+        mode = "git"
+        rels = [p.decode("utf-8", errors="replace") for p in out.split(b"\0") if p]
+    else:
+        mode = "walk"
+        for dirpath, dirnames, filenames in os.walk(root):
+            top = dirpath == root
+            # prune .git, the top-level .planning and any nested checkout or worktree
+            dirnames[:] = [d for d in dirnames
+                           if d != ".git" and not (top and d == ".planning")
+                           and not os.path.exists(os.path.join(dirpath, d, ".git"))]
+            for fn in filenames:
+                if fn != ".git":
+                    rels.append(os.path.relpath(os.path.join(dirpath, fn), root).replace(os.sep, "/"))
+    return mode, sorted({r for r in rels if not r.startswith(".planning/")})
+
+
+def changelog_scan_text(text):
+    """The CHANGELOG lines the gate scans: the text above the first "## " heading, every entry
+    newer than HISTORY_CUT and every heading that is not a version (fail closed)."""
+    kept = []
+    keep = True
+    for line in text.split("\n"):
+        if line.startswith("## "):
+            m = VERSION_HEADING.match(line)
+            keep = not (m and tuple(int(g) for g in m.groups()) <= HISTORY_CUT)
+        if keep:
+            kept.append(line)
+    return "\n".join(kept)
+
+
+retired_mode, retired_rels = tracked_files(ROOT)
+retired_hits = []
+retired_scanned = 0
+for rel in retired_rels:
+    low_rel = rel.lower()
+    for term in RETIRED_TERMS:
+        if term.lower() in low_rel:
+            retired_hits.append("%s:path:%s" % (rel, term))
+    try:
+        with open(os.path.join(ROOT, rel), "rb") as f:
+            text = f.read().decode("utf-8", errors="replace")
+    except OSError:
+        continue
+    retired_scanned += 1
+    if rel == "CHANGELOG.md":
+        text = changelog_scan_text(text)
+    low = text.lower()
+    for term in RETIRED_TERMS:
+        if term.lower() in low:
+            retired_hits.append("%s:%s" % (rel, term))
+if retired_scanned == 0:
+    retired_detail = "no file scanned (%s mode)" % (retired_mode,)
+elif retired_hits:
+    retired_detail = "files naming the retired route: %r" % (sorted(retired_hits),)
+else:
+    retired_detail = ("%d tracked files scanned (%s mode); none names the retired route "
+                      "(.planning/ and CHANGELOG entries up to 0.2.1 exempt)" % (retired_scanned, retired_mode))
+gate("no_retired_route", retired_scanned > 0 and not retired_hits, retired_detail)
+
+
 # CODEX-04: prove the gates above can fail. Each case copies the repository files this script
 # reads into a fresh temp directory, changes one thing, runs this file on the copy (a root
 # argument turns this section off, so a copy run never recurses) and requires the named gates to
@@ -316,6 +398,14 @@ def edit_json(path, fn):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
+
+
+def plant(dst, rel, line):
+    """Append a line to dst/rel, creating the file and its directories when missing."""
+    path = os.path.join(dst, rel)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "a", encoding="utf-8") as f:
+        f.write("\n" + line + "\n")
 
 
 def read_bytes(path):
@@ -430,5 +520,8 @@ if len(sys.argv) == 1:
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
     mutation_case("docs_url_stage", [CLAUDE_MANIFEST], docs_url_stage, ["docs_url_description"])
+    mutation_case("retired_route_readme", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "Or run sh codex/" + RETIRED_SCRIPT + "."),
+                  ["no_retired_route"])
 
 sys.exit(1 if failed else 0)
