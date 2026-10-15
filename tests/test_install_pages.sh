@@ -14,7 +14,7 @@
 #   - the no-route notice wording (plan 02-03, HOOK-02): "once per session" on README and both pages,
 #     "not compile-checked" on both pages, and the old claim that the hook stays silent when no check
 #     route exists is forbidden on all three (NOROUTE_SILENCE),
-#   - the OAuth sign-in of bbj-docs (quick 261013-cpn): port 47613 and the sign-in steps on both pages,
+#   - the OAuth sign-in of the docs server bbj (quick 261013-cpn; phase 12, NAME-02): port 47613 and the sign-in commands and labels of 12-LINUX-RUN.md on both pages and README,
 #   - the Codex plugin route (phase 8, CODEX-05, CODEX-06; D-15, D-16; plan 11-03, D-04, D-05): the
 #     plugin-route heading, the two install commands, the bbj-local opt-in command, the verified line,
 #     the sentence on the Codex CLI version the route was verified with, the sentence that only the
@@ -126,6 +126,7 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'not compile-checked' \
     '47613' \
     'Needs authentication' \
+    'plugin:bbj:bbj' \
     'oauth.clientId'
   do
     need "$n" "$CLAUDE_PAGE" "$p"
@@ -205,7 +206,7 @@ if [ -f "$CODEX_PAGE" ]; then
     'once per session' \
     'not compile-checked' \
     'http://localhost:47613/callback' \
-    'codex mcp login bbj-docs' \
+    'codex mcp login bbj' \
     'only the Claude Code plugin has the `docs_url` option' \
     'plugins/bbj/.codex-mcp.json' \
     '## Install with the Codex plugin' \
@@ -249,6 +250,7 @@ if [ -f "$README" ]; then
     'once per session' \
     'codex plugin add bbj@basis-bbj' \
     'codex plugin add bbj-local@basis-bbj' \
+    'codex mcp login bbj' \
     '| Claude Code |' \
     '| Codex plugin |' \
     'Verified on Linux, Windows and macOS' \

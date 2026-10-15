@@ -29,12 +29,12 @@ The docs server URL is the plugin option `docs_url` (default: the hosted BBj doc
 names the BBj installation for the check hook; left empty, the hook looks at `BBJ_HOME`,
 `BBJHOME`, `PATH` and the usual install locations.
 
-The docs server asks for a one-time OAuth sign-in. The Claude Code plugin and the Codex plugin
+The docs server `bbj` asks for a one-time OAuth sign-in. The Claude Code plugin and the Codex plugin
 configure the pre-registered client for it (callback port 47613); sign in with `/mcp` in Claude
-Code or `codex mcp login bbj-docs` in Codex. The sign-in completed in both clients
-on Linux with the plugin as it ships (2026-10-14), and in both clients on Windows (2026-10-13) and
-on macOS (2026-10-14) with the plugin installed from a checkout of this repository. Without that
-client, Codex's dynamic client registration is refused by the hosted server.
+Code (choose `plugin:bbj:bbj`) or `codex mcp login bbj` in Codex. On Linux the sign-in completed
+in both clients with these commands (2026-10-15), with the plugin installed from a checkout of this
+repository. Without that client, Codex's dynamic client registration is refused by the hosted
+server.
 
 That client belongs to the hosted docs server. The `docs_url` option of the Claude Code plugin must
 point at a server that accepts this client; for any other server see the sign-in notes in
