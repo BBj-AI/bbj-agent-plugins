@@ -197,7 +197,8 @@ not checked. The hosted docs server logs what its data-handling statement says:
 
 - Files written through shell commands, including a patch applied through a shell command such as
   a heredoc. Only `apply_patch` calls are seen.
-- Edits made by tools outside the matcher `apply_patch|Edit|Write`.
+- Edits made by tools outside the plugin's hook matcher `Write|Edit` (Codex accepts `Write` and
+  `Edit` as names for `apply_patch`).
 - Only the extensions `.bbj`, `.src` and `.bbx` are checked, and only files named by an
   `*** Add File:`, `*** Update File:` or `*** Move to:` line of the patch; a path outside the
   working directory is skipped.
