@@ -24,7 +24,7 @@ file Codex writes through `apply_patch`, with the Codex plugin. For Claude Code,
 ## Install with the Codex plugin
 
 > Verified on Linux with Codex CLI 0.162.1 on 2026-10-13 and 2026-10-14: the plugin installs from
-> the marketplace, `bbj-docs` is registered at its URL, both skills are listed, and after the hook
+> the marketplace, the docs server is registered at its URL, both skills are listed, and after the hook
 > was trusted in `/hooks` a BBj file written through `apply_patch` got the compiler's feedback. On
 > 2026-10-14 the real BBj 26.03 compiler gave `bbjcpl reported` feedback for a bad file and was
 > silent for a clean one; with no compiler on the route and BBjServices answering, the hook gave
@@ -39,7 +39,7 @@ codex plugin marketplace add BBj-AI/bbj-agent-plugins
 codex plugin add bbj@basis-bbj
 ```
 
-The plugin brings the docs server `bbj-docs` at `https://mcp.bbj-ai.com/mcp`, the two skills
+The plugin brings the docs server `bbj` at `https://mcp.bbj-ai.com/mcp`, the two skills
 (Codex lists them as `bbj:bbj-programming` and `bbj:bbj-web-programming`) and the check hook. It
 does not bring `bbj-local`; see "Enable the local check (bbj-local)" below.
 
@@ -94,7 +94,7 @@ only the Claude Code plugin has the `docs_url` option.
 The plugin ships no tool approvals, so Codex asks before the first call of each tool: the five
 read-only docs tools, and the three hosted check tools (`bbj_check_syntax`, `bbj_format`,
 `bbj_denum`), which send your code to the server. The runs recorded for this release did not call
-a tool of `bbj-docs`, so the prompt itself was not watched. To have the five docs tools
+a tool of the docs server, so the prompt itself was not watched. To have the five docs tools
 pre-approved, see "Pre-approve the docs tools (optional)".
 
 ### Where the hook finds BBj
@@ -155,16 +155,16 @@ Not run: an upgrade through a Git marketplace on Windows or macOS.
 ### Pre-approve the docs tools (optional)
 
 The plugin does not approve the five read-only docs tools. The Codex documentation names a
-plugin-scoped key for the same thing, `plugins."bbj@basis-bbj".mcp_servers.bbj-docs` in the
+plugin-scoped key for the same thing, `plugins."bbj@basis-bbj".mcp_servers.bbj` in the
 `config.toml` of the Codex home. This is from the Codex documentation, not tried here:
 
 ```toml
-[plugins."bbj@basis-bbj".mcp_servers.bbj-docs.tools.bbj_search]
+[plugins."bbj@basis-bbj".mcp_servers.bbj.tools.bbj_search]
 approval_mode = "approve"
 ```
 
 Repeat the table for `bbj_fetch_page`, `bbj_lookup`, `bbj_reserved_word` and `bbj_examples`, and
-for nothing else: the hosted check tools of `bbj-docs` send your code to the server and keep
+for nothing else: the hosted check tools of the docs server `bbj` send your code to the server and keep
 Codex's prompt.
 
 ## Check routes
@@ -186,8 +186,8 @@ the BBj installation is found through `BBJ_HOME` instead of a `bbj_home` option.
    checked either.
 
 For code Codex hands back without writing a file, the skills give Codex its own order of check
-calls: `bbjcpl`, then `bbj_check_syntax` of `bbj-local`, and `bbj_check_syntax` of `bbj-docs` (the
-hosted check) only when neither exists. The hosted check sends the code to the server and checks it
+calls: `bbjcpl`, then `bbj_check_syntax` of `bbj-local`, and `bbj_check_syntax` of the docs server
+`bbj` (the hosted check) only when neither exists. The hosted check sends the code to the server and checks it
 against a stock BBj, and Codex says so.
 
 The hook never runs BBj code and never sends code off the machine. Unresolved `use` targets are
