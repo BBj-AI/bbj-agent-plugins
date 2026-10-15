@@ -217,16 +217,11 @@ notice() {
   fi
   _later='Later BBj files in this session are not checked either unless a check is enabled'
   if [ "$_fresh" = 1 ]; then _later="$_later, and this notice is not repeated"; fi
-  # the enable steps differ by tool (D-06 of phase 2) and, for apply_patch, by route: Codex sets
-  # CLAUDE_PLUGIN_ROOT for a plugin hook, the installer's hooks.json sets nothing (D-07, D-08 of
-  # phase 8). The variable is only tested for non-empty, never printed or interpolated.
+  # the enable steps differ by tool (D-06 of phase 2); apply_patch is Codex and gets the plugin
+  # commands, every other tool is Claude Code (phase 11, D-16)
   case "$1" in
     apply_patch)
-      if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
-        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. codex plugin add bbj-local@basis-bbj only gives the model the local bbj_check_syntax tool; the hook does not need it.'
-      else
-        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. install-codex.sh --with-local only registers the local bbj_check_syntax tool for the model; the hook does not need it.'
-      fi
+      _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. codex plugin add bbj-local@basis-bbj only gives the model the local bbj_check_syntax tool; the hook does not need it.'
       ;;
     *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or start BBjServices 26.03+ on this machine so that bbj-ls answers. The bbj-local@basis-bbj plugin only gives the model the local bbj_check_syntax tool; the hook does not need it.' ;;
   esac
