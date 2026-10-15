@@ -1,5 +1,5 @@
 """tests/test_release_text.py -- plan 06-02, REL-01, REL-02; decisions D-06 to D-09, D-12, D-15;
-phase 7 REL-06, D-04 to D-07: gates the release text so it stays honest.
+phase 7 REL-06, D-04 to D-07; plan 11-02, D-07 to D-10: gates the release text so it stays honest.
 
 What is locked for every version: README.md states the version of tests/test_layout.py (the
 single source of the version); the newest entry of CHANGELOG.md (its first "## " heading) is
@@ -8,37 +8,34 @@ order, with no placeholder heading or word in it; older entries below it are lef
 next release only adds one above; the Upgrading section is addressed to "If you installed from
 `main` before VERSION" and carries the two Claude Code update commands (gate upgrade_addressed);
 the install page carries the Claude Code update commands; the Codex CLI version it was tested with
-names one version across the install pages and the installer, and the Claude Code version names
-one version per platform (Linux, Windows, macOS) across the README table, the install pages, the
-installer and the newest CHANGELOG entry (plan 10-06, D-02).
+names one version on the Codex install page, and the Claude Code version names one version per
+platform (Linux, Windows, macOS) across the README table, both install pages and the newest
+CHANGELOG entry (plan 10-06, D-02).
 
 DOCS-04 (plan 10-06): the old hints of a platform that was not run ("Tested on Linux only", "not yet
 run", "not yet been run", "not yet tried", "not yet been tried") must not come back to the files in
-HINT_FILES: the README, the Claude Code page, the Codex page and the installer (plan 10-07).
-Gate no_unrun_hint reads the squashed text of each, so a hint split over two lines is found too;
-tests/test_install_pages.sh forbids the same phrases in a second, independent place.
+HINT_FILES: the README, the Claude Code page and the Codex page. Gate no_unrun_hint reads the
+squashed text of each, so a hint split over two lines is found too; tests/test_install_pages.sh
+forbids the same phrases in a second, independent place.
 
-What is pinned to CONTENT_VERSION (0.2.1): the facts of that release. The Upgrading section
-quotes three installer lines byte for byte (each quote must also sit on a non-comment line of
-codex/install-codex.sh, so a reworded installer fails here; gate upgrade_quotes), and the Not run
-section holds exactly the lines of NOT_RUN_LINES (gate not_run). At any other version these two gates
-FAIL with a message that says to re-pin the facts; they never skip. Reason: a version bump must
-not pass on the facts of an older release, and a skip would block the skip=0 release run. This
-reverses the skip half of review fix WR-02 (3a42ebf) on purpose (phase 7 D-05). WR-02's goal,
-letting the next release pass, still holds once that release has written its own facts.
+What is pinned to CONTENT_VERSION (0.2.1): the facts of that release. The Not run section holds
+exactly the lines of NOT_RUN_LINES (gate not_run). At any other version this gate FAILs with a
+message that says to re-pin the facts; it never skips. Reason: a version bump must not pass on the
+facts of an older release, and a skip would block the skip=0 release run. This reverses the skip
+half of review fix WR-02 (3a42ebf) on purpose (phase 7 D-05). WR-02's goal, letting the next
+release pass, still holds once that release has written its own facts.
 
 Bumping the version: change VERSION in tests/test_layout.py, both plugin manifests, both
 marketplace entries, the Codex overlay plugins/bbj/.codex-plugin/plugin.json, the README.md version
-line and the CHANGELOG heading; write the new
-release's Upgrading quotes and Not run lines; then set CONTENT_VERSION, UPGRADE_QUOTES and
+line and the CHANGELOG heading; write the new release's Not run lines; then set CONTENT_VERSION and
 NOT_RUN_LINES to those facts. The suite stays red until both steps are done.
 
 stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate release_<name> ok|FAIL <detail>
 and exits 1 when any gate failed. An optional argv[1] is the repository root to check
 (default: the parent of the tests directory); tests/test_release_text_mutation.sh points it at a
-copy that holds README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md,
-tests/test_layout.py and codex/install-codex.sh, and requires each gate to fail when its input changes.
+copy that holds README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md and
+tests/test_layout.py, and requires each gate to fail when its input changes.
 Reads files only; nothing here runs BBj code or any other program.
 """
 import os
@@ -51,22 +48,18 @@ ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
 # assembled from pieces so this file never names what it searches for (self-scan convention)
 LEFTOVER = "unre" + "leased"
 NEXT_HEADING = "### " + "Next"
+RETIRED_WORD = "install" + "er"
 
-UPGRADE_QUOTES = [
-    "then open /hooks in Codex and trust the BBj check hook",
-    "every update of it makes Codex ask for the /hooks review again",
-    "Verified with Codex CLI 0.162.1 on Linux (2026-10-12, compiler route) and on Windows (2026-10-14, compiler route, Git for Windows 2.52.0), and with Codex CLI 0.162.x on macOS (2026-10-12, bbj-local route).",
-]
-# the release whose facts upgrade_quotes and not_run pin; at any other version they FAIL and ask for a re-pin (phase 7 D-05)
+# the release whose facts not_run pins; at any other version it FAILs and asks for a re-pin (phase 7 D-05)
 CONTENT_VERSION = "0.2.1"
 NOT_RUN_LINES = [
-    "- Linux: the 0.2.1 Codex installer with a real Codex; the last Linux installer reading is the 0.2.0 run of 2026-10-12.",
+    "- Linux: the 0.2.1 Codex " + RETIRED_WORD + " with a real Codex; the last Linux " + RETIRED_WORD + " reading is the 0.2.0 run of 2026-10-12.",
     "- Windows: the Claude Code default home `/c/bbx` and the discovery variables `BBJHOME` and `PATH`; Claude Code was run with `bbj_home` and Codex with `BBJ_HOME`.",
-    "- Windows: the Codex installer with a Git for Windows installed anywhere but `C:\\Program Files\\Git`.",
+    "- Windows: the Codex " + RETIRED_WORD + " with a Git for Windows installed anywhere but `C:\\Program Files\\Git`.",
     "- Windows: the Codex plugin route with a Git for Windows installed anywhere but `C:\\Program Files\\Git`.",
     "- Windows: the hook's tier 2 inside a Claude Code or Codex session; tier 2 was seen as the hook script run from Git Bash, and the `bbj-local` plugin as a connected server, each without the other.",
     "- macOS: the `bbj-local` plugin in either client; only the hook's own tier 2 was seen there.",
-    "- macOS: the Codex installer on the `bbjcpl` route; the 0.2.0 run saw tier 2 only.",
+    "- macOS: the Codex " + RETIRED_WORD + " on the `bbjcpl` route; the 0.2.0 run saw tier 2 only.",
     "- Linux: the Claude Code plugin upgrade through a Git marketplace (`claude plugin marketplace update`, `claude plugin update`); Claude Code was installed from `main`, not upgraded.",
     "- Windows and macOS: a plugin upgrade through a Git marketplace in either client; the Codex upgrade was run on Linux only.",
 ]
@@ -178,32 +171,17 @@ gate("upgrade_install_page", not page_missing,
      "docs/install-claude-code.md lacks %r" % (page_missing,) if page_missing
      else "install page carries the marketplace refresh and both plugin updates")
 
-# the installer quotes: in Upgrading and on a non-comment line of the installer
-installer = read_lines("codex/install-codex.sh") or []
-code_lines = [ln for ln in installer if not re.match(r"^\s*#", ln)]
-bad = []
-for q in UPGRADE_QUOTES:
-    if q not in upgrading:
-        bad.append("not in Upgrading: " + q)
-    if not any(q in ln for ln in code_lines):
-        bad.append("not on a non-comment installer line: " + q)
-pinned_gate("upgrade_quotes", not bad,
-            "; ".join(bad) if bad else "%d quotes in Upgrading and on installer code lines" % len(UPGRADE_QUOTES),
-            "CONTENT_VERSION and UPGRADE_QUOTES")
-
-# every "Codex CLI N.N.N" string names one version, so a bump cannot miss a place (REVIEW IN-03).
-# The text is squashed first, so a hard wrap between "Codex CLI" and the number still matches.
-# Only "Codex CLI N.N.N" counts: the installer's "Codex 0.156.1" comment is the version that
-# broke on a tool table without a server table, a historical fact that stays as it is.
-codex_versions = set()
-for rel in ("codex/install-codex.sh", "docs/install-codex.md"):
-    codex_versions.update(re.findall(r"Codex CLI ([0-9]+\.[0-9]+\.[0-9]+)", squash(read_lines(rel) or [])))
+# every "Codex CLI N.N.N" string on the Codex page names one version, so a bump cannot miss a place
+# (REVIEW IN-03). The text is squashed first, so a hard wrap between "Codex CLI" and the number
+# still matches.
+codex_versions = set(re.findall(r"Codex CLI ([0-9]+\.[0-9]+\.[0-9]+)",
+                                squash(read_lines("docs/install-codex.md") or [])))
 gate("codex_version_single", len(codex_versions) == 1,
-     "Codex CLI versions named in the installer and its page: %s" % sorted(codex_versions))
+     "Codex CLI versions named on docs/install-codex.md: %s" % sorted(codex_versions))
 
 # the Claude Code version is one version per platform (D-02, plan 10-06). Named as
-# "Claude Code N.N.N on <platform>" in README.md, both install pages, the installer and the newest
-# CHANGELOG entry, and as the N.N.N in the "| Claude Code |" row of the README table under the
+# "Claude Code N.N.N on <platform>" in README.md, both install pages and the newest CHANGELOG
+# entry, and as the N.N.N in the "| Claude Code |" row of the README table under the
 # "| Client | Linux | Windows | macOS |" header (the header gives the platform of each column).
 # The "on <platform>" anchor keeps "Claude Code 2.1.281 or later" and the subagent check on 2.1.294
 # (different facts, REVIEW IN-01) out of the count.
@@ -221,7 +199,7 @@ def table_cells(line):
 
 
 claude_versions = dict((p, set()) for p in PLATFORMS)
-for rel in ("README.md", "docs/install-claude-code.md", "docs/install-codex.md", "codex/install-codex.sh"):
+for rel in ("README.md", "docs/install-claude-code.md", "docs/install-codex.md"):
     for ver, plat in CLAUDE_ON_PLATFORM.findall(squash(read_lines(rel) or [])):
         claude_versions[plat].add(ver)
 for ver, plat in CLAUDE_ON_PLATFORM.findall(squash(entry)):
@@ -241,14 +219,14 @@ for ln in readme:
         break
 claude_ok = row_found and all(len(claude_versions[p]) == 1 for p in PLATFORMS)
 gate("claude_version_single", claude_ok,
-     "Claude Code versions per platform in the README table, pages, installer and newest entry: %s%s"
+     "Claude Code versions per platform in the README table, both install pages and the newest entry: %s%s"
      % (", ".join("%s %s" % (p, sorted(claude_versions[p])) for p in PLATFORMS),
         "" if row_found else "; the README table has no '| Claude Code |' row under the platform header"))
 
 # DOCS-04 (plan 10-06): the old "not yet run" hints cannot come back. A hint is a platform or route
 # said not to have been run; "not yet set" (a Claude Code message about two options) is not one.
-# Plan 10-07 added docs/install-codex.md and codex/install-codex.sh to HINT_FILES (four files).
-HINT_FILES = ("README.md", "docs/install-claude-code.md", "docs/install-codex.md", "codex/install-codex.sh")
+# HINT_FILES are the README and both install pages (plan 10-07 added the Codex page).
+HINT_FILES = ("README.md", "docs/install-claude-code.md", "docs/install-codex.md")
 OLD_HINTS = re.compile(r"Tested on Linux only|not yet run|not yet been run|not yet tried|not yet been tried",
                        re.IGNORECASE)
 hint_hits = []
@@ -257,14 +235,6 @@ for rel in HINT_FILES:
         hint_hits.append("%s: %s" % (rel, m.group(0)))
 gate("no_unrun_hint", not hint_hits,
      "; ".join(hint_hits) if hint_hits else "no old 'not yet run' hint in %s" % ", ".join(HINT_FILES))
-
-# DOCS-03 (plan 10-07, D-12): the installer's one STATUS_LINE is quoted on the Codex page, so the two
-# cannot say different things about where the installer was verified
-status_values = [m.group(1) for m in (re.match(r"^STATUS_LINE='(.*)'$", ln) for ln in installer) if m]
-codex_page_text = squash(read_lines("docs/install-codex.md") or [])
-gate("status_line_in_page", len(status_values) == 1 and status_values[0] in codex_page_text,
-     "STATUS_LINE of the installer (%d assignment line(s)) is quoted verbatim on docs/install-codex.md: %r"
-     % (len(status_values), status_values[0] if len(status_values) == 1 else None))
 
 # the Not run section: exactly the NOT_RUN_LINES
 not_run = [ln.rstrip() for ln in sections.get("Not run", []) if ln.strip()]
