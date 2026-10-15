@@ -35,9 +35,9 @@
 #   curl 0, "No errors found."                 clean, silent
 #   curl 0, "line N, column M:" error lines    errors, exit 2 as above
 #   curl 0 with an empty reply, a JSON-RPC error, an isError result, or text with neither
-#   verdict; and every other curl exit (28 timeout, 52 empty reply, 56 reset, 18 short
-#   body, 1 not HTTP, 6 unresolved host and the rest)
-#                                              route failed, silent
+#   verdict; and every other curl exit (28 after a connection was made or without the
+#   write-out, 52 empty reply, 56 reset, 18 short body, 1 not HTTP, 6 unresolved host and
+#   the rest)                                  route failed, silent
 # Only exit 7, and exit 28 with no connection made, are no route: a reachable but slow or broken
 # bbj-ls must never be reported as absent. No curl on PATH and a URL the loopback check refuses
 # are no route as well (D-01). The first no-route outcome of a hook run is remembered, so later
@@ -243,9 +243,9 @@ notice() {
 # Where to go when no BBj compiler can be used for the file: tier 2, the loopback bbj-local
 # check (D-14). Returns 0 when a verdict was reached (clean, or report ran), 1 when there is no
 # route (NR_T2 says why: refused = nothing answers on the port, noconn = a connect timeout with no
-# connection made, nocurl, badurl; NR_HOSTPORT holds
-# the authority of the URL), 2 when a route was reached but gave no verdict. Every path ends in
-# an explicit return. A "nothing reached" outcome is remembered for the rest of the hook run (FIX-02).
+# connection made, nocurl, badurl; NR_HOSTPORT holds the authority of the URL), 2 when a route was
+# reached but gave no verdict. Every path ends in an explicit return. A "nothing reached" outcome is
+# remembered for the rest of the hook run (FIX-02).
 no_tier1_route() {
   # FIX-02 (phase 13, D-11, D-14): the outcome "nothing reached" of the first tier-2 attempt of this
   # hook run holds for every later file of the same run (one process per tool call), so one run pays
@@ -296,8 +296,9 @@ no_tier1_route() {
     *"$_nl"*) _wo=${_out##*"$_nl"}; _reply=${_out%"$_nl"*} ;;
     *) _wo=; _reply=$_out ;;
   esac
-  # curl exit 7 (connection refused) is a "nothing answers" outcome; every other failure
-  # or an empty reply reached something and is a route that gave no verdict (see the header)
+  # curl exit 7 (connection refused) is a "nothing answers" outcome, and so is exit 28 when the
+  # write-out shows no connection (the test below); every other failure or an empty reply reached
+  # something and is a route that gave no verdict (see the header)
   if [ "$_rc" = 7 ]; then NR_T2=refused; return 1; fi
   # FIX-02, D-12: a connect timeout where no TCP connection was made (for example a firewall that
   # drops loopback packets) is no route, told apart from a transfer timeout by the write-out;
