@@ -3,9 +3,9 @@ phase: "10"
 slug: "install-wording-and-release-0-2-1"
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: "2026-10-14"
 ---
 
@@ -42,20 +42,20 @@ Filled in by the planner/executor; requirement-to-test map from 10-RESEARCH.md:
 
 | Requirement | Behavior | Test Type | Automated Command | Failing direction | Status |
 |-------------|----------|-----------|-------------------|-------------------|--------|
-| DOCS-01 | README table: three rows, three platforms, versions; no "not yet run" for a run configuration | page gate | `sh tests/test_install_pages.sh` (`readme_has_*`, `readme_forbids_old_hints`) | old hint back in `README.md`: `readme_forbids_*` FAIL | ⬜ pending |
-| DOCS-02 | both pages carry banners, `## Windows`, new `## macOS`, per-platform versions, old hints gone | page gate | `sh tests/test_install_pages.sh` | restore `Tested on Linux only`: forbids FAIL; delete `## macOS`: `_has_` FAIL | ⬜ pending |
-| DOCS-02 | per-platform Claude Code version single | release-text gate | `python3 -I tests/test_release_text.py` (`release_claude_version_single`) | mutation of one version: FAIL | ⬜ pending |
-| DOCS-03 | `STATUS_LINE` first stdout line and quoted in Codex page | installer + drift gate | `sh tests/test_install_codex.sh` (`first_status_banner`); `python3 -I tests/test_release_text.py` (`release_status_line_in_page`) | edit `STATUS_LINE` in a copy: FAIL | ⬜ pending |
-| DOCS-03 | derived `commandWindows` names the Git for Windows launcher `<Git root>\bin\sh.exe`, never usr\bin (D-27, plan 10-15) | installer gate | `sh tests/test_install_codex.sh` (`command_windows_cygpath`, `command_windows_launcher_root_forms`, `command_windows_launcher_missing_refused`) | round-1 installer `fb375e3:codex/install-codex.sh` in a tree copy: both FAIL | ⬜ pending |
-| DOCS-03 | `--sh-exe` written as given; no drive letter or usr\bin refused (D-28, D-29, plan 10-15) | installer gate | `sh tests/test_install_codex.sh` (`command_windows_sh_exe_as_given`, `command_windows_sh_exe_override`, `command_windows_sh_exe_not_windows_refused`, `command_windows_sh_exe_usr_bin_refused`) | round-1 installer in a tree copy: `_as_given` and `_override` FAIL | ⬜ pending |
-| DOCS-03 | Known gaps line carries the observed outcome | installer gate | `sh tests/test_install_codex.sh` (`first_known_gaps_*`) | reinsert `is not yet tried on Windows`: FAIL | ⬜ pending |
-| DOCS-04 | old hints cannot return for a verified configuration | release-text gate + mutation | `python3 -I tests/test_release_text.py` (`release_no_unrun_hint`); `sh tests/test_release_text_mutation.sh` | mutation inserting each old hint requires FAIL | ⬜ pending |
-| REL-07 | five version places agree; CHANGELOG entry pinned to 0.2.1 | layout + release-text | `python3 -I tests/test_layout.py` (`layout_versions`); `python3 -I tests/test_release_text.py`; `sh tests/test_release_text_mutation.sh` | bump one manifest only: FAIL | ⬜ pending |
-| REL-07 | `claude plugin validate --strict` | validate gate | `sh tests/test_claude_plugin.sh` | malformed manifest: `validate_*` FAIL | ⬜ pending |
-| REL-08 | whole suite, live gates, skip=0 | full suite | release command above | any `skip` or `FAIL` in `SUMMARY` | ⬜ pending |
-| REL-08 | PR tree equals tested tree; no planning path in PR | git proof | `git diff --quiet <pr> gsd/planning-setup -- . ':!.planning'`; `git log --name-only --format= main..<pr> \| grep -c '^\.planning/'` (expect 0) | any difference or count > 0 | ⬜ pending |
-| REL-08 | install from `main` gives 0.2.1 | install gate | `sh <phase dir>/install-gate.sh BBj-AI/bbj-agent-plugins` (`WANT_VERSION=0.2.1`) | `install_bbj_version` FAIL | ⬜ pending |
-| REL-08 | annotated tag `0.2.1`, Release body equals CHANGELOG | git/gh proof | `git cat-file -t 0.2.1`; `gh release view 0.2.1 --json body,tagName,isDraft,isPrerelease` | tag type `commit` or `v0.2.1` exists | ⬜ pending |
+| DOCS-01 | README table: three rows, three platforms, versions; no "not yet run" for a run configuration | page gate | `sh tests/test_install_pages.sh` (`readme_has_*`, `readme_forbids_old_hints`) | old hint back in `README.md`: `readme_forbids_*` FAIL | ✅ green |
+| DOCS-02 | both pages carry banners, `## Windows`, new `## macOS`, per-platform versions, old hints gone | page gate | `sh tests/test_install_pages.sh` | restore `Tested on Linux only`: forbids FAIL; delete `## macOS`: `_has_` FAIL | ✅ green |
+| DOCS-02 | per-platform Claude Code version single | release-text gate | `python3 -I tests/test_release_text.py` (`release_claude_version_single`) | mutation of one version: FAIL | ✅ green |
+| DOCS-03 | `STATUS_LINE` first stdout line and quoted in Codex page | installer + drift gate | `sh tests/test_install_codex.sh` (`first_status_banner`); `python3 -I tests/test_release_text.py` (`release_status_line_in_page`) | edit `STATUS_LINE` in a copy: FAIL | ✅ green |
+| DOCS-03 | derived `commandWindows` names the Git for Windows launcher `<Git root>\bin\sh.exe`, never usr\bin (D-27, plan 10-15) | installer gate | `sh tests/test_install_codex.sh` (`command_windows_cygpath`, `command_windows_launcher_root_forms`, `command_windows_launcher_missing_refused`) | round-1 installer `fb375e3:codex/install-codex.sh` in a tree copy: both FAIL | ✅ green |
+| DOCS-03 | `--sh-exe` written as given; no drive letter or usr\bin refused (D-28, D-29, plan 10-15) | installer gate | `sh tests/test_install_codex.sh` (`command_windows_sh_exe_as_given`, `command_windows_sh_exe_override`, `command_windows_sh_exe_not_windows_refused`, `command_windows_sh_exe_usr_bin_refused`) | round-1 installer in a tree copy: `_as_given` and `_override` FAIL | ✅ green |
+| DOCS-03 | Known gaps line carries the observed outcome | installer gate | `sh tests/test_install_codex.sh` (`first_known_gaps_*`) | reinsert `is not yet tried on Windows`: FAIL | ✅ green |
+| DOCS-04 | old hints cannot return for a verified configuration | release-text gate + mutation | `python3 -I tests/test_release_text.py` (`release_no_unrun_hint`); `sh tests/test_release_text_mutation.sh` | mutation inserting each old hint requires FAIL | ✅ green |
+| REL-07 | five version places agree; CHANGELOG entry pinned to 0.2.1 | layout + release-text | `python3 -I tests/test_layout.py` (`layout_versions`); `python3 -I tests/test_release_text.py`; `sh tests/test_release_text_mutation.sh` | bump one manifest only: FAIL | ✅ green |
+| REL-07 | `claude plugin validate --strict` | validate gate | `sh tests/test_claude_plugin.sh` | malformed manifest: `validate_*` FAIL | ✅ green |
+| REL-08 | whole suite, live gates, skip=0 | full suite | release command above | any `skip` or `FAIL` in `SUMMARY` | ✅ green |
+| REL-08 | PR tree equals tested tree; no planning path in PR | git proof | `git diff --quiet <pr> gsd/planning-setup -- . ':!.planning'`; `git log --name-only --format= main..<pr> \| grep -c '^\.planning/'` (expect 0) | any difference or count > 0 | ✅ green |
+| REL-08 | install from `main` gives 0.2.1 | install gate | `sh <phase dir>/install-gate.sh BBj-AI/bbj-agent-plugins` (`WANT_VERSION=0.2.1`) | `install_bbj_version` FAIL | ✅ green |
+| REL-08 | annotated tag `0.2.1`, Release body equals CHANGELOG | git/gh proof | `git cat-file -t 0.2.1`; `gh release view 0.2.1 --json body,tagName,isDraft,isPrerelease` | tag type `commit` or `v0.2.1` exists | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -63,12 +63,12 @@ Filled in by the planner/executor; requirement-to-test map from 10-RESEARCH.md:
 
 ## Wave 0 Requirements
 
-- [ ] `tests/fake-bin/cygpath` — one new off-by-default seam (`-w` fails) for D-07
-- [ ] `tests/test_install_codex.sh` — gates for the refusal, the override, `--help` text, `--remove` unaffected, nothing written on refusal
-- [ ] `tests/test_release_text.py` — per-platform Claude gate, `status_line_in_page`, `no_unrun_hint`; `tests/test_release_text_mutation.sh` cases for all three
-- [ ] `tests/test_install_pages.sh` — banners, `## macOS`, forbids, option name, plugin.json forbid
-- [ ] `tests/test_layout.py` — `scopes` in both MCP dicts and two mutation cases
-- [ ] Phase directory tooling: `codex-run/run.sh` + `hooks_list.py` re-based, `install-gate.sh` with `WANT_VERSION=0.2.1`, Windows installer-run runbook and record template
+- [x] `tests/fake-bin/cygpath` — one new off-by-default seam (`-w` fails) for D-07
+- [x] `tests/test_install_codex.sh` — gates for the refusal, the override, `--help` text, `--remove` unaffected, nothing written on refusal
+- [x] `tests/test_release_text.py` — per-platform Claude gate, `status_line_in_page`, `no_unrun_hint`; `tests/test_release_text_mutation.sh` cases for all three
+- [x] `tests/test_install_pages.sh` — banners, `## macOS`, forbids, option name, plugin.json forbid
+- [x] `tests/test_layout.py` — `scopes` in both MCP dicts and two mutation cases
+- [x] Phase directory tooling: `codex-run/run.sh` + `hooks_list.py` re-based, `install-gate.sh` with `WANT_VERSION=0.2.1`, Windows installer-run runbook and record template
 
 ---
 
@@ -76,7 +76,7 @@ Filled in by the planner/executor; requirement-to-test map from 10-RESEARCH.md:
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Windows installer run (D-07/D-08 fix observed on a real Windows host) | DOCS-03 | Needs the owner's Windows machine | Follow `10-WINDOWS-INSTALLER-RUN.md` runbook, record outcome (round 1, plan 10-05: tested negative) |
+| Windows installer run (D-07/D-08 fix observed on a real Windows host) | DOCS-03 | Needs the owner's Windows machine | Follow `10-WINDOWS-INSTALLER-RUN.md` runbook, record outcome (round 1, plan 10-05: tested negative; superseded by round 2) |
 | Windows installer round 2 (D-27 to D-29 fix, Codex started from PowerShell) | DOCS-02, DOCS-03 | Needs the owner's Windows machine | Section `## Round 2 (after plan 10-15)` of `windows-installer/runbook.md`; recorded by the round-2 rule in plan 10-17; the latest round's `D-09:` line feeds plans 10-06 and 10-07 |
 | Push, PR merge, tag push, GitHub Release | REL-08 | Outward-facing; owner confirms each step | Confirm before each action, record evidence |
 
@@ -84,11 +84,19 @@ Filled in by the planner/executor; requirement-to-test map from 10-RESEARCH.md:
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 120s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 120s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** validated 2026-10-15 (validate-phase after plan 10-14): every mapped gate present and ok in `sh tests/run.sh` (SUMMARY ok=979 fail=0 skip=0); release run ok=979 skip=0 on the planning and PR trees (evidence/rc-suite-*.txt); REL-08 proofs in evidence/ (pr-branch.txt, pr-b-branch.txt tree_equal yes and planning_paths 0; install-gate-main.txt 7 ok; tag.txt annotated; release.txt body_equal yes). Manual-only rows were run by the owner: Windows round 2 `D-09: met` (plan 10-17); each push, merge, tag push and Release confirmed by the owner.
+
+## Validation Audit 2026-10-15
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
