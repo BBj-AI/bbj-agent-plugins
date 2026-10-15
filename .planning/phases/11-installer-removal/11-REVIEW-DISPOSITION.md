@@ -33,20 +33,20 @@ findings:
     title: "No migration path in the docs for 0.2.0/0.2.1 installer users (accepted by D-01/D-02)"
 open: 0
 total: 7
-recorded: 2026-10-15T08:06:08.074Z
+recorded: 2026-10-15T14:43:44.252Z
 ---
 
 # Phase 11: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 11-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 11-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 11-REVIEW-FIX.md |
-| IN-01 | info | fixed | 11-REVIEW-FIX.md |
-| IN-02 | info | fixed | 11-REVIEW-FIX.md |
-| IN-03 | info | fixed | 11-REVIEW-FIX.md |
-| IN-04 | info | skipped | 11-REVIEW-FIX.md |
+| WR-01 | warning | fixed | 11-REVIEW-FIX.md (not in the current review) |
+| WR-02 | warning | fixed | 11-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 11-REVIEW-FIX.md (not in the current review) |
+| IN-01 | info | fixed | 11-REVIEW-FIX.md (not in the current review) |
+| IN-02 | info | fixed | 11-REVIEW-FIX.md (not in the current review) |
+| IN-03 | info | fixed | 11-REVIEW-FIX.md (not in the current review) |
+| IN-04 | info | skipped | 11-REVIEW-FIX.md (not in the current review) |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
