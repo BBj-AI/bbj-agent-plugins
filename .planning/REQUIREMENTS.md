@@ -10,9 +10,8 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 ### Installer removal
 
 - [ ] **INST-01**: `codex/install-codex.sh`, `codex/AGENTS-snippet.md`, `tests/test_install_codex.sh`, the installer gates in `tests/test_install_pages.sh`, the AGENTS-snippet byte-identity gate in `tests/test_check_order.py` and any fake used only by them are removed
-- [ ] **INST-02**: No shipped file, doc or test names `install-codex.sh` except CHANGELOG history and the migration line; a gate keeps it out
+- [ ] **INST-02**: No tracked file outside `.planning/` and the CHANGELOG entries of 0.2.1 and earlier names `install-codex.sh`, `AGENTS-snippet` or the word "installer"; a gate keeps them out (11-CONTEXT D-10, D-11)
 - [ ] **INST-03**: The hook has no installer-route branch: on Codex the no-route notice names only the plugin commands, and the hook still checks `apply_patch` writes on the plugin route
-- [ ] **INST-04**: CHANGELOG `## 0.2.2` Upgrading tells a 0.2.1 installer user to run `install-codex.sh --remove` from tag `0.2.1`, and why (a stale `~/.codex/hooks.json` gives double feedback)
 
 ### Naming
 
@@ -55,7 +54,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 |---------|--------|
 | OAuth client id as a setting | One public client per tenant, pre-production and production share it, and Codex cannot expand `${user_config.*}`; the literal id stays in both configs until a second tenant exists |
 | Renaming the plugins or the marketplace | Users and docs refer to `bbj`, `bbj-local` and `basis-bbj` |
-| Migration tooling for installer users | One CHANGELOG line pointing to `install-codex.sh --remove` at tag `0.2.1` is enough |
+| Migration text for installer users (was INST-04) | No outside user ever used the installer; docs and the 0.2.2 CHANGELOG read as if it never existed (Phase 11 CONTEXT D-01, D-02) |
 | Installer review warnings 10-REVIEW WR-01..WR-03 | Closed by removing the installer |
 
 ## Traceability
@@ -65,7 +64,6 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | INST-01 | Phase 11 | Pending |
 | INST-02 | Phase 11 | Pending |
 | INST-03 | Phase 11 | Pending |
-| INST-04 | Phase 15 | Pending |
 | NAME-01 | Phase 12 | Pending |
 | NAME-02 | Phase 12 | Pending |
 | NAME-03 | Phase 15 | Pending |
@@ -83,12 +81,12 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | REL-10 | Phase 15 | Pending |
 
 **Coverage:**
-- v0.2.2 requirements: 19 total
-- Mapped to phases: 19
+- v0.2.2 requirements: 18 total
+- Mapped to phases: 18
 - Unmapped: 0
 
-Per phase: Phase 11 (4), Phase 12 (2), Phase 13 (3), Phase 14 (6), Phase 15 (4).
+Per phase: Phase 11 (4), Phase 12 (2), Phase 13 (3), Phase 14 (6), Phase 15 (3).
 
 ---
 *Requirements defined: 2026-10-15*
-*Last updated: 2026-10-15 after roadmap creation (traceability filled)*
+*Last updated: 2026-10-15 after Phase 11 discussion (INST-04 dropped)*

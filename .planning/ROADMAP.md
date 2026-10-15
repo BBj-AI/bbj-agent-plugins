@@ -49,7 +49,7 @@ Release 0.2.2 has five steps:
 - **Phase 14** settles docs and conventions on the stable file set: one plugin-only install page
   for both clients, one written term list with a gate, the gate-prefix block checked against the
   suite, the dead-code sweep and a refreshed codebase map.
-- **Phase 15** writes the `## 0.2.2` CHANGELOG entry (installer migration line, sign-in again
+- **Phase 15** writes the `## 0.2.2` CHANGELOG entry (sign-in again
   under `bbj`), bumps the five versions, runs the full suite with live gates, then merges, tags and
   publishes 0.2.2.
 
@@ -57,7 +57,7 @@ Release 0.2.2 has five steps:
 to be deleted. Phase 13 needs only Phase 11 and can run alongside Phase 12. The install page waits
 for Phases 11-13 because it carries the new name, no installer, and the Windows hook behaviour that
 Phase 13 leaves. The term pass, the prefix gate and the map refresh run once the file set is
-stable. The CHANGELOG lines of INST-04 and NAME-03 wait for the release: `changelog_heading` in
+stable. The CHANGELOG line of NAME-03 waits for the release: `changelog_heading` in
 `tests/test_release_text.py` requires the newest heading to be the current version and allows no
 placeholder entry, so `## 0.2.2` can only appear in the bump commit.
 
@@ -88,7 +88,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 12: Docs server renamed to bbj** - `bbj-docs` becomes `bbj` in both MCP configs, the skills, the hook notice, the docs and the tests; sign-in commands read on real clients; a gate keeps the old name out
 - [ ] **Phase 13: Windows hook fixes** - Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location, one tier-2 connect timeout per hook run, a backslash gate that catches a regression
 - [ ] **Phase 14: One install page and one term list** - One plugin-only install page for both clients, one written term list with a gate, the gate-prefix block checked against the suite, dead code swept, codebase map refreshed
-- [ ] **Phase 15: Release 0.2.2** - `## 0.2.2` entry with the installer migration line and the sign-in under `bbj`, five versions bumped, full suite with live gates, merged, tagged `0.2.2`, published
+- [ ] **Phase 15: Release 0.2.2** - `## 0.2.2` entry with the sign-in under `bbj`, five versions bumped, full suite with live gates, merged, tagged `0.2.2`, published
 
 ## Phase Details
 
@@ -99,7 +99,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Requirements**: INST-01, INST-02, INST-03, DOCS-06
 **Success Criteria** (what must be TRUE):
   1. `codex/install-codex.sh`, `codex/AGENTS-snippet.md`, `tests/test_install_codex.sh`, the `installer_` gates of `tests/test_install_pages.sh`, the snippet copy in `tests/test_check_order.py` and every fake only they used are gone. `sh tests/run.sh` passes, and `tests/test_check_order.py` still pins the check-order block byte-identical in the two SKILL.md files (INST-01)
-  2. A gate fails when `install-codex.sh` appears in a shipped file, doc or test outside the CHANGELOG entries of 0.2.1 and earlier and the one migration line Phase 15 adds; a planted mention makes it fail. `tests/test_release_text.py` and `tests/test_release_text_mutation.sh` pass at 0.2.1 without reading the installer (INST-02)
+  2. A gate fails when `install-codex.sh`, `AGENTS-snippet` or the word "installer" appears in a tracked file outside `.planning/` and the CHANGELOG entries of 0.2.1 and earlier; a planted mention makes it fail. `tests/test_release_text.py` and `tests/test_release_text_mutation.sh` pass at 0.2.1 without reading the installer (INST-02)
   3. On a Codex `apply_patch` payload with no check route, the no-route notice names only the plugin commands (`codex plugin add bbj-local@basis-bbj`), with or without `CLAUDE_PLUGIN_ROOT` set, and the hook has no code path for the installer route. The `plugin_route_` gates still give `bbjcpl` feedback for a bad file and silence for a clean one (INST-03)
   4. The README "Verified" table, the README install text and both install pages no longer describe the installer route. Every per-platform claim left traces to a run record (`08-LINUX-RUN.md`, `09-WINDOWS-RUN.md`, `09-MACOS-RUN.md`, `10-LINUX-RUN.md` in `.planning/milestones/v0.2.1-phases/`); no claim remains that only the installer record `10-WINDOWS-INSTALLER-RUN.md` backed (DOCS-06)
 **Plans**: TBD
@@ -109,7 +109,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - `tests/lib.sh` and the hook's header comments carry installer wording too (route detection D-07, D-08 of Phase 8); the `codex_payload` helper stays, the installer route does not.
 - The two install pages stay in this phase, stripped of the installer; Phase 14 merges them into one.
 - The installer mentions in `.claude/CLAUDE.md` and `.planning/codebase/` are generated from the codebase map and go with its refresh in Phase 14 (MAINT-11).
-- The instruction for 0.2.1 installer users (`install-codex.sh --remove` from tag `0.2.1`) goes into the `## 0.2.2` CHANGELOG entry in Phase 15 (INST-04).
+- No migration text for installer users anywhere: INST-04 was dropped in the Phase 11 discussion (11-CONTEXT D-01, D-02); no outside user ever used the installer.
 - Tests use fakes only; nothing runs BBj.
 
 ### Phase 12: Docs server renamed to bbj
@@ -169,15 +169,14 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 ### Phase 15: Release 0.2.2
 
-**Goal**: Release 0.2.2 ships the plugin-only route under the new server name with the Windows fixes, and its CHANGELOG tells upgrading users exactly what to do: remove the old installer install, and sign in again under `bbj`.
+**Goal**: Release 0.2.2 ships the plugin-only route under the new server name with the Windows fixes, and its CHANGELOG tells upgrading users exactly what to do: sign in again under `bbj`.
 **Depends on**: Phase 14
-**Requirements**: INST-04, NAME-03, REL-09, REL-10
+**Requirements**: NAME-03, REL-09, REL-10
 **Success Criteria** (what must be TRUE):
   1. Both plugin manifests, both marketplace entries and the Codex overlay read 0.2.2, as do `tests/test_layout.py` and the README version line. The release-text gates are re-pinned to the facts of 0.2.2 and pass, and `claude plugin validate --strict` passes. CHANGELOG `## 0.2.2` has Upgrading, Tested against and Not run, with Tested against taken from the release run (REL-09)
-  2. The Upgrading section tells a 0.2.1 installer user to run `install-codex.sh --remove` from a checkout of tag `0.2.1`, because a stale `~/.codex/hooks.json` fires alongside the plugin hook and gives double feedback. It is the one migration line the Phase 11 gate allows (INST-04)
-  3. Owner-run, Linux at least: on the release tree, real Claude Code and real Codex sign in to the docs server under `bbj`. The Upgrading section states that users sign in again and names each per-server setting they redo, as the Phase 12 reading and this run show (NAME-03)
-  4. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
-  5. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
+  2. Owner-run, Linux at least: on the release tree, real Claude Code and real Codex sign in to the docs server under `bbj`. The Upgrading section states that users sign in again and names each per-server setting they redo, as the Phase 12 reading and this run show (NAME-03)
+  3. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
+  4. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
 **Plans**: TBD
 
 **Notes**:
