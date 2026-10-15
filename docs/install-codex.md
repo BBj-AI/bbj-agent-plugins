@@ -70,18 +70,20 @@ The plugin carries the pre-registered OAuth client of the hosted docs server (cl
 callback `http://localhost:47613/callback`, port 47613). Sign in once:
 
 ```bash
-codex mcp login bbj-docs
+codex mcp login bbj
 ```
 
 Port 47613 must be free on the machine where Codex runs. Until you have signed in, `codex mcp
-list` shows `Not logged in` for `bbj-docs`; afterwards it shows `OAuth`. If your browser is on
-another machine than Codex, `codex mcp login bbj-docs --no-browser` prints the authorization URL;
+list` shows `Not logged in` for the docs server `bbj`; afterwards it shows `OAuth`. If your browser is on
+another machine than Codex, `codex mcp login --no-browser bbj` prints the authorization URL;
 open it, then paste the callback URL back into the terminal. Observed on Linux, in a scratch copy
 of the plugin with that client: the sign-in completed this way. Without the client, Codex tries
 dynamic client registration and the hosted server refuses it (`dynamic client registration is
-disabled`). Observed on Linux with Codex CLI 0.162.1, with the plugin as it ships: the sign-in to
-`bbj-docs` completed (2026-10-14) and Codex stored a refresh token. The sign-in to the hosted docs
-server also completed on Windows (2026-10-13) and on macOS (2026-10-14).
+disabled`). Observed on Linux with Codex CLI 0.162.1, on 2026-10-15: the plugin installed fresh from
+a checkout showed the docs server as `bbj` in `codex mcp list`, `codex mcp login bbj` was accepted and
+the sign-in completed (`Successfully logged in to MCP server 'bbj'.`; the `Auth` column went from
+`Not logged in` to `OAuth`); on that machine the browser ran elsewhere, and
+`codex mcp login --no-browser bbj` with the callback URL pasted back into Codex completed it.
 
 The pre-registered client belongs to the hosted docs server. On Codex the plugin uses that
 server: `plugins/bbj/.codex-mcp.json` holds its URL and Codex plugins have no options, so

@@ -93,8 +93,12 @@ Or set one at install time, for example `claude plugin install bbj@basis-bbj --c
   The docs server asks for an OAuth sign-in. The plugin brings the pre-registered client
   (`oauth.clientId` in its `.mcp.json`) and the callback port 47613. Claude Code receives the
   sign-in at `http://localhost:47613/callback`, so port 47613 must be free while you sign in.
-  Until you sign in, `claude mcp list` shows `plugin:bbj:bbj-docs` with `Needs authentication`.
-  Run `/mcp` in Claude Code, choose `plugin:bbj:bbj-docs` and sign in, in the browser that opens.
+  Until you sign in, `claude mcp list` shows `plugin:bbj:bbj` with `Needs authentication`.
+  Run `/mcp` in Claude Code, choose `plugin:bbj:bbj` and sign in, in the browser that opens.
+  Observed on Linux with Claude Code 2.1.299, on 2026-10-15: the plugin installed fresh from a
+  checkout showed the docs server `bbj` as `plugin:bbj:bbj` in `/mcp` and in `claude mcp list`, the
+  sign-in in the browser completed (the listing went from `Needs authentication` to `Connected`),
+  and `bbj_search` is shown as `mcp__plugin_bbj_bbj__bbj_search`.
   The client and the port belong to the hosted docs server only; `.mcp.json` is static and applies
   them whatever `docs_url` is. `docs_url` must therefore point at a server that accepts this
   client. If you point it at another server (self-hosted, local), that
