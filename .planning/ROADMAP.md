@@ -103,12 +103,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. On a Codex `apply_patch` payload with no check route, the no-route notice names only the plugin commands (`codex plugin add bbj-local@basis-bbj`), with or without `CLAUDE_PLUGIN_ROOT` set, and the hook has no code path for the installer route. The `plugin_route_` gates still give `bbjcpl` feedback for a bad file and silence for a clean one (INST-03)
   4. The README "Verified" table, the README install text and both install pages no longer describe the installer route. Every per-platform claim left traces to a run record (`08-LINUX-RUN.md`, `09-WINDOWS-RUN.md`, `09-MACOS-RUN.md`, `10-LINUX-RUN.md` in `.planning/milestones/v0.2.1-phases/`); no claim remains that only the installer record `10-WINDOWS-INSTALLER-RUN.md` backed (DOCS-06)
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
 - [x] 11-01-PLAN.md — Hook gives one Codex no-route text (plugin commands) whether CLAUDE_PLUGIN_ROOT is set, empty or unset; notice gates prove it (INST-03; wave 1)
-- [ ] 11-02-PLAN.md — Release-text, check-order, layout and static gates stop reading the installer and snippet while they still exist (INST-01, INST-02; wave 1)
+- [x] 11-02-PLAN.md — Release-text, check-order, layout and static gates stop reading the installer and snippet while they still exist (INST-01, INST-02; wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 11-03-PLAN.md — README and both install pages drop the installer route; page pins follow; every per-platform claim traced to a run record in 11-CLAIM-TRACE.md (DOCS-06; wave 2)
@@ -210,7 +210,7 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 11. Installer removal | v0.2.2 | 1/5 | In Progress | - |
+| 11. Installer removal | v0.2.2 | 2/5 | In Progress | - |
 | 12. Docs server renamed to bbj | v0.2.2 | 0/TBD | Not started | - |
 | 13. Windows hook fixes | v0.2.2 | 0/TBD | Not started | - |
 | 14. One install page and one term list | v0.2.2 | 0/TBD | Not started | - |
