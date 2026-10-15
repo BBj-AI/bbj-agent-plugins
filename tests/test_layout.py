@@ -612,6 +612,49 @@ if len(sys.argv) == 1:
             d["hooks"]["PostToolUse"][0]["hooks"][0].pop("commandWindows", None)
         edit_json(os.path.join(dst, HOOKS_FILE), fn)
 
+    # phase 13: edit the commandWindows value of the copy with a string function (the mutation
+    # must change it; mutation_case fails a change that changes nothing)
+    def edit_windows(dst, fn):
+        def edit(d):
+            h = d["hooks"]["PostToolUse"][0]["hooks"][0]
+            h["commandWindows"] = fn(h["commandWindows"])
+        edit_json(os.path.join(dst, HOOKS_FILE), edit)
+
+    # the automatic input variable, assembled from pieces (self-scan convention)
+    AUTO_INPUT = "$" + "input"
+    SILENT_EXIT = r'if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match "\.(bbj|src|bbx)")) { exit 0 }'
+    NOT_FOUND_START = "if (-not $s) { $o = findstr"
+    CALL_START = '& $s "'
+
+    def windows_input(dst):
+        edit_windows(dst, lambda v: v.replace("$s = $null", "$s = $null; $x = @(" + AUTO_INPUT + ")", 1))
+
+    def windows_method(dst):
+        edit_windows(dst, lambda v: v.replace('cmd /c "echo', "[Console]" + "::Error.Write" + "Line('x'); " + 'cmd /c "echo', 1))
+
+    def windows_short_name(dst):
+        edit_windows(dst, lambda v: v.replace("$env:ProgramFiles,", "'C:\\" + "PROGRA" + "~1',", 1))
+
+    def windows_passthrough(dst):
+        def fn(v):
+            i = v.rindex("exit $LASTEXITCODE")
+            return v[:i] + "exit 0" + v[i + len("exit $LASTEXITCODE"):]
+        edit_windows(dst, fn)
+
+    def windows_order(dst):
+        def fn(v):
+            a = v.index(NOT_FOUND_START)
+            b = v.index(CALL_START)
+            cut = v[a:b]
+            rest = v[:a] + v[b:]
+            i = rest.rindex("exit $LASTEXITCODE")
+            return rest[:i] + cut + rest[i:]
+        edit_windows(dst, fn)
+
+    def windows_silent_exit(dst):
+        edit_windows(dst, lambda v: v.replace(SILENT_EXIT, 'if ($LASTEXITCODE -eq 1 -and -not $o) { exit 0 }', 1))
+
+
     mutation_case("control", [], lambda dst: None, [])
     mutation_case("overlay_version", [CODEX_MANIFEST], set_overlay_version, ["versions"])
     mutation_case("codex_url", [CODEX_MCP_FILE], slash_codex_url, ["codex_url_equals_default"])
@@ -622,6 +665,15 @@ if len(sys.argv) == 1:
     mutation_case("overlay_extra_key", [CODEX_MANIFEST], overlay_extra_key, ["codex_overlay_fields"])
     mutation_case("codex_secret", [CODEX_MCP_FILE], codex_secret, ["codex_mcp"])
     mutation_case("hook_command_windows", [HOOKS_FILE], drop_command_windows, ["hook_command_windows"])
+    mutation_case("hook_windows_input", [HOOKS_FILE], windows_input,
+                  ["hook_command_windows", "hook_windows_safe"])
+    mutation_case("hook_windows_method", [HOOKS_FILE], windows_method, ["hook_windows_safe"])
+    mutation_case("hook_windows_short_name", [HOOKS_FILE], windows_short_name,
+                  ["hook_windows_safe", "hook_windows_parts"])
+    mutation_case("hook_windows_passthrough", [HOOKS_FILE], windows_passthrough, ["hook_windows_parts"])
+    mutation_case("hook_windows_order", [HOOKS_FILE], windows_order, ["hook_windows_parts"])
+    mutation_case("hook_windows_silent_exit", [HOOKS_FILE], windows_silent_exit,
+                  ["hook_command_windows", "hook_windows_parts"])
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
     mutation_case("docs_url_stage", [CLAUDE_MANIFEST], docs_url_stage, ["docs_url_description"])
