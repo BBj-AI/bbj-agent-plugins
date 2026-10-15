@@ -157,8 +157,6 @@ The hook does not see:
 - notebook edits (`NotebookEdit`),
 - any tool outside the `Write|Edit` matcher.
 
-Edits made by subagents are checked as well; this was verified with Claude Code 2.1.294 and not repeated on later versions.
-
 Observed on Windows with Claude Code 2.1.292 and on macOS with Claude Code 2.1.296: asked to create
 a file, Claude Code wrote it with a `Bash` shell command and the hook did not run; after the request
 to use the Write tool, the Write hook fired. A file written through `Bash` is not checked, as listed

@@ -1937,14 +1937,13 @@ else
   done
 fi
 
-# ---- the tool list has one source: the installer, the AGENTS snippet and the install page ----
+# ---- the tool list has one source: the installer and the AGENTS snippet (plan 11-03: the install page no longer holds the tool tables) ----
 inst_tools=$(sed -n 's/^DOCS_TOOLS=//p' "$INSTALLER" | head -n 1 | tr -d "'\"" | tr ' ' '\n' | sort)
 snip_tools=$(sed -n 's/^- `\(bbj_[a-z_]*\)`:.*/\1/p' "$SNIPPET" | sort)
-page_tools=$(sed -n 's/^ *\[mcp_servers\.bbj-docs\.tools\.\([a-z_]*\)\]$/\1/p' "$REPO/docs/install-codex.md" | sort)
-if [ -n "$inst_tools" ] && [ "$inst_tools" = "$snip_tools" ] && [ "$inst_tools" = "$page_tools" ]; then
-  gate tools_list_single_source ok "DOCS_TOOLS equals the tool bullets of AGENTS-snippet.md and the tool tables of docs/install-codex.md ($(printf '%s\n' "$inst_tools" | awk 'END { print NR }') tools)"
+if [ -n "$inst_tools" ] && [ "$inst_tools" = "$snip_tools" ]; then
+  gate tools_list_single_source ok "DOCS_TOOLS equals the tool bullets of AGENTS-snippet.md ($(printf '%s\n' "$inst_tools" | awk 'END { print NR }') tools)"
 else
-  gate tools_list_single_source FAIL "installer '$(printf '%s' "$inst_tools" | tr '\n' ' ')', snippet '$(printf '%s' "$snip_tools" | tr '\n' ' ')', page '$(printf '%s' "$page_tools" | tr '\n' ' ')'"
+  gate tools_list_single_source FAIL "installer '$(printf '%s' "$inst_tools" | tr '\n' ' ')', snippet '$(printf '%s' "$snip_tools" | tr '\n' ' ')'"
 fi
 
 # ---- quick 261013-cpn: the installer never starts a sign-in: no fake codex call of any case names oauth or login ----

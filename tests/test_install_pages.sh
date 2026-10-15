@@ -104,7 +104,6 @@ if [ -f "$CLAUDE_PAGE" ]; then
     '## Not covered' \
     'Bash' \
     'NotebookEdit' \
-    'subagent' \
     '## Windows' \
     'Git for Windows' \
     'data-handling' \
