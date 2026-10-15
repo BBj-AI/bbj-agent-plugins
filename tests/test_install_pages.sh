@@ -126,7 +126,7 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'not compile-checked' \
     '47613' \
     'Needs authentication' \
-    'plugin:bbj:bbj' \
+    '`plugin:bbj:bbj`' \
     'mcp__plugin_bbj_bbj__' \
     'oauth.clientId'
   do
@@ -207,7 +207,7 @@ if [ -f "$CODEX_PAGE" ]; then
     'once per session' \
     'not compile-checked' \
     'http://localhost:47613/callback' \
-    'codex mcp login bbj' \
+    '`codex mcp login bbj`' \
     'only the Claude Code plugin has the `docs_url` option' \
     'plugins/bbj/.codex-mcp.json' \
     '## Install with the Codex plugin' \
@@ -226,7 +226,7 @@ if [ -f "$CODEX_PAGE" ]; then
     'the hosted BBj docs server' \
     'stop every Codex process' \
     'approval_mode = "approve"' \
-    'plugins."bbj@basis-bbj".mcp_servers.bbj'
+    '`plugins."bbj@basis-bbj".mcp_servers.bbj`'
   do
     need "$n" "$CODEX_PAGE" "$p"
   done
@@ -251,7 +251,7 @@ if [ -f "$README" ]; then
     'once per session' \
     'codex plugin add bbj@basis-bbj' \
     'codex plugin add bbj-local@basis-bbj' \
-    'codex mcp login bbj' \
+    '`codex mcp login bbj`' \
     '| Claude Code |' \
     '| Codex plugin |' \
     'Verified on Linux, Windows and macOS' \
