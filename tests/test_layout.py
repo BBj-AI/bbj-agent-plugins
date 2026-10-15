@@ -19,12 +19,12 @@ Phase 13 (FIX-01; D-01 to D-09): pins the new commandWindows of plugins/bbj/hook
 exactly (layout_hook_command_windows): the ordered lookup of Git for Windows' sh.exe, the loud
 not-found branch and the exit-code passthrough. It pins text; the Windows run is 13-WINDOWS-RUN.md.
 Two guards outlive any re-pin: layout_hook_windows_safe (no automatic input variable, no Console or
-method call, no short-name path, no unconditional per-user item) and layout_hook_windows_parts (every lookup location, the findstr
+method call, no short-name path, no unconditional per-user item, no space before a cmd redirection) and layout_hook_windows_parts (every lookup location, the findstr
 silent-exit condition, the loud branch before the call, the passthrough last); the six
 layout_mutation_hook_windows_* cases plant each trap (input variable, method call, short name,
 changed passthrough, moved branch, weaker silent-exit test), and one case per review fix of
 13-REVIEW.md takes its fix back out (any_sh: WR-01; localappdata: WR-02; any_mention: WR-03;
-root_text: WR-04; git_cmd_only: IN-02; no_w6432: IN-03).
+root_text: WR-04; git_cmd_only: IN-02; no_w6432: IN-03; trailing_space: IN-04).
 The layout_mutation_* gates run this file on a temp copy with one change each; passing a root
 argument turns them off.
 
@@ -82,7 +82,8 @@ HOOK_COMMAND = 'sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"'
 # (review WR-03: the text of a change, such as img.src in a web file, never counts). ROADMAP SC1, never a
 # silent no-op: a line findstr cannot read in full, such as one over its 8191-byte limit on piped input,
 # is reported (accepted D-06 false positive: a non-BBj payload that long is reported too). Otherwise it
-# writes three fixed lines to stderr through cmd and exits 2. The call takes the script path from
+# writes three fixed lines to stderr through cmd and exits 2; each echo sits in parentheses before its
+# redirection, because cmd keeps the space before 1>&2 as a trailing space of the line (review IN-04). The call takes the script path from
 # $env:CLAUDE_PLUGIN_ROOT, which Codex sets for a plugin hook (codex rust-v0.162.1 discovery.rs), because
 # PowerShell never expands a variable's value again: a $ or a backtick in the plugin root (a Windows user
 # name may hold both) is kept as it is (review WR-04). Only when the variable is unset does the call
@@ -98,7 +99,7 @@ HOOK_COMMAND_WINDOWS_STATEMENTS = (
     r'foreach ($r in $env:ProgramW6432, $env:ProgramFiles, ${env:ProgramFiles(x86)}, $(if ($env:LOCALAPPDATA) { "$env:LOCALAPPDATA\Programs" } elseif ($env:USERPROFILE) { "$env:USERPROFILE\AppData\Local\Programs" })) { if ($r -and -not $s) { $p = "$r\Git\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } }',
     r'if (-not $s) { foreach ($c in (Get-Command sh -CommandType Application -ErrorAction SilentlyContinue)) { $q = Split-Path -Parent (Split-Path -Parent $c.Source); if ($q -and -not $s -and ((Test-Path -LiteralPath "$q\usr\bin\cygpath.exe") -or (Test-Path -LiteralPath "$q\bin\cygpath.exe"))) { $s = $c.Source } } }',
     r'''if (-not $s) { $g = Get-Command git -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1; if ($g) { $q = Split-Path -Parent (Split-Path -Parent $g.Source); if ($q -and ((Split-Path -Leaf $q) -match '^(mingw|clang|ucrt)')) { $q = Split-Path -Parent $q }; if ($q) { $p = "$q\bin\sh.exe"; if (Test-Path -LiteralPath $p) { $s = $p } } } }''',
-    r'''if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }; cmd /c "echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked. 1>&2 & echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, the Git folder of a git on PATH. 1>&2 & echo Install Git for Windows or put its bin folder on PATH. 1>&2"; exit 2 }''',
+    r'''if (-not $s) { $o = findstr /n /r "^" 2>&1; if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }; cmd /c "(echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.)1>&2 & (echo Looked in Program Files Git bin, Program Files x86 Git bin, LOCALAPPDATA Programs Git bin, a Git sh on PATH, the Git folder of a git on PATH.)1>&2 & (echo Install Git for Windows or put its bin folder on PATH.)1>&2"; exit 2 }''',
     r'$b = "$env:CLAUDE_PLUGIN_ROOT/scripts/bbj-check.sh"',
     r'if (-not $env:CLAUDE_PLUGIN_ROOT) { $b = "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh" }',
     r'& $s $b',
@@ -113,9 +114,10 @@ HOOK_COMMAND_WINDOWS = "; ".join(HOOK_COMMAND_WINDOWS_STATEMENTS)
 # self-scan convention), [console], :: and the method calls (a type literal or a method call is
 # refused under ConstrainedLanguage), the 8.3 short-name path (it only fits one Git location), and the
 # per-user list item as an unconditional expandable string (review WR-02: \Programs on the current
-# drive when LOCALAPPDATA is unset).
+# drive when LOCALAPPDATA is unset), and a space before a cmd redirection (review IN-04: it ends the
+# printed line).
 WINDOWS_FORBIDDEN = ("$" + "input", "[console]", "::", ".writeerrorline", ".readtoend", ".invoke(",
-                     "progra" + "~", r'"$env:localappdata\programs")')
+                     "progra" + "~", r'"$env:localappdata\programs")', " 1>&2")
 # WINDOWS_PARTS, each must occur verbatim: every lookup location, the findstr read, the whole silent-exit
 # condition (silence only after a full read of the payload whose file names are no BBj file: ROADMAP
 # SC1, review WR-03), the
@@ -131,7 +133,7 @@ WINDOWS_PARTS = (
     r"if ($q -and ((Split-Path -Leaf $q) -match '^(mingw|clang|ucrt)')) { $q = Split-Path -Parent $q }; if ($q) {",
     r'findstr /n /r "^" 2>&1',
     r'''if ($LASTEXITCODE -eq 0 -and -not ($o -notmatch "^[0-9]+:") -and -not ($o -match '(\*\*\* (Add File|Update File|Delete File|Move to): |"file_path"\s*:\s*")([^"\\]|\\[\\/]|\\u[0-9a-f]{4})*\.(bbj|src|bbx)(\\[nr]|")')) { exit 0 }''',
-    r'Git for Windows sh.exe not found',
+    r'cmd /c "(echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.)1>&2 & (echo ',
     r'exit 2 }',
     r'$b = "$env:CLAUDE_PLUGIN_ROOT/scripts/bbj-check.sh"',
     r'if (-not $env:CLAUDE_PLUGIN_ROOT) { $b = "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh" }',
@@ -708,7 +710,7 @@ if len(sys.argv) == 1:
         edit_windows(dst, lambda v: v.replace("$s = $null", "$s = $null; $x = @(" + AUTO_INPUT + ")", 1))
 
     def windows_method(dst):
-        edit_windows(dst, lambda v: v.replace('cmd /c "echo', "[Console]" + "::Error.Write" + "Line('x'); " + 'cmd /c "echo', 1))
+        edit_windows(dst, lambda v: v.replace('cmd /c "(echo', "[Console]" + "::Error.Write" + "Line('x'); " + 'cmd /c "(echo', 1))
 
     def windows_short_name(dst):
         edit_windows(dst, lambda v: v.replace("$env:ProgramFiles,", "'C:\\" + "PROGRA" + "~1',", 1))
@@ -764,6 +766,12 @@ if len(sys.argv) == 1:
     def windows_no_w6432(dst):
         edit_windows(dst, lambda v: v.replace("$env:ProgramW6432, ", "", 1))
 
+    # review IN-04: the first echo of the not-found branch is written without parentheses again
+    FIRST_ECHO = "(echo bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.)1>&2"
+
+    def windows_trailing_space(dst):
+        edit_windows(dst, lambda v: v.replace(FIRST_ECHO, FIRST_ECHO[1:].replace(".)1>&2", ". 1>&2"), 1))
+
     def windows_localappdata(dst):
         edit_windows(dst, lambda v: v.replace(PER_USER + ")", r'"$env:LOCALAPPDATA\Programs")', 1))
 
@@ -799,6 +807,8 @@ if len(sys.argv) == 1:
                   ["hook_command_windows", "hook_windows_parts"])
     mutation_case("hook_windows_no_w6432", [HOOKS_FILE], windows_no_w6432,
                   ["hook_command_windows", "hook_windows_parts"])
+    mutation_case("hook_windows_trailing_space", [HOOKS_FILE], windows_trailing_space,
+                  ["hook_command_windows", "hook_windows_safe", "hook_windows_parts"])
     mutation_case("mcp_scopes_missing", [MCP_FILE], mcp_scopes_missing, ["bbj_mcp"])
     mutation_case("codex_scopes_array", [CODEX_MCP_FILE], codex_scopes_array, ["codex_mcp"])
     mutation_case("docs_url_stage", [CLAUDE_MANIFEST], docs_url_stage, ["docs_url_description"])

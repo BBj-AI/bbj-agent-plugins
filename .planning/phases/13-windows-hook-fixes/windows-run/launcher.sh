@@ -39,7 +39,7 @@ BASE=$HOME/.cache/bbj-phase13
 HOOKS=$REPO/plugins/bbj/hooks/hooks.json
 # the current pin (13-REVIEW-FIX.md): sha256 of the commandWindows string as hooks.json holds it (before
 # the root is set); rounds 1 and 2 ran the plan 13-02 pin
-PIN_SHA=fb95f06e0e5a902fc1cf737b24b9fcef9bbf9f7bea4ec54229c96426c2570533
+PIN_SHA=812f6bbfa6466334d87995c6528f5b0d6f46c83c496e483c1f99533404de3c51
 CLM_PREFIX='$ExecutionContext.SessionState.LanguageMode = "ConstrainedLanguage"; '
 MARKER=launcher.marker
 OUT=
@@ -221,7 +221,8 @@ want_kind() {
   esac
 }
 
-# check_want KIND RC OUT_BYTES ERR_LINES FIRST: "as expected" or "differs (want ...)"
+# check_want KIND RC OUT_BYTES ERR_LINES FIRST [TRAIL]: "as expected" or "differs (want ...)"; TRAIL is
+# the number of stderr lines that end in a space, which the not-found kinds require to be 0 (IN-04)
 check_want() {
   _w=
   case $1 in
@@ -237,15 +238,15 @@ check_want() {
       ;;
     notfound)
       case $5 in
-        'bbj-check: Git for Windows sh.exe not found'*) [ "$2" = 2 ] && [ "$4" = 3 ] && _w=ok ;;
+        'bbj-check: Git for Windows sh.exe not found'*) [ "$2" = 2 ] && [ "$4" = 3 ] && [ "${6:-0}" = 0 ] && _w=ok ;;
       esac
-      _d='rc=2, 3 stderr lines and first line "bbj-check: Git for Windows sh.exe not found"'
+      _d='rc=2, 3 stderr lines, none ending in a space, and first line "bbj-check: Git for Windows sh.exe not found"'
       ;;
     notfound_first)
       case $5 in
-        'bbj-check: Git for Windows sh.exe not found'*) [ "$2" = 2 ] && _w=ok ;;
+        'bbj-check: Git for Windows sh.exe not found'*) [ "$2" = 2 ] && [ "${6:-0}" = 0 ] && _w=ok ;;
       esac
-      _d='rc=2 and first line "bbj-check: Git for Windows sh.exe not found"'
+      _d='rc=2, no stderr line ending in a space, and first line "bbj-check: Git for Windows sh.exe not found"'
       ;;
   esac
   if [ "$_w" = ok ]; then
@@ -396,7 +397,8 @@ runcase() {
   _ob=$(wc -c < "$OUT/cases/$_n.out" | tr -d ' ')
   _el=$(awk 'END { print NR }' "$OUT/cases/$_n.err.txt")
   _first=$(head -n 1 "$OUT/cases/$_n.err.txt")
-  _verdict=$(check_want "$(want_kind "$_n")" "$_rc" "$_ob" "$_el" "$_first")
+  _trail=$(grep -c ' $' "$OUT/cases/$_n.err.txt")
+  _verdict=$(check_want "$(want_kind "$_n")" "$_rc" "$_ob" "$_el" "$_first" "$_trail")
   _shown=$(scrub "$_first" | cut -c1-160)
   caseline "$_n: rc=$_rc out_bytes=$_ob err_lines=$_el first=$_shown -> $_verdict"
 }
@@ -507,6 +509,8 @@ if not cmd.startswith("*** Begin Patch\n*** Add File: C:\\w\\proj\\bad.bbj\n+pri
   [ "$(check_want bbjcpl 1 0 0 '')" != "as expected" ] || _fail "check_want bbjcpl silent"
   [ "$(check_want notfound 2 0 3 'bbj-check: Git for Windows sh.exe not found, so x')" = "as expected" ] || _fail "check_want notfound"
   [ "$(check_want notfound_first 0 0 0 '')" != "as expected" ] || _fail "check_want notfound_first silent"
+  [ "$(check_want notfound 2 0 3 'bbj-check: Git for Windows sh.exe not found, so x ' 3)" != "as expected" ] \
+    || _fail "check_want notfound with trailing spaces"
   # the expectation table of the round 3 cases (13-REVIEW-FIX.md)
   for _k in othersh_none_bbj:notfound othersh_then_git_bad:bbjcpl usrbin_on_path_bad:bbjcpl \
     lad_unset_profile_bad:bbjcpl lad_unset_driveroot_bbj:notfound none_web_src:clean none_update_src:notfound \
