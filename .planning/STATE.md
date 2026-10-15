@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 13
 current_phase_name: Windows hook fixes
 status: executing
-stopped_at: Completed 13-01-PLAN.md
-last_updated: "2026-10-15T18:10:49.464Z"
+stopped_at: Completed 13-02-PLAN.md
+last_updated: "2026-10-15T18:17:14.270Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 13 execution started
-state_head: 0aad6d63ce159af13b22fe1adbf2fead7550287a
+state_head: 1186a4486dbcf84e8095cdb71f8f41754be69e26
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 16
-  completed_plans: 11
+  completed_plans: 12
   percent: 40
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 13 (Windows hook fixes) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-10-15 — Phase 13 execution started
 
@@ -159,6 +159,7 @@ Progress: [████░░░░░░] 40%
 | Phase 12 P04 | 12 min | 2 tasks | 4 files |
 | Phase 12 P05 | 8 min | 2 tasks | 2 files |
 | Phase 13 P01 | 13 min | 2 tasks | 4 files |
+| Phase 13 P02 | 7 min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -184,6 +185,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 12]: 12-04: Windows and macOS sign-in sentences removed from README and the Codex page, not reworded; sign-in under bbj on those platforms is confirmed in Phase 15 (NAME-03)
 - [Phase 12]: NAME-01 gate layout_no_old_server_name is its own gate in tests/test_layout.py: literal hyphenated name only, case-insensitive, paths and text, .planning/ and CHANGELOG entries up to 0.2.1 exempt, tests and .claude/CLAUDE.md scanned (D-01 to D-03)
 - [Phase 13]: 13-01: tier-2 no-route state for a connect timeout is noconn (not the D-12 example word, which fails the static timeout scan); a bbj-ls that accepts and never answers is a reached route, uncached, up to -m 12 per file (D-11, D-13)
+- [Phase 13]: 13-02: commandWindows not-found branch reads stdin only through native findstr (never the automatic input variable) and is silent only after a full read that names no BBj file; the string ends with exit $LASTEXITCODE with the loud branch before the call (D-06, D-07, D-09)
 
 ### Pending Todos
 
@@ -214,8 +216,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T18:10:49.389Z
-Stopped at: Completed 13-01-PLAN.md
+Last session: 2026-10-15T18:17:14.198Z
+Stopped at: Completed 13-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

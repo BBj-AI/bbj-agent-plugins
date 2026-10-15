@@ -173,12 +173,12 @@ Plans:
   3. A mutation run that removes the backslash conversion makes `windows_codex_backslash_dotdot_skipped` fail, and the unmutated tree passes it; the mutation case is kept in the suite (FIX-03)
   4. The exit contract and the safety gates hold after the fixes: exit 0 or 2 with empty stdout, `-N` on every compiler call, loopback-only `curl` with `--noproxy '*'` and `--proto =http`, never the hosted check; `sh tests/ci.sh` passes (FIX-01, FIX-02, FIX-03)
 
-**Plans**: 1/6 plans executed
+**Plans**: 2/6 plans executed
 
 Plans:
 **Wave 1**
 - [x] 13-01-PLAN.md — Tier-2 outcome cached per hook run: a 12-file Codex patch with no route on the Windows path tries curl once and lists every file; a connect timeout with no connection becomes the no-route state `noconn`; reached routes are still asked per file (FIX-02; wave 1)
-- [ ] 13-02-PLAN.md — `commandWindows` looks up `sh.exe` (Program Files, Program Files (x86), `%LOCALAPPDATA%\Programs\Git`, `sh` and `git` on PATH) and blocks a BBj write with a message when none exists; exact pin, stdin and ConstrainedLanguage guards with mutation cases, IN-02 gate tightened (FIX-01; wave 1)
+- [x] 13-02-PLAN.md — `commandWindows` looks up `sh.exe` (Program Files, Program Files (x86), `%LOCALAPPDATA%\Programs\Git`, `sh` and `git` on PATH) and blocks a BBj write with a message when none exists; exact pin, stdin and ConstrainedLanguage guards with mutation cases, IN-02 gate tightened (FIX-01; wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 13-03-PLAN.md — Bait file arms `windows_codex_backslash_dotdot_skipped`, `sub\.\f.bbj` control, new `tests/test_hook_mutation.sh` (prefix `hookmut_`) keeps the conversion, `..`-check and tier-2-cache mutations in the suite; `sh tests/ci.sh` green (FIX-03, FIX-02; wave 2)
@@ -244,6 +244,6 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 |-------|-----------|----------------|--------|-----------|
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
-| 13. Windows hook fixes | v0.2.2 | 1/6 | In Progress | - |
+| 13. Windows hook fixes | v0.2.2 | 2/6 | In Progress | - |
 | 14. One install page and one term list | v0.2.2 | 0/TBD | Not started | - |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |
