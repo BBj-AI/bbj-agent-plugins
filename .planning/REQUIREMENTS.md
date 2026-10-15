@@ -29,8 +29,8 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 ### Fixes
 
 - [ ] **FIX-01**: A Codex user on Windows with Git outside `C:\Program Files\Git` gets a working hook or a visible message, never a silent no-op (Phase 9 review WR-01)
-- [ ] **FIX-02**: A many-file `apply_patch` with no route stays within the 30 s hook timeout: the tier-2 connect timeout is paid once per hook run, not per file (Phase 9 review WR-02)
-- [ ] **FIX-03**: `windows_codex_backslash_dotdot_skipped` fails when the backslash conversion is removed, shown by a mutation run (Phase 9 review WR-03)
+- [x] **FIX-02**: A many-file `apply_patch` with no route stays within the 30 s hook timeout: the tier-2 connect timeout is paid once per hook run, not per file (Phase 9 review WR-02)
+- [x] **FIX-03**: `windows_codex_backslash_dotdot_skipped` fails when the backslash conversion is removed, shown by a mutation run (Phase 9 review WR-03)
 
 ### Maintenance
 
@@ -73,8 +73,8 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | DOCS-06 | Phase 11 | Complete |
 | DOCS-07 | Phase 14 | Pending |
 | FIX-01 | Phase 13 | Pending |
-| FIX-02 | Phase 13 | Pending |
-| FIX-03 | Phase 13 | Pending |
+| FIX-02 | Phase 13 | Complete |
+| FIX-03 | Phase 13 | Complete |
 | MAINT-09 | Phase 14 | Pending |
 | MAINT-10 | Phase 14 | Pending |
 | MAINT-11 | Phase 14 | Pending |
