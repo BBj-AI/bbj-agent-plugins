@@ -4,17 +4,17 @@ milestone: v0.2.2
 milestone_name: Plugin-only cleanup
 current_phase: 11
 current_phase_name: installer-removal
-status: executing
-stopped_at: Completed 11-04-PLAN.md
-last_updated: "2026-10-15T07:25:54.057Z"
+status: verifying
+stopped_at: Completed 11-05-PLAN.md
+last_updated: "2026-10-15T07:31:50.735Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 11 execution started
-state_head: 52415c4027dd0695f61bf38459ca957942ba08c5
+state_head: bababe40eb5422a3371d5f0d82cfd02c75dbde45
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
   percent: 0
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 Phase: 11 (installer-removal) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-15 — Phase 11 execution started
 
 Progress: [░░░░░░░░░░] 0%
@@ -150,6 +150,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11 P02 | 7 min | 3 tasks | 5 files |
 | Phase 11 P03 | 17 min | 3 tasks | 6 files |
 | Phase 11 P04 | 14 min | 2 tasks | 8 files |
+| Phase 11 P05 | 10 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -168,6 +169,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 11]: D-10: NOT_RUN_LINES keeps the frozen 0.2.1 text; the retired route word is assembled from pieces (RETIRED_WORD) in tests/test_release_text.py
 - [Phase 11]: D-04/D-05: the Codex page and README say only the Claude Code plugin has the docs_url option; the 2.1.294 subagent claim was removed because no run record backs it
 - [Phase 11]: D-13/D-15: the Codex-home guard test, its four snapshot helpers, the fake codex and the FAKE_CODEX_EXIT seam are deleted; test_home_guard.sh went in the tracer commit because it read the deleted install test
+- [Phase 11]: D-11/D-12: layout_no_retired_route scans tracked files outside .planning/ with the CHANGELOG cut at 0.2.1 by integer-tuple heading; mutation copies hold every tracked file so walk mode matches git mode
 
 ### Pending Todos
 
@@ -197,8 +199,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T07:25:54.024Z
-Stopped at: Completed 11-04-PLAN.md
+Last session: 2026-10-15T07:31:46.634Z
+Stopped at: Completed 11-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
