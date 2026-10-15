@@ -373,5 +373,25 @@ oncegate() {
   fi
 }
 oncegate tier2_once_windows_refused 7 '' 1 'and 7 more' # the 11 cached files are counted and listed (D-14)
+# D-12, D-15 case 3: a connect timeout where no TCP connection was made (write-out time_connect 0, no
+# remote_ip) is no route: one call, the notice names it instead of the old silent outcome
+oncegate tier2_once_windows_connect_timeout 28 '0.000000 ' 1 '(connect timed out)'
+# D-11, D-15 case 2: a transfer timeout after a connection was made is a reached route, never cached:
+# curl is asked once per file and the call stays silent
+oncegate tier2_transfer_timeout_not_cached 28 '0.000129 127.0.0.1' 12 silent
+
+# D-11: a bbj-ls that answers is a reached route, so every file of the patch is checked (the real
+# curl against the fake server; one request per file)
+start_fake clean
+fresh_state
+run_t2 "$MANYPAYLOAD" "$WORK/cygbin:$SYSPATH"
+_reqs=$(wc -l < "$LOGF" | tr -d ' ')
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ "$_reqs" = "$NMANY" ]; then
+  gate tier2_every_file_when_answering ok "$NMANY files, $_reqs requests, silent"
+else
+  gate tier2_every_file_when_answering FAIL "exit $RC, $_reqs requests want $NMANY, output: $(head -c 200 "$WORK/stdout" "$WORK/stderr")"
+fi
+stop_fake
+
 
 finish
