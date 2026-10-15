@@ -242,7 +242,7 @@ and `bbj-ls`).
 - No compiled code and no package-managed runtime. The only executables are POSIX `sh`
 - The hook is deliberately stateless: each invocation reads its input
 - BBj code is never executed. The check path calls the BBj compiler with `-N` (compile-only)
-- Two MCP servers are declared, not implemented here: the hosted `bbj-docs` server (URL from
+- Two MCP servers are declared, not implemented here: the hosted docs server `bbj` (URL from
 - The skills are maintained in this repository under the normal tests (`tests/test_layout.py`).
 
 ## Layers
@@ -253,7 +253,7 @@ and `bbj-ls`).
 - Depends on: The host's plugin loader (`claude plugin validate --strict` in CI).
 - Used by: `claude plugin marketplace add` / `claude plugin install` (see `README.md`).
 - Purpose: Tell the host where the BBj MCP servers are.
-- Location: `plugins/bbj/.mcp.json` (`bbj-docs`, URL `${user_config.docs_url}`),
+- Location: `plugins/bbj/.mcp.json` (the docs server `bbj`, URL `${user_config.docs_url}`),
 - Contains: Transport type `http` and URL only. No tool definitions live here.
 - Depends on: Remote hosted server, or a BBjServices instance on the same machine.
 - Used by: The host agent, which exposes `bbj_lookup`, `bbj_search`, `bbj_examples`,
@@ -265,7 +265,7 @@ and `bbj-ls`).
 - Purpose: Teach the agent BBj syntax, web (DWC) development and the rules agents get wrong.
 - Location: `plugins/bbj/skills/bbj-programming/` (`SKILL.md` and `references/*.md`),
 - Contains: Markdown only. Skills are loaded by the host on demand; references are read on
-- Depends on: Nothing executable. Content describes the `bbj-docs` and `bbj-ls` tools by name.
+- Depends on: Nothing executable. Content describes the tools of the docs server `bbj` and of `bbj-ls` by name.
 - Used by: The host agent's skill loader (the plugin cache for
 - Purpose: Gate every change to manifests, hook and skills.
 - Location: `tests/run.sh` (runner), `tests/ci.sh` (entry point), `tests/test_*.sh` and
@@ -307,7 +307,7 @@ and `bbj-ls`).
 - Location: `plugins/bbj/scripts/bbj-check.sh` (its last statement is `main`)
 - Triggers: PostToolUse for `Write|Edit` (Claude Code) and `apply_patch` (Codex, via the
 - Responsibilities: Parse input, compile-check, exit 0 or 2 only.
-- Location: `plugins/bbj/.mcp.json` (`bbj-docs`), `plugins/bbj-local/.mcp.json` (`bbj-ls`)
+- Location: `plugins/bbj/.mcp.json` (the docs server `bbj`), `plugins/bbj-local/.mcp.json` (`bbj-ls`)
 - Triggers: The host connects when the plugin is enabled.
 - Responsibilities: Serve documentation tools and the hosted or local syntax check.
 - Location: `tests/ci.sh`, `.github/workflows/ci.yml`
