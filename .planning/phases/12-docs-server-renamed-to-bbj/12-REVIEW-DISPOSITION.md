@@ -25,18 +25,18 @@ findings:
     title: "README bullet reads awkwardly after the rename"
 open: 5
 total: 5
-recorded: 2026-10-15T13:56:33.000Z
+recorded: 2026-10-15T14:25:40.810Z
 ---
 
 # Phase 12: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | 12-REVIEW.md |
-| WR-02 | warning | open | 12-REVIEW.md |
-| IN-01 | info | open | 12-REVIEW.md |
-| IN-02 | info | open | 12-REVIEW.md |
-| IN-03 | info | open | 12-REVIEW.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
