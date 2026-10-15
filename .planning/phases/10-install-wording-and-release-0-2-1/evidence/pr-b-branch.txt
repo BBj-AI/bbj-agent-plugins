@@ -1,0 +1,12 @@
+Date: 2026-10-15
+branch: gsd/release-0.2.1-amend
+base: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+head: 38c690cd92eef3cf96fc0a87c09d98d29a060275
+tree: f3d3e0bbe67fd976fd5b9571c2b42b18a42472d2
+commits: 1 (cherry-pick of de43974, message kept)
+files: CHANGELOG.md docs/install-codex.md tests/test_release_text.py 
+planning_paths: 0
+tree_equal: yes
+origin_main: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+pushed_to_origin: no
+RQ-5: a
