@@ -18,10 +18,22 @@ Release published 2026-10-15: https://github.com/BBj-AI/bbj-agent-plugins/releas
 The full suite passes at `ok=979 fail=0 skip=0` with live gates. Both skills stay fully enforced
 by the example gate on `bbjcpl -t` and `bbj-ls` (baseline pending `{}`, `nocheck` 0). Previous:
 **v0.2.0** (tag `0.2.0` on f15c257, Release 2026-10-12). Milestone record:
-`.planning/MILESTONES.md`; archive: `.planning/milestones/`. v0.2.1 is complete and waits for
-`/gsd-complete-milestone`.
+`.planning/MILESTONES.md`; archive: `.planning/milestones/` (v0.2.1 phases in
+`milestones/v0.2.1-phases/`). No milestone is open; the next one starts with `/gsd-new-milestone`.
 
-## Current Milestone: v0.2.1 Platform verification and release hygiene (complete, awaiting archive)
+## Next Milestone Goals
+
+Not yet defined; `/gsd-new-milestone` decides. Candidates carried from v0.2.1:
+
+- OAuth hand-off from the hosted docs server: the client id as a setting (plugin user option,
+  installer flag) with the public id as default, and the server renamed `bbj-docs` → `bbj`
+  (todo `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md`)
+- Copilot CLI support (spike 004)
+- Whether `install-codex.sh` stays as the Codex fallback after its one release
+- Open review warnings from phases 9 and 10 (see Active)
+
+<details>
+<summary>v0.2.1 milestone goal and target features (shipped 2026-10-15)</summary>
 
 **Goal:** Replace every "not yet run on Windows/macOS" hint with wording backed by real runs, and
 ship it, with the fixes left over from 0.2.0, as release 0.2.1.
@@ -36,6 +48,8 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - Per-platform, per-route install wording in README, docs, installer and CHANGELOG, pinned by gates
 - Release hygiene: the four planning-branch review fixes, CONTENT_VERSION gate policy, complete
   gate-prefix list in `.claude/CLAUDE.md`; version 0.2.1, merged, tagged `0.2.1`, GitHub Release
+
+</details>
 
 ## Requirements
 
@@ -71,6 +85,10 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 - [ ] Code-review warnings WR-01..WR-03 on the Windows installer (10-REVIEW.md, all `open` in 10-REVIEW-DISPOSITION.md): WR-01 the `usr\bin` sh.exe refusal is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little
 - [ ] README cell "Claude Code on macOS" (`bbj-ls (hook); Claude Code 2.1.296`) carries two readings (hook script run directly 2026-10-14; owner's 0.2.0 run 2026-10-12, version not recorded); add the date or the "run directly" qualifier (10-VERIFICATION.md)
+- [ ] OAuth client id as a setting (plugin user option, installer flag or environment variable) with `oP9iTNuR2iiBOSqYolEHMNOoy9DGJG3t` as the default; rename the server `bbj-docs` → `bbj` (hand-off todo; `offline_access` already shipped in 0.2.1)
+- [ ] Phase 9 review WR-01..WR-03: plugin `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (non-default Git installs make the Codex hook a silent no-op; stated as a known gap); 5 s tier-2 connect timeout paid per file can exceed the 30 s hook timeout; `windows_codex_backslash_dotdot_skipped` does not catch a regression
+- [ ] Gate-prefix block in `.claude/CLAUDE.md` and `CONVENTIONS.md` lacks `windows_`, `command_windows_`, `tier2_connect_timeout_` (MAINT-08 drift)
+- [ ] Record or pin the CI ShellCheck version (0.9.0 in CI, 0.11.0 locally)
 
 ### Out of Scope
 
@@ -83,7 +101,8 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 ## Context
 
-- Brownfield; codebase map in `.planning/codebase/` (2026-10-09). Seed:
+- Brownfield; codebase map in `.planning/codebase/` (2026-10-09, predates the Codex plugin route
+  and the Windows changes; refresh before relying on it). Seed:
   `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md`.
 - BBjServices 26.03+ runs `bbj-ls` on `127.0.0.1:5009` with `bbj_check_syntax`, `bbj_denum`,
   `bbj_format`; verified 2026-10-09 (`BBJ_LS_LIVE=1 sh tests/test_tier2_live.sh` passes).
@@ -98,13 +117,17 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
   (pre-production); that is the reason the local route is preferred.
 - Vendoring retired in Phase 1: the skills are edited here under `tests/test_layout.py`; the
   hash test is gone.
-- Phase 9 run records (`.planning/phases/09-windows-and-macos-verification/09-WINDOWS-RUN.md`,
-  `09-MACOS-RUN.md`, both checked by `platform-run/check-records.sh` final mode) are the only
-  source for the Phase 10 per-platform wording. Facts Phase 10 must state: Codex asks for hook
-  trust again after an upgrade that changes `hooks.json`; `BBJ_HOME` must be in the Codex
-  app-server daemon's environment (a shell export does not reach a daemon started earlier); the
-  Mac's BBj home may not be a built-in default home; a stale `~/.codex/hooks.json` from the
-  installer fires alongside the plugin hook until `install-codex.sh --remove` is run.
+- After v0.2.1: suite at `ok=979 fail=0 skip=0` with live gates (738 at 0.2.0). Codex has two
+  routes: the native plugin (first) and `install-codex.sh` (fallback). Verified platforms per
+  client and route are in the README table and the `## 0.2.1` CHANGELOG entry; the run records
+  are archived in `.planning/milestones/v0.2.1-phases/` (`09-WINDOWS-RUN.md`, `09-MACOS-RUN.md`,
+  `10-LINUX-RUN.md`, Windows installer rounds) and are the only source for that wording.
+- Facts the records show: `BBJ_HOME` must be in the Codex app-server daemon's environment (a shell
+  export does not reach a daemon started earlier); a stale installer `~/.codex/hooks.json` fires
+  alongside the plugin hook until `install-codex.sh --remove`; a Git-marketplace Codex upgrade
+  0.2.0 → 0.2.1 on Linux kept the hook hash and trust.
+- The hosted docs server requires sign-in since 2026-10-13 (OAuth, `offline_access`); both
+  clients signed in on Linux with the shipped config.
 
 ## Constraints
 
@@ -168,4 +191,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-15 after Phase 10*
+*Last updated: 2026-10-15 after v0.2.1 milestone*
