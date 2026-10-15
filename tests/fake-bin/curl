@@ -3,8 +3,13 @@
 # line, followed by a CALL separator, to $FAKE_CURL_LOG. It exits 7 (connection refused) unless
 # FAKE_CURL_EXIT names another status (plan 02-02, D-03: a reached route that fails), prints
 # nothing, never touches the network and never reads stdin.
+# Phase 13 (FIX-02) seam FAKE_CURL_WRITEOUT: when set (even empty), the fake prints a newline and
+# the value on stdout. The value models what the hook's -w option appends, "<time_connect>
+# <remote_ip>", for example "0.000000 " for a connect that never completed or "0.000129 127.0.0.1"
+# for a connection that was made. Unset means the fake prints nothing, as before.
 {
   for a in "$@"; do printf '%s\n' "$a"; done
   echo CALL
 } >> "${FAKE_CURL_LOG:-/dev/null}"
+if [ "${FAKE_CURL_WRITEOUT+x}" = x ]; then printf '\n%s' "$FAKE_CURL_WRITEOUT"; fi
 exit "${FAKE_CURL_EXIT:-7}"
