@@ -236,6 +236,71 @@ plan's executor in Task 3):
 The hash is the same as in the untrusted reading above. The home stays on disk for plan 10-11, which
 merges, upgrades, and reads the hash and the trust again.
 
+Reading 2026-10-15, round 1 (the after half, scripted part; the owner's part follows)
+
+Route: the same home, after PR #2 merged (`main` = `dad18f5`, merge commit of PR #2, serving 0.2.1).
+Run: `sh codex-run/run.sh gitupgrade-after <home>/.cache/bbj-phase10/gitupgrade` (keep mode, nothing
+deleted). It reads the hook, runs `codex plugin marketplace upgrade basis-bbj`, then `codex plugin add
+bbj@basis-bbj`, then reads what Codex lists and the hook again. Codex CLI 0.162.1, Linux 6.8.0-138-generic.
+
+        gu_after_main_sha: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+        gu_before_cache_versions: 0.2.0
+        trust_gu_before_upgrade: trusted
+        hash_gu_before_upgrade: sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+        gu_after_upgrade_rc: 0
+        gu_after_upgrade_line: Upgraded marketplace `basis-bbj` to the latest configured revision.
+        gu_after_served_version: 0.2.1
+        gu_after_clone_sha: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+        gu_after_upgrade_cache_versions: 0.2.1
+        gu_after_add_rc: 0
+        gu_after_add_line: Added plugin `bbj` from marketplace `basis-bbj`.
+        gu_after_cache_versions: 0.2.1
+        gu_after_mcp_docs: bbj-docs https://mcp.bbj-ai.com/mcp - enabled Not logged in
+        gu_after_skills: bbj:bbj-programming bbj:bbj-web-programming
+        trust_gu_after: trusted
+        hash_gu_after: sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297
+        gu_after_hooks: key=bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0 source=plugin trustStatus=trusted currentHash=sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297 command=sh "<home>/.cache/bbj-phase10/gitupgrade/home/.codex/plugins/cache/basis-bbj/bbj/0.2.1/scripts/bbj-check.sh"
+
+As observed, not as expected: the hook's `currentHash` is identical before and after (the plan expected
+a new hash because `hooks.json` gained `commandWindows`), the stored `trusted_hash` in the home's
+`config.toml` still equals it, and `hooks_list.py` reads `trustStatus=trusted` for the 0.2.1 hook
+without any owner action. `marketplace upgrade` replaced the cache version directly (`0.2.0` became
+`0.2.1`, one directory); `plugin add` after it ran without error. Whether the Codex TUI shows a
+re-trust prompt anyway is the owner's reading (Task 2); the scripted facts above are what Codex's own
+hook listing says.
+
 ## Fresh install from main (D-19)
 
-Filled in plan 10-11 (scenario `fromgit`).
+Reading 2026-10-15, round 1
+
+Route: plugin from the GitHub marketplace, shorthand form, in a fresh throwaway home, after PR #2 merged
+(`main` = `dad18f5`). Run: `sh codex-run/run.sh fromgit <home>/.cache/bbj-phase10/fromgit`.
+`codex plugin marketplace add BBj-AI/bbj-agent-plugins` (stdin from `/dev/null`,
+`GIT_TERMINAL_PROMPT=0`), `codex plugin add bbj@basis-bbj`, then one fake-model `codex exec` with the
+trust bypass (throwaway home only) and the fake compiler of `tests/fake-bin`, whose single
+`apply_patch` adds `bad.bbj`. Codex CLI 0.162.1, Linux 6.8.0-138-generic, no billed model.
+
+        fromgit_run: 2026-10-15T03:09:21Z
+        codex_version: codex-cli 0.162.1
+        fg_main_sha: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+        fg_marketplace_add_rc: 0
+        fg_served_version: 0.2.1
+        fg_clone_sha: dad18f5ef9caca3c50b0c25fff09b6487c29705e
+        fg_mcp_docs: bbj-docs https://mcp.bbj-ai.com/mcp - enabled Not logged in
+        fg_skills: bbj:bbj-programming bbj:bbj-web-programming
+        fg_hooks: key=bbj@basis-bbj:hooks/hooks.json:post_tool_use:0:0 source=plugin trustStatus=untrusted currentHash=sha256:051732b84b1f0a349598b7604ff23859a1400dff3cf7101b98655059c5434297 command=sh "<out>/home/.codex/plugins/cache/basis-bbj/bbj/0.2.1/scripts/bbj-check.sh"
+        exec_rc: 0
+        fg_compiler_calls: 1
+        fg_bad_feedback: yes
+        fg_header: bbjcpl reported 1 error(s) in <out>/proj/bad.bbj:
+
+Unlike the 0.2.0 install from GitHub of the D-22 before reading (docs server at the unexpanded
+`${user_config.docs_url}` placeholder), `main` now serves the Codex overlay: the docs server is at the
+literal `https://mcp.bbj-ai.com/mcp`. The hook is listed as untrusted until the user trusts it in
+`/hooks` (the scripted run used the bypass flag, throwaway home only).
+
+Sentence for the docs: Observed on Linux with Codex CLI 0.162.1, `codex plugin marketplace add
+BBj-AI/bbj-agent-plugins` followed by `codex plugin add bbj@basis-bbj` installed the plugin route at
+version 0.2.1 from main, with `bbj-docs` at `https://mcp.bbj-ai.com/mcp`, both skills and the hook
+listed (untrusted until reviewed), and a bad file written through `apply_patch` gave `bbjcpl reported`
+feedback from the fake compiler (2026-10-15).
