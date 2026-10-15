@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 11
 current_phase_name: installer-removal
 status: executing
-stopped_at: Completed 11-03-PLAN.md
-last_updated: "2026-10-15T07:16:16.479Z"
+stopped_at: Completed 11-04-PLAN.md
+last_updated: "2026-10-15T07:25:54.057Z"
 last_activity: 2026-10-15
 last_activity_desc: Phase 11 execution started
-state_head: 6940a470a713015bdb155ceec6a946c4d72e903d
+state_head: 52415c4027dd0695f61bf38459ca957942ba08c5
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 5
-  completed_plans: 3
+  completed_plans: 4
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 11 (installer-removal) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-10-15 — Phase 11 execution started
 
@@ -149,6 +149,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 11 P01 | 8 min | 2 tasks | 2 files |
 | Phase 11 P02 | 7 min | 3 tasks | 5 files |
 | Phase 11 P03 | 17 min | 3 tasks | 6 files |
+| Phase 11 P04 | 14 min | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -166,6 +167,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 11]: D-15: curl_check lost its message-line exclusion; static_curl_unsafe_caught and static_curl_safe_passes keep a mutation proof that it fails an unsafe curl call
 - [Phase 11]: D-10: NOT_RUN_LINES keeps the frozen 0.2.1 text; the retired route word is assembled from pieces (RETIRED_WORD) in tests/test_release_text.py
 - [Phase 11]: D-04/D-05: the Codex page and README say only the Claude Code plugin has the docs_url option; the 2.1.294 subagent claim was removed because no run record backs it
+- [Phase 11]: D-13/D-15: the Codex-home guard test, its four snapshot helpers, the fake codex and the FAKE_CODEX_EXIT seam are deleted; test_home_guard.sh went in the tracer commit because it read the deleted install test
 
 ### Pending Todos
 
@@ -195,8 +197,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-15T07:16:16.442Z
-Stopped at: Completed 11-03-PLAN.md
+Last session: 2026-10-15T07:25:54.024Z
+Stopped at: Completed 11-04-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
