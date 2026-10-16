@@ -43,9 +43,10 @@ mkwork
 DOCS=$REPO/docs
 PAGE=$DOCS/install.md
 
-# slug TEXT: a gate-name-safe form of TEXT
+# slug TEXT: a gate-name-safe form of TEXT, cut at 60 characters (IN-04): two pins that share a long
+# stem must still print two different gate names; widen it again if a pin ever shares more than that
 slug() {
-  printf '%s' "$1" | tr -c 'A-Za-z0-9\n' '_' | cut -c1-40
+  printf '%s' "$1" | tr -c 'A-Za-z0-9\n' '_' | cut -c1-60
 }
 
 # need NAME FILE PHRASE: gate NAME_has_<phrase> passes when FILE contains PHRASE (fixed string)
@@ -94,6 +95,12 @@ HOOK_TRUST_BYPASS='dangerously-bypass'
 # ---- the install page, Claude Code pins ----
 if [ -f "$PAGE" ]; then
   n=claude
+  # IN-04: the pins both lists hold on purpose (D-04; one gate per prefix, each naming the reader it
+  # protects): '## Check routes', '## Not covered', '## Windows', '## macOS', 'Git for Windows',
+  # 'commandWindows', 'once per session', 'not compile-checked', 'recommended where BBjServices 26.03',
+  # 'preferred over the hosted check', 'PREFIX, classpath and config', '## 4. Enable the plugin
+  # `bbj-local`', 'Verified on Linux, Windows and macOS' and 'the hosted BBj docs server'. A failure of
+  # one of them names its prefix, not which of the two lists caught it: look in both lists.
   for p in \
     'claude plugin install bbj@basis-bbj' \
     'claude plugin marketplace add BBj-AI/bbj-agent-plugins' \
