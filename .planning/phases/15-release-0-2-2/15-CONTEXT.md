@@ -100,6 +100,22 @@ the merge commit, GitHub Release published (NAME-03, REL-09, REL-10). No new cap
   files), then a plain fast-forward push of `gsd/planning-setup` only, after the owner's confirmation.
   Never `main`, never a tag, never forced.
 
+### Decided at plan time (2026-10-16, after research open questions)
+- **D-16:** The release run uses Claude Code **2.1.301** (the installed version, as plan 10-09 did). One
+  commit re-pins the Linux Claude Code tokens (README Verified cell, `docs/install.md`, the new entry) to
+  2.1.301, and the run repeats both halves of the Linux cell (hook run directly; `bbj-local` Connected).
+  The CI pin (D-12) is 2.1.301.
+- **D-17:** The release command is `CI=true BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1
+  BBJ_LS_BLACKHOLE_URL=http://192.0.2.1:5009/mcp sh tests/ci.sh` (without the blackhole URL,
+  `live_blackhole_connect_timeout` skips and the run ends at skip=1).
+- **D-18:** D-15 scope is every tracked `.planning/` file with the dev path (33 at research time), one
+  scrub commit after the Release and before the planning-branch push. History already on origin keeps it.
+- **D-19:** D-12/D-13 numbering: the CI-pin finding is the first Phase 12 review's WR-02; the on-disk
+  `12-REVIEW-DISPOSITION.md` was overwritten by a second review. Its closure is recorded in the Phase 15
+  run record and `.planning/codebase/CONCERNS.md` (and the STATE blocker line); the Phase 12 file is not
+  edited. D-13's needle finding was already fixed in `c1951cb`; nothing to do.
+- **D-20:** No upgrade reading post-merge; fresh installs only (D-10). Not run says upgrades were not run.
+
 ### Claude's Discretion
 - Exact wording of the summary, Upgrading, Tested against and Not run lines within D-01 to D-09 and the
   term list.
