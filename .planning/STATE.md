@@ -2,45 +2,45 @@
 gsd_state_version: "1.0"
 milestone: v0.2.2
 milestone_name: Plugin-only cleanup
-current_phase: 14
-current_phase_name: One install page and one term list
-status: verifying
-stopped_at: Phase 13 re-verified and complete; phase 14 awaits re-verification (stale report)
-last_updated: "2026-10-16T12:37:22.053Z"
+current_phase: 15
+current_phase_name: Release 0.2.2
+status: planning
+stopped_at: Phase 14 complete, ready to plan Phase 15
+last_updated: "2026-10-16T14:14:34.000Z"
 last_activity: 2026-10-16
-last_activity_desc: Phase 13 re-verified (passed) and marked complete
-state_head: 357c83eb16ce9f81231bd669d6d6cb268ee454c5
+last_activity_desc: Phase 14 complete, transitioned to Phase 15
+state_head: a8a7b742e5d632bda8ec59989f0d3bf9a37d96bc
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 25
   completed_plans: 25
-  percent: 60
+  percent: 80
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-15)
+See: .planning/PROJECT.md (updated 2026-10-16)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 14 — one-install-page-and-one-term-list
+**Current focus:** Phase 15 — Release 0.2.2
 
 ## Current Position
 
-Phase: 14 — One install page and one term list
-Plan: 9 of 9 (executed)
-Status: Executed — verification stale
-Last activity: 2026-10-16 — Phase 13 re-verified (passed) and marked complete
+Phase: 15 — Release 0.2.2
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-10-16 — Phase 14 complete, transitioned to Phase 15
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 98
+- Total plans completed: 107
 - Average duration: -
 - Total execution time: 0.0 hours
 
@@ -61,6 +61,7 @@ Progress: [██████░░░░] 60%
 | 11 | 5 | - | - |
 | 12 | 5 | - | - |
 | 13 | 6 | - | - |
+| 14 | 9 | - | - |
 
 **Recent Trend:**
 
@@ -218,6 +219,8 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 14]: 14-06: FAKE_CYGDRIVE_ROOT kept; only the two cygpath seams without a setter and the fake MCP tools-list modes removed; SC2181 exemption dropped (MAINT-10)
 - [Phase 14]: 14-07: ARCHITECTURE.md keeps the first line of every still-true CLAUDE.md architecture bullet; CONCERNS.md follows the review dispositions (12-REVIEW WR-01 fixed, WR-02 open until a run on the pinned CLI), not the older STATE wording
 - [Phase 14]: 14-08: Core Value section restored in PROJECT.md so generate-claude-md keeps it; CONVENTIONS stdout rule corrected for the no-route notice
+- [Phase 14]: review WR-03: the gate-prefix block moved to a hand-kept section "Gate prefixes" at the end of .claude/CLAUDE.md; run.sh ignores block lines inside GSD regions (6aa73e5)
+- [Phase 14]: review WR-04 deferred to Phase 15: the 0.2.2 entry names the Phase 14 changes to shipped 0.2.1 text; no version change in Phase 14 (07645a0)
 
 ### Pending Todos
 
@@ -225,6 +228,7 @@ None. `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` closed with Phase 12 
 
 ### Blockers/Concerns
 
+- [Phase 14]: Code review 14-REVIEW.md left IN-10 open (14-REVIEW-DISPOSITION.md): a GSD region in `.claude/CLAUDE.md` that loses its end marker swallows the hand-kept gate-prefix block; `run_prefix_block` fails closed but does not name the unclosed region, and no fixture covers it
 - [Phase 12]: Code review 12-REVIEW.md left WR-01, WR-02 and IN-01..IN-03 open (12-REVIEW-DISPOSITION.md): WR-01 three needles in `tests/test_install_pages.sh` are prefixes of the old strings, so only `layout_no_old_server_name` catches a revert; WR-02 `mcp_docs_answers` and `claude mcp get "$CC_LABEL"` rely on the `<label>: <url>` list format seen on Claude Code 2.1.299 while CI pins 2.1.293. Fix with `/gsd-code-review 12 --fix` or check against the pinned CLI before the Phase 15 live run
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
 - [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Closed by the installer removal in v0.2.2 Phase 11 (out of scope in REQUIREMENTS.md). The README macOS Claude Code cell qualifier (10-VERIFICATION.md) is v0.2.2 Phase 14 (DOCS-07)
@@ -248,13 +252,13 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T09:17:00.195Z
-Stopped at: Phase 13 re-verified and complete; phase 14 awaits re-verification
+Last session: 2026-10-16T14:15:00.000Z
+Stopped at: Phase 14 complete, ready to plan Phase 15
 Resume file: None
 
 ## Operator Next Steps
 
-- Discuss or plan Phase 13: /gsd-discuss-phase 13, then /gsd-plan-phase 13
+- Discuss or plan Phase 15: /gsd-discuss-phase 15, then /gsd-plan-phase 15
 
 ### Quick Tasks Completed
 

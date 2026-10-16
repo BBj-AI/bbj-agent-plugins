@@ -87,7 +87,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Installer removal** - The plugin is the only install route: installer, snippet, their tests, gates and fakes, the hook's installer branch and the installer wording are gone; a gate keeps `install-codex.sh` out (completed 2026-10-15)
 - [x] **Phase 12: Docs server renamed to bbj** - `bbj-docs` becomes `bbj` in both MCP configs, the skills, the hook notice, the docs and the tests; sign-in commands read on real clients; a gate keeps the old name out (completed 2026-10-15)
 - [x] **Phase 13: Windows hook fixes** - Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location, one tier-2 connect timeout per hook run, a backslash gate that catches a regression (completed 2026-10-16)
-- [ ] **Phase 14: One install page and one term list** - One plugin-only install page for both clients, one written term list with a gate, the gate-prefix block checked against the suite, dead code swept, codebase map refreshed
+- [x] **Phase 14: One install page and one term list** - One plugin-only install page for both clients, one written term list with a gate, the gate-prefix block checked against the suite, dead code swept, codebase map refreshed (completed 2026-10-16)
 - [ ] **Phase 15: Release 0.2.2** - `## 0.2.2` entry with the sign-in under `bbj`, five versions bumped, full suite with live gates, merged, tagged `0.2.2`, published
 
 ## Phase Details
@@ -209,7 +209,7 @@ Plans:
   4. The gate-prefix block in `.claude/CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` lists exactly the prefixes `sh tests/run.sh` prints after this milestone's removals and renames, and a gate fails on a missing or an extra prefix (MAINT-09)
   5. No function, fake, fixture or gate remains whose only user was the installer or another retired feature, and a recorded sweep lists what went. `.planning/codebase/` and the generated sections of `.claude/CLAUDE.md` are refreshed and name neither the installer nor `bbj-docs` (MAINT-10, MAINT-11)
 
-**Plans**: 9/9 plans executed
+**Plans**: 9/9 plans complete
 
 Plans:
 **Wave 1**
@@ -270,5 +270,5 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
-| 14. One install page and one term list | v0.2.2 | 9/9 | In Progress | - |
+| 14. One install page and one term list | v0.2.2 | 9/9 | Complete    | 2026-10-16 |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |

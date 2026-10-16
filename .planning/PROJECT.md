@@ -100,15 +100,16 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - ✓ Release 0.2.1: both plugins, both marketplace entries and the Codex overlay at 0.2.1, CHANGELOG `## 0.2.1` with a Tested against section for Linux, Windows and macOS, full suite `ok=979 fail=0 skip=0` with live gates, PR #2 and PR #3 merged, annotated tag `0.2.1` (no `v`) on 4234e76 and GitHub Release published 2026-10-15 (REL-07, REL-08) — Phase 10
 - ✓ Docs server renamed `bbj-docs` → `bbj` in both MCP configs, both skills' check-order block, the hook's no-route notice, README and both install pages; the sign-in labels in the docs (`plugin:bbj:bbj`, `mcp__plugin_bbj_bbj__`, `codex mcp login bbj`) are the ones real Claude Code 2.1.299 and Codex CLI 0.162.1 showed on Linux in an owner run (`12-LINUX-RUN.md`); `layout_no_old_server_name` keeps the old name out of every tracked file outside `.planning/` and released CHANGELOG history (NAME-01, NAME-02) — Phase 12
 
+- ✓ Codex installer route removed: `install-codex.sh`, `AGENTS-snippet.md`, their tests, gates and fakes, the hook's installer branch and the installer wording are gone; `layout_no_retired_route` keeps them out; the plugin is the only route for both clients (INST-01, INST-02, DOCS-06) — Phase 11
+- ✓ Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location (`commandWindows` finds `sh.exe` or says so), one tier-2 connect timeout per hook run, a backslash gate that catches a regression; confirmed on a real Windows machine (FIX-01) — Phase 13
+- ✓ One plugin-only install page `docs/install.md` for Claude Code and Codex; the two old pages removed and kept out by `layout_no_removed_pages` (DOCS-05) — Phase 14
+- ✓ Every README Verified cell audited against the run records and pinned by `release_cell_*` gates; the Claude Code / macOS cell reads `(hook run directly)`; the intro and the Linux cell confirmed consistent in UAT (DOCS-07) — Phase 14
+- ✓ One term list in the conventions; `layout_no_retired_terms` rejects the six retired variants, with or without backticks (NAME-04) — Phase 14
+- ✓ Gate-prefix block checked against the suite by `run_prefix_block`, kept by hand outside the GSD-generated regions of `.claude/CLAUDE.md` with a checked copy in `CONVENTIONS.md`; dead code swept (`14-SWEEP.md`); codebase map and generated CLAUDE.md sections refreshed (MAINT-09, MAINT-10, MAINT-11) — Phase 14
+
 ### Active
 
-- [ ] Remove the Codex installer route (`install-codex.sh`, `AGENTS-snippet.md`, tests, gates, fakes, mentions); the plugin is the only route for both clients
-- [ ] One plugin-only install page for Claude Code and Codex
 - [ ] CHANGELOG line that users sign in again under the docs server's new name `bbj`, plus the Windows and macOS sign-in re-confirmation (NAME-03, Phase 15); the rename itself shipped in Phase 12
-- [ ] Consistent terminology across docs, test names and gate names
-- [ ] Phase 9 review WR-01..WR-03: plugin `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe`; 5 s tier-2 connect timeout paid per file can exceed the 30 s hook timeout; `windows_codex_backslash_dotdot_skipped` does not catch a regression
-- [ ] README cell "Claude Code on macOS" carries two readings; add the date or the "run directly" qualifier (10-VERIFICATION.md)
-- [ ] Gate-prefix block in `.claude/CLAUDE.md` and `CONVENTIONS.md` matches the gates `sh tests/run.sh` prints (MAINT-08 drift); codebase map refreshed
 - [ ] Release 0.2.2
 
 ### Out of Scope
@@ -197,6 +198,8 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 | The 0.2.1 tag targets the D-23 amendment merge M2 `4234e76`, not the first merge M1 `dad18f5` | The Git-marketplace upgrade reading (D-22) changed the 0.2.1 entry after M1; the tag must carry the final text | ✓ Good — Phase 10 (tag peels to `4234e76` = `origin/main`) |
 | CI ShellCheck 0.9.0 reports SC2317 where local 0.11.0 reports SC2329; the directive in `tests/test_path_scrub.sh` names both codes | The same line must pass on both versions; recording or pinning the CI ShellCheck version is a follow-up | ✓ Good — Phase 10 (10-09; follow-up not implemented) |
 | Codex plugin upgrade from a Git marketplace on Linux (Codex 0.162.1) keeps the hook hash and the trust; CHANGELOG states only that reading, the installer-route re-trust sentence stays | Observed 0.2.0 to 0.2.1, no re-trust asked; other upgrade cases stay under "Not run" | ✓ Good — Phase 10 (D-22, plan 10-11) |
+| The gate-prefix block lives in a hand-kept section "Gate prefixes" at the end of `.claude/CLAUDE.md`, outside every GSD marker; `tests/run.sh` reads block lines only outside the GSD regions; `CONVENTIONS.md` keeps the checked copy (14-REVIEW WR-03, owner's choice) | A regeneration of the conventions region must not be able to change or duplicate the source the gate reads | ✓ Good — Phase 14 (`run_prefix_generated_*` cases; IN-10 open: an unterminated region gives an unnamed failure) |
+| Phase 14's changes to shipped 0.2.1 text get no version bump or CHANGELOG entry in Phase 14; the `## 0.2.2` entry in Phase 15 names them (14-REVIEW WR-04, owner's choice) | `changelog_heading` allows no placeholder entry, and the release bumps all five versions together | — Pending Phase 15 |
 
 ## Evolution
 
@@ -216,4 +219,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-15 after Phase 12*
+*Last updated: 2026-10-16 after Phase 14*
