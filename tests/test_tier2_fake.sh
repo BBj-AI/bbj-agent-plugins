@@ -339,7 +339,8 @@ _patch="$_patch
 MANYPAYLOAD=$(codex_payload "$WORK/many" "$_patch")
 
 # oncegate NAME EXIT WRITEOUT WANTCALLS TEXT: one hook call over the NMANY-file patch on the Windows
-# branch, fake curl exiting EXIT (printing WRITEOUT when it is not empty), no compiler. Ok when curl
+# branch, fake curl exiting EXIT (printing WRITEOUT when it is not empty; the word @empty exports
+# FAKE_CURL_WRITEOUT set but empty, a curl that prints only the leading newline), no compiler. Ok when curl
 # was called WANTCALLS times with --connect-timeout 5 and the call exits 0 with either no output at
 # all (TEXT is the word silent) or one valid no-route notice that holds TEXT.
 oncegate() {
@@ -348,7 +349,10 @@ oncegate() {
   BBJ_LOCAL_MCP_URL=http://127.0.0.1:5009/mcp
   FAKE_CURL_EXIT=$2
   export BBJ_LOCAL_MCP_URL FAKE_CURL_EXIT
-  if [ -n "$3" ]; then
+  if [ "$3" = @empty ]; then
+    FAKE_CURL_WRITEOUT=
+    export FAKE_CURL_WRITEOUT
+  elif [ -n "$3" ]; then
     FAKE_CURL_WRITEOUT=$3
     export FAKE_CURL_WRITEOUT
   fi
@@ -386,6 +390,9 @@ oncegate tier2_transfer_timeout_not_cached 28 '0.000129 127.0.0.1' 12 silent
 # its half of the condition is dropped (hookmut_noconn_ip, hookmut_noconn_time).
 oncegate tier2_noconn_needs_no_ip 28 '0.000000 127.0.0.1' 12 silent
 oncegate tier2_noconn_needs_zero_time 28 '0.000500 ' 12 silent
+# review IN-04: a curl that prints only the leading newline (write-out set but empty) gives no fields to
+# judge, so the route stays a reached one: asked once per file, silent
+oncegate tier2_noconn_empty_writeout 28 @empty 12 silent
 
 # D-11: a bbj-ls that answers is a reached route, so every file of the patch is checked (the real
 # curl against the fake server; one request per file)
