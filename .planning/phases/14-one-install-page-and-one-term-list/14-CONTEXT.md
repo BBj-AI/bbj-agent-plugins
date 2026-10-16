@@ -103,6 +103,20 @@ MAINT-10, MAINT-11. No new capability; Phase 15 does the release.
 - **D-16:** The block includes the prefixes added in this milestone (`hookmut_` from Phase 13) and
   drops the ones removed (`installer_`, `homeguard_`), so it matches the suite after the renames.
 
+### Decided at plan time (2026-10-16, after research open questions)
+- **D-19:** The check-order block in both `SKILL.md` files is edited jointly to the term list
+  ("first route" and "`bbj-local` server" go). Both copies stay identical to each other, so
+  `checkorder_` still holds; the order bbjcpl, bbj-local, docs server `bbj` and every disclosure
+  phrase are kept. D-12's "byte-identical" means the two copies match each other, not frozen text.
+  No exemption from the term gate.
+- **D-20:** D-06's rule applies to every README Verified cell, not just macOS. Claude Code / Linux
+  gets "(hook run directly)" on `bbjcpl` and says "connected" for `bbj-local`, as the record shows.
+  Codex / macOS stays as it is, and its basis is recorded in the cell audit. The cell gate pins
+  every cell.
+- **D-21:** The "docs MCP server" wording in the manifest description strings (both
+  `plugin.json` descriptions and the `docs_url` description) is reworded to the term list, and the
+  term gate scans those manifest description strings in addition to shipped Markdown.
+
 ### Claude's Discretion
 - Sweep (MAINT-10): what counts as "retired" beyond the installer (Phase 11 already swept that), how to
   find dead functions, fakes, fixtures and gates, and the record: a `14-SWEEP.md` in the phase directory
