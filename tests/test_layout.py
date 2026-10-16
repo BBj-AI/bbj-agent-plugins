@@ -61,7 +61,7 @@ import tempfile
 ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 DOCS_HOST = "mcp.bbj-ai.com"
 DOCS_DEFAULT = "https://" + DOCS_HOST + "/mcp"
 # NAME-01 (phase 12): the key of the docs server in both MCP files

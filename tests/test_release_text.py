@@ -25,7 +25,7 @@ HINT_FILES: the README and the install page. Gate no_unrun_hint reads the
 squashed text of each, so a hint split over two lines is found too; tests/test_install_pages.sh
 forbids the same phrases in a second, independent place.
 
-What is pinned to CONTENT_VERSION (0.2.1): the facts of that release. The Not run section holds
+What is pinned to CONTENT_VERSION (0.2.2): the facts of that release. The Not run section holds
 exactly the lines of NOT_RUN_LINES (gate not_run). At any other version this gate FAILs with a
 message that says to re-pin the facts; it never skips. Reason: a version bump must not pass on the
 facts of an older release, and a skip would block the skip=0 release run. This reverses the skip
@@ -55,20 +55,18 @@ ROOT = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.dirname(
 # assembled from pieces so this file never names what it searches for (self-scan convention)
 LEFTOVER = "unre" + "leased"
 NEXT_HEADING = "### " + "Next"
-RETIRED_WORD = "install" + "er"
 
 # the release whose facts not_run pins; at any other version it FAILs and asks for a re-pin (phase 7 D-05)
-CONTENT_VERSION = "0.2.1"
+CONTENT_VERSION = "0.2.2"
 NOT_RUN_LINES = [
-    "- Linux: the 0.2.1 Codex " + RETIRED_WORD + " with a real Codex; the last Linux " + RETIRED_WORD + " reading is the 0.2.0 run of 2026-10-12.",
     "- Windows: the Claude Code default home `/c/bbx` and the discovery variables `BBJHOME` and `PATH`; Claude Code was run with `bbj_home` and Codex with `BBJ_HOME`.",
-    "- Windows: the Codex " + RETIRED_WORD + " with a Git for Windows installed anywhere but `C:\\Program Files\\Git`.",
-    "- Windows: the Codex plugin route with a Git for Windows installed anywhere but `C:\\Program Files\\Git`.",
-    "- Windows: the hook's tier 2 inside a Claude Code or Codex session; tier 2 was seen as the hook script run from Git Bash, and the `bbj-local` plugin as a connected server, each without the other.",
-    "- macOS: the `bbj-local` plugin in either client; only the hook's own tier 2 was seen there.",
-    "- macOS: the Codex " + RETIRED_WORD + " on the `bbjcpl` route; the 0.2.0 run saw tier 2 only.",
-    "- Linux: the Claude Code plugin upgrade through a Git marketplace (`claude plugin marketplace update`, `claude plugin update`); Claude Code was installed from `main`, not upgraded.",
-    "- Windows and macOS: a plugin upgrade through a Git marketplace in either client; the Codex upgrade was run on Linux only.",
+    "- Windows: Claude Code with the shipped `commandWindows` entry; that entry was run through Codex and through Windows PowerShell only.",
+    "- Windows: the Codex plugin route with Git for Windows on another drive or under a custom install folder, with a real per-user Git for Windows install (a junction stood in for it), with PowerShell 7 (`pwsh`), under a system-wide ConstrainedLanguage policy, and with a plugin folder whose path holds a `$` or a backtick.",
+    "- Windows: the hook's `bbj-ls` check inside a Claude Code or Codex session; it was seen with the hook script run from Git Bash, and the plugin `bbj-local` as a connected server, each without the other.",
+    "- macOS: the plugin `bbj-local` in either client; only the hook's own `bbj-ls` check was seen there.",
+    "- Windows and macOS: the sign-in to the docs server `bbj` in either client; it was run on Linux only.",
+    "- Linux, Windows and macOS: a Codex patch of several BBj files with no check route, and one against a `bbj-ls` that accepts the connection and does not answer; the one `bbj-ls` try per hook run and the wait of up to 12 seconds per file follow from the hook's timeouts and its tests on fakes.",
+    "- Linux, Windows and macOS: an upgrade to this release through a Git marketplace in either client; the runs installed this release fresh.",
 ]
 
 failed = False
