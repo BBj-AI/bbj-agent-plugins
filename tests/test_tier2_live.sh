@@ -7,6 +7,7 @@
 #
 # The test prints a skip gate when 127.0.0.1:5009 is unreachable; with BBJ_LS_LIVE=1 an
 # unreachable server is a FAIL instead.
+# Every gate name here starts with live_ (the prefix of this file, D-13, MAINT-09).
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -60,7 +61,7 @@ run_live "$WORK/proj/clean.bbj"
 
 run_live "$WORK/proj/invented.bbj"
 [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] \
-  && gate tier2_syntax_only ok "invented method passes tier 2 (syntax only; tier 1 reports it)" \
-  || gate tier2_syntax_only FAIL "exit $RC: $(head -c 200 "$WORK/stderr")"
+  && gate live_tier2_syntax_only ok "invented method passes tier 2 (syntax only; tier 1 reports it)" \
+  || gate live_tier2_syntax_only FAIL "exit $RC: $(head -c 200 "$WORK/stderr")"
 
 finish
