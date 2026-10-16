@@ -22,9 +22,9 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 
 ### Docs
 
-- [ ] **DOCS-05**: One plugin-only install page covers Claude Code and Codex and replaces `docs/install-claude-code.md` and `docs/install-codex.md`; README and the link gates point to it
+- [x] **DOCS-05**: One plugin-only install page covers Claude Code and Codex and replaces `docs/install-claude-code.md` and `docs/install-codex.md`; README and the link gates point to it
 - [x] **DOCS-06**: The README "Verified" table and the install wording drop the installer route; every remaining per-platform claim is still backed by a run record
-- [ ] **DOCS-07**: The README "Claude Code on macOS" cell has one reading (date or "run directly" qualifier added)
+- [x] **DOCS-07**: The README "Claude Code on macOS" cell has one reading (date or "run directly" qualifier added)
 
 ### Fixes
 
@@ -69,9 +69,9 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | NAME-02 | Phase 12 | Complete |
 | NAME-03 | Phase 15 | Pending |
 | NAME-04 | Phase 14 | Pending |
-| DOCS-05 | Phase 14 | Pending |
+| DOCS-05 | Phase 14 | Complete |
 | DOCS-06 | Phase 11 | Complete |
-| DOCS-07 | Phase 14 | Pending |
+| DOCS-07 | Phase 14 | Complete |
 | FIX-01 | Phase 13 | Complete |
 | FIX-02 | Phase 13 | Complete |
 | FIX-03 | Phase 13 | Complete |

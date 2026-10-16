@@ -209,14 +209,14 @@ Plans:
   4. The gate-prefix block in `.claude/CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` lists exactly the prefixes `sh tests/run.sh` prints after this milestone's removals and renames, and a gate fails on a missing or an extra prefix (MAINT-09)
   5. No function, fake, fixture or gate remains whose only user was the installer or another retired feature, and a recorded sweep lists what went. `.planning/codebase/` and the generated sections of `.claude/CLAUDE.md` are refreshed and name neither the installer nor `bbj-docs` (MAINT-10, MAINT-11)
 
-**Plans**: 1/9 plans executed
+**Plans**: 2/9 plans executed
 
 Plans:
 **Wave 1**
 - [x] 14-01-PLAN.md — One plugin-only install page `docs/install.md` by step for both clients; README short path; every reader moved; old pages removed; `layout_no_removed_pages` and the CHANGELOG history cut in the link gates (DOCS-05; wave 1)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 14-02-PLAN.md — Every README Verified cell audited and pinned (`release_cell_*`), macOS and Linux Claude Code qualifiers, page claim trace in 14-CLAIM-TRACE.md (DOCS-07, DOCS-05; wave 2)
+- [x] 14-02-PLAN.md — Every README Verified cell audited and pinned (`release_cell_*`), macOS and Linux Claude Code qualifiers, page claim trace in 14-CLAIM-TRACE.md (DOCS-07, DOCS-05; wave 2)
 - [ ] 14-04-PLAN.md — Free-form and skip-branch gate names of eight test files renamed to file prefixes; hook mutation follows (MAINT-09, D-13; wave 2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
@@ -269,5 +269,5 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
-| 14. One install page and one term list | v0.2.2 | 1/9 | In Progress | - |
+| 14. One install page and one term list | v0.2.2 | 2/9 | In Progress | - |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |

@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 14
 current_phase_name: one-install-page-and-one-term-list
 status: executing
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-10-16T07:52:08.907Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-10-16T08:02:37.408Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 14 execution started
-state_head: 33db9790274e8efc47dd9bf04fb0e4a697c6921d
+state_head: 34b1c9d79d8b94f99ff25f8b991331c0a7dab151
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 25
-  completed_plans: 17
+  completed_plans: 18
   percent: 60
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 14 (one-install-page-and-one-term-list) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 14 execution started
 
@@ -166,6 +166,7 @@ Progress: [██████░░░░] 60%
 | Phase 13 P05 | 86 min (owner run) | 2 tasks | 2 files |
 | Phase 13 P06 | 6 min | 2 tasks | 5 files |
 | Phase 14 P01 | 14 min | 2 tasks | 9 files |
+| Phase 14 P02 | 10min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -201,6 +202,8 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 13]: 13-06: phase 9 review WR-01..WR-03 and IN-02 fixed (open: 2; IN-01, IN-03 stay open); ROADMAP Phase 15 Upgrading trust note removed per D-21; CHANGELOG short-name mentions left to Phase 15
 - [Phase 14]: 14-01: docs/install.md is the one install page; shared forbids run on it under both claude_ and codex_ prefixes
 - [Phase 14]: 14-01: link gates cut CHANGELOG entries 0.2.1 and older by integer comparison; layout_no_removed_pages keeps the two old page names out of the tree
+- [Phase 14]: 14-02: Claude Code / macOS cell reads (hook run directly) and Claude Code / Linux cell reads bbjcpl (hook run directly), bbj-ls (bbj-local plugin connected); all six cells pinned by release_cell_* gates with mutation cases
+- [Phase 14]: 14-02: Codex plugin / macOS keeps (hook) although its bbj-ls reading comes from uncounted Codex runs recorded as prose; flagged in 14-CLAIM-TRACE.md for Phase 15
 
 ### Pending Todos
 
@@ -231,8 +234,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T07:52:08.817Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-10-16T08:02:37.317Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
