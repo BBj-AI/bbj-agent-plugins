@@ -9,6 +9,7 @@
 # reach the compiler, the other hostile names reach it as exactly one absolute argument. Runs
 # under each of dash, bash and busybox sh that is installed. The compiler is a fake that only
 # logs; nothing runs BBj.
+# Gate names (D-13): every name starts with contract_, argument_, no_marker_ or glob_newline_not_passed_.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -167,7 +168,7 @@ for sh_cmd in dash bash "busybox sh"; do
   if command -v "$1" > /dev/null 2>&1 && { [ "$1" != busybox ] || busybox sh -c : > /dev/null 2>&1; }; then
     run_shell "$1" "$@"
   else
-    gate "shell_$1" skip "$1 is not installed"
+    gate "contract_shell_$1" skip "$1 is not installed"
   fi
 done
 
@@ -183,9 +184,9 @@ if [ -x "$REAL/bin/bbjcpl" ]; then
     run_check "$(claude_payload Write "$WORK/proj/$n" "$WORK/proj")"
     contract real "hostile_$(printf '%s' "$n" | tr -c 'A-Za-z0-9' '_' | cut -c 1-12)"
     if [ "$RC" = 2 ] && grep -F 'error at line 10 (1)' "$WORK/stderr" > /dev/null; then
-      gate real_hostile_reached_compiler ok "the real compiler judged $n"
+      gate contract_real_hostile_reached_compiler ok "the real compiler judged $n"
     else
-      gate real_hostile_reached_compiler FAIL "exit $RC for $n"
+      gate contract_real_hostile_reached_compiler FAIL "exit $RC for $n"
     fi
   done
   if [ ! -e "$WORK/proj/PWNED" ] && [ ! -e "$WORK/proj/PWNED2" ] && [ ! -e PWNED ] && [ ! -e PWNED2 ]; then
@@ -194,7 +195,7 @@ if [ -x "$REAL/bin/bbjcpl" ]; then
     gate no_marker_real FAIL "a PWNED marker file exists"
   fi
 else
-  gate real_compiler skip "no $REAL/bin/bbjcpl"
+  gate contract_real_compiler skip "no $REAL/bin/bbjcpl"
 fi
 
 chmod 644 "$WORK/proj/unreadable.bbj" 2> /dev/null
