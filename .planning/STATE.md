@@ -5,11 +5,11 @@ milestone_name: Plugin-only cleanup
 current_phase: 14
 current_phase_name: One install page and one term list
 status: verifying
-stopped_at: Phase 11 re-verified and complete; phases 12-14 await re-verification (stale reports)
-last_updated: "2026-10-16T11:08:34.209Z"
+stopped_at: Phase 12 re-verified and complete; phases 13-14 await re-verification (stale reports)
+last_updated: "2026-10-16T11:39:45.284Z"
 last_activity: 2026-10-16
-last_activity_desc: Phase 11 re-verified (passed) and marked complete
-state_head: 04c90fa33f30516789e56e3113d167174e3213bd
+last_activity_desc: Phase 12 re-verified (passed) and marked complete
+state_head: 9de03ad19d7793e9291cf1ed866c0c9e638ba896
 progress:
   total_phases: 5
   completed_phases: 3
@@ -31,8 +31,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 Phase: 14 — One install page and one term list
 Plan: 9 of 9 (executed)
-Status: Executed — verification stale; phases 12 and 13 also await re-verification
-Last activity: 2026-10-16 — Phase 11 re-verified (passed) and marked complete
+Status: Executed — verification stale; phase 13 also awaits re-verification
+Last activity: 2026-10-16 — Phase 12 re-verified (passed) and marked complete
 
 Progress: [██████░░░░] 60%
 
@@ -249,7 +249,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-16T09:17:00.195Z
-Stopped at: Phase 11 re-verified and complete; phases 12-14 await re-verification
+Stopped at: Phase 12 re-verified and complete; phases 13-14 await re-verification
 Resume file: None
 
 ## Operator Next Steps
