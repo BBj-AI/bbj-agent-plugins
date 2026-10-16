@@ -5,6 +5,7 @@
 # .md file: the interpreter's sentinel file never appears, and every logged compiler call
 # has -t, -N and -X as their own arguments, the absolute target path last, and no other
 # argument without a leading "-". Nothing here runs BBj; the fakes only log.
+# Every gate name here starts with neverexec_ (the prefix of this file, D-13, MAINT-09).
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -30,7 +31,7 @@ run_check "$(claude_payload Write "$WORK/proj/y.BBX" "$WORK/proj")"
 run_check "$(claude_payload Write "$WORK/proj/missing.bbj" "$WORK/proj")"
 run_check "$(claude_payload Write "$WORK/proj/notes.md" "$WORK/proj")"
 
-[ ! -e "$WORK/sentinel" ] && gate sentinel ok "the fake interpreter never ran" || gate sentinel FAIL "the fake interpreter ran"
+[ ! -e "$WORK/sentinel" ] && gate neverexec_sentinel ok "the fake interpreter never ran" || gate neverexec_sentinel FAIL "the fake interpreter ran"
 
 # One verdict line per logged call: argument checks.
 awk '
@@ -48,11 +49,11 @@ awk '
 END { printf "calls=%d noN=%d noTX=%d badTarget=%d stray=%d\n", n, noN, noTX, badTarget, stray }
 ' "$FAKE_LOG" > "$WORK/verdict"
 V=$(cat "$WORK/verdict")
-case "$V" in "calls=3 "*) gate call_count ok "$V" ;; *) gate call_count FAIL "$V (want 3 calls: bad.bbj, x.src, y.BBX; none for the missing and .md files)" ;; esac
-case "$V" in *"noN=0 "*) gate dash_N ok "-N is its own argument on every call" ;; *) gate dash_N FAIL "$V" ;; esac
-case "$V" in *"noTX=0 "*) gate dash_t_X ok "-t and -X on every call" ;; *) gate dash_t_X FAIL "$V" ;; esac
-case "$V" in *"badTarget=0 "*) gate target_last_absolute ok "the target is last and absolute" ;; *) gate target_last_absolute FAIL "$V" ;; esac
-case "$V" in *"stray=0") gate no_stray_argument ok "every other argument starts with -" ;; *) gate no_stray_argument FAIL "$V" ;; esac
+case "$V" in "calls=3 "*) gate neverexec_call_count ok "$V" ;; *) gate neverexec_call_count FAIL "$V (want 3 calls: bad.bbj, x.src, y.BBX; none for the missing and .md files)" ;; esac
+case "$V" in *"noN=0 "*) gate neverexec_dash_N ok "-N is its own argument on every call" ;; *) gate neverexec_dash_N FAIL "$V" ;; esac
+case "$V" in *"noTX=0 "*) gate neverexec_dash_t_X ok "-t and -X on every call" ;; *) gate neverexec_dash_t_X FAIL "$V" ;; esac
+case "$V" in *"badTarget=0 "*) gate neverexec_target_last_absolute ok "the target is last and absolute" ;; *) gate neverexec_target_last_absolute FAIL "$V" ;; esac
+case "$V" in *"stray=0") gate neverexec_no_stray_argument ok "every other argument starts with -" ;; *) gate neverexec_no_stray_argument FAIL "$V" ;; esac
 
 # Canned compiler error -> exit 2 with the line in stderr; no output -> exit 0 silent.
 printf 'bad.bbj: error at line 10 (1): print "a"   rem same line\n' > "$WORK/canned"
@@ -60,17 +61,17 @@ FAKE_OUT=$WORK/canned
 export FAKE_OUT
 run_check "$(claude_payload Write "$WORK/proj/bad.bbj" "$WORK/proj")"
 if [ "$RC" = 2 ] && grep -F 'error at line 10 (1)' "$WORK/stderr" > /dev/null && [ ! -s "$WORK/stdout" ]; then
-  gate canned_error ok "exit 2, canned line in stderr, stdout empty"
+  gate neverexec_canned_error ok "exit 2, canned line in stderr, stdout empty"
 else
-  gate canned_error FAIL "exit $RC"
+  gate neverexec_canned_error FAIL "exit $RC"
 fi
 unset FAKE_OUT
 run_check "$(claude_payload Write "$WORK/proj/bad.bbj" "$WORK/proj")"
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
-  gate canned_clean ok "exit 0, no output"
+  gate neverexec_canned_clean ok "exit 0, no output"
 else
-  gate canned_clean FAIL "exit $RC"
+  gate neverexec_canned_clean FAIL "exit $RC"
 fi
-[ ! -e "$WORK/sentinel" ] && gate sentinel_final ok "still never ran" || gate sentinel_final FAIL "the fake interpreter ran"
+[ ! -e "$WORK/sentinel" ] && gate neverexec_sentinel_final ok "still never ran" || gate neverexec_sentinel_final FAIL "the fake interpreter ran"
 
 finish
