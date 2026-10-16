@@ -8,13 +8,14 @@ order, with no placeholder heading or word in it; older entries below it are lef
 next release only adds one above; the Upgrading section is addressed to "If you installed from
 `main` before VERSION" and carries the two Claude Code update commands (gate upgrade_addressed);
 the install page carries the Claude Code update commands; the Codex CLI version it was tested with
-names one version on the Codex install page, and the Claude Code version names one version per
-platform (Linux, Windows, macOS) across the README table, both install pages and the newest
-CHANGELOG entry (plan 10-06, D-02).
+names one version on the install page, and the Claude Code version names one version per
+platform (Linux, Windows, macOS) across the README table, the install page and the newest
+CHANGELOG entry (plan 10-06, D-02). There is one install page, docs/install.md (plan 14-01,
+DOCS-05, D-04); the gates that read the two former pages read it.
 
 DOCS-04 (plan 10-06): the old hints of a platform that was not run ("Tested on Linux only", "not yet
 run", "not yet been run", "not yet tried", "not yet been tried") must not come back to the files in
-HINT_FILES: the README, the Claude Code page and the Codex page. Gate no_unrun_hint reads the
+HINT_FILES: the README and the install page. Gate no_unrun_hint reads the
 squashed text of each, so a hint split over two lines is found too; tests/test_install_pages.sh
 forbids the same phrases in a second, independent place.
 
@@ -34,7 +35,7 @@ stdlib only, run by tests/run.sh with python3 -I. Prints one line per assertion,
     gate release_<name> ok|FAIL <detail>
 and exits 1 when any gate failed. An optional argv[1] is the repository root to check
 (default: the parent of the tests directory); tests/test_release_text_mutation.sh points it at a
-copy that holds README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md and
+copy that holds README.md, CHANGELOG.md, docs/install.md and
 tests/test_layout.py, and requires each gate to fail when its input changes.
 Reads files only; nothing here runs BBj code or any other program.
 """
@@ -163,24 +164,24 @@ gate("upgrade_addressed", not missing,
      "Upgrading lacks %r" % (missing,) if missing else "addressee and both Claude Code commands present")
 
 # the install page gives the same Claude Code update commands as the CHANGELOG (REVIEW WR-02)
-page = squash(read_lines("docs/install-claude-code.md") or [])
+page = squash(read_lines("docs/install.md") or [])
 page_missing = [c for c in ("claude plugin marketplace update basis-bbj",
                             "claude plugin update bbj@basis-bbj",
                             "claude plugin update bbj-local@basis-bbj") if c not in page]
 gate("upgrade_install_page", not page_missing,
-     "docs/install-claude-code.md lacks %r" % (page_missing,) if page_missing
+     "docs/install.md lacks %r" % (page_missing,) if page_missing
      else "install page carries the marketplace refresh and both plugin updates")
 
-# every "Codex CLI N.N.N" string on the Codex page names one version, so a bump cannot miss a place
+# every "Codex CLI N.N.N" string on the install page names one version, so a bump cannot miss a place
 # (REVIEW IN-03). The text is squashed first, so a hard wrap between "Codex CLI" and the number
 # still matches.
 codex_versions = set(re.findall(r"Codex CLI ([0-9]+\.[0-9]+\.[0-9]+)",
-                                squash(read_lines("docs/install-codex.md") or [])))
+                                squash(read_lines("docs/install.md") or [])))
 gate("codex_version_single", len(codex_versions) == 1,
-     "Codex CLI versions named on docs/install-codex.md: %s" % sorted(codex_versions))
+     "Codex CLI versions named on docs/install.md: %s" % sorted(codex_versions))
 
 # the Claude Code version is one version per platform (D-02, plan 10-06). Named as
-# "Claude Code N.N.N on <platform>" in README.md, both install pages and the newest CHANGELOG
+# "Claude Code N.N.N on <platform>" in README.md, the install page and the newest CHANGELOG
 # entry, and as the N.N.N in the "| Claude Code |" row of the README table under the
 # "| Client | Linux | Windows | macOS |" header (the header gives the platform of each column).
 # The "on <platform>" anchor keeps "Claude Code 2.1.281 or later" (a different fact) out of the
@@ -199,7 +200,7 @@ def table_cells(line):
 
 
 claude_versions = dict((p, set()) for p in PLATFORMS)
-for rel in ("README.md", "docs/install-claude-code.md", "docs/install-codex.md"):
+for rel in ("README.md", "docs/install.md"):
     for ver, plat in CLAUDE_ON_PLATFORM.findall(squash(read_lines(rel) or [])):
         claude_versions[plat].add(ver)
 for ver, plat in CLAUDE_ON_PLATFORM.findall(squash(entry)):
@@ -219,14 +220,14 @@ for ln in readme:
         break
 claude_ok = row_found and all(len(claude_versions[p]) == 1 for p in PLATFORMS)
 gate("claude_version_single", claude_ok,
-     "Claude Code versions per platform in the README table, both install pages and the newest entry: %s%s"
+     "Claude Code versions per platform in the README table, the install page and the newest entry: %s%s"
      % (", ".join("%s %s" % (p, sorted(claude_versions[p])) for p in PLATFORMS),
         "" if row_found else "; the README table has no '| Claude Code |' row under the platform header"))
 
 # DOCS-04 (plan 10-06): the old "not yet run" hints cannot come back. A hint is a platform or route
 # said not to have been run; "not yet set" (a Claude Code message about two options) is not one.
-# HINT_FILES are the README and both install pages (plan 10-07 added the Codex page).
-HINT_FILES = ("README.md", "docs/install-claude-code.md", "docs/install-codex.md")
+# HINT_FILES are the README and the install page (plan 14-01 merged the two pages of plans 10-06, 10-07).
+HINT_FILES = ("README.md", "docs/install.md")
 OLD_HINTS = re.compile(r"Tested on Linux only|not yet run|not yet been run|not yet tried|not yet been tried",
                        re.IGNORECASE)
 hint_hits = []

@@ -2,9 +2,8 @@
 # tests/test_release_text_mutation.sh -- review fix IN-01 (phase 06): proves that every gate of
 # tests/test_release_text.py can fail.
 #
-# The release text gate takes an optional repository root. This test copies the five files it
-# reads (README.md, CHANGELOG.md, docs/install-claude-code.md, docs/install-codex.md,
-# tests/test_layout.py) into a temporary root, checks that the copy passes, then changes one
+# The release text gate takes an optional repository root. This test copies the four files it
+# reads (README.md, CHANGELOG.md, docs/install.md, tests/test_layout.py) into a temporary root, checks that the copy passes, then changes one
 # thing per gate in a fresh copy and requires that gate to print FAIL and the script to exit 1.
 # Older CHANGELOG entries must not matter, so one more case adds an old entry and requires a pass.
 # The later-version cases move the version on (phase 7 D-05, D-07) and require: the generic
@@ -12,11 +11,12 @@
 # re-pinned copy passes. The four cases are later_unpinned, later_repinned, later_addressee and
 # later_command.
 # Plan 10-06 (D-02): claude_version_single is per platform, so two cases change one version each,
-# on the Claude Code page and on the README table row (claude_version_single and
+# on the install page and on the README table row (claude_version_single and
 # claude_version_single_readme); mutate takes the case name as an optional fourth argument when
 # one gate has more than one case. Two more cases put an old hint back into the README and into the
-# Claude Code page and require release_no_unrun_hint to fail (DOCS-04). Plan 10-07 adds the same for
-# the Codex page (no_unrun_hint_codex_page).
+# install page and require release_no_unrun_hint to fail (DOCS-04). Plan 14-01 (D-04) merged the two
+# install pages into docs/install.md, so the page cases are no_unrun_hint_install_page and
+# no_unrun_hint_install_page_linux_only (the two hints of the former Claude Code and Codex cases).
 # Plan 10-08 (REL-07): the not_run case is generic (it prefixes every Not run line), so a later
 # re-pin of NOT_RUN_LINES does not touch this file.
 # Plan 11-02 (D-07 to D-09): the copy holds no Codex script, so the script's quote, status line and
@@ -39,7 +39,7 @@ VERSION=$(sed -n 's/^VERSION = "\([0-9.]*\)"$/\1/p' "$REPO/tests/test_layout.py"
 fresh_root() {
   mkdir -p "$1/tests" "$1/docs" || return 1
   cp "$REPO/README.md" "$REPO/CHANGELOG.md" "$1/" || return 1
-  cp "$REPO/docs/install-claude-code.md" "$REPO/docs/install-codex.md" "$1/docs/" || return 1
+  cp "$REPO/docs/install.md" "$1/docs/" || return 1
   cp "$REPO/tests/test_layout.py" "$1/tests/" || return 1
 }
 
@@ -180,17 +180,17 @@ mutate changelog_leftovers CHANGELOG.md 's/^### Tested against$/### Next\
 \
 ### Tested against/'
 mutate upgrade_addressed CHANGELOG.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
-mutate upgrade_install_page docs/install-claude-code.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
-mutate codex_version_single docs/install-codex.md '1,/Codex CLI [0-9][0-9.]*/s/Codex CLI [0-9][0-9.]*/Codex CLI 0.0.1/'
+mutate upgrade_install_page docs/install.md 's/claude plugin marketplace update basis-bbj/claude plugin marketplace refresh basis-bbj/'
+mutate codex_version_single docs/install.md '1,/Codex CLI [0-9][0-9.]*/s/Codex CLI [0-9][0-9.]*/Codex CLI 0.0.1/'
 # one version per platform (D-02): the first "Claude Code N on Windows" of the page, then the first
 # version of the README row "| Claude Code |" (the Linux column); the other mentions stay as they are
-mutate claude_version_single docs/install-claude-code.md '1,/Claude Code [0-9][0-9.]* on Windows/s/Claude Code [0-9][0-9.]* on Windows/Claude Code 2.1.0 on Windows/'
+mutate claude_version_single docs/install.md '1,/Claude Code [0-9][0-9.]* on Windows/s/Claude Code [0-9][0-9.]* on Windows/Claude Code 2.1.0 on Windows/'
 mutate claude_version_single README.md '/^| Claude Code |/s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/9.9.0/' claude_version_single_readme
-# DOCS-04 (plan 10-06): an old hint put back into the README or the Claude Code page fails the gate
+# DOCS-04 (plan 10-06): an old hint put back into the README or the install page fails the gate
 mutate no_unrun_hint README.md '/^| Claude Code |/s/$/ Tested on Linux only./' no_unrun_hint_readme
-mutate no_unrun_hint docs/install-claude-code.md '1s/$/ The plugin has not yet been run on Windows./' no_unrun_hint_claude_page
-# DOCS-04 (plan 10-07): an old hint put back into the Codex page fails the gate too
-mutate no_unrun_hint docs/install-codex.md '1s/$/ Tested on Linux only./' no_unrun_hint_codex_page
+mutate no_unrun_hint docs/install.md '1s/$/ The plugin has not yet been run on Windows./' no_unrun_hint_install_page
+# DOCS-04 (plan 10-07, 14-01): the other old hint on the page fails the gate too
+mutate no_unrun_hint docs/install.md '1s/$/ Tested on Linux only./' no_unrun_hint_install_page_linux_only
 mutate not_run CHANGELOG.md '/^### Not run$/,$ s/^- /- x /'
 
 finish

@@ -2,51 +2,34 @@
 
 The `basis-bbj` marketplace for Claude Code and Codex, version 0.2.1, with two plugins:
 
-- The plugin `bbj`: the docs server `bbj`, the two BBj skills (`bbj-programming`,
-  `bbj-web-programming`) and a check hook that compiles every BBj file the agent writes.
+- The plugin `bbj`: the docs server `bbj` (the hosted BBj docs server), the two BBj skills
+  (`bbj-programming`, `bbj-web-programming`) and a check hook that compiles every BBj file the
+  agent writes.
 - The plugin `bbj-local`: registers the `bbj-ls` MCP server of a running BBjServices on
   `127.0.0.1:5009` (`bbj_check_syntax`, `bbj_denum`, `bbj_format`; BBj 26.03 or later).
   It is a separate plugin and installs disabled, and it is recommended where BBjServices 26.03+
   runs. It is preferred over the hosted check, for two reasons: your code stays on your machine,
-  and it is checked against your installation's own PREFIX, classpath and config. `bbjcpl`
-  stays the hook's first route (it also checks types); `bbj-local` checks syntax only. Claude
-  Code users enable it as described in
-  [the install page](docs/install-claude-code.md); Codex users run
-  `codex plugin add bbj-local@basis-bbj`.
+  and it is checked against your installation's own PREFIX, classpath and config. The hook still
+  tries the `bbjcpl` check first (it also checks types); `bbj-ls` checks syntax only. Codex users
+  run `codex plugin add bbj-local@basis-bbj`; Claude Code users enable it as described on
+  [the install page](docs/install.md).
 
 ## Install
+
+Claude Code:
 
     claude plugin marketplace add BBj-AI/bbj-agent-plugins
     claude plugin install bbj@basis-bbj
 
-For Codex, add the marketplace and the plugin, then trust the hook in `/hooks`:
+Codex:
 
     codex plugin marketplace add BBj-AI/bbj-agent-plugins
     codex plugin add bbj@basis-bbj
 
-The docs server URL is the plugin option `docs_url` (default: the hosted BBj docs server
-`https://mcp.bbj-ai.com/mcp`). The option `bbj_home`
-names the BBj installation for the check hook; left empty, the hook looks at `BBJ_HOME`,
-`BBJHOME`, `PATH` and the usual install locations.
-
-The docs server `bbj` asks for a one-time OAuth sign-in. The Claude Code plugin and the Codex plugin
-configure the pre-registered client for it (callback port 47613); sign in with `/mcp` in Claude
-Code (choose `plugin:bbj:bbj`) or `codex mcp login bbj` in Codex. On Linux the sign-in completed
-in both clients with these commands (2026-10-15), with the plugin installed from a checkout of this
-repository. Without that client, Codex's dynamic client registration is refused by the hosted
-server.
-
-That client belongs to the hosted docs server. The `docs_url` option of the Claude Code plugin must
-point at a server that accepts this client; for any other server see the sign-in notes in
-`docs/install-claude-code.md`. The Codex plugin has the hosted URL fixed in it, and
-only the Claude Code plugin has the `docs_url` option.
-
-Install pages, one per client:
-
-- [Claude Code](docs/install-claude-code.md): setup, options, check routes, what is not covered,
-  Windows and macOS. Verified platforms and versions: see the table under "Verified".
-- [Codex](docs/install-codex.md): the plugin route (`codex plugin add bbj@basis-bbj`) and the
-  hook. Verified platforms and versions: see the table under "Verified".
+The docs server `bbj` asks for a one-time OAuth sign-in: `/mcp` in Claude Code, `codex mcp login bbj`
+in Codex; in Codex, also trust the hook in `/hooks`. Everything else is on
+[the install page](docs/install.md): the plugin `bbj-local`, the options, the check routes (the hook
+tells the agent once per session when a file was not compile-checked), Windows and macOS.
 
 Release notes and what each version was tested against: [CHANGELOG.md](CHANGELOG.md).
 
