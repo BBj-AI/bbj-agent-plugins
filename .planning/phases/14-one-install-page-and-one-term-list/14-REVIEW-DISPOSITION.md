@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`run_prefix_block` fails open when its awk program errors"
   - id: WR-02
     severity: warning
@@ -35,16 +35,16 @@ findings:
     severity: info
     disposition: open
     title: "Test pins are duplicated under two prefixes on one page"
-open: 5
+open: 4
 total: 8
-recorded: 2026-10-16T09:58:10.694Z
+recorded: 2026-10-16T09:58:18.470Z
 ---
 
 # Phase 14: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
+| WR-01 | warning | fixed | 14-REVIEW-FIX.md |
 | WR-02 | warning | fixed | 14-REVIEW-FIX.md |
 | WR-03 | warning | skipped | 14-REVIEW-FIX.md |
 | WR-04 | warning | skipped | 14-REVIEW-FIX.md |
