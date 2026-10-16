@@ -48,6 +48,19 @@ If you installed from `main` before 0.2.2:
 
 ### Tested against
 
+- Claude Code 2.1.301 on Linux (BBj 26.03 at `/opt/bbx`), the release candidate `0d619fb`,
+  2026-10-16: the plugin `bbj@basis-bbj` installed fresh from that tree into a throwaway
+  configuration. The installed hook, run directly, gave `bbjcpl reported 1 error(s)` (exit 2) for a
+  bad `.bbj` file and stayed silent (exit 0) for a clean one. The plugin `bbj-local` installed
+  disabled and, once enabled with BBjServices running, `claude mcp list` showed it `Connected`.
+  `claude mcp list` showed the docs server `bbj` as `plugin:bbj:bbj` with `Needs authentication`,
+  and `Connected` after the sign-in in `/mcp`.
+- Codex CLI 0.162.1 on Linux, the release candidate `0d619fb`, 2026-10-16: `codex plugin add
+  bbj@basis-bbj` from that tree. `codex mcp list` showed the docs server as `bbj` with `Not logged
+  in`, and `OAuth` after `codex mcp login bbj` (run as `codex mcp login --no-browser bbj`, the
+  browser being on another machine). After `apply_patch` of a bad file the hook gave `bbjcpl
+  reported 1 error(s)` from the real compiler, and a clean file was silent (hook trust bypassed in
+  the throwaway home only).
 - On Linux, from a checkout (`a551d0a`), 2026-10-15, with Claude Code 2.1.299 and Codex CLI 0.162.1:
   the plugin `bbj` installed fresh into throwaway homes. `claude mcp list` showed the docs server
   `bbj` as `plugin:bbj:bbj` and went from `Needs authentication` to `Connected` after the sign-in in
@@ -84,6 +97,10 @@ If you installed from `main` before 0.2.2:
 - BBj 26.03: `bbjcpl` for the `bbjcpl` check and `bbj-ls` on `127.0.0.1:5009` for the `bbj-ls`
   check, on all three machines.
 - The skills `bbj-programming` and `bbj-web-programming` as shipped.
+- The plugin test suite, `CI=true BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1
+  BBJ_LS_BLACKHOLE_URL=http://192.0.2.1:5009/mcp sh tests/ci.sh` on the release candidate with
+  busybox, ShellCheck 0.11.0, claude 2.1.301 and no Codex process running:
+  `SUMMARY: ok=864 fail=0 skip=0` and `CI SUMMARY: ok=6 fail=0 skip=0 run_sh_exit=0`, 2026-10-16.
 
 ### Not run
 

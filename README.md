@@ -48,7 +48,7 @@ check that is not named in a cell was not seen there.
 
 | Client | Linux | Windows | macOS |
 |--------|-------|---------|-------|
-| Claude Code | `bbjcpl` (hook run directly), `bbj-ls` (bbj-local plugin connected); Claude Code 2.1.299 | `bbjcpl`, `bbj-ls` (bbj-local plugin); Claude Code 2.1.292 | `bbjcpl`, `bbj-ls` (hook run directly); Claude Code 2.1.296 |
+| Claude Code | `bbjcpl` (hook run directly), `bbj-ls` (bbj-local plugin connected); Claude Code 2.1.301 | `bbjcpl`, `bbj-ls` (bbj-local plugin); Claude Code 2.1.292 | `bbjcpl`, `bbj-ls` (hook run directly); Claude Code 2.1.296 |
 | Codex plugin | `bbjcpl`, `bbj-ls` (hook); Codex CLI 0.162.1 | `bbjcpl`, `bbj-ls` (bbj-local plugin); Codex CLI 0.162.1 | `bbjcpl`, `bbj-ls` (hook); Codex CLI 0.162.1 |
 
 Not run, so not claimed: on macOS the `bbj-local` plugin in either client; on Windows the Codex
