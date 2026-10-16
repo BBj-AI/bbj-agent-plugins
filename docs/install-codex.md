@@ -73,8 +73,8 @@ On Windows the hook looks for Git for Windows `sh.exe` in these places, in this 
 5. The `bin` folder of the Git for Windows folder of a `git` on `PATH`, for a `git.exe` in the
    `cmd`, `bin` or `mingw64\bin` folder of Git for Windows.
 
-A test run on Windows found Git for Windows under `%ProgramW6432%`, `%ProgramFiles%` (also from a
-32-bit PowerShell), `%ProgramFiles(x86)%`, `%LOCALAPPDATA%\Programs` and, with `LOCALAPPDATA` not
+A test run on Windows found Git for Windows under `%ProgramW6432%` (also from a 32-bit
+PowerShell), `%ProgramFiles(x86)%`, `%LOCALAPPDATA%\Programs` and, with `LOCALAPPDATA` not
 set, `%USERPROFILE%\AppData\Local\Programs`; through its `bin`, `usr\bin` and `cmd` folders on
 `PATH`; through a `git.exe` in `mingw64\bin` on `PATH`; and past an `sh` on `PATH` that is not Git's.
 See "Windows" below for what happens when none of these places holds `sh.exe`.
@@ -237,16 +237,17 @@ a BBj file is blocked with the message
 the places the hook looked and how to fix it: install Git for Windows or put its `bin` folder on
 `PATH`. The message comes only for a change that names a BBj file: a file named by an
 `*** Add File:`, `*** Update File:`, `*** Delete File:` or `*** Move to:` line of the patch whose
-name ends in `.bbj`, `.src` or `.bbx`, in any case. The text of the change does not count, so the
+name ends in `.bbj`, `.src` or `.bbx`, in any case (the test run used `Add File` and `Update File`
+lines; the other two follow the same rule in the hook). The text of the change does not count, so the
 edit of another file is not blocked, even when its text names a BBj file or holds `img.src`. One
 exception: the hook input of a change is one line, and when that line is about 8 KB or longer the
 hook cannot read the file names, so the change gets the same message whatever files it names.
 Codex starts the hook with the `PATH` set in the Windows settings, not one set only in the
 window that started Codex, so Git for Windows must be found through the system or user settings.
 The plugin's `commandWindows` entry ends in `exit $LASTEXITCODE` so that exit code 2 reaches Codex
-as feedback. It takes the plugin folder from the `CLAUDE_PLUGIN_ROOT` variable that Codex sets for
-the hook, so a `$` or a backtick in that path (a Windows user name may hold either) reaches `sh` as
-written.
+as feedback. It takes the plugin folder from the `CLAUDE_PLUGIN_ROOT` variable when that is set,
+so a `$` or a backtick in that path (a Windows user name may hold either) reaches `sh` as written;
+Codex's source sets that variable for hooks, which a test run has not observed on Windows.
 
 Not run: Git for Windows on another drive or under a custom install folder, a real per-user Git for
 Windows install (a junction stood in for it), PowerShell 7 (`pwsh`), Windows PowerShell under a

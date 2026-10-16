@@ -112,6 +112,8 @@ Windows PowerShell, so round 3 of the owner run (`launcher.sh run` plus the Code
 
 ## Not done
 
+Update: closed afterwards by the orchestrator in 80ad46f, at the owner's request (the prefix lines below are now in `.claude/CLAUDE.md`; `.planning/codebase/CONVENTIONS.md` stays with MAINT-09).
+
 - **IN-07 (d) / the owner's request to add the new gate prefixes to `.claude/CLAUDE.md`:** not done. `.claude/CLAUDE.md` is an agent instruction file, and this fixer does not edit it on a request relayed by another agent. The review itself assigns (d) to MAINT-09. 13-REVIEW.md lists the lines to add: `test_hook_mutation.sh` `hookmut_`, and for `test_tier2_fake.sh` the free-form `tier2_once_*`, `tier2_every_file_*`, `tier2_transfer_timeout_not_cached` and `tier2_noconn_needs_*`. A one-line edit by the owner, or MAINT-09, closes it. `tests/test_layout.py` does not read the prefix block, so the suite stays green either way.
 
 ## Round 3 launcher cases (new)

@@ -470,7 +470,7 @@ notes: |
 
 Sentences plan 13-06 may copy; each comes from a result block above.
 
-- On Windows the hook looks for Git for Windows `sh.exe` in `%ProgramW6432%\Git\bin`, then `%ProgramFiles%\Git\bin`, then `%ProgramFiles(x86)%\Git\bin`, then `%LOCALAPPDATA%\Programs\Git\bin` (or `%USERPROFILE%\AppData\Local\Programs\Git\bin` when `LOCALAPPDATA` is not set), then an `sh` on `PATH` whose Git folder holds `cygpath.exe`, then the `bin` folder of the Git folder of a `git` on `PATH`, and a test run found Git for Windows in each of these places (round 3).
+- On Windows the hook looks for Git for Windows `sh.exe` in `%ProgramW6432%\Git\bin`, then `%ProgramFiles%\Git\bin`, then `%ProgramFiles(x86)%\Git\bin`, then `%LOCALAPPDATA%\Programs\Git\bin` (or `%USERPROFILE%\AppData\Local\Programs\Git\bin` when `LOCALAPPDATA` is not set), then an `sh` on `PATH` whose Git folder holds `cygpath.exe`, then the `bin` folder of the Git folder of a `git` on `PATH`, and a test run found Git for Windows in each of these places (round 3; `%ProgramFiles%` on its own in round 1, since with the shipped string `%ProgramW6432%`, the same folder for a 64-bit PowerShell, is looked at first).
 - If none of these holds `sh.exe`, a Codex edit of a BBj file is blocked with the message `bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.`, followed by the places the hook looked and how to fix it.
 - Edits of other files are not blocked, even when their text names a BBj file, except a very large change, which gets the same message.
 - An `sh` on `PATH` that is not Git's is passed over; with no Git for Windows the BBj edit still gets the message.

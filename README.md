@@ -65,8 +65,9 @@ answering, either through the hook's second route (`hook`) or through the `bbj-l
 
 Not run, so not claimed: on macOS the `bbj-local` plugin in either client; on Windows the Codex
 plugin route with Git for Windows on another drive or under a custom install folder, with a real
-per-user Git for Windows install (a junction stood in for it), with PowerShell 7 (`pwsh`), and
-under a system-wide ConstrainedLanguage policy. The CHANGELOG lists what each release was tested
+per-user Git for Windows install (a junction stood in for it), with PowerShell 7 (`pwsh`), under a
+system-wide ConstrainedLanguage policy, and with a plugin folder whose path holds a `$` or a
+backtick. The CHANGELOG lists what each release was tested
 against and what was not run.
 
 ## The check hook
