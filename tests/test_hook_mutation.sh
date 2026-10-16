@@ -12,7 +12,7 @@
 # hookmut_backslash_conversion, hookmut_dotdot_check and hookmut_t2_cache (one mutation each), and
 # hookmut_noconn_ip and hookmut_noconn_time (review IN-01: each half of the connect-timeout test).
 # Nested output stays under $WORK, so every stdout line of this file is a gate line with prefix
-# hookmut_ (Phase 14 adds the prefix to the prefix list).
+# hookmut_ (listed in the gate-prefix block of .claude/CLAUDE.md).
 #
 # Pitfall 12: a gate that needs a file name with a backslash reports skip on a file system that
 # cannot hold one, and FAIL under CI=true; never a false ok.
