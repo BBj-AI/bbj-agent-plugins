@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v0.2.2
 milestone_name: Plugin-only cleanup
 current_phase: 14
-current_phase_name: one-install-page-and-one-term-list
+current_phase_name: One install page and one term list
 status: verifying
-stopped_at: Completed 14-08-PLAN.md
-last_updated: "2026-10-16T09:17:00.295Z"
+stopped_at: Phase 11 re-verified and complete; phases 12-14 await re-verification (stale reports)
+last_updated: "2026-10-16T11:08:34.209Z"
 last_activity: 2026-10-16
-last_activity_desc: Phase 14 execution started
-state_head: d40d1da3e1e92f2910614b52a90febccd1a84664
+last_activity_desc: Phase 11 re-verified (passed) and marked complete
+state_head: 04c90fa33f30516789e56e3113d167174e3213bd
 progress:
   total_phases: 5
   completed_phases: 3
@@ -29,10 +29,10 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 ## Current Position
 
-Phase: 14 (one-install-page-and-one-term-list) — EXECUTING
-Plan: 9 of 9
-Status: Phase complete — ready for verification
-Last activity: 2026-10-16 — Phase 14 execution started
+Phase: 14 — One install page and one term list
+Plan: 9 of 9 (executed)
+Status: Executed — verification stale; phases 12 and 13 also await re-verification
+Last activity: 2026-10-16 — Phase 11 re-verified (passed) and marked complete
 
 Progress: [██████░░░░] 60%
 
@@ -249,7 +249,7 @@ Items acknowledged and deferred at milestone close, most recent first:
 ## Session Continuity
 
 Last session: 2026-10-16T09:17:00.195Z
-Stopped at: Completed 14-08-PLAN.md
+Stopped at: Phase 11 re-verified and complete; phases 12-14 await re-verification
 Resume file: None
 
 ## Operator Next Steps
