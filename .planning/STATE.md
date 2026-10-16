@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 15
 current_phase_name: Release 0.2.2
 status: executing
-stopped_at: Completed 15-04-PLAN.md
-last_updated: "2026-10-16T18:10:14.876Z"
+stopped_at: Completed 15-05-PLAN.md
+last_updated: "2026-10-16T18:48:58.099Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 15 execution started
-state_head: dcee30413e9e2906ecdef59826e6991ab618e9d7
+state_head: fabef573777f0ea26b20719086b106734284068b
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 34
-  completed_plans: 29
+  completed_plans: 30
   percent: 80
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-16)
 ## Current Position
 
 Phase: 15 (Release 0.2.2) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 15 execution started
 
@@ -179,6 +179,7 @@ Progress: [████████░░] 80%
 | Phase 15 P01 | 45 min | 3 tasks | 8 files |
 | Phase 15 P03 | 7 min | 1 tasks | 8 files |
 | Phase 15 P04 | 5 min | 1 tasks | 4 files |
+| Phase 15 P05 | 35 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -231,6 +232,9 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 15]: Closure of the CI-pin finding lives in CONCERNS.md and evidence/pin.txt, never in 12-REVIEW-DISPOSITION.md (D-19)
 - [Phase 15]: 15-03: Linux sign-in line in the 0.2.2 Tested against avoids the pattern 'Claude Code <version> on Linux' so claude_version_single keeps one Linux version when 15-06 adds the release run
 - [Phase 15]: 15-03: Not run line 8 reads 'an upgrade to this release through a Git marketplace'; RETIRED_WORD removed from tests/test_release_text.py
+- [Phase 15]: D-17 blackhole address http://192.0.2.1:5009/mcp used unchanged (probe: curl exit 28; owner: blackhole D-17)
+- [Phase 15]: Plan 15-05: cc_tool_name recorded as not shown (bbj_search detail not opened); cx_login_option --no-browser
+- [Phase 15]: Plan 15-05: claude.ai BBj connector listed above plugin:bbj:bbj in Claude Code /mcp recorded as a NAME-03 observation
 
 ### Pending Todos
 
@@ -262,8 +266,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T18:10:14.759Z
-Stopped at: Completed 15-04-PLAN.md
+Last session: 2026-10-16T18:48:57.997Z
+Stopped at: Completed 15-05-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
