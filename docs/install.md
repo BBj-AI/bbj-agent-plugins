@@ -16,8 +16,8 @@
 This page installs the plugin `bbj` from the `basis-bbj` marketplace: the docs server `bbj`, the
 two BBj skills and a hook that compiles every BBj file the agent writes. Claude Code checks the
 files it writes with `Write` and `Edit`, Codex the files it writes with `apply_patch`. Each step
-gives the Claude Code command and the Codex command. Installing takes a few minutes; nothing asks
-you a question, the defaults apply.
+gives the Claude Code command and the Codex command. Installing takes a few minutes; the defaults
+apply, then you sign in (step 3).
 
 ## Requirements
 
@@ -234,9 +234,8 @@ client. If you point it at another server (self-hosted, local) that rejects this
 no sign-in, remove the `oauth` block from the plugin's `.mcp.json` (or override the entry of the
 docs server `bbj` with your own) so the other server's own registration is used.
 
-Codex has no options. The pre-registered client belongs to the hosted docs server, and
-`plugins/bbj/.codex-mcp.json` holds its URL; Codex plugins have no options, so
-only the Claude Code plugin has the `docs_url` option.
+Codex has no options, so only the Claude Code plugin has the `docs_url` option. The pre-registered
+client belongs to the hosted docs server, and `plugins/bbj/.codex-mcp.json` holds its URL.
 
 ### Codex: where the hook finds BBj
 
@@ -253,9 +252,9 @@ from the terminal with `BBJ_HOME` set, after which the hook printed `bbjcpl repo
 
 ## Check routes
 
-The hook has two checks and tries them in this order. It never runs BBj code: it only compiles,
-with `bbjcpl -N`, or asks `bbj-ls` to parse. The hook never sends code off your machine and does not
-use the hosted check.
+The hook has two checks and tries them in this order; item 3 is the case where neither answers.
+It never runs BBj code: it only compiles, with `bbjcpl -N`, or asks `bbj-ls` to parse. The hook
+never sends code off your machine and does not use the hosted check.
 
 1. **The `bbjcpl` check.** The hook finds BBj in this order: the `bbj_home` option (Claude Code),
    `BBJ_HOME`, `BBJHOME`, `bbjcpl` on `PATH`, then `/c/bbx` (`C:\bbx` on Windows),
