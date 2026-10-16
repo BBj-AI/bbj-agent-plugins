@@ -73,8 +73,10 @@ On Windows the hook looks for Git for Windows `sh.exe` in these places, in this 
 5. The `bin` folder of the Git for Windows folder of a `git` on `PATH`, for a `git.exe` in the
    `cmd`, `bin` or `mingw64\bin` folder of Git for Windows.
 
-A test run on Windows found Git for Windows under `%ProgramFiles%`, `%ProgramFiles(x86)%` and
-`%LOCALAPPDATA%\Programs`, through its `bin` folder on `PATH` and through its `cmd` folder on `PATH`.
+A test run on Windows found Git for Windows under `%ProgramW6432%`, `%ProgramFiles%` (also from a
+32-bit PowerShell), `%ProgramFiles(x86)%`, `%LOCALAPPDATA%\Programs` and, with `LOCALAPPDATA` not
+set, `%USERPROFILE%\AppData\Local\Programs`; through its `bin`, `usr\bin` and `cmd` folders on
+`PATH`; through a `git.exe` in `mingw64\bin` on `PATH`; and past an `sh` on `PATH` that is not Git's.
 See "Windows" below for what happens when none of these places holds `sh.exe`.
 
 ### Sign in to the docs server
@@ -248,19 +250,20 @@ written.
 
 Not run: Git for Windows on another drive or under a custom install folder, a real per-user Git for
 Windows install (a junction stood in for it), PowerShell 7 (`pwsh`), Windows PowerShell under a
-system-wide ConstrainedLanguage policy, and on Windows these parts of the lookup: `%ProgramW6432%`
-as the only place that holds Git, the `%USERPROFILE%` form of the per-user folder, a `git.exe` in
-`mingw64\bin`, an `sh` on `PATH` that is not Git's, and a plugin folder whose path holds a `$` or a
-backtick.
+system-wide ConstrainedLanguage policy, and, under Codex, a plugin folder whose path holds a `$` or
+a backtick (the test run checked that case outside Codex, with `CLAUDE_PLUGIN_ROOT` set as Codex's
+source sets it).
 
 Observed on Windows with Windows 10 (build 19045.6466), Git for Windows 2.52.0, Windows PowerShell
-5.1 and Codex CLI 0.162.1, on 2026-10-15: run through Windows PowerShell 5.1 outside Codex, the
-hook compile-checked a BBj file with Git for Windows in each of the five places it looks, also in
-ConstrainedLanguage mode, and printed the sh.exe not found message when none of them held sh.exe.
+5.1 and Codex CLI 0.162.1, on 2026-10-16: run through Windows PowerShell 5.1 outside Codex, the
+hook compile-checked a BBj file with Git for Windows in each of the places it looks, also in
+ConstrainedLanguage mode, and printed the sh.exe not found message when none of them held sh.exe,
+also when an `sh` that is not Git's was first on `PATH`.
 With Git for Windows in its default place, Codex asked to trust the hook, blocked a BBj file that
 does not compile with the compiler's error, and showed nothing from the hook for a clean BBj file.
 With no Git for Windows sh.exe on the machine, Codex blocked a BBj file with the message that
-sh.exe was not found and where the hook looked, and wrote a Markdown file with no hook message. The
+sh.exe was not found and where the hook looked, and wrote a Markdown file and an HTML file whose
+text names a BBj file with no hook message. The
 Codex runs gave the BBj home as `BBJ_HOME` (`C:\bbx`).
 
 Observed on Windows with Git for Windows 2.52.0 and BBj 26.03, the hook script run from Git Bash
