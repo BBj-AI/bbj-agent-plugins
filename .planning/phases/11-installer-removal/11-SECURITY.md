@@ -37,9 +37,9 @@ created: "2026-10-15"
 | T-11-04 | Repudiation | released 0.2.1 facts pinned by NOT_RUN_LINES | medium | mitigate | `release_not_run` ok; `git diff --quiet 0.2.1 -- CHANGELOG.md` holds | closed |
 | T-11-05 | Spoofing | per-platform claims in README.md and both install pages | medium | mitigate | `11-CLAIM-TRACE.md` (48 rows, state after plan 11-03); Phase 12 re-pinned the sign-in claims to `12-LINUX-RUN.md` and removed the unbacked Windows/macOS sign-in claims | closed |
 | T-11-06 | Elevation of privilege | Codex page and README advice on hook trust | medium | mitigate | `codex_forbids_hook_trust_bypass` and `readme_forbids_hook_trust_bypass` ok | closed |
-| T-11-07 | Tampering | maintainer's real Codex home (~/.codex) | low | accept | no test sets or writes CODEX_HOME (0 matches in `tests/`) | closed |
+| T-11-07 | Tampering | maintainer's real Codex home (~/.codex) | low | accept | no test sets or writes CODEX_HOME (re-check 2026-10-16: one match in `tests/`, a comment at `tests/test_codex_patch.sh:164` added in Phase 13) | closed |
 | T-11-08 | Tampering | tests/ci.sh lint coverage | low | mitigate | `ci_shellcheck` ok over plugins/bbj/scripts and tests | closed |
-| T-11-09 | Tampering | layout_no_retired_route scope | medium | mitigate | `layout_no_retired_route ok 62 tracked files scanned (git mode)`; 11 `layout_mutation_retired_route_*` cases ok | closed |
+| T-11-09 | Tampering | layout_no_retired_route scope | medium | mitigate | `layout_no_retired_route ok 63 tracked files scanned (git mode)` (re-check 2026-10-16); 11 `layout_mutation_retired_route_*` cases ok | closed |
 | T-11-10 | Information disclosure | tracked_files walk mode following a symlink | low | accept | 0 tracked symlinks; walk mode runs only on mutation copies | closed |
 | T-11-11 | Repudiation | released CHANGELOG history | medium | mitigate | exemption by version heading; CHANGELOG unchanged since tag 0.2.1 | closed |
 | T-11-SC | Tampering | npm/pip/cargo installs | low | accept | the phase installs no package | closed |
@@ -67,6 +67,7 @@ created: "2026-10-15"
 | Audit Date | Threats Total | Closed | Open | Run By |
 |------------|---------------|--------|------|--------|
 | 2026-10-15 | 12 | 12 | 0 | secure-phase (L1 grep-depth, orchestrator) |
+| 2026-10-16 | 12 | 12 | 0 | secure-phase re-check on the tree after Phase 13 (L1 grep-depth, orchestrator) |
 
 ---
 
@@ -78,3 +79,11 @@ created: "2026-10-15"
 - [x] `status: verified` set in frontmatter
 
 **Approval:** verified 2026-10-15
+
+## Security Audit 2026-10-16
+
+| Metric | Count |
+|---|---|
+| Threats found | 12 |
+| Closed | 12 |
+| Open | 0 |
