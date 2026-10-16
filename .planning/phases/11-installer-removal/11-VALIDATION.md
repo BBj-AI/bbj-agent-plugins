@@ -31,7 +31,7 @@ created: "2026-10-15"
 
 - **After every task commit:** Run the task's verify block plus `python3 -I tests/test_layout.py`
 - **After every plan wave:** Run `sh tests/run.sh`
-- **Before `/gsd-verify-work`:** Full suite must be green (last run 2026-10-15: `ok=767 fail=0 skip=0`; `sh tests/ci.sh`: `CI SUMMARY: ok=6 fail=0 skip=0`)
+- **Before `/gsd-verify-work`:** Full suite must be green (last run 2026-10-16, tree after Phase 13: `ok=797 fail=0 skip=0`)
 - **Max feedback latency:** 60 seconds
 
 ---
@@ -99,3 +99,11 @@ Existing infrastructure covers all phase requirements.
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-10-15
+
+## Validation Audit 2026-10-16
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
