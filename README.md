@@ -1,6 +1,6 @@
 # bbj-agent-plugins
 
-The `basis-bbj` marketplace for Claude Code and Codex, version 0.2.1, with two plugins:
+The `basis-bbj` marketplace for Claude Code and Codex, version 0.2.2, with two plugins:
 
 - The plugin `bbj`: the docs server `bbj` (the hosted BBj docs server), the two BBj skills
   (`bbj-programming`, `bbj-web-programming`) and a check hook that compiles every BBj file the
