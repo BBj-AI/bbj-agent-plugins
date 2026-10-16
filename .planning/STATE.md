@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 14
 current_phase_name: one-install-page-and-one-term-list
 status: executing
-stopped_at: Completed 14-03-PLAN.md
-last_updated: "2026-10-16T08:24:54.259Z"
+stopped_at: Completed 14-09-PLAN.md
+last_updated: "2026-10-16T08:30:05.178Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 14 execution started
-state_head: 3f6d5595afb3e32f982e29e85f0977b95484e879
+state_head: 243b03626bcd3a3f99f1bbaf067e1488b385c0be
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 25
-  completed_plans: 20
+  completed_plans: 21
   percent: 60
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 ## Current Position
 
 Phase: 14 (one-install-page-and-one-term-list) — EXECUTING
-Plan: 5 of 9
+Plan: 6 of 9
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 14 execution started
 
@@ -169,6 +169,7 @@ Progress: [██████░░░░] 60%
 | Phase 14 P02 | 10min | 2 tasks | 4 files |
 | Phase 14 P04 | 40min | 2 tasks | 8 files |
 | Phase 14 P03 | 12 min | 2 tasks | 7 files |
+| Phase 14 P14-09 | 20 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -208,6 +209,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 14]: 14-02: Codex plugin / macOS keeps (hook) although its bbj-ls reading comes from uncounted Codex runs recorded as prose; flagged in 14-CLAIM-TRACE.md for Phase 15
 - [Phase 14]: 14-04: gate renames put the file prefix in front of the old name; skip-branch names carry the prefix; test_noroute_notice.sh fake_start_ left for 14-09
 - [Phase 14]: 14-03: TERM_VARIANTS order is first route, second route, compiler check, docs MCP, local check; a missing required scope file is a gate hit (fails closed); 'the bbj-local server' is listed as retired but not gated
+- [Phase 14]: 14-09: the last four test files take the prefixes neverexec_, reviewfix_, live_ and notice_ (notice_fake_start_ for the failure path); renames change names and header comments only
 
 ### Pending Todos
 
@@ -238,8 +240,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T08:24:54.170Z
-Stopped at: Completed 14-03-PLAN.md
+Last session: 2026-10-16T08:30:05.073Z
+Stopped at: Completed 14-09-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
