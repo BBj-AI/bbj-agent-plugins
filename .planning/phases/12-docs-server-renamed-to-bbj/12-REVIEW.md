@@ -1,131 +1,180 @@
 ---
 phase: 12-docs-server-renamed-to-bbj
-reviewed: 2026-10-15T00:00:00Z
+reviewed: 2026-10-16T00:00:00Z
 depth: standard
-files_reviewed: 14
+files_reviewed: 31
 files_reviewed_list:
   - .claude/CLAUDE.md
+  - .shellcheckrc
   - README.md
-  - docs/install-claude-code.md
-  - docs/install-codex.md
-  - plugins/bbj/.codex-mcp.json
-  - plugins/bbj/.mcp.json
+  - docs/install.md
+  - plugins/bbj/.claude-plugin/plugin.json
+  - plugins/bbj/.codex-plugin/plugin.json
+  - plugins/bbj/hooks/hooks.json
   - plugins/bbj/scripts/bbj-check.sh
   - plugins/bbj/skills/bbj-programming/SKILL.md
   - plugins/bbj/skills/bbj-web-programming/SKILL.md
-  - tests/test_check_order.py
+  - tests/fake-bin/curl
+  - tests/fake-bin/cygpath
+  - tests/fake_mcp.py
+  - tests/run.sh
+  - tests/test_ci_gates.sh
   - tests/test_claude_plugin.sh
+  - tests/test_codex_patch.sh
+  - tests/test_discovery.sh
+  - tests/test_exit_contract.sh
+  - tests/test_hook_mutation.sh
+  - tests/test_hook_review_fixes.sh
   - tests/test_install_pages.sh
   - tests/test_layout.py
+  - tests/test_never_execute.sh
   - tests/test_noroute_notice.sh
+  - tests/test_real_compiler.sh
+  - tests/test_release_text.py
+  - tests/test_release_text_mutation.sh
+  - tests/test_static_guards.sh
+  - tests/test_tier2_fake.sh
+  - tests/test_tier2_live.sh
 findings:
   critical: 0
-  warning: 2
-  info: 3
-  total: 5
+  warning: 3
+  info: 4
+  total: 7
 status: issues_found
 ---
 
 # Phase 12: Code Review Report
 
-**Reviewed:** 2026-10-15
+**Reviewed:** 2026-10-16
 **Depth:** standard
-**Files Reviewed:** 14
+**Files Reviewed:** 31
 **Status:** issues_found
 
 ## Summary
 
-Reviewed `git diff c7c8cad..HEAD` for the 14 files, plus the surrounding code of the new
-`no_old_server_name` gate and its mutation cases, and `12-LINUX-RUN.md` for the label and
-command claims in the docs.
+Scope was the diff since `568099026c6e50e94180dc3e6537edfca0c9cb90` (Phases 13 and 14 on top of Phase 12),
+read against Phase 12's goal: the docs server is named `bbj` in the MCP configs, skills, hook notice, docs
+and sign-in commands.
 
-The rename itself is complete and consistent. `/usr/bin/grep -rn "bbj-docs"` outside `.planning/`
-finds only CHANGELOG entries of 0.2.1 and earlier, which are exempt by design. The two MCP files
-agree with the pins in `tests/test_layout.py`, and the docs' labels and commands
-(`plugin:bbj:bbj`, `mcp__plugin_bbj_bbj__`, `codex mcp login bbj`,
-`codex mcp login --no-browser bbj`) match the excerpts in `12-LINUX-RUN.md`. The hook change is
-text only. The exit contract is untouched, and no new stdout, URL or compiler call was added.
+The Phase 12 goal holds. Both `.mcp.json` files and `.codex-mcp.json` register the server as `bbj`. The hook
+notice, both skills, `docs/install.md` and both manifests name it `bbj`. `git ls-files` outside `.planning/`
+shows `bbj-docs` and "docs MCP" only in `.claude/CLAUDE.md` (the term list) and in the frozen CHANGELOG
+entries. Two removed fixture seams (`FAKE_CYGPATH_W_FAIL`, `FAKE_CYGPATH_GIT_ROOT`) and the `tools-list*`
+modes of `tests/fake_mcp.py` have no remaining users. ShellCheck is clean over the shipped hook and all test
+scripts after `SC2181` was dropped from `.shellcheckrc`.
 
-I ran `test_layout.py`, `test_check_order.py`, `test_install_pages.sh`, `test_noroute_notice.sh`
-and `test_claude_plugin.sh`. No gate failed or skipped.
+I checked the new connect-timeout logic in `no_tier1_route`:
+- The "last newline" split of the `-w` write-out is correct, including for SSE replies and empty replies.
+- `_rc=$?` is read straight after the command substitution, as it must be.
+- With the installed curl 8.18.0, a real connect timeout prints `0.000000` and an empty `remote_ip`, which is
+  what the `noconn` test expects.
+- The one-attempt-per-run cache cannot suppress a reached route, because only `refused`, `nocurl`, `badurl`
+  and `noconn` are cached.
 
-I found no BLOCKER. The two warnings are about test strength and CI-version coupling. The
-absence of a `## 0.2.2` CHANGELOG entry is deliberate: Phase 15 owns it (ROADMAP, 12-CONTEXT D-12).
+No BLOCKER-level defect was found in the shipped code. The warnings are about test hermeticity and about
+coupling the test runner to a tool-managed instructions file.
 
 ## Warnings
 
-### WR-01: Install-page needles are prefixes of the old names, so they cannot detect a regression
+### WR-01: `FAKE_CURL_WRITEOUT` leaks into tests that assume the fake prints no write-out
 
-**File:** `tests/test_install_pages.sh:129` (also `:229` and `:254`)
-**Issue:** `need()` uses `grep -qF`, a substring match. The rename edits added or changed three
-needles that are literal prefixes of the old strings:
-- `'plugin:bbj:bbj'` is a prefix of `plugin:bbj:bbj-docs`.
-- `'codex mcp login bbj'` is a prefix of `codex mcp login bbj-docs`.
-- `'plugins."bbj@basis-bbj".mcp_servers.bbj'` is a prefix of `...mcp_servers.bbj-docs`.
+**File:** `tests/lib.sh:47`, `tests/fake-bin/curl:14`, `tests/test_noroute_notice.sh` (gate `notice_curl_exit_28_silent`)
+**Issue:** Phase 13 added the seam `FAKE_CURL_WRITEOUT`, but `tests/lib.sh`, whose "hermetic environment" is a
+project rule in `.claude/CLAUDE.md`, does not unset it. Only `tests/test_hook_mutation.sh` and the `oncegate`
+helper in `tests/test_tier2_fake.sh` clean it. `tests/test_noroute_notice.sh` relies on the fake printing
+nothing: its header says so ("The fake curl prints no write-out ... so `notice_curl_exit_28_silent` keeps its
+meaning"). I reproduced the leak:
 
-If a page reverted to the old name, these gates would still report `ok`. Only `layout_no_old_server_name`
-would catch it. The install-pages gates therefore do not prove the thing their header comment
-says they prove (the sign-in commands and labels). Only `mcp__plugin_bbj_bbj__` is discriminating.
-**Fix:** Anchor the needles so the old name cannot match, for example:
-```sh
-    'Run `/mcp` in Claude Code, choose `plugin:bbj:bbj` and sign in' \
-    '`codex mcp login bbj`' \
-    '`plugins."bbj@basis-bbj".mcp_servers.bbj`'
+```text
+FAKE_CURL_WRITEOUT='0.000000 ' sh tests/test_noroute_notice.sh
+-> gate notice_curl_exit_28_silent FAIL exit 0, stdout '{"hookSpecificOutput":...
 ```
-The first form needs the sentence text to be stable. The other two rely on the closing backtick,
-which the old name does not have at that position. Alternatively, add a `forbid` call (the helper
-already exists in this file) for `bbj-docs` on both pages and the README.
 
-### WR-02: `mcp_docs_answers` now depends on Claude Code's `<label>: <url>` list format, recorded on 2.1.299 but CI pins 2.1.293
+A stray value in a developer's or CI job's environment turns a hermetic gate red, and the failure message
+points at the hook rather than at the environment. The same applies to `FAKE_CURL_EXIT` and `FAKE_CURL_LOG`,
+which `lib.sh` does not clear either.
+**Fix:** Clear the curl seams where the other seams are cleared:
 
-**File:** `tests/test_claude_plugin.sh:111`
-**Issue:** The gate used to match on the URL alone. It now requires the literal string
-`plugin:bbj:bbj: https://mcp.bbj-ai.com/mcp`. The label and the `label: url` layout were recorded
-on Claude Code 2.1.299 (`12-LINUX-RUN.md`, `claude --version` on the dev machine). CI installs the
-exact pin `@anthropic-ai/claude-code` 2.1.293 (`.github/ci-tools/package.json`). I could not
-confirm that 2.1.293 prints the same layout. If it differs, for example by quoting the name or
-changing the separator, CI would FAIL here while the local run passes. The same assumption sits
-behind `claude mcp get "$CC_LABEL"` at line 96.
-**Fix:** Before the Phase 15 live run, run this test against the pinned CLI (`npm ci` in
-`.github/ci-tools`, then `PATH=.github/ci-tools/node_modules/.bin:$PATH sh tests/test_claude_plugin.sh`).
-To make it less brittle, keep the URL as the primary match and check the label separately:
 ```sh
-_line=$(printf '%s\n' "$mcp" | grep -F "https://$DOCS_HOST/mcp" | grep -F "$CC_LABEL" | grep -i -e ... )
+unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR CLAUDE_PLUGIN_ROOT \
+  FAKE_CURL_EXIT FAKE_CURL_WRITEOUT FAKE_CURL_LOG
 ```
-This tolerates a change of separator but still pins the label.
+
+Add a gate that runs one hermetic test with `FAKE_CURL_WRITEOUT` exported and requires it to pass.
+
+### WR-02: The test runner and a layout gate read their rules from `.claude/CLAUDE.md`, a tool-managed instructions file
+
+**File:** `tests/run.sh:80-95` (BLOCK_FILE), `tests/test_layout.py` (`TERM_LIST_FILE = ".claude/CLAUDE.md"`, gate `term_list`)
+**Issue:** `run_prefix_block` and `layout_term_list` both treat `.claude/CLAUDE.md` as the source of truth for
+data (the gate-prefix block, the term list). That file is the agent-instructions file. Its sections are
+generated and refreshed by GSD tooling; the file itself says "managed by `generate-claude-profile` -- do not
+edit manually", and the architecture sections show truncated, regenerated content. Any regeneration, `/init`
+or hand re-wrap of those lines changes CI results. The gates fail closed, which is correct, but the failure
+looks like a test regression and not like a documentation edit. `.planning/codebase/CONVENTIONS.md` is also
+required to hold an identical copy "when present", so a missing copy turns the comparison into a silent
+`ok ... CONVENTIONS.md absent, not compared`, even under `CI=true`.
+**Fix:** Move the prefix block and the term list into a file owned by the test suite (for example
+`tests/PREFIXES.txt` and `tests/TERMS.txt`). Let `.claude/CLAUDE.md` link to them, and make `run.sh` and
+`test_layout.py` read those. If the coupling stays, make the absent-copy case FAIL under `CI=true` and name
+the managed-file risk in the `run.sh` header.
+
+### WR-03: Sibling gates do not prove the exit-28 write-out contract against a real curl
+
+**File:** `tests/test_tier2_fake.sh` (`oncegate ... tier2_once_windows_connect_timeout`, `tier2_noconn_*`), `plugins/bbj/scripts/bbj-check.sh:307-311`
+**Issue:** Every `noconn` gate drives a fake curl that prints a hand-written write-out. Nothing exercises
+the `-w '\n%{time_connect} %{remote_ip}'` contract against a real curl, so a curl build that fills the two
+fields differently (the hook's own comment concedes this) is only covered by the safe fallback, which is
+`return 2`. The fallback is safe, and the gates `tier2_noconn_needs_no_ip` and `tier2_noconn_needs_zero_time`
+cover the mixed fields. But the main "no route" claim of FIX-02, that a firewall dropping loopback packets
+gives `connect timed out`, is never shown on a machine. The docs say only that the logic "follows from the
+hook's timeouts and its tests on fakes".
+**Fix:** Add one gate that, when `curl` is present and `BBJ_LS_BLACKHOLE_URL` is set (a non-routable address
+configured by the maintainer), runs the real curl once and requires `rc=28`, `time_connect=0` and an empty
+`remote_ip`. Report `skip` otherwise. It is outside the loopback-only shipped code, so keep it in `tests/`
+only. Alternatively, record the observed output of a real run in `docs/install.md`.
 
 ## Info
 
-### IN-01: Hook notice and skills name the server only as bare `bbj`, which the model may confuse with the plugin or the `bbj-local` tool
+### IN-01: The tier-2 feedback header names the plugin `bbj-local`, but the hook does not use the plugin
 
-**File:** `plugins/bbj/scripts/bbj-check.sh:228`, `plugins/bbj/skills/bbj-programming/SKILL.md:11`
-**Issue:** Both texts say `bbj_check_syntax of the docs server bbj`. `bbj-local` also exposes a
-tool named `bbj_check_syntax`. The only separator between the two tools is the word `bbj`, which is
-also the plugin name and a prefix of `bbj-local` and `bbjcpl`. The tool name Claude Code builds is
-`mcp__plugin_bbj_bbj__bbj_check_syntax` (D-07 chose role noun plus name on purpose). Adding the
-qualified name once would remove the ambiguity.
-**Fix:** In the notice, for example: `... bbj_check_syntax of the docs server bbj (mcp__plugin_bbj_bbj__bbj_check_syntax on
-Claude Code), the hosted check ...`. If you do, update the `holds_all` fragments in
-`tests/test_noroute_notice.sh`.
+**File:** `plugins/bbj/scripts/bbj-check.sh` (`report bbj-local ...`), `docs/install.md:271-272`
+**Issue:** The hook asks `bbj-ls` directly and, as the page says at lines 276-278, does not need the plugin
+`bbj-local`. Its error header still reads `bbj-local reported N error(s) in <file>:`. The page justifies this
+as "with the name of the plugin, so you and the agent can see which check spoke". After the Phase 14 term
+list (the plugin `bbj-local` registers `bbj-ls`; the check is `bbj-ls`), the header can tell the agent that
+a plugin is installed that is not. The format is pinned by many tests and "Observed" lines, so changing it is
+a release decision.
+**Fix:** Decide in a later phase whether to rename the header to `bbj-ls reported ...`, updating the pins, or
+reword the page to say the header is a historical label.
 
-### IN-02: Misaligned continuation lines after the `DOCS_SERVER` substitution in `test_layout.py`
+### IN-02: Stale comment about the prefix list
 
-**File:** `tests/test_layout.py:561-562`
-**Issue:** In `codex_secret`, the second line of the dict is still aligned to the old
-`["bbj-docs"]` length. Every other edit in the file re-aligned its continuation lines.
-**Fix:** Re-indent `"client" + "Secret": ...` under `"clientId"`.
+**File:** `tests/test_hook_mutation.sh:16`
+**Issue:** The header says "(Phase 14 adds the prefix to the prefix list)". `hookmut_` is already in the
+block in `.claude/CLAUDE.md`, and `run_prefix_block` would FAIL without it.
+**Fix:** Delete the parenthesis, or say "listed in `.claude/CLAUDE.md`".
 
-### IN-03: README bullet reads awkwardly after the rename
+### IN-03: One hook run can still outlast its 30-second timeout when `bbj-ls` accepts but never answers
 
-**File:** `README.md:5`
-**Issue:** `The plugin `bbj`: the docs server `bbj` (the BBj docs MCP server), the two BBj skills...`
-puts the plugin and the server under one name in one sentence. The bullet exceeds the width of the
-neighbouring lines, and the parenthetical is redundant.
-**Fix:** `- The plugin `bbj`: the BBj docs MCP server (the docs server `bbj`), the two BBj skills ...`
-or drop the parenthetical.
+**File:** `plugins/bbj/scripts/bbj-check.sh:285-290`, `docs/install.md:281-287`
+**Issue:** Only "nothing reached" outcomes are cached. A reached-but-silent `bbj-ls` costs up to `-m 12` for
+every BBj file of a Codex patch, so three files reach the hook's 30-second timeout and the host drops the
+run, including compile errors collected from earlier files. This is the documented limit (D-11, D-13) and the
+page states it was not observed. The hook has no overall time budget, so the limit grows with the patch.
+**Fix:** If it becomes a problem, stop asking `bbj-ls` for the rest of the run after the first reached route
+that ended in curl exit 28 (a timeout after a connection). Alternatively, keep a monotonic budget with
+`date +%s` and stop after about 20 seconds.
+
+### IN-04: `FAKE_CURL_WRITEOUT` cannot express "set but empty" through `oncegate`
+
+**File:** `tests/test_tier2_fake.sh` (`oncegate`, `if [ -n "$3" ]`)
+**Issue:** The fake supports a set-but-empty value (`${FAKE_CURL_WRITEOUT+x}`), which models a curl that
+prints only the leading newline. `oncegate` exports the variable only when `$3` is non-empty, so that case
+is untested. In the hook it goes through `_wo=` (empty) to `return 2`, which is the safe path.
+**Fix:** Add one `oncegate` variant that exports `FAKE_CURL_WRITEOUT=` and expects 12 calls and silence.
 
 ---
 
-_Reviewed: 2026-10-15_
+_Reviewed: 2026-10-16_
 _Reviewer: Claude (gsd-code-reviewer)_
 _Depth: standard_
