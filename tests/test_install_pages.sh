@@ -293,26 +293,85 @@ if [ -f "$README" ]; then
 fi
 
 # ---- relative Markdown links resolve ----
-for f in "$REPO"/README.md "$REPO"/CHANGELOG.md "$DOCS"/*.md; do
-  [ -f "$f" ] || continue
-  dir=$(dirname "$f")
-  rel=${f#"$REPO"/}
-  grep -o '\]([^)]*)' "$f" | sed -e 's/^\](//' -e 's/)$//' > "$WORK/links"
-  checked=0
-  while IFS= read -r target; do
-    [ -n "$target" ] || continue
-    case "$target" in
+# The 0.2.0 entry of CHANGELOG.md is frozen (11 D-03) and links pages that no longer exist; the cut
+# below drops the entries headed 0.2.1 or older (compared as integers, the rule of changelog_scan_text
+# in tests/test_layout.py), so a link in a newer entry is still checked. Any other "## " line keeps
+# the text after it (fail closed).
+CUT_MAJOR=0
+CUT_MINOR=2
+CUT_PATCH=1
+
+# history_cut FILE: prints FILE without the CHANGELOG entries headed CUT_MAJOR.CUT_MINOR.CUT_PATCH or older
+history_cut() {
+  awk -v c1="$CUT_MAJOR" -v c2="$CUT_MINOR" -v c3="$CUT_PATCH" '
+    BEGIN { keep = 1 }
+    /^## / {
+      keep = 1
+      if ($0 ~ /^## [0-9]+\.[0-9]+\.[0-9]+( |\t|$)/) {
+        split(substr($0, 4), v, /[. \t]/)
+        a = v[1] + 0; b = v[2] + 0; c = v[3] + 0
+        if (a < c1 || (a == c1 && (b < c2 || (b == c2 && c <= c3)))) keep = 0
+      }
+    }
+    keep { print }
+  ' "$1"
+}
+
+# check_links FILE: gate link_<file>_<target> for every relative Markdown link of FILE; a file named
+# CHANGELOG.md is read through history_cut
+check_links() {
+  _f=$1
+  [ -f "$_f" ] || return 0
+  _dir=$(dirname "$_f")
+  _rel=${_f#"$REPO"/}
+  _src=$_f
+  if [ "$(basename "$_f")" = CHANGELOG.md ]; then
+    history_cut "$_f" > "$WORK/changelog.cut"
+    _src=$WORK/changelog.cut
+  fi
+  grep -o '\]([^)]*)' "$_src" | sed -e 's/^\](//' -e 's/)$//' > "$WORK/links"
+  while IFS= read -r _target; do
+    [ -n "$_target" ] || continue
+    case "$_target" in
       http://*|https://*|mailto:*|'#'*) continue ;;
     esac
-    path=${target%%#*}
-    [ -n "$path" ] || continue
-    checked=$((checked + 1))
-    if [ -e "$dir/$path" ]; then
-      gate "link_$(slug "$rel")_$(slug "$path")" ok "$rel -> $path"
+    _path=${_target%%#*}
+    [ -n "$_path" ] || continue
+    if [ -e "$_dir/$_path" ]; then
+      gate "link_$(slug "$_rel")_$(slug "$_path")" ok "$_rel -> $_path"
     else
-      gate "link_$(slug "$rel")_$(slug "$path")" FAIL "$rel links to $path, which does not exist"
+      gate "link_$(slug "$_rel")_$(slug "$_path")" FAIL "$_rel links to $_path, which does not exist"
     fi
   done < "$WORK/links"
+}
+
+for f in "$REPO"/README.md "$REPO"/CHANGELOG.md "$DOCS"/*.md; do
+  check_links "$f"
 done
+
+# proof that the cut skips only history: a scratch CHANGELOG with a missing link in a newer entry
+# and one in a 0.2.1 entry. Their gate lines go to a file, not to this test's output.
+mkdir -p "$WORK/cl"
+printf '%s\n' \
+  '# Changelog' \
+  '' \
+  '## 9.9.9' \
+  '' \
+  '- [new](docs/gone-new.md)' \
+  '' \
+  '## 0.2.1' \
+  '' \
+  '- [old](docs/gone-old.md)' > "$WORK/cl/CHANGELOG.md"
+( check_links "$WORK/cl/CHANGELOG.md" ) > "$WORK/cl.out" 2>&1
+if grep -q '^gate link_.* FAIL .*gone-new\.md' "$WORK/cl.out"; then
+  gate link_history_cut_newer_entry ok "a link to a missing page in a 9.9.9 entry fails"
+else
+  gate link_history_cut_newer_entry FAIL "no FAIL line for the missing page of the newer entry"
+fi
+if grep -q 'gone-old\.md' "$WORK/cl.out"; then
+  gate link_history_cut_old_entry FAIL "the 0.2.1 entry was checked"
+else
+  gate link_history_cut_old_entry ok "the links of a 0.2.1 entry are not checked"
+fi
 
 finish
