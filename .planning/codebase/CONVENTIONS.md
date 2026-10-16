@@ -1,15 +1,15 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-10-09
+**Analysis Date:** 2026-10-16
 
 ## Scope of the Code
 
 This repository ships no application runtime. Its code is:
 
-- POSIX shell scripts (shipped hooks and installers): `plugins/bbj/scripts/bbj-check.sh`, `codex/install-codex.sh`
+- POSIX shell scripts (the shipped hook): `plugins/bbj/scripts/bbj-check.sh`
 - Shell and Python test suites: `tests/*.sh`, `tests/*.py`, plus fakes in `tests/fake-bin/` and `tests/fake_mcp.py`
 - JSON manifests and hook config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/*/.mcp.json`, `plugins/bbj/hooks/hooks.json`
-- Markdown skills and docs: `plugins/bbj/skills/**/SKILL.md`, `plugins/bbj/skills/**/references/*.md`, `docs/*.md`, `codex/AGENTS-snippet.md`, `README.md`, `CHANGELOG.md`
+- Markdown skills and docs: `plugins/bbj/skills/**/SKILL.md`, `plugins/bbj/skills/**/references/*.md`, `docs/*.md`, `README.md`, `CHANGELOG.md`
 - GitHub Actions workflow and CI tooling: `.github/workflows/ci.yml`, `.github/ci-tools/package.json`
 
 Conventions below are grouped by language. The shell rules are the most strictly enforced.
@@ -17,7 +17,7 @@ Conventions below are grouped by language. The shell rules are the most strictly
 ## Naming Patterns
 
 **Files:**
-- Shell scripts and tests are lowercase with hyphens for shipped scripts (`bbj-check.sh`, `install-codex.sh`) and underscores for tests (`test_exit_contract.sh`, `test_layout.py`, `test_ci_guards.py`). Every test file starts with `test_`; `tests/run.sh` discovers them by that glob.
+- Shell scripts and tests are lowercase with hyphens for shipped scripts (`bbj-check.sh`) and underscores for tests (`test_exit_contract.sh`, `test_layout.py`, `test_ci_guards.py`). Every test file starts with `test_`; `tests/run.sh` discovers them by that glob.
 - Helper and fixture files: `tests/lib.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/fake_mcp.py`, `tests/fake-bin/<tool>` (fake binaries use hyphens for the directory, no extension).
 - Skill reference docs use lowercase hyphenated names: `plugins/bbj/skills/bbj-programming/references/callback-performance.md`.
 - Skill entry points are always named `SKILL.md` inside a directory named after the skill.
@@ -63,7 +63,7 @@ Conventions below are grouped by language. The shell rules are the most strictly
   _reply=$(printf '%s' "$_body" | curl -q -sS ... --url "$_url" 2> /dev/null)
   [ "$?" = 0 ] && [ -n "$_reply" ] || return 0
   ```
-- The hook's exit contract is fixed: exit `0` with empty stdout for "nothing to say", exit `2` with feedback on stderr for compiler errors. Stdout is never written by hook scripts (enforced by `tests/test_exit_contract.sh`).
+- The hook's exit contract is fixed: exit `0` for "nothing to say", exit `2` with feedback on stderr for compiler errors. Stdout stays empty except for the no-route notice, one JSON object written once per session (enforced by `tests/test_exit_contract.sh`).
 - Test helpers use `mktemp -d` with a `trap 'rm -rf "$WORK"' EXIT` cleanup (see `mkwork` in `tests/lib.sh`).
 
 **Shell security rules (enforced by `tests/test_static_guards.sh`):**
@@ -125,12 +125,9 @@ Conventions below are grouped by language. The shell rules are the most strictly
 
 ## Error Handling
 
-**Hook and installer scripts:**
+**Hook script:**
 - Report to the user through stderr with a fixed grammar. Example header from `report()` in `plugins/bbj/scripts/bbj-check.sh`: `bbj-local reported N error(s) in <file>:`.
 - Cap feedback at 40 lines and print `(M more line(s) not shown)` for the rest.
-- Installers use documented exit codes: 0 done, 2 usage error or refusal (nothing written), 3 something left to merge by hand. Document any new exit code in the header comment of the script, as `codex/install-codex.sh` does.
-- Validate every option and destination before the first write; a failure before the first write exits 2 with nothing changed.
-- Before changing an existing user file, write a one-time backup (`config.toml.bbj-backup`) and never overwrite a file the user owns (`hooks.json` is only written when absent).
 
 **Tests:**
 - A check reports one line through `gate NAME STATUS DETAIL`, where STATUS is `ok`, `FAIL` or `skip`. `tests/lib.sh` sets `LIB_FAILED=1` on any FAIL and `finish()` exits accordingly.
@@ -164,7 +161,7 @@ Conventions below are grouped by language. The shell rules are the most strictly
 **Framework:** None. Shipped hooks write only to stderr when reporting a compiler verdict, and nothing otherwise. Test output is the `gate` line protocol.
 
 **Patterns:**
-- Do not write to stdout from hook scripts; Claude Code treats hook stdout as a protocol channel and `tests/test_exit_contract.sh` enforces empty stdout.
+- Do not write to stdout from the hook except for the no-route notice (one JSON object, `hookSpecificOutput.additionalContext`); Claude Code treats hook stdout as a protocol channel and `tests/test_exit_contract.sh` enforces this.
 - Test diagnostics go to stdout as `gate` lines so `tests/run.sh` can count them; anything else is shown verbatim.
 
 ## Comments
@@ -197,12 +194,11 @@ Conventions below are grouped by language. The shell rules are the most strictly
 **Shell:**
 - Shared helpers live in `tests/lib.sh` (gate, mkwork, json_escape, claude_payload, codex_payload, run_check). New test files source it instead of re-defining these.
 - Compiler fakes are copied into each temporary home (`mkhome` in `tests/test_discovery.sh`); tests never call a real compiler unless they opt in.
-
-**Hermetic environment:** `tests/lib.sh` clears `BBJ_HOME`, `BBJHOME`, `CLAUDE_PLUGIN_OPTION_BBJ_HOME`, `CLAUDE_PROJECT_DIR`, sets `BBJ_CHECK_DEFAULT_HOMES` to empty and points `BBJ_LOCAL_MCP_URL` at a closed port. Any new test must start from the same hermetic state by sourcing `lib.sh`.
+- Hermetic environment: `tests/lib.sh` clears `BBJ_HOME`, `BBJHOME`, `CLAUDE_PLUGIN_OPTION_BBJ_HOME`, `CLAUDE_PROJECT_DIR`, sets `BBJ_CHECK_DEFAULT_HOMES` to empty and points `BBJ_LOCAL_MCP_URL` at a closed port. Any new test must start from the same hermetic state by sourcing `lib.sh`.
 
 **Plugin manifests:**
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
-- Versions are identical across both plugin manifests and both marketplace entries (`0.2.1`), and `tests/test_layout.py` enforces this. Bump all four together.
+- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.1`), and `tests/test_layout.py` enforces this. Bump all five together.
 - Licence is `Apache-2.0` in every manifest.
 
 ## Git and Commit Conventions
@@ -214,9 +210,9 @@ Conventions below are grouped by language. The shell rules are the most strictly
 ## Documentation Conventions
 
 - Markdown skill references use the `references/` subdirectory under each skill, one topic per file, lowercase hyphenated names.
-- `README.md`, `docs/install-claude-code.md`, `docs/install-codex.md` describe installation; keep install steps there, not in the scripts' code comments.
+- `README.md` and `docs/install.md` describe installation; keep install steps there, not in the scripts' code comments.
 - `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.1`).
 
 ---
 
-*Convention analysis: 2026-10-09*
+*Convention analysis: 2026-10-16*

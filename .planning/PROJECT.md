@@ -2,14 +2,20 @@
 
 ## What This Is
 
-The `basis-bbj` plugin marketplace for coding agents (Claude Code, and OpenAI Codex through
-its own plugin commands, with `install-codex.sh` kept one release as a fallback). It gives an agent the BBj documentation MCP server, two BBj skills
+The `basis-bbj` plugin marketplace for coding agents (Claude Code and OpenAI Codex), each through
+its own plugin commands: the plugin is the only route for both clients. It gives an agent the BBj documentation MCP server, two BBj skills
 (`bbj-programming`, `bbj-web-programming`), and a hook that compile-checks every BBj file the
 agent writes, so agents write BBj that compiles. Release 0.2.0 (shipped 2026-10-12) made this
 repository the home of the two skills, rewrote them to state only verified facts, and made the
 local `bbj-ls` check the preferred route over the hosted one wherever it is available. Release
 0.2.1 (shipped 2026-10-15) added the Codex plugin route and states, per platform and per route,
 what was verified on real machines.
+
+## Core Value
+
+Every BBj claim and every code example the plugin hands an agent is correct: documented (URL
+cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t`
+and `bbj-ls`).
 
 ## Current State
 
@@ -150,7 +156,7 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 ## Constraints
 
-- **Tech stack**: POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime deps — matches existing hook/installer/tests
+- **Tech stack**: POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime deps — matches the existing hook and tests
 - **Safety**: BBj code is never executed; hook never calls the hosted check — enforced by `tests/test_never_execute.sh`
 - **Compatibility**: `bbj-local` stays opt-in in both Claude Code and Codex — a registered but stopped server shows as failed on every start
 - **Verification**: Skill code checks need a real BBj 26.03+ (`bbj-ls` or `bbjcpl`) locally; CI has none

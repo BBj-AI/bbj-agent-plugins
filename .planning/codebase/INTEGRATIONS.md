@@ -1,24 +1,24 @@
 # External Integrations
 
-**Analysis Date:** 2026-10-09
+**Analysis Date:** 2026-10-16
 
 ## APIs & External Services
 
 **BBj Documentation MCP Server (hosted):**
-- Service: BASIS BBj docs server, pre-production instance at `https://mcp.bbj-ai.com/mcp` (Claude Code plugin `bbj`, Codex `bbj-docs`)
+- Service: BASIS BBj docs server, pre-production instance at `https://mcp.bbj-ai.com/mcp` (the docs server `bbj`, registered by the plugin `bbj` in Claude Code and in Codex)
 - What it's used for: read-only documentation tools (`bbj_search`, `bbj_fetch_page`, `bbj_lookup`, `bbj_reserved_word`, `bbj_examples`) and hosted check tools (`bbj_check_syntax`, `bbj_format`, `bbj_denum`)
-- Definition: `plugins/bbj/.mcp.json` (`"url": "${user_config.docs_url}"`, type `http`); default in `plugins/bbj/.claude-plugin/plugin.json`
+- Definition: `plugins/bbj/.mcp.json` (`"url": "${user_config.docs_url}"`, type `http`, `oauth` block); default in `plugins/bbj/.claude-plugin/plugin.json`. Codex reads `plugins/bbj/.codex-mcp.json` (literal URL, same `oauth` block with a `callbackUrl`)
 - SDK/Client: none. The MCP client is built into Claude Code or Codex
-- Auth: none detected in the repository. No token or header is configured
-- Codex registration: written by `codex/install-codex.sh` (default `--docs-url`, `DEFAULT_DOCS_URL`); documented in `docs/install-codex.md`
-- Privacy: the hosted check tools send submitted code to the server. Codex keeps its normal approval prompt for them; only the five read-only docs tools are pre-approved (`codex/install-codex.sh`, `codex/AGENTS-snippet.md`). The data-handling statement is at `https://mcp.bbj-ai.com/data-handling` (`docs/install-claude-code.md`, `docs/install-codex.md`)
-- Override: `docs_url` user option in Claude Code; `--docs-url` option in the Codex installer. Plain `http` is accepted only for `127.0.0.1`, `localhost`, or `[::1]` (Codex installer)
+- Auth: the server requires sign-in since 2026-10-13 (OAuth, scope `offline_access`). The host runs the sign-in with the pre-registered client named in both MCP files (callback port 47613); no token or header is stored in the repository
+- Codex registration: the Codex plugin route, `codex plugin add bbj@basis-bbj`; documented in `docs/install.md`
+- Privacy: the hosted check tools send submitted code to the server. The data-handling statement is at `https://mcp.bbj-ai.com/data-handling` (`docs/install.md`)
+- Override: `docs_url` user option in Claude Code. Codex uses the literal URL in `plugins/bbj/.codex-mcp.json`
 
 **BBjServices Language Server `bbj-ls` (local):**
 - Service: `bbj-ls` MCP endpoint of a running BBjServices (BBj 26.03 or later), fixed address `http://127.0.0.1:5009/mcp`
 - What it's used for: syntax check (`bbj_check_syntax`), `bbj_denum`, `bbj_format`
 - Definition: `plugins/bbj-local/.mcp.json` (type `http`, no `user_config` option)
-- Plugin: `bbj-local`, installed disabled (`defaultEnabled: false` in `plugins/bbj-local/.claude-plugin/plugin.json`)
+- Plugin: `bbj-local`, opt-in, installed disabled (`defaultEnabled: false` in `plugins/bbj-local/.claude-plugin/plugin.json`); in Codex it is enabled by the step headed "Enable the plugin `bbj-local`" in `docs/install.md`
 - Hook access: `plugins/bbj/scripts/bbj-check.sh` posts a single `tools/call` for `bbj_check_syntax` through `curl` when no BBj compiler is usable. Only loopback URLs over plain `http` are contacted (`127.0.0.1`, `localhost`, `[::1]`); the override env var is `BBJ_LOCAL_MCP_URL`. The request uses `--noproxy '*'` and `--proto =http`, with no redirects
 - Test fake: `tests/fake_mcp.py` (stdlib HTTP server that mimics `bbj-ls`)
 - Protocol headers sent: `MCP-Protocol-Version: 2026-07-28`, `Mcp-Method: tools/call`, `Mcp-Name: bbj_check_syntax`
@@ -37,7 +37,7 @@
 **File Storage:**
 - Local filesystem only
 - The hook reads the edited file (only `.bbj`, `.src`, `.bbx`; `config*.bbx` skipped) and passes it to the local BBj compiler as a quoted absolute path, or sends its text to `bbj-ls` over loopback
-- Codex installer writes `<codex home>/bbj/bbj-check.sh`, `<codex home>/hooks.json` (only if absent), `config.toml` with a `config.toml.bbj-backup` written once, and skills to `~/.agents/skills` (default)
+- The plugins write nothing outside their own directory. The hook leaves one marker directory behind: the once-per-session no-route notice
 
 **Caching:**
 - None
@@ -53,7 +53,7 @@
 ## Authentication & Identity
 
 **Auth Provider:**
-- None. The plugins hold no credentials. `userConfig` holds only a URL and a directory path
+- The docs server `bbj` uses OAuth, run by the host with the pre-registered client in `plugins/bbj/.mcp.json` and `plugins/bbj/.codex-mcp.json`. The plugins hold no credentials. `userConfig` holds only a URL and a directory path
 - No secrets or `.env` files are referenced by the repository
 
 ## Monitoring & Observability
@@ -62,7 +62,7 @@
 - None
 
 **Logs:**
-- Hook output goes to stderr with the compiler's error lines (at most 40 lines) and a `bbj_lookup` hint. Stdout is always empty. Exit codes are `0` or `2`
+- Hook output goes to stderr with the compiler's error lines (at most 40 lines) and a `bbj_lookup` hint. Stdout is empty except for the no-route notice, one JSON object `hookSpecificOutput.additionalContext`, written once per session when a BBj file could not be checked. Exit codes are `0` or `2`
 - CI prints `gate NAME ok|FAIL|skip DETAIL` lines and a `CI SUMMARY:` line (`tests/ci.sh`)
 
 ## CI/CD & Deployment
@@ -88,7 +88,6 @@
   - `CLAUDE_PLUGIN_OPTION_BBJ_HOME` / `BBJ_HOME` / `BBJHOME` - BBj install location for the compiler
   - `BBJ_LOCAL_MCP_URL` - override for the loopback `bbj-ls` URL
   - `CLAUDE_PROJECT_DIR` - added to the compiler `-P` search path
-  - `CODEX_HOME` - Codex home for the installer
   - `CI` - strict mode for the test runner
   - `BBJ_LS_LIVE=1` - enables the live `bbj-ls` test (`tests/test_tier2_live.sh`)
 
@@ -109,8 +108,9 @@
 - `PostToolUse` matcher `Write|Edit` in `plugins/bbj/hooks/hooks.json`, command `sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"`, timeout 30 seconds, status message "BBj compile-only check"
 
 **Codex:**
-- `<codex home>/hooks.json` with an `apply_patch` matcher, written by `codex/install-codex.sh` only when the file does not exist. The payload shape is documentation-derived and unverified on Codex (per the script header)
+- The same `plugins/bbj/hooks/hooks.json` runs for the Codex plugin `bbj` and sees `apply_patch` payloads (`codex_patch` in the hook script). The key order of the payload was captured with Codex CLI 0.162.1
+- `commandWindows` in `hooks.json` is the Windows launcher for both clients: it looks for Git for Windows `sh.exe` and reports loudly, with exit 2, when none exists and a BBj file was written
 
 ---
 
-*Integration audit: 2026-10-09*
+*Integration audit: 2026-10-16*
