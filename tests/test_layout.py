@@ -1113,6 +1113,10 @@ if len(sys.argv) == 1:
     mutation_case("removed_page_file_back", ["docs/" + REMOVED_PAGES[0].upper() + ".md"],
                   lambda dst: plant(dst, "docs/" + REMOVED_PAGES[0].upper() + ".md", "# back"),
                   ["no_removed_pages"])
+    # REVIEW IN-07: the anchor form of the Codex page (stem followed by #) is a hit too
+    mutation_case("removed_page_anchor", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "See docs/" + REMOVED_PAGES[2] + "section."),
+                  ["no_removed_pages"])
     mutation_case("removed_page_conventions", [CLAUDE_MD],
                   lambda dst: plant(dst, CLAUDE_MD, "- `docs/" + REMOVED_PAGES[0] + ".md` describes installation"),
                   ["no_removed_pages"])
@@ -1145,11 +1149,11 @@ if len(sys.argv) == 1:
     mutation_case("retired_term_wrapped", [WEB_SKILL],
                   lambda dst: plant(dst, WEB_SKILL, "Run the " + TERM_VARIANTS[4].replace(" ", "\n") + "."),
                   ["no_retired_terms"])
-    # scope: a skill reference
     # the sixth variant: the retired name of the plugin bbj-local (REVIEW IN-01)
     mutation_case("retired_term_bbj_local_server", ["README.md"],
                   lambda dst: plant(dst, "README.md", "Start " + TERM_VARIANTS[5] + " first."),
                   ["no_retired_terms"])
+    # scope: a skill reference
     mutation_case("retired_term_reference", [REFERENCE],
                   lambda dst: plant(dst, REFERENCE, "Run the " + TERM_VARIANTS[2] + "."),
                   ["no_retired_terms"])
