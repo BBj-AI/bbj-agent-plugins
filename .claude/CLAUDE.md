@@ -52,7 +52,7 @@ and `bbj-ls`).
 
 - Claude Code plugin system - Marketplace and plugin layout: `.claude-plugin/marketplace.json`, `plugins/bbj/.claude-plugin/plugin.json`, `plugins/bbj-local/.claude-plugin/plugin.json`
 - Model Context Protocol (MCP) - Two MCP server registrations, both `type: "http"`: `plugins/bbj/.mcp.json`, `plugins/bbj-local/.mcp.json`
-- Codex plugin overlay - Plugin manifest and MCP registration for the Codex plugin route: `plugins/bbj/.codex-plugin/plugin.json`, `plugins/bbj/.codex-mcp.json`; docs in `docs/install-codex.md`
+- Codex plugin overlay - Plugin manifest and MCP registration for the Codex plugin route: `plugins/bbj/.codex-plugin/plugin.json`, `plugins/bbj/.codex-mcp.json`; docs in `docs/install.md`
 - Custom shell and Python test harness, no third-party framework: `tests/run.sh` (runs every self-contained test), entry point `tests/ci.sh`
 - Shell test helpers: `tests/lib.sh`; fake binaries in `tests/fake-bin/` (`bbj`, `bbjcpl`, `curl`, `cygpath`)
 - Python test scripts run as `python3 -I` (isolated mode)
@@ -89,8 +89,8 @@ and `bbj-ls`).
 - Python 3 for the test suite
 - Node.js and npm only to run the CI CLI install locally (optional; the gate is skipped outside CI)
 - Optional: ShellCheck, a BBj installation (`bbjcpl`), or a running BBjServices with `bbj-ls` on `127.0.0.1:5009`. The real-compiler and live tests skip without BBj: `tests/test_real_compiler.sh`, `tests/test_tier2_live.sh` (enabled with `BBJ_LS_LIVE=1`)
-- Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install-claude-code.md`)
-- Installed for Codex through the Codex plugin (`codex plugin add bbj@basis-bbj`, `docs/install-codex.md`)
+- Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install.md`)
+- Installed for Codex through the Codex plugin (`codex plugin add bbj@basis-bbj`, `docs/install.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
 - Current version: 0.2.1 for both plugins (`CHANGELOG.md`)
 
@@ -222,7 +222,7 @@ and `bbj-ls`).
 ## Documentation Conventions
 
 - Markdown skill references use the `references/` subdirectory under each skill, one topic per file, lowercase hyphenated names.
-- `README.md`, `docs/install-claude-code.md`, `docs/install-codex.md` describe installation; keep install steps there, not in the scripts' code comments.
+- `README.md` and `docs/install.md` describe installation; keep install steps there, not in the scripts' code comments.
 - `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.1`).
 
 <!-- GSD:conventions-end -->

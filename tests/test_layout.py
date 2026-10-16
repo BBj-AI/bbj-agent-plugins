@@ -15,6 +15,13 @@ Phase 12 (NAME-01; D-01 to D-03): layout_no_old_server_name scans the same track
 same CHANGELOG cut for the docs server's old name (a literal, case-insensitive match in paths and
 text); the layout_mutation_old_server_name_* cases plant it in each scope and each exemption, and
 plant two other spellings it does not match.
+Phase 14 (DOCS-05; D-02): layout_no_removed_pages scans the same tracked files with the same CHANGELOG
+cut for the two former install pages, by path and as text (the names are assembled from pieces in
+REMOVED_PAGES); the six layout_mutation_removed_page_* cases plant a mention in the README, in the
+conventions file and in a newer CHANGELOG entry, bring a page file back, and plant one in each
+exemption (a 0.2.1 entry, .planning/). The two cases that plant into the install page
+(retired_route_word_capitalized, old_server_name_capitalized) target docs/install.md, because
+plant() would recreate a removed page.
 Phase 13 (FIX-01; D-01 to D-09): pins the new commandWindows of plugins/bbj/hooks/hooks.json
 exactly (layout_hook_command_windows): the ordered lookup of Git for Windows' sh.exe, the loud
 not-found branch and the exit-code passthrough. It pins text; the Windows run is 13-WINDOWS-RUN.md.
@@ -160,6 +167,9 @@ RETIRED_WORD_RE = re.compile(r"(?<![a-z])" + RETIRED_WORD + r"s?(?![a-z])")
 # NAME-01 (phase 12, D-03): the docs server's old name, matched literally and case-insensitively;
 # other spellings are not matched
 OLD_SERVER_NAME = "bbj" + "-docs"
+# DOCS-05 (phase 14, D-02): the two install pages that docs/install.md replaced; matched
+# case-insensitively in paths and text. Assembled from pieces, so this file never names them.
+REMOVED_PAGES = ("install" + "-claude-code", "install" + "-codex" + ".md")
 
 
 def names_retired(term, low):
@@ -540,6 +550,40 @@ else:
 gate("no_old_server_name", old_scanned > 0 and not old_hits, old_detail)
 
 
+# DOCS-05 (phase 14, D-02): the two former install pages stay out of every tracked file, as a path
+# and as text, comments included; same file list and CHANGELOG cut as no_old_server_name, so only
+# .planning/ and the CHANGELOG entries up to 0.2.1 (the frozen 0.2.0 entry links both) are exempt
+removed_hits = []
+removed_scanned = 0
+for rel in retired_rels:
+    low_rel = rel.lower()
+    for term in REMOVED_PAGES:
+        if term in low_rel:
+            removed_hits.append("%s:path" % (rel,))
+    try:
+        with open(os.path.join(ROOT, rel), "rb") as f:
+            text = f.read().decode("utf-8", errors="replace")
+    except OSError:
+        continue
+    removed_scanned += 1
+    if rel == "CHANGELOG.md":
+        text = changelog_scan_text(text)
+    low = text.lower()
+    for term in REMOVED_PAGES:
+        if term in low:
+            removed_hits.append(rel)
+if retired_mode == "nogit":
+    removed_detail = "git ls-files listed nothing in the checkout (git missing, unsafe directory or GIT_DIR set)"
+elif removed_scanned == 0:
+    removed_detail = "no file scanned (%s mode)" % (retired_mode,)
+elif removed_hits:
+    removed_detail = "files naming a removed install page (%s mode): %r" % (retired_mode, sorted(set(removed_hits)))
+else:
+    removed_detail = ("%d tracked files scanned (%s mode); none names a removed install page "
+                      "(.planning/ and CHANGELOG entries up to 0.2.1 exempt)" % (removed_scanned, retired_mode))
+gate("no_removed_pages", removed_scanned > 0 and not removed_hits, removed_detail)
+
+
 # CODEX-04: prove the gates above can fail. Each case copies the repository files this script
 # reads into a fresh temp directory, changes one thing, runs this file on the copy (a root
 # argument turns this section off, so a copy run never recurses) and requires the named gates to
@@ -825,8 +869,9 @@ if len(sys.argv) == 1:
     CHANGELOG_TITLE = "# Changelog"
     CLAUDE_MD = ".claude/CLAUDE.md"
     mutation_case("retired_route_file_back", ["codex/" + RETIRED_SCRIPT], file_back, ["no_retired_route"])
-    mutation_case("retired_route_word_capitalized", ["docs/install-claude-code.md"],
-                  lambda dst: plant(dst, "docs/install-claude-code.md",
+    INSTALL_PAGE = "docs/install.md"
+    mutation_case("retired_route_word_capitalized", [INSTALL_PAGE],
+                  lambda dst: plant(dst, INSTALL_PAGE,
                                     "The Codex " + RETIRED_WORD.capitalize() + " is gone."),
                   ["no_retired_route"])
     mutation_case("retired_route_conventions", [CLAUDE_MD],
@@ -877,8 +922,8 @@ if len(sys.argv) == 1:
     # the rename undone in the MCP file fails the key gate too
     mutation_case("old_server_name_key", [MCP_FILE], old_name_key, ["bbj_mcp", "no_old_server_name"])
     # case-insensitive
-    mutation_case("old_server_name_capitalized", ["docs/install-claude-code.md"],
-                  lambda dst: plant(dst, "docs/install-claude-code.md",
+    mutation_case("old_server_name_capitalized", [INSTALL_PAGE],
+                  lambda dst: plant(dst, INSTALL_PAGE,
                                     "Choose plugin:bbj:" + OLD_SERVER_NAME.title() + " in /mcp."),
                   ["no_old_server_name"])
     # a tool name the client builds (D-03)
@@ -913,6 +958,28 @@ if len(sys.argv) == 1:
     mutation_case("old_server_name_variants_exempt", ["tests/lib.sh"],
                   lambda dst: plant(dst, "tests/lib.sh",
                                     "# " + "bbj_" + "docs and " + "bbj" + "docs are other spellings"),
+                  [])
+
+    # DOCS-05 (phase 14, D-02): a mention of a removed install page fails its gate in each scope
+    mutation_case("removed_page_readme", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "See docs/" + REMOVED_PAGES[1] + "."),
+                  ["no_removed_pages"])
+    # the page file back in the tree (a path hit), spelled in capitals: case-insensitive
+    mutation_case("removed_page_file_back", ["docs/" + REMOVED_PAGES[0].upper() + ".md"],
+                  lambda dst: plant(dst, "docs/" + REMOVED_PAGES[0].upper() + ".md", "# back"),
+                  ["no_removed_pages"])
+    mutation_case("removed_page_conventions", [CLAUDE_MD],
+                  lambda dst: plant(dst, CLAUDE_MD, "- `docs/" + REMOVED_PAGES[0] + ".md` describes installation"),
+                  ["no_removed_pages"])
+    mutation_case("removed_page_newer_entry", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1",
+                                               "## 0.2.2\n\n- [page](docs/" + REMOVED_PAGES[1] + ").\n", False),
+                  ["no_removed_pages"])
+    mutation_case("removed_page_history_exempt", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1", "- [page](docs/" + REMOVED_PAGES[1] + ") (history).", True),
+                  [])
+    mutation_case("removed_page_planning_exempt", [".planning/notes.md"],
+                  lambda dst: plant(dst, ".planning/notes.md", "the page docs/" + REMOVED_PAGES[1]),
                   [])
 
 sys.exit(1 if failed else 0)
