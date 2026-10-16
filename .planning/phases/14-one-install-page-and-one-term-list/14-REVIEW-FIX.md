@@ -1,10 +1,10 @@
 ---
 phase: 14-one-install-page-and-one-term-list
 fixed_at: 2026-10-16T00:00:00Z
-review_path: /home/coder/repos/bbj-agent-plugins/.planning/phases/14-one-install-page-and-one-term-list/14-REVIEW.md
+review_path: .planning/phases/14-one-install-page-and-one-term-list/14-REVIEW.md
 iteration: 1
-findings_in_scope: 4
-fixed: 2
+findings_in_scope: 9
+fixed: 7
 skipped: 2
 status: partial
 ---
@@ -12,69 +12,99 @@ status: partial
 # Phase 14: Code Review Fix Report
 
 **Fixed at:** 2026-10-16
-**Source review:** /home/coder/repos/bbj-agent-plugins/.planning/phases/14-one-install-page-and-one-term-list/14-REVIEW.md
+**Source review:** .planning/phases/14-one-install-page-and-one-term-list/14-REVIEW.md
 **Iteration:** 1
 
 **Summary:**
-- Findings in scope: 4 (0 critical, 4 warning; info findings out of scope for `critical_warning`)
-- Fixed: 2
+- Findings in scope: 9
+- Fixed: 7
 - Skipped: 2
 
-**Verification:** run in the isolated worktree (`.claude/worktrees/rf-14-...`, since removed), not the
-main checkout: `sh tests/run.sh` gave `SUMMARY: ok=856 fail=0 skip=0`, exit 0, with
-`gate run_prefix_block ok 21 files, 33 prefixes ... CONVENTIONS.md copy identical`. The baseline in the
-review was ok=855; the one added gate is `run_prefix_awk_crash`. `shellcheck -s sh` is clean on both
-changed shell files. The worktree was fast-forwarded into `gsd/planning-setup` and removed; the two
-fix commits are on that branch. The numbers are reproducible from the main checkout with `sh tests/run.sh`.
+**Verification:** run in the main checkout on branch `gsd/planning-setup` (no worktree). `sh tests/run.sh`
+after the last fix: `SUMMARY: ok=857 fail=0 skip=0`, exit 0, `gate run_prefix_block ok 21 files, 33 prefixes`.
+`tests/test_ci_gates.sh` was also run under dash, bash and busybox sh: 19 ok gates each. ShellCheck
+was clean on the three shell files touched.
 
 ## Fixed Issues
 
-### WR-01: `run_prefix_block` fails open when its awk program errors
-
-**Files modified:** `tests/run.sh`, `tests/test_ci_gates.sh`
-**Commit:** 10d3d4f
-**Applied fix:** `run.sh` now captures the prefix awk program's output and, when it holds no
-`gate run_prefix_block ` line, prints `gate run_prefix_block FAIL the prefix check did not run (awk failed
-or printed no gate line)` instead. New case `run_prefix_awk_crash` in `tests/test_ci_gates.sh` runs a
-scratch repo under a second PATH farm whose `awk` exits 2 for the prefix program only; `prefix_case`
-takes an optional `PFARM` override for it. Confirmed the new case FAILs against the old `run.sh`
-and passes against the new one. Gate name sits under the existing `run_` prefix, so the prefix block
-is unchanged.
-
-### WR-02: README "Verified" intro contradicts the `(bbj-local plugin connected)` qualifier
+### WR-05: README "Verified" intro still claims `bbj-ls` "was seen working" in a cell whose qualifier says no check call was seen
 
 **Files modified:** `README.md`
-**Commit:** 5b78d6c
-**Applied fix:** First sentence now reads "`bbj-ls`, the BBj language server in BBjServices, was seen
-working in every cell that names `bbj-ls`." (was "gave a verdict in ..."), as the review proposed. The
-qualifier definitions and the table cells are unchanged. `test_release_text.py`, `test_layout.py`,
-`test_install_pages.sh` and `test_release_text_mutation.sh` still pass. The sentence is a wording judgment
-on the verified-claims table, so the owner may want to confirm "seen working" is the intended claim for the
-`connected` cell.
+**Commit:** f474e21
+**Applied fix:** wording only. "A cell names the checks seen working" became "A cell names the checks seen",
+and "`bbj-ls` ... was seen working in every cell that names `bbj-ls`. The qualifier says how:" became
+"... was seen in every cell that names `bbj-ls`. The qualifier says what was seen:". The qualifier
+definitions, the table, the `connected` cell and the closing sentence are unchanged. No verification claim
+was added or strengthened.
+
+### IN-01: The term list names more retired variants than the gate enforces
+
+**Files modified:** `tests/test_layout.py`
+**Commit:** 28e32f4
+**Applied fix:** added the sixth variant, "the `bbj-local` server" (assembled from two pieces), to
+`TERM_VARIANTS`, with a mutation case `layout_mutation_retired_term_bbj_local_server`; the `term_list`
+gate now covers it too. The docstring and comments say "six". For the asymmetry in `REMOVED_PAGES`: added
+the anchor form (the Codex page stem followed by `#`) and a comment saying why the Codex stem is not
+matched bare (it is also the start of a retired script name found in the frozen CHANGELOG entries and in
+`.planning/`).
+
+### IN-02: Banner dates and counts on `docs/install.md` lag the runs the page describes
+
+**Files modified:** `docs/install.md`
+**Commit:** bbe6203
+**Applied fix:** the banner now uses only dates the page itself records on its dated "Observed on" lines:
+Claude Code on Linux adds 2026-10-15 (line 137), Codex on Linux adds 2026-10-15 (line 152), Codex on
+Windows adds 2026-10-16 (line 391). The Linux Claude Code line now says the `bbjcpl` check was seen with
+the hook run directly, as the README cell does, and points to the README table. Other dates are unchanged.
+
+### IN-03: Install page wording that the page itself contradicts
+
+**Files modified:** `docs/install.md`
+**Commit:** 8f688ea
+**Applied fix:** "Installing takes a few minutes; the defaults apply, then you sign in (step 3)."; "The
+hook has two checks and tries them in this order; item 3 is the case where neither answers."; the repeated
+"Codex has no options" clause in "Options" is now one sentence.
+
+### IN-04: Test pins are duplicated under two prefixes on one page
+
+**Files modified:** `tests/test_install_pages.sh`
+**Commit:** 287d6a4
+**Applied fix:** a comment before the `claude_` list names the pins both lists hold on purpose (D-04) and
+says a failure shows its prefix, not which list caught it. `slug` now cuts at 60 characters instead of
+40, so two pins with a long common stem print two gate names. The page keeps 134 ok gates, same as before.
+
+### IN-05: The `run.sh` header does not list the new FAIL condition
+
+**Files modified:** `tests/run.sh`
+**Commit:** 1546c0d
+**Applied fix:** added the bullet for the fifth FAIL reason (the prefix check did not run: the awk program
+printed no `gate run_prefix_block` line) to the header list.
+
+### IN-06: The awk-crash test keys on argument order of the production call
+
+**Files modified:** `tests/test_ci_gates.sh`
+**Commit:** 80f99e7
+**Applied fix:** the awk wrapper now matches ` -v cl=` anywhere in the arguments (`case " $* " in
+*" -v cl="*)`) instead of the first two, and the comment says so. `run_prefix_awk_crash` still passes under
+dash, bash and busybox sh. The second half of the finding (an awk that prints a non-gate line first) is not
+tested; the reviewer called it handled by the same `case`, and no test was added for it.
 
 ## Skipped Issues
 
 ### WR-03: The gate's "source of truth" sits inside a regenerated GSD section
 
-**File:** `.claude/CLAUDE.md:101-260` (block at lines 193-213), `tests/run.sh:10-20, 80-95`
-**Reason:** needs an owner decision, not a code fix. The review offers two incompatible designs (move the
-block outside the generated markers, or make `.planning/codebase/CONVENTIONS.md` the only source and
-have `run.sh` read just it). Either one changes which file is hand-edited and what
-`run_prefix_block` reads, and moving the block out of the markers without also changing the
-generator source would put the same lines in the file twice on the next regeneration, which the gate
-reports as "listed twice". The empty anti-pattern body at `.claude/CLAUDE.md:374` is inside the same
-generated region, so text added there would be lost on regeneration.
+**File:** `.claude/CLAUDE.md:101-260`, `tests/run.sh:10-20, 80-95`
+**Reason:** skipped: waiting on a decision from the user (where the gate-prefix source of truth lives).
 **Original issue:** `run.sh` calls `.claude/CLAUDE.md` the source of truth for the prefix block, but the
-block is inside the `GSD:conventions` region generated from `CONVENTIONS.md`, whose generator shortens text.
+block is inside the generated `GSD:conventions` region, so a regeneration can break the gate with a
+confusing message.
 
 ### WR-04: User-visible changes to shipped 0.2.1 content with no version bump or changelog entry
 
 **File:** `plugins/bbj/skills/bbj-programming/SKILL.md:7-10`, `plugins/bbj/skills/bbj-web-programming/SKILL.md:7-10`, `plugins/bbj/.claude-plugin/plugin.json:4,15`, `plugins/bbj/.codex-plugin/plugin.json:4`, `CHANGELOG.md`
-**Reason:** release decision. Whether to bump the version (and to which number, across all five version
-fields), and what the changelog entry says, are release facts that cannot be taken from the codebase. The
-review itself allows the alternative of recording that a later release phase owns both. Left untouched.
-**Original issue:** Skill text, manifest descriptions and `docs_url` description changed and two install
-pages were removed while the version stays `0.2.1` with no CHANGELOG entry.
+**Reason:** skipped: waiting on a decision from the user (version bump and changelog entry).
+**Original issue:** shipped 0.2.1 content changed (skill text, manifest descriptions, two install pages
+removed) while the version stays 0.2.1 in all five fields and the top CHANGELOG entry is unchanged.
 
 ---
 
