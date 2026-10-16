@@ -36,7 +36,9 @@
 # points BBJ_CHECK_STATE_DIR at $WORK/state (HOOK-02, D-18), so the once-per-session marker
 # of the no-route notice never reaches the real temp directory. Claude Code and the Codex plugin
 # export CLAUDE_PLUGIN_ROOT to a hook, so it is unset here too: a value inherited from the caller
-# must never decide what a gate sees (Phase 8, Pitfall 4).
+# must never decide what a gate sees (Phase 8, Pitfall 4). The seams of the fake curl are unset
+# for the same reason (Phase 12 review WR-01): a stray FAKE_CURL_WRITEOUT would turn gates that
+# assume the fake prints no write-out red, and the failure would point at the hook.
 
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 SCRIPT=${SCRIPT:-$REPO/plugins/bbj/scripts/bbj-check.sh}
@@ -44,7 +46,8 @@ SHELL_UNDER_TEST=${SHELL_UNDER_TEST:-sh}
 
 BBJ_CHECK_DEFAULT_HOMES=
 export BBJ_CHECK_DEFAULT_HOMES
-unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR CLAUDE_PLUGIN_ROOT
+unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR CLAUDE_PLUGIN_ROOT \
+  FAKE_CURL_EXIT FAKE_CURL_WRITEOUT FAKE_CURL_LOG
 BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp
 export BBJ_LOCAL_MCP_URL
 
