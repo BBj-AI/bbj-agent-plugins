@@ -91,9 +91,9 @@ this new value).
    the commit the hand-over message names.
 2. W0 and W1 in full (every case of the table, the new ones included), then W5 clean.
 3. Codex uses its own installed copy of the plugin, which still holds the old string. Start from a
-   fresh throwaway Codex home: delete `%USERPROFILE%\.cache\bbj-phase13\codex` (it holds no
-   junction) and the `proj-c1` to `proj-c3` folders, then do the setup block of W2 again
-   (`codex login` once more). Before starting Codex, check that the installed copy is the new one:
+   fresh throwaway Codex home: stop its Codex daemon, remove its own junction, then delete it and
+   the `proj-c1` to `proj-c3` folders (see "Delete the throwaway Codex home" under W5), then do
+   the setup block of W2 again (`codex login` once more). Before starting Codex, check that the installed copy is the new one:
 
    ```
    Get-ChildItem -Recurse -Filter hooks.json "$HOME\.cache\bbj-phase13\codex" | Get-FileHash
@@ -302,8 +302,21 @@ checks that no link is left and that Git's `bin\sh.exe` still exists, and only t
 folder. If it stops with a message,
 paste the message in `notes` and do not delete the folder by hand.
 
-The throwaway Codex home `%USERPROFILE%\.cache\bbj-phase13\codex` holds no junction; delete it
-normally when you are done, if you like. Your real `%USERPROFILE%\.codex` was never touched.
+Your real `%USERPROFILE%\.codex` was never touched.
+
+Delete the throwaway Codex home (when you are done, or for a fresh start). Quitting Codex does not
+stop its app-server daemon, which keeps running from inside the home, and the home holds a junction
+of its own (`packages\app-server-daemon\current`). In PowerShell:
+
+```
+$h = "$HOME\.cache\bbj-phase13\codex"
+Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.Path -like "$h\*" } | Stop-Process
+if (Test-Path "$h\packages\app-server-daemon\current") { cmd /c rmdir "$h\packages\app-server-daemon\current" }
+Remove-Item -Recurse -Force $h
+```
+
+Only processes whose program lies under the throwaway home are stopped; a Codex you run from your
+real home is not touched. `rmdir` without `/s` removes the junction, not what it points at.
 
 ## Reply to paste back
 
