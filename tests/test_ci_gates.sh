@@ -172,14 +172,15 @@ prefix_case run_prefix_conventions_order FAIL 'CONVENTIONS.md block differs'
 
 # WR-01: the gate is the awk program's own output, so an awk that errors on it must still fail the
 # run. A second farm holds the same tools with an awk wrapper that exits 2 for the prefix program
-# (the only awk call that gets -v cl=) and runs the real awk for every other call.
+# (the only awk call that gets -v cl=, wherever run.sh puts it among the arguments) and runs the
+# real awk for every other call.
 mkdir -p "$WORK/farm_awk_crash"
 for _t in "$WORK"/farm/*; do
   ln -s "$(readlink "$_t")" "$WORK/farm_awk_crash/$(basename "$_t")"
 done
 rm -f "$WORK/farm_awk_crash/awk"
 _realawk=$(readlink "$WORK/farm/awk")
-printf '#!/bin/sh\ncase "$1$2" in -vcl=*) echo "awk: syntax error" >&2; exit 2;; esac\nexec "%s" "$@"\n' "$_realawk" > "$WORK/farm_awk_crash/awk"
+printf '#!/bin/sh\ncase " $* " in *" -v cl="*) echo "awk: syntax error" >&2; exit 2;; esac\nexec "%s" "$@"\n' "$_realawk" > "$WORK/farm_awk_crash/awk"
 chmod +x "$WORK/farm_awk_crash/awk"
 scratch "$WORK/run_prefix_awk_crash"
 PFARM=$WORK/farm_awk_crash prefix_case run_prefix_awk_crash FAIL 'the prefix check did not run'
