@@ -10,7 +10,8 @@
 # run_prefix_block are both counted, which is why the two run.sh summaries read ok=2.
 # The run_prefix_ cases prove the rules and edges of run_prefix_block (D-14, D-15): missing and extra
 # prefix, unlisted and unknown file, listed twice, longest prefix, empty output, not run, no block,
-# copy identical, differing or reordered, block order free, and an awk that crashes (WR-01).
+# copy identical, differing or reordered, block order free, a block line inside a GSD-generated region
+# ignored (WR-03), and an awk that crashes (WR-01).
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -143,6 +144,19 @@ prefix_case run_prefix_not_run_skipped ok ''
 scratch "$WORK/run_prefix_no_block"
 rm -f "$WORK/run_prefix_no_block/.claude/CLAUDE.md"
 prefix_case run_prefix_no_block FAIL 'no prefix block'
+
+# WR-03: a copy of the block line inside a GSD-generated region (a regeneration of the conventions
+# region) is ignored, so the file is not listed twice
+scratch "$WORK/run_prefix_generated_copy_ignored"
+printf '%s\n' '<!-- GSD:conventions-start source:CONVENTIONS.md -->' '- `test_stub.sh`: `stub_`' \
+  '<!-- GSD:conventions-end -->' >> "$WORK/run_prefix_generated_copy_ignored/.claude/CLAUDE.md"
+prefix_case run_prefix_generated_copy_ignored ok ''
+
+# WR-03: a block line only inside a generated region is not the source, so there is no block
+scratch "$WORK/run_prefix_generated_only"
+printf '%s\n' '<!-- GSD:conventions-start source:CONVENTIONS.md -->' '- `test_stub.sh`: `stub_`' \
+  '<!-- GSD:conventions-end -->' > "$WORK/run_prefix_generated_only/.claude/CLAUDE.md"
+prefix_case run_prefix_generated_only FAIL 'no prefix block'
 
 # D-15: the CONVENTIONS.md copy with the same block line is compared and ok
 scratch "$WORK/run_prefix_conventions_identical"

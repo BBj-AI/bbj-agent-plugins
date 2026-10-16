@@ -9,8 +9,12 @@
 #
 # After all files it prints one gate, run_prefix_block (MAINT-09, D-14, D-15): the gate names
 # each file printed are checked against the flat prefix block in .claude/CLAUDE.md (the source
-# of truth), one line per test file, "- `test_x.sh`: `a_`, `b_`". The gate is FAIL when
-#   - .claude/CLAUDE.md is missing or holds no block line,
+# of truth), one line per test file, "- `test_x.sh`: `a_`, `b_`". Only block lines outside the
+# GSD-generated regions (from a "<!-- GSD:<name>-start" line to its "<!-- GSD:<name>-end -->" line)
+# count: the source is the hand-kept section "Gate prefixes", and a copy that a regeneration writes
+# into a region is ignored, so it can neither be listed twice nor stand in for the source (WR-03).
+# The gate is FAIL when
+#   - .claude/CLAUDE.md is missing or holds no block line outside the generated regions,
 #   - a file is listed twice, a listed file is not in tests/, or a test file is not listed,
 #   - a file that ran printed a gate name under none of its listed prefixes (each name is
 #     attributed to the longest listed prefix of its own file it starts with),
@@ -93,7 +97,9 @@ _pb=$(awk -v cl="$BLOCK_FILE" -v cp="$COPY_FILE" -v hascopy="$HAS_COPY" \
 function prob(t) { nprob++; pt[nprob] = t }
 BEGIN { G = "^- `test_[A-Za-z0-9_]+[.](sh|py)`: `[a-z0-9_]+_`(, `[a-z0-9_]+_`)*$" }
 FILENAME == cl {
-  if ($0 !~ G) next
+  if ($0 ~ /^<!-- GSD:[A-Za-z0-9_-]+-start/) { gen = 1; next }
+  if ($0 ~ /^<!-- GSD:[A-Za-z0-9_-]+-end -->/) { gen = 0; next }
+  if (gen || $0 !~ G) next
   na++; la[na] = $0
   f = $0; sub(/^- `/, "", f); sub(/`: .*$/, "", f)
   r = $0; sub(/^- `[^`]*`: `/, "", r); sub(/`$/, "", r)
@@ -108,7 +114,7 @@ FILENAME == nm { nn++; nf[nn] = $1; ng[nn] = $2; next }
 FILENAME == rn { if ($1 != "") { nr++; ro[nr] = $1 }; next }
 FILENAME == dk { if ($1 != "") { nd++; dl[nd] = $1; disk[$1] = 1 }; next }
 END {
-  if (na == 0) prob("no prefix block in .claude/CLAUDE.md")
+  if (na == 0) prob("no prefix block in .claude/CLAUDE.md outside the GSD-generated regions")
   for (i = 1; i <= nbf; i++) if (bo[i] in dup) prob(bo[i] " listed twice")
   for (i = 1; i <= nbf; i++) if (!(bo[i] in disk)) prob(bo[i] " in the block, not in tests/")
   for (i = 1; i <= nd; i++) if (!(dl[i] in bl)) prob(dl[i] " in tests/, not in the block")
