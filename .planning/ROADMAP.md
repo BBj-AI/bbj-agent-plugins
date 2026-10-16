@@ -258,6 +258,7 @@ Plans:
 - No Upgrading line about trusting the hook again in `/hooks`; no text refers to earlier versions (13-CONTEXT D-21, 12-CONTEXT D-12).
 - The Not run section lists only configurations absent from the run records, as in 0.2.1.
 - The release follows the Phase 6 and Phase 10 pattern: the tag goes on the final merge commit that carries the released text.
+- The `## 0.2.2` entry names the user-visible changes Phase 14 made to the shipped 0.2.1 text: the one install page `docs/install.md`, the two removed install pages, the skills' check-order text, and the manifest and `docs_url` descriptions. Phase 14 leaves the five versions at 0.2.1; this phase bumps them (14-REVIEW WR-04).
 
 ## Progress
 
