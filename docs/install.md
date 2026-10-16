@@ -2,8 +2,8 @@
 
 > **Verified on Linux, Windows and macOS**, each with BBj 26.03:
 >
-> - Claude Code 2.1.299 on Linux, 2026-10-14 and 2026-10-15 (the `bbjcpl` check there was seen with the
->   hook run directly; the README table has the checks).
+> - Claude Code 2.1.301 on Linux, 2026-10-16 (the `bbjcpl` check there was seen with the hook run
+>   directly; the README table has the checks).
 > - Claude Code 2.1.292 on Windows, 2026-10-13 and 2026-10-14.
 > - Claude Code 2.1.296 on macOS, 2026-10-14.
 > - Codex plugin: Codex CLI 0.162.1 on Linux (2026-10-13, 2026-10-14 and 2026-10-15), on Windows
@@ -21,7 +21,7 @@ apply, then you sign in (step 3).
 
 ## Requirements
 
-- Claude Code 2.1.281 or later. The plugin was tested with Claude Code 2.1.299 on Linux,
+- Claude Code 2.1.281 or later. The plugin was tested with Claude Code 2.1.301 on Linux,
   Claude Code 2.1.292 on Windows and Claude Code 2.1.296 on macOS.
 - Codex CLI with plugin, hooks and MCP support.
   The plugin route was verified with Codex CLI 0.162.1.

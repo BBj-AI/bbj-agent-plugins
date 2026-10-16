@@ -121,7 +121,7 @@ if [ -f "$PAGE" ]; then
     'Verified on Linux, Windows and macOS' \
     'the hosted BBj docs server' \
     'commandWindows' \
-    'Claude Code 2.1.299 on Linux' \
+    'Claude Code 2.1.301 on Linux' \
     'Claude Code 2.1.292 on Windows' \
     'Claude Code 2.1.296 on macOS' \
     '`bbj-local reported' \
