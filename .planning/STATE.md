@@ -5,17 +5,17 @@ milestone_name: Plugin-only cleanup
 current_phase: 15
 current_phase_name: Release 0.2.2
 status: executing
-stopped_at: Phase 15 context gathered
-last_updated: "2026-10-16T17:06:39.372Z"
+stopped_at: Completed 15-02-PLAN.md
+last_updated: "2026-10-16T17:14:55.486Z"
 last_activity: 2026-10-16
-last_activity_desc: Phase 14 complete, transitioned to Phase 15
-state_head: aba9a2e2a1a3d750dc458b9a101113018e77028d
+last_activity_desc: Phase 15 execution started
+state_head: 60945fe6f1ee2e773630f305930d62a030e5e791
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 34
-  completed_plans: 25
-  percent: 74
+  completed_plans: 26
+  percent: 76
 ---
 
 # Project State
@@ -29,12 +29,12 @@ See: .planning/PROJECT.md (updated 2026-10-16)
 
 ## Current Position
 
-Phase: 15 (Release 0.2.2) — READY TO EXECUTE
-Plan: Not started
+Phase: 15 (Release 0.2.2) — EXECUTING
+Plan: 2 of 9
 Status: Ready to execute
-Last activity: 2026-10-16 — Phase 14 complete, transitioned to Phase 15
+Last activity: 2026-10-16 — Phase 15 execution started
 
-Progress: [███████░░░] 74%
+Progress: [████████░░] 76%
 
 ## Performance Metrics
 
@@ -175,6 +175,7 @@ Progress: [███████░░░] 74%
 | Phase 14 P06 | 20 min | 2 tasks | 6 files |
 | Phase 14 P07 | 25min | 2 tasks | 4 files |
 | Phase 14 P08 | 20min | 2 tasks | 9 files |
+| Phase 15 P02 | 9 min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -221,6 +222,8 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 14]: 14-08: Core Value section restored in PROJECT.md so generate-claude-md keeps it; CONVENTIONS stdout rule corrected for the no-route notice
 - [Phase 14]: review WR-03: the gate-prefix block moved to a hand-kept section "Gate prefixes" at the end of .claude/CLAUDE.md; run.sh ignores block lines inside GSD regions (6aa73e5)
 - [Phase 14]: review WR-04 deferred to Phase 15: the 0.2.2 entry names the Phase 14 changes to shipped 0.2.1 text; no version change in Phase 14 (07645a0)
+- [Phase 15]: 15-02: Codex hook readings keep the trust bypass in the throwaway home only and record hk_trust: bypassed; no reading claims the /hooks trust step
+- [Phase 15]: 15-02: real-client readings install only from RELEASE_TREE (need_tree guard) and record the tree head and id
 
 ### Pending Todos
 
@@ -252,9 +255,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T15:11:48.405Z
-Stopped at: Phase 15 context gathered
-Resume file: .planning/phases/15-release-0-2-2/15-CONTEXT.md
+Last session: 2026-10-16T17:14:55.372Z
+Stopped at: Completed 15-02-PLAN.md
+Resume file: None
 
 ## Operator Next Steps
 
