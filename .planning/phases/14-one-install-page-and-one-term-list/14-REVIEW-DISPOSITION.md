@@ -9,7 +9,7 @@ findings:
     title: "The sixth retired term is matched only when written with backticks"
   - id: WR-03
     severity: warning
-    disposition: skipped
+    disposition: fixed
     title: "The gate's \"source of truth\" sits inside a regenerated GSD section"
   - id: WR-04
     severity: warning
@@ -65,7 +65,7 @@ findings:
     title: "README \"Verified\" intro contradicts the `(bbj-local plugin connected)` qualifier"
 open: 0
 total: 15
-recorded: 2026-10-16T13:17:33.369Z
+recorded: 2026-10-16T13:24:54.610Z
 ---
 
 # Phase 14: Code Review Disposition
@@ -73,7 +73,7 @@ recorded: 2026-10-16T13:17:33.369Z
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
 | WR-06 | warning | fixed | 14-REVIEW-FIX.md |
-| WR-03 | warning | skipped | 14-REVIEW-FIX.md |
+| WR-03 | warning | fixed | 14-REVIEW-FIX.md |
 | WR-04 | warning | skipped | 14-REVIEW-FIX.md |
 | IN-06 | info | fixed | 14-REVIEW-FIX.md |
 | IN-07 | info | fixed | 14-REVIEW-FIX.md |
