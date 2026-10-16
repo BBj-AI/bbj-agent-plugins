@@ -9,8 +9,8 @@
 # MAINT-06 (D-11, D-12): SYSPATH is scrubbed of any BBj compiler (no_compiler_path), so a compiler
 # in /usr/bin or /bin cannot turn a no-route or tier-2 gate into a tier-1 run.
 # Phase 13 (FIX-02, D-15) adds the once-per-run gates on a many-file Codex patch.
-# Gate names (D-13): every name starts with url_, req_, mode_ or tier2_.
 # Nothing here runs BBj; the "compiler" is the logging fake.
+# Gate names (D-13): every name starts with url_, req_, mode_ or tier2_.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
