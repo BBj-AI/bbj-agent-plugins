@@ -1,4 +1,9 @@
+---
+last_mapped_commit: 8530cf7384421303e5895ea3625b8ca192ec9142
+last_mapped_at: 2026-10-16
+---
 <!-- refreshed: 2026-10-16 -->
+
 # Architecture
 
 **Analysis Date:** 2026-10-16

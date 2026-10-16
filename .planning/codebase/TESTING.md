@@ -1,3 +1,7 @@
+---
+last_mapped_commit: 8530cf7384421303e5895ea3625b8ca192ec9142
+last_mapped_at: 2026-10-16
+---
 # Testing Patterns
 
 **Analysis Date:** 2026-10-16
@@ -20,6 +24,7 @@
 - `run_prefix_block` (MAINT-09, D-14, D-15): after all files `tests/run.sh` checks every gate name against the flat prefix block of `.claude/CLAUDE.md`. It fails on a listed prefix its file did not print, on a gate name under no listed prefix of its own file (the longest prefix wins), on a test file missing from the block or listed twice, on a block file not in `tests/`, and on a `.planning/codebase/CONVENTIONS.md` whose block lines differ from `.claude/CLAUDE.md`. The block itself is not copied here; read it in `.planning/codebase/CONVENTIONS.md` (the source is `.claude/CLAUDE.md`). A file that did not run is not judged.
 
 **Run Commands:**
+
 ```bash
 sh tests/run.sh                          # every self-contained test (what most contributors run)
 sh tests/test_exit_contract.sh           # one shell test
@@ -28,6 +33,7 @@ sh tests/ci.sh                           # full CI equivalent: run.sh + claude p
 CI=true sh tests/ci.sh                   # CI mode: missing claude or shellcheck is a failure
 shellcheck -s sh plugins/bbj/scripts/bbj-check.sh   # lint a single script (config from .shellcheckrc)
 ```
+
 - Watch mode: not used.
 - Coverage: no tool. Coverage is by gate inventory, not by line count.
 
@@ -74,6 +80,7 @@ shellcheck -s sh plugins/bbj/scripts/bbj-check.sh   # lint a single script (conf
 - `tests/skills_baseline.json`: the baseline (`bbj_version`, `nocheck`, `pending`) of the skill example gate.
 
 **Structure:**
+
 ```
 tests/
 ├── lib.sh                  # shared helpers, hermetic env
@@ -89,18 +96,24 @@ tests/
 ## Test Structure
 
 **Shell suite layout (typical file):**
+
 ```sh
 #!/bin/sh
+
 # tests/test_exit_contract.sh -- plan 19-01 Task 3, amended by plan 02-02 (HOOK-03): the exit-code
+
 # contract (D-12). ...
+
 . "$(dirname "$0")/lib.sh"
 mkwork
 
 # ... a project directory and a copy of tests/fake-bin/bbjcpl in a temporary BBj home under $WORK ...
+
 BBJ_HOME=$WORK/home
 FAKE_LOG=$WORK/calls.log
 export BBJ_HOME FAKE_LOG
 ```
+
 Then the test drives the script with `run_check`, asserts through a small helper or an inline `if`, and emits gates. Gate names are built from the case name so a failure names the exact input.
 
 **Patterns:**
@@ -110,6 +123,7 @@ Then the test drives the script with `run_check`, asserts through a small helper
 - Restore globals changed mid-test: `PATH=$_save`, `unset FAKE_EXIT`.
 
 **Python suite layout (typical file):**
+
 ```python
 """tests/test_layout.py -- plan 19-03: pins every manifest value the requirements fix. ..."""
 import json
@@ -127,6 +141,7 @@ def gate(name, ok, detail=""):
         failed = True
     print("gate layout_%s %s %s" % (name, "ok" if ok else "FAIL", detail))
 ```
+
 - One module docstring per file names the plan, the locks, the run command, and the output format.
 - Assertions are grouped by manifest or artifact; each group has one gate with a `%r`-formatted detail that shows the actual value.
 - Exit with `sys.exit(1 if failed else 0)`.
@@ -194,6 +209,7 @@ def gate(name, ok, detail=""):
 **Requirements:** None enforced by tooling. Coverage is judged by gate inventory: each requirement ID (`PLUG-01`, `PLUG-03`, `PLUG-04`, `D-11`, `D-12`, `D-14`, `D-15`) should map to at least one gate.
 
 **View coverage:** There is no coverage command. To audit gate coverage for a requirement, grep the test files:
+
 ```bash
 grep -rn "D-12" tests/
 ```
@@ -228,15 +244,18 @@ grep -rn "D-12" tests/
 ## Common Patterns
 
 **Gate-per-case loop:**
+
 ```sh
 for n in $HOSTILE_ONE; do
   run_check "$(claude_payload Write "$WORK/proj/$n" "$WORK/proj")"
   contract "$_sn" "hostile_$(printf '%s' "$n" | tr -c 'A-Za-z0-9\n' '_' | cut -c 1-12)"
 done
 ```
+
 Build the gate name from the case so each row reports separately. Use `tr -c` to sanitize names.
 
 **Asserting a value exactly once in a log:**
+
 ```sh
 if [ "$(grep -cFx -- "$WORK/proj/$n" "$FAKE_LOG")" = 1 ]; then
   gate "argument_$_sn" ok "one absolute argument for $n"
@@ -244,21 +263,26 @@ else
   gate "argument_$_sn" FAIL "target $n not passed exactly once"
 fi
 ```
+
 Use `grep -F` (fixed string) and `-x` (whole line) when the expected value contains regex metacharacters.
 
 **Async / background process testing:**
+
 ```sh
 python3 -I "$REPO/tests/fake_mcp.py" --port-file "$PORTF" --log "$LOGF" --mode "$1" &
 FAKE_PID=$!
 FAKE_PIDS="$FAKE_PIDS $FAKE_PID"
 ```
+
 Wait for the port file to appear before using the URL; kill every recorded PID in the cleanup trap.
 
 **Error-path testing:**
+
 ```sh
 run_check 'not json'
 contract "$_sn" not_json
 ```
+
 Feed garbage stdin, an empty `PATH`, a crashing compiler (`FAKE_EXIT=139`), an unreadable file, and a truncated payload. Every error path must exit 0 or 2 with stdout empty or holding only the no-route notice.
 
 **Static-scan self-exclusion:**
