@@ -196,8 +196,10 @@ TERM_VARIANTS = (
 LANGUAGE_SERVER = "language" + " server"
 TERM_DEFINITION = "`bbj-ls`, the BBj " + LANGUAGE_SERVER + " in BBjServices"
 # "not a letter" on both sides: a longer word or a verb form ("a local checkout", "the compiler
-# checks the files") is not a hit
-TERM_RES = {v: re.compile(r"(?<![a-z])" + re.escape(v) + r"(?![a-z])") for v in TERM_VARIANTS}
+# checks the files") is not a hit. The scan text has its backticks removed (term_scan_text), so the
+# regex is built from the variant without them: the sixth variant is found written with or without
+# Markdown backticks (REVIEW WR-06); the term list itself keeps them (TERM_LIST_PHRASES).
+TERM_RES = {v: re.compile(r"(?<![a-z])" + re.escape(v.replace("`", "")) + r"(?![a-z])") for v in TERM_VARIANTS}
 LANGUAGE_SERVER_RE = re.compile(r"(?<![a-z])" + re.escape(LANGUAGE_SERVER) + r"(?![a-z])")
 TERM_HOOK = "plugins/bbj/scripts/bbj-check.sh"
 TERM_MANIFESTS = (".claude-plugin/marketplace.json", "plugins/bbj/.claude-plugin/plugin.json",
@@ -232,7 +234,7 @@ def term_scan_text(rel, raw):
     """The text the term gate scans in one file, whitespace-squashed (Unicode \\s, so a
     non-breaking space and a line break count) and lower-cased: the CHANGELOG without its released
     history, the hook without full-line comments, a manifest as its description strings, else the
-    whole file."""
+    whole file. Backticks are dropped, so a variant is found with or without Markdown code marks."""
     text = raw
     if rel == "CHANGELOG.md":
         text = changelog_scan_text(raw)
@@ -243,7 +245,7 @@ def term_scan_text(rel, raw):
             text = "\n".join(description_strings(json.loads(raw), []))
         except ValueError:
             text = raw
-    return re.sub(r"\s+", " ", text).lower()
+    return re.sub(r"\s+", " ", text.replace("`", "")).lower()
 
 
 def names_retired(term, low):
@@ -682,7 +684,7 @@ for rel in retired_rels:
     for v in TERM_VARIANTS:
         if TERM_RES[v].search(low):
             term_hits.append("%s:%s" % (rel, v))
-    if LANGUAGE_SERVER_RE.search(low.replace(TERM_DEFINITION.lower(), "")):
+    if LANGUAGE_SERVER_RE.search(low.replace(TERM_DEFINITION.lower().replace("`", ""), "")):
         term_hits.append("%s:%s" % (rel, LANGUAGE_SERVER))
 if retired_mode == "nogit":
     term_detail = "git ls-files listed nothing in the checkout (git missing, unsafe directory or GIT_DIR set)"
@@ -1177,6 +1179,15 @@ if len(sys.argv) == 1:
 
     mutation_case("retired_term_manifest", [CLAUDE_MANIFEST], manifest_description, ["no_retired_terms"])
     mutation_case("retired_term_docs_url_description", [CLAUDE_MANIFEST], docs_url_description,
+                  ["no_retired_terms"])
+
+    # REVIEW WR-06: the sixth variant written without backticks, as a manifest description writes it
+    def manifest_plain_sixth(dst):
+        def fn(d):
+            d["description"] += " Start " + TERM_VARIANTS[5].replace("`", "") + " first."
+        edit_json(os.path.join(dst, CLAUDE_MANIFEST), fn)
+
+    mutation_case("retired_term_bbj_local_server_plain", [CLAUDE_MANIFEST], manifest_plain_sixth,
                   ["no_retired_terms"])
     # D-08: the words "language server" only inside the definition
     mutation_case("language_server_outside_definition", [INSTALL_PAGE],
