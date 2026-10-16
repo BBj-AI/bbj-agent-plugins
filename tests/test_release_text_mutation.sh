@@ -192,6 +192,11 @@ mutate claude_version_single README.md '/^| Claude Code |/s/[0-9][0-9]*\.[0-9][0
 # DOCS-07 (plan 14-02, D-06): a changed qualifier in a cell fails that cell's gate; a qualifier the
 # intro no longer defines fails cell_qualifiers_defined
 mutate cell_claude_code_macos README.md '/^| Claude Code |/s/(hook run directly); Claude Code 2.1.296/(hook); Claude Code 2.1.296/'
+mutate cell_claude_code_linux README.md '/^| Claude Code |/s/`bbjcpl` (hook run directly),/`bbjcpl`,/'
+mutate cell_claude_code_windows README.md '/^| Claude Code |/s/(bbj-local plugin); Claude Code 2.1.292/(hook); Claude Code 2.1.292/'
+mutate cell_codex_plugin_linux README.md '/^| Codex plugin |/s/| `bbjcpl`, /| /'
+mutate cell_codex_plugin_windows README.md '/^| Codex plugin |/s/(bbj-local plugin); Codex/(hook); Codex/'
+mutate cell_codex_plugin_macos README.md '/^| Codex plugin |/s/(hook); Codex CLI 0.162.1 |$/(hook run directly); Codex CLI 0.162.1 |/'
 mutate cell_qualifiers_defined README.md '/^## Verified/,/^| Client/s/(hook run directly)/(by hand)/g'
 # DOCS-04 (plan 10-06): an old hint put back into the README or the install page fails the gate
 mutate no_unrun_hint README.md '/^| Claude Code |/s/$/ Tested on Linux only./' no_unrun_hint_readme

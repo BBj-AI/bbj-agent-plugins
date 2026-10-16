@@ -234,7 +234,15 @@ gate("claude_version_single", claude_ok,
 # record backs, and a gate pins it. The text of a cell changes only with a new run record; a later
 # release that changes a reading re-pins it here. CELLS maps (row label, platform) to the exact cell.
 CELLS = {
+    # D-20: 10-LINUX-RUN.md backs `bbjcpl` here only with the installed hook run directly and the
+    # plugin bbj-local only as a connected server
+    ("Claude Code", "Linux"): "`bbjcpl` (hook run directly), `bbj-ls` (bbj-local plugin connected); Claude Code 2.1.299",
+    ("Claude Code", "Windows"): "`bbjcpl`, `bbj-ls` (bbj-local plugin); Claude Code 2.1.292",
+    # D-05: 09-MACOS-RUN.md backs `bbj-ls` here only with smoke.sh tier2, the hook run by hand
     ("Claude Code", "macOS"): "`bbjcpl`, `bbj-ls` (hook run directly); Claude Code 2.1.296",
+    ("Codex plugin", "Linux"): "`bbjcpl`, `bbj-ls` (hook); Codex CLI 0.162.1",
+    ("Codex plugin", "Windows"): "`bbjcpl`, `bbj-ls` (bbj-local plugin); Codex CLI 0.162.1",
+    ("Codex plugin", "macOS"): "`bbjcpl`, `bbj-ls` (hook); Codex CLI 0.162.1",
 }
 # every data row of the table under the "| Client | Linux | Windows | macOS |" header, by row label
 # (the loop above stops at the Claude Code row; the cell gates need the Codex plugin row too)
