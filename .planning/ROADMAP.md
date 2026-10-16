@@ -86,7 +86,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 11: Installer removal** - The plugin is the only install route: installer, snippet, their tests, gates and fakes, the hook's installer branch and the installer wording are gone; a gate keeps `install-codex.sh` out (completed 2026-10-15)
 - [x] **Phase 12: Docs server renamed to bbj** - `bbj-docs` becomes `bbj` in both MCP configs, the skills, the hook notice, the docs and the tests; sign-in commands read on real clients; a gate keeps the old name out (completed 2026-10-15)
-- [ ] **Phase 13: Windows hook fixes** - Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location, one tier-2 connect timeout per hook run, a backslash gate that catches a regression
+- [x] **Phase 13: Windows hook fixes** - Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location, one tier-2 connect timeout per hook run, a backslash gate that catches a regression (completed 2026-10-16)
 - [ ] **Phase 14: One install page and one term list** - One plugin-only install page for both clients, one written term list with a gate, the gate-prefix block checked against the suite, dead code swept, codebase map refreshed
 - [ ] **Phase 15: Release 0.2.2** - `## 0.2.2` entry with the sign-in under `bbj`, five versions bumped, full suite with live gates, merged, tagged `0.2.2`, published
 
@@ -173,7 +173,7 @@ Plans:
   3. A mutation run that removes the backslash conversion makes `windows_codex_backslash_dotdot_skipped` fail, and the unmutated tree passes it; the mutation case is kept in the suite (FIX-03)
   4. The exit contract and the safety gates hold after the fixes: exit 0 or 2 with empty stdout, `-N` on every compiler call, loopback-only `curl` with `--noproxy '*'` and `--proto =http`, never the hosted check; `sh tests/ci.sh` passes (FIX-01, FIX-02, FIX-03)
 
-**Plans**: 6/6 plans executed
+**Plans**: 6/6 plans complete
 
 Plans:
 **Wave 1**
@@ -244,6 +244,6 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 |-------|-----------|----------------|--------|-----------|
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
-| 13. Windows hook fixes | v0.2.2 | 6/6 | In Progress | - |
+| 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
 | 14. One install page and one term list | v0.2.2 | 0/TBD | Not started | - |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |
