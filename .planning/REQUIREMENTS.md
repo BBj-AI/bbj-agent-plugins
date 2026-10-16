@@ -17,7 +17,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 
 - [x] **NAME-01**: The docs server is named `bbj` in `plugins/bbj/.mcp.json` and `plugins/bbj/.codex-mcp.json`; no `bbj-docs` remains in shipped files outside CHANGELOG history; a gate keeps it out
 - [x] **NAME-02**: Skills, the check-order block, the hook notice and the docs name `bbj` and give the sign-in with the labels the real clients show (expected `/mcp` → `plugin:bbj:bbj` and `codex mcp login bbj`)
-- [ ] **NAME-03**: Sign-in under the new name is confirmed on real Claude Code and real Codex (Linux at least) on the release tree
+- [x] **NAME-03**: Sign-in under the new name is confirmed on real Claude Code and real Codex (Linux at least) on the release tree
 - [x] **NAME-04**: One term list is written down in the conventions (plugin `bbj-local` vs server `bbj-ls`, "docs server", "hosted check", "tier 1"/"tier 2"); docs, skills and test names follow it; a gate rejects the retired variants in shipped Markdown
 
 ### Docs
@@ -40,7 +40,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 
 ### Release
 
-- [ ] **REL-09**: Five versions at 0.2.2; CHANGELOG `## 0.2.2` with Upgrading and Tested against sections; release-text gates re-pinned to 0.2.2
+- [x] **REL-09**: Five versions at 0.2.2; CHANGELOG `## 0.2.2` with Upgrading and Tested against sections; release-text gates re-pinned to 0.2.2
 - [ ] **REL-10**: Full suite with live gates passes `fail=0 skip=0`; PR merged; annotated tag `0.2.2` on the merge commit; GitHub Release published
 
 ## Future Requirements
@@ -67,7 +67,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | INST-03 | Phase 11 | Complete |
 | NAME-01 | Phase 12 | Complete |
 | NAME-02 | Phase 12 | Complete |
-| NAME-03 | Phase 15 | Pending |
+| NAME-03 | Phase 15 | Complete |
 | NAME-04 | Phase 14 | Complete |
 | DOCS-05 | Phase 14 | Complete |
 | DOCS-06 | Phase 11 | Complete |
@@ -78,7 +78,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | MAINT-09 | Phase 14 | Complete |
 | MAINT-10 | Phase 14 | Complete |
 | MAINT-11 | Phase 14 | Complete |
-| REL-09 | Phase 15 | Pending |
+| REL-09 | Phase 15 | Complete |
 | REL-10 | Phase 15 | Pending |
 
 **Coverage:**

@@ -252,7 +252,7 @@ Plans:
   3. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
   4. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
 
-**Plans**: 5/9 plans executed
+**Plans**: 6/9 plans executed
 
 Plans:
 **Wave 1**
@@ -269,7 +269,7 @@ Plans:
 - [x] 15-05-PLAN.md — Strict release branch gsd/release-0.2.2 from origin/main; both real clients installed from it; owner signs in under `bbj` and approves any blackhole address other than D-17's; live suite `fail=0 skip=0` on the release tree; 15-LINUX-RUN.md (NAME-03, REL-10; D-07, D-17; owner checkpoint)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 15-06-PLAN.md — Tested against from the run and the Linux Claude Code 2.1.301 re-pin in one commit (D-09, D-16); final tree ships the run tree's files with the same suite count; owner-confirmed push, PR, CI, install gate on the ref, ready (REL-09, REL-10)
+- [x] 15-06-PLAN.md — Tested against from the run and the Linux Claude Code 2.1.301 re-pin in one commit (D-09, D-16); final tree ships the run tree's files with the same suite count; owner-confirmed push, PR, CI, install gate on the ref, ready (REL-09, REL-10)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 - [ ] 15-07-PLAN.md — Owner-confirmed merge commit with the tested tree; CI on main; both clients install 0.2.2 fresh from main, recorded in planning only (REL-10; D-10, D-20)
@@ -297,4 +297,4 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
 | 14. One install page and one term list | v0.2.2 | 9/9 | Complete    | 2026-10-16 |
-| 15. Release 0.2.2 | v0.2.2 | 5/9 | In Progress | - |
+| 15. Release 0.2.2 | v0.2.2 | 6/9 | In Progress | - |
