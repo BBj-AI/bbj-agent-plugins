@@ -252,7 +252,7 @@ Plans:
   3. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
   4. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
 
-**Plans**: 2/9 plans executed
+**Plans**: 3/9 plans executed
 
 Plans:
 **Wave 1**
@@ -260,7 +260,7 @@ Plans:
 - [x] 15-02-PLAN.md — Release harness in release-run/: sign-in harness on RELEASE_TREE, install gate and Codex hook scenario (trust bypass recorded) at the phase depth, each dry-run against the checkout (NAME-03, REL-10; D-07, D-16)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 15-03-PLAN.md — The atomic bump: five versions, VERSION, README line, `## 0.2.2` entry (D-01 to D-09, D-20) and CONTENT_VERSION / NOT_RUN_LINES in one eight-file commit (REL-09)
+- [x] 15-03-PLAN.md — The atomic bump: five versions, VERSION, README line, `## 0.2.2` entry (D-01 to D-09, D-20) and CONTENT_VERSION / NOT_RUN_LINES in one eight-file commit (REL-09)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 - [ ] 15-04-PLAN.md — Project notes (.claude/CLAUDE.md, codebase map) at 0.2.2, history-cut sentences left at 0.2.1; full suite green on the bumped tree (REL-09)
@@ -297,4 +297,4 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
 | 14. One install page and one term list | v0.2.2 | 9/9 | Complete    | 2026-10-16 |
-| 15. Release 0.2.2 | v0.2.2 | 2/9 | In Progress | - |
+| 15. Release 0.2.2 | v0.2.2 | 3/9 | In Progress | - |
