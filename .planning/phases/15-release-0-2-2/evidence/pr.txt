@@ -1,0 +1,6 @@
+pr: 4
+url: https://github.com/BBj-AI/bbj-agent-plugins/pull/4
+head: d7e5a53ef31690a49834d760b3eee3c63e95501a
+ci: success https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38952416570 (pull_request); push run https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/38952399886 also success
+install_gate_pr: pass
+ready: yes

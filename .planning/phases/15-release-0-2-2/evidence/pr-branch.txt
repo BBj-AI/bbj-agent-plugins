@@ -14,6 +14,6 @@ changed_since_run: CHANGELOG.md README.md docs/install.md tests/test_install_pag
 shipped_equal: yes
 planning_head: cd64a2d713816f785c2a6341d40458ce9ffab957 (before the first evidence commit of plan 15-05)
 origin_main: 4234e76ccb369d0fe984ac36825e06b3b8fbf3f1 (tag 0.2.1 peels to the same commit)
-pushed_to_origin: no
+pushed_to_origin: yes (owner confirmed "push", 2026-10-16)
 conflicts: 15 modify/delete conflicts, every one on a .planning/ path only (the path is absent from the base by construction); resolved by the strict filter; no conflict outside .planning/; no commit became empty
 note: run_head is the head the clients installed in the Linux run (15-LINUX-RUN.md); head is run_head plus the one cherry-picked commit 607eae5 (docs(15-06): Tested against: the 0.2.2 release run), which changes the five text files in changed_since_run and nothing under plugins/, .claude-plugin/ or .github/ (shipped_equal: git diff --quiet run_head head -- plugins .claude-plugin .github)
