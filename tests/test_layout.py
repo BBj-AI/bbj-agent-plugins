@@ -691,6 +691,36 @@ else:
 gate("no_retired_terms", retired_mode != "nogit" and term_scanned > 0 and not term_hits, term_detail)
 
 
+# NAME-04 (D-07, D-09): the term list stands in the conventions: the five retired variants, the
+# words of the definition and the allowed terms; a list that loses one fails
+TERM_LIST_FILE = ".claude/CLAUDE.md"
+TERM_LIST_PHRASES = TERM_VARIANTS + (LANGUAGE_SERVER, TERM_DEFINITION.lower(), "tier 1", "tier 2",
+                                     "the hosted check", "the plugin `bbj-local`",
+                                     "the docs server `bbj`", "the `bbjcpl` check")
+try:
+    with open(os.path.join(ROOT, TERM_LIST_FILE), encoding="utf-8") as f:
+        conv_low = re.sub(r"\s+", " ", f.read()).lower()
+except OSError:
+    conv_low = None
+if conv_low is None:
+    gate("term_list", False, "%s cannot be read" % (TERM_LIST_FILE,))
+else:
+    term_missing = [t for t in TERM_LIST_PHRASES if t not in conv_low]
+    gate("term_list", not term_missing,
+         ("missing from the term list: %r" % (term_missing,)) if term_missing else
+         "%s names all %d variants and terms" % (TERM_LIST_FILE, len(TERM_LIST_PHRASES)))
+
+# NAME-04 (D-08): the install page holds the one definition that may carry the words "language server"
+try:
+    with open(os.path.join(ROOT, "docs/install.md"), encoding="utf-8") as f:
+        page_low = re.sub(r"\s+", " ", f.read()).lower()
+except OSError:
+    page_low = None
+gate("term_definition", page_low is not None and TERM_DEFINITION.lower() in page_low,
+     "docs/install.md holds the definition" if page_low is not None and TERM_DEFINITION.lower() in page_low
+     else "docs/install.md lacks %r or cannot be read" % (TERM_DEFINITION,))
+
+
 # CODEX-04: prove the gates above can fail. Each case copies the repository files this script
 # reads into a fresh temp directory, changes one thing, runs this file on the copy (a root
 # argument turns this section off, so a copy run never recurses) and requires the named gates to
@@ -1093,5 +1123,98 @@ if len(sys.argv) == 1:
     mutation_case("retired_term_readme", ["README.md"],
                   lambda dst: plant(dst, "README.md", "Use the " + TERM_VARIANTS[0] + " that exists."),
                   ["no_retired_terms"])
+    WEB_SKILL = "plugins/bbj/skills/bbj-web-programming/SKILL.md"
+    REFERENCE = "plugins/bbj/skills/bbj-programming/references/running.md"
+    # encoding: capitals (D-10)
+    mutation_case("retired_term_install_page_caps", [INSTALL_PAGE],
+                  lambda dst: plant(dst, INSTALL_PAGE, "Run the " + TERM_VARIANTS[3].upper() + " SERVER."),
+                  ["no_retired_terms"])
+    # encoding: a non-breaking space between the two words
+    mutation_case("retired_term_nbsp", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "Run the " + TERM_VARIANTS[4].replace(" ", "\u00a0") + "."),
+                  ["no_retired_terms"])
+    # adjacency: the two words split by a line break
+    mutation_case("retired_term_wrapped", [WEB_SKILL],
+                  lambda dst: plant(dst, WEB_SKILL, "Run the " + TERM_VARIANTS[4].replace(" ", "\n") + "."),
+                  ["no_retired_terms"])
+    # scope: a skill reference
+    mutation_case("retired_term_reference", [REFERENCE],
+                  lambda dst: plant(dst, REFERENCE, "Run the " + TERM_VARIANTS[2] + "."),
+                  ["no_retired_terms"])
+    # adjacency: a longer word or a verb form is not a hit
+    mutation_case("retired_term_longer_word_exempt", ["README.md"],
+                  lambda dst: plant(dst, "README.md",
+                                    "Install from a local checkout; the compiler checks the files."),
+                  [])
+    # scope: a code line of the hook is scanned, a full-line comment is exempt
+    mutation_case("retired_term_hook_string", [TERM_HOOK],
+                  lambda dst: plant(dst, TERM_HOOK, '_route="' + TERM_VARIANTS[1] + '"'),
+                  ["no_retired_terms"])
+    mutation_case("retired_term_hook_comment_exempt", [TERM_HOOK],
+                  lambda dst: plant(dst, TERM_HOOK, "# the " + TERM_VARIANTS[1]),
+                  [])
+
+    # scope: the description strings of a manifest, also a nested one
+    def manifest_description(dst):
+        def fn(d):
+            d["description"] += " Not the " + TERM_VARIANTS[3] + "."
+        edit_json(os.path.join(dst, CLAUDE_MANIFEST), fn)
+
+    def docs_url_description(dst):
+        def fn(d):
+            d["userConfig"]["docs_url"]["description"] += " Not the " + TERM_VARIANTS[3] + "."
+        edit_json(os.path.join(dst, CLAUDE_MANIFEST), fn)
+
+    mutation_case("retired_term_manifest", [CLAUDE_MANIFEST], manifest_description, ["no_retired_terms"])
+    mutation_case("retired_term_docs_url_description", [CLAUDE_MANIFEST], docs_url_description,
+                  ["no_retired_terms"])
+    # D-08: the words "language server" only inside the definition
+    mutation_case("language_server_outside_definition", [INSTALL_PAGE],
+                  lambda dst: plant(dst, INSTALL_PAGE, "The " + LANGUAGE_SERVER + " answers."),
+                  ["no_retired_terms"])
+    mutation_case("language_server_definition_allowed", ["README.md"],
+                  lambda dst: plant(dst, "README.md", TERM_DEFINITION),
+                  [])
+    # CHANGELOG: a newer entry is scanned, a 0.2.1 entry is exempt
+    mutation_case("retired_term_newer_entry", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1",
+                                               "## 0.2.2\n\n- the " + TERM_VARIANTS[0] + ".\n", False),
+                  ["no_retired_terms"])
+    mutation_case("retired_term_history_exempt", [CHANGELOG],
+                  lambda dst: changelog_insert(dst, "## 0.2.1", "- the " + TERM_VARIANTS[0] + " (history).", True),
+                  [])
+    # D-10 exemptions: the conventions file (the term list names the variants), .planning/, tests/
+    mutation_case("retired_term_claude_md_exempt", [CLAUDE_MD],
+                  lambda dst: plant(dst, CLAUDE_MD, "- the " + TERM_VARIANTS[1]),
+                  [])
+    mutation_case("retired_term_planning_exempt", [".planning/notes.md"],
+                  lambda dst: plant(dst, ".planning/notes.md", "the " + TERM_VARIANTS[0]),
+                  [])
+    mutation_case("retired_term_tests_exempt", ["tests/lib.sh"],
+                  lambda dst: plant(dst, "tests/lib.sh", "# the " + TERM_VARIANTS[0]),
+                  [])
+
+    # empty input: a tree that lost a required scope file fails closed
+    mutation_case("retired_terms_scope_missing", [INSTALL_PAGE],
+                  lambda dst: os.remove(os.path.join(dst, INSTALL_PAGE)),
+                  ["no_retired_terms"])
+
+    # the positive gates fail when the list or the definition goes
+    def term_list_missing(dst):
+        path = os.path.join(dst, CLAUDE_MD)
+        with open(path, encoding="utf-8", newline="") as f:
+            lines = f.read().split("\n")
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write("\n".join(ln for ln in lines if TERM_VARIANTS[0] not in ln.lower()))
+
+    def term_definition_missing(dst):
+        path = os.path.join(dst, INSTALL_PAGE)
+        with open(path, encoding="utf-8", newline="") as f:
+            text = f.read()
+        with open(path, "w", encoding="utf-8", newline="") as f:
+            f.write(text.replace(TERM_DEFINITION, "`bbj-ls`"))
+
+    mutation_case("term_list_missing", [CLAUDE_MD], term_list_missing, ["term_list"])
+    mutation_case("term_definition_missing", [INSTALL_PAGE], term_definition_missing, ["term_definition"])
 
 sys.exit(1 if failed else 0)
