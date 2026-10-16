@@ -1,0 +1,22 @@
+Date: 2026-10-16
+Mode: read only; nothing published, nothing changed (plan 15-07 Task 1)
+pr: 4
+url: https://github.com/BBj-AI/bbj-agent-plugins/pull/4
+branch: gsd/release-0.2.2
+state: OPEN
+head: d7e5a53ef31690a49834d760b3eee3c63e95501a
+draft: false
+mergeable: MERGEABLE
+merge_state: CLEAN
+checks: all success
+checks_detail: plugins COMPLETED SUCCESS (pull_request run 38952416570), plugins COMPLETED SUCCESS (push run 38952399886)
+base: 4234e76ccb369d0fe984ac36825e06b3b8fbf3f1
+planning_paths: 0
+planning_paths_in_diff: 0
+tree: e141f79b082f139bab8c0e061497ffe95bfa4bc5
+head_equals_tested_head: yes (pr-branch.txt head, pr.txt head, headRefOid, origin/gsd/release-0.2.2 all d7e5a53ef31690a49834d760b3eee3c63e95501a)
+base_equals_origin_main: yes (origin/main 4234e76ccb369d0fe984ac36825e06b3b8fbf3f1)
+install_gate_pr: pass (evidence/install-gate-pr.txt, evidence/pr.txt)
+branch_protection_main: none (gh api branches/main/protection: 404 Branch not protected); the owner checkpoint is the access control
+tag_0.2.2: absent
+tags_on_origin: none for 0.2.2 or v0.2.2
