@@ -8,6 +8,9 @@
 # the flat prefix block of .claude/CLAUDE.md, so each scratch repo (see scratch) carries a
 # fixture .claude/CLAUDE.md and a stub gate under its listed prefix stub_. The stub's gate and
 # run_prefix_block are both counted, which is why the two run.sh summaries read ok=2.
+# The run_prefix_ cases prove the rules and edges of run_prefix_block (D-14, D-15): missing and extra
+# prefix, unlisted and unknown file, listed twice, longest prefix, empty output, not run, no block,
+# copy identical, differing or reordered, block order free.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -69,5 +72,102 @@ if [ "$rc" = 0 ] && grep -F 'gate run_prefix_block ok ' "$WORK/run.out" | grep -
 else
   gate run_prefix_control FAIL "exit $rc: $(grep run_prefix_block "$WORK/run.out")"
 fi
+
+# prefix_case NAME WANT TEXT: runs the scratch repo $WORK/NAME under the PATH farm without CI.
+# WANT ok: exit 0 and a "gate run_prefix_block ok" line holding TEXT (empty TEXT holds anything).
+# WANT FAIL: exit 1 and a "gate run_prefix_block FAIL" line holding TEXT. NAME is also the gate name;
+# the detail gives the exit code and the run_prefix_block line.
+prefix_case() {
+  env -u CI PATH="$WORK/farm" sh "$WORK/$1/tests/run.sh" > "$WORK/$1.out" 2>&1
+  _rc=$?
+  _line=$(grep '^gate run_prefix_block ' "$WORK/$1.out")
+  if [ "$2" = ok ]; then
+    if [ "$_rc" = 0 ] && printf '%s\n' "$_line" | grep -F 'gate run_prefix_block ok ' | grep -F -- "$3" > /dev/null; then
+      gate "$1" ok "exit 0: $_line"
+    else
+      gate "$1" FAIL "want ok holding '$3', exit $_rc: $_line"
+    fi
+  else
+    if [ "$_rc" = 1 ] && printf '%s\n' "$_line" | grep -F 'gate run_prefix_block FAIL ' | grep -F -- "$3" > /dev/null; then
+      gate "$1" ok "exit 1: $_line"
+    else
+      gate "$1" FAIL "want FAIL holding '$3', exit $_rc: $_line"
+    fi
+  fi
+}
+
+# rule: a listed prefix that its file did not print fails the gate
+scratch "$WORK/run_prefix_missing_prefix"
+printf '%s\n' '- `test_stub.sh`: `stub_`, `gone_`' > "$WORK/run_prefix_missing_prefix/.claude/CLAUDE.md"
+prefix_case run_prefix_missing_prefix FAIL 'listed prefix gone_ not printed'
+
+# rule: a gate name under no listed prefix of its file fails the gate
+scratch "$WORK/run_prefix_extra_name"
+printf '#!/bin/sh\necho "gate stub_ok ok stub"\necho "gate other ok x"\n' > "$WORK/run_prefix_extra_name/tests/test_stub.sh"
+prefix_case run_prefix_extra_name FAIL 'gate other matches no listed prefix'
+
+# rule: a test file on disk that the block does not list fails the gate
+scratch "$WORK/run_prefix_file_not_listed"
+printf '#!/bin/sh\necho "gate extra_ok ok x"\n' > "$WORK/run_prefix_file_not_listed/tests/test_extra.sh"
+prefix_case run_prefix_file_not_listed FAIL 'test_extra.sh in tests/, not in the block'
+
+# rule: a block file that is not on disk fails the gate
+scratch "$WORK/run_prefix_file_not_on_disk"
+printf '%s\n' '- `test_gone.sh`: `gone_`' >> "$WORK/run_prefix_file_not_on_disk/.claude/CLAUDE.md"
+prefix_case run_prefix_file_not_on_disk FAIL 'test_gone.sh in the block, not in tests/'
+
+# edge ordering: a file listed twice fails the gate
+scratch "$WORK/run_prefix_file_listed_twice"
+printf '%s\n' '- `test_stub.sh`: `stub_`' >> "$WORK/run_prefix_file_listed_twice/.claude/CLAUDE.md"
+prefix_case run_prefix_file_listed_twice FAIL 'test_stub.sh listed twice'
+
+# D-14 adjacency: stub_long_x is attributed to stub_long_, so stub_ is not printed
+scratch "$WORK/run_prefix_longest_first"
+printf '%s\n' '- `test_stub.sh`: `stub_`, `stub_long_`' > "$WORK/run_prefix_longest_first/.claude/CLAUDE.md"
+printf '#!/bin/sh\necho "gate stub_long_x ok x"\n' > "$WORK/run_prefix_longest_first/tests/test_stub.sh"
+prefix_case run_prefix_longest_first FAIL 'listed prefix stub_ not printed'
+
+# edge empty: a file that ran and printed no gate fails on its listed prefix
+scratch "$WORK/run_prefix_empty_output"
+printf '#!/bin/sh\nexit 0\n' > "$WORK/run_prefix_empty_output/tests/test_quiet.sh"
+printf '%s\n' '- `test_quiet.sh`: `quiet_`' >> "$WORK/run_prefix_empty_output/.claude/CLAUDE.md"
+prefix_case run_prefix_empty_output FAIL 'listed prefix quiet_ not printed'
+
+# edge empty: a file that did not run (the farm has no python3) is not judged
+scratch "$WORK/run_prefix_not_run_skipped"
+printf '' > "$WORK/run_prefix_not_run_skipped/tests/test_dummy.py"
+printf '%s\n' '- `test_dummy.py`: `dummy_`' >> "$WORK/run_prefix_not_run_skipped/.claude/CLAUDE.md"
+prefix_case run_prefix_not_run_skipped ok ''
+
+# edge empty: no CLAUDE.md fails the gate (T-14-14)
+scratch "$WORK/run_prefix_no_block"
+rm -f "$WORK/run_prefix_no_block/.claude/CLAUDE.md"
+prefix_case run_prefix_no_block FAIL 'no prefix block'
+
+# D-15: the CONVENTIONS.md copy with the same block line is compared and ok
+scratch "$WORK/run_prefix_conventions_identical"
+mkdir -p "$WORK/run_prefix_conventions_identical/.planning/codebase"
+printf '%s\n' '- `test_stub.sh`: `stub_`' > "$WORK/run_prefix_conventions_identical/.planning/codebase/CONVENTIONS.md"
+prefix_case run_prefix_conventions_identical ok 'CONVENTIONS.md copy identical'
+
+# D-15: a copy listing stab_ instead of stub_ fails the gate
+scratch "$WORK/run_prefix_conventions_differs"
+mkdir -p "$WORK/run_prefix_conventions_differs/.planning/codebase"
+printf '%s\n' '- `test_stub.sh`: `stab_`' > "$WORK/run_prefix_conventions_differs/.planning/codebase/CONVENTIONS.md"
+prefix_case run_prefix_conventions_differs FAIL 'CONVENTIONS.md block differs'
+
+# edge ordering: the order of block lines is not judged (test_extra.sh listed before the stub, run order is the reverse)
+scratch "$WORK/run_prefix_block_order_free"
+printf '#!/bin/sh\necho "gate extra_ok ok x"\n' > "$WORK/run_prefix_block_order_free/tests/test_extra.sh"
+printf '%s\n%s\n' '- `test_extra.sh`: `extra_`' '- `test_stub.sh`: `stub_`' > "$WORK/run_prefix_block_order_free/.claude/CLAUDE.md"
+prefix_case run_prefix_block_order_free ok ''
+
+# edge ordering: the copy must hold the same lines in the same order, so a reordered copy fails
+scratch "$WORK/run_prefix_conventions_order"
+printf '#!/bin/sh\necho "gate extra_ok ok x"\n' > "$WORK/run_prefix_conventions_order/tests/test_extra.sh"
+printf '%s\n%s\n' '- `test_extra.sh`: `extra_`' '- `test_stub.sh`: `stub_`' > "$WORK/run_prefix_conventions_order/.claude/CLAUDE.md"
+mkdir -p "$WORK/run_prefix_conventions_order/.planning/codebase"
+printf '%s\n%s\n' '- `test_stub.sh`: `stub_`' '- `test_extra.sh`: `extra_`' > "$WORK/run_prefix_conventions_order/.planning/codebase/CONVENTIONS.md"
+prefix_case run_prefix_conventions_order FAIL 'CONVENTIONS.md block differs'
 
 finish

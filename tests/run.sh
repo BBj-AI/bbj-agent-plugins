@@ -95,8 +95,8 @@ FILENAME == cl {
   na++; la[na] = $0
   f = $0; sub(/^- `/, "", f); sub(/`: .*$/, "", f)
   r = $0; sub(/^- `[^`]*`: `/, "", r); sub(/`$/, "", r)
-  if (f in bl) dup[f] = 1
-  else { bl[f] = 1; nbf++; bo[nbf] = f }
+  if (f in bl) { dup[f] = 1; next }
+  bl[f] = 1; nbf++; bo[nbf] = f
   k = split(r, ps, "`, `")
   for (i = 1; i <= k; i++) { npre[f]++; pre[f, npre[f]] = ps[i]; nprefix++ }
   next
