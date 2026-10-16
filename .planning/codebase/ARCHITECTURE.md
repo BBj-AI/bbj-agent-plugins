@@ -294,9 +294,11 @@ exit code 2 are asserted by `tests/test_exit_contract.sh`.
 ### Copying the gate-prefix block into a map document
 
 **What happens:** A map document lists a test file with its gate prefixes in the block grammar.
-**Why it's wrong:** The architecture section of `.claude/CLAUDE.md` is generated from this file; a
-block line that reaches it makes `run_prefix_block` in `tests/run.sh` fail on a test file listed
-twice. The block lives in `.claude/CLAUDE.md` and its copy in `.planning/codebase/CONVENTIONS.md` only.
+**Why it's wrong:** The architecture section of `.claude/CLAUDE.md` is generated from this file. A
+block line that reaches it is ignored by `run_prefix_block` in `tests/run.sh`, which reads block lines
+only outside the GSD-generated regions, so it is a third copy that nothing compares and that drifts.
+The block is edited by hand in one place, the section "Gate prefixes" at the end of
+`.claude/CLAUDE.md`, and its one checked copy is in `.planning/codebase/CONVENTIONS.md`.
 **Do this instead:** Point to the block; name a test file in prose or in a table.
 
 ## Error Handling
