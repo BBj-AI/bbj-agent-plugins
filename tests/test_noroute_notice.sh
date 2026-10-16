@@ -5,7 +5,7 @@
 # with one JSON object on stdout (hookSpecificOutput.additionalContext); the next call of the
 # same session is silent. Gates: the object's shape under dash and bash, the text, the
 # once-per-session marker in BBJ_CHECK_STATE_DIR, and that no marker reaches the real temp
-# directory. Prefix notice_.
+# directory. Prefix notice_ (D-13, MAINT-09), the failure path of the fake server start included.
 # Plan 02-02 (D-02 to D-05): a compiler that gives no verdict is no route too ("bbjcpl found but
 # gave no result"); and the notice never appears for a clean file, for compile errors, for a
 # route that was reached without a verdict (every curl exit but 7, and but an exit 28 whose write-out
@@ -700,7 +700,7 @@ start_fake() {
   FAKE_PIDS="$FAKE_PIDS $FAKE_PID"
   _w=0
   while [ ! -s "$PORTF" ] && [ "$_w" -lt 100 ]; do sleep 0.1; _w=$((_w + 1)); done
-  [ -s "$PORTF" ] || { gate "fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
+  [ -s "$PORTF" ] || { gate "notice_fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
   BBJ_LOCAL_MCP_URL=http://127.0.0.1:$(cat "$PORTF")/mcp
   export BBJ_LOCAL_MCP_URL
 }
