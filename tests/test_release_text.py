@@ -13,6 +13,12 @@ platform (Linux, Windows, macOS) across the README table, the install page and t
 CHANGELOG entry (plan 10-06, D-02). There is one install page, docs/install.md (plan 14-01,
 DOCS-05, D-04); the gates that read the two former pages read it.
 
+DOCS-07 (plan 14-02, D-05, D-06, D-20): every cell of the README Verified table is pinned to its
+exact text by its own gate, release_cell_<row>_<platform> (CELLS), so a changed qualifier or a
+changed client version makes that gate fail. Gate cell_qualifiers_defined requires every
+parenthesised qualifier used in a cell to occur in the intro between "## Verified" and the table
+header, so a cell cannot use a qualifier the reader was never told the meaning of.
+
 DOCS-04 (plan 10-06): the old hints of a platform that was not run ("Tested on Linux only", "not yet
 run", "not yet been run", "not yet tried", "not yet been tried") must not come back to the files in
 HINT_FILES: the README and the install page. Gate no_unrun_hint reads the
@@ -223,6 +229,55 @@ gate("claude_version_single", claude_ok,
      "Claude Code versions per platform in the README table, the install page and the newest entry: %s%s"
      % (", ".join("%s %s" % (p, sorted(claude_versions[p])) for p in PLATFORMS),
         "" if row_found else "; the README table has no '| Claude Code |' row under the platform header"))
+
+# DOCS-07 (plan 14-02, D-05, D-06, D-20): each README Verified cell has one reading that its run
+# record backs, and a gate pins it. The text of a cell changes only with a new run record; a later
+# release that changes a reading re-pins it here. CELLS maps (row label, platform) to the exact cell.
+CELLS = {
+    ("Claude Code", "macOS"): "`bbjcpl`, `bbj-ls` (hook run directly); Claude Code 2.1.296",
+}
+# every data row of the table under the "| Client | Linux | Windows | macOS |" header, by row label
+# (the loop above stops at the Claude Code row; the cell gates need the Codex plugin row too)
+table_rows = {}
+in_table = False
+for ln in readme:
+    cells = table_cells(ln)
+    if cells is None:
+        if in_table:
+            break
+        continue
+    if cells[:1] == ["Client"] and tuple(cells[1:]) == PLATFORMS:
+        in_table = True
+    elif in_table and len(cells) == len(PLATFORMS) + 1:
+        table_rows[cells[0]] = cells
+for (row, plat), want in CELLS.items():
+    row_cells = table_rows.get(row)
+    got = row_cells[PLATFORMS.index(plat) + 1] if row_cells else None
+    gate("cell_%s_%s" % (row.lower().replace(" ", "_"), plat.lower()), got == want,
+         "README cell %s / %s is %r, want %r" % (row, plat, got, want) if got != want
+         else "README cell %s / %s reads %r" % (row, plat, want))
+
+# the intro between "## Verified" and the table header defines every qualifier a cell uses
+verified_intro = []
+in_verified = False
+for ln in readme:
+    if ln.startswith("## Verified"):
+        in_verified = True
+    elif in_verified and ln.startswith("| Client"):
+        break
+    elif in_verified:
+        verified_intro.append(ln)
+intro_text = squash(verified_intro)
+used_qualifiers = set()
+for row_cells in table_rows.values():
+    for cell in row_cells[1:]:
+        used_qualifiers.update(re.findall(r"\([^()]*\)", cell))
+missing_qualifiers = sorted(q for q in used_qualifiers if q not in intro_text)
+gate("cell_qualifiers_defined", bool(used_qualifiers) and not missing_qualifiers,
+     "qualifiers used in a cell but not defined in the intro: %s" % missing_qualifiers
+     if missing_qualifiers else
+     ("no qualifier found in any cell" if not used_qualifiers
+      else "all %d qualifiers used in a cell are defined in the intro" % len(used_qualifiers)))
 
 # DOCS-04 (plan 10-06): the old "not yet run" hints cannot come back. A hint is a platform or route
 # said not to have been run; "not yet set" (a Claude Code message about two options) is not one.
