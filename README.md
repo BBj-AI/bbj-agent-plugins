@@ -39,7 +39,7 @@ Verified on Linux, Windows and macOS, with BBj 26.03. A cell names the checks se
 platform, how each was seen, and the client version. `bbjcpl` means the hook's `bbjcpl` check
 reported on a bad file and stayed silent on a clean one, with the hook run by the client unless the
 cell says otherwise.
-`bbj-ls`, the BBj language server in BBjServices, gave a verdict in every cell that names `bbj-ls`.
+`bbj-ls`, the BBj language server in BBjServices, was seen working in every cell that names `bbj-ls`.
 The qualifier says how: `(hook)` the hook, run by the client, got its verdict from `bbj-ls`;
 `(bbj-local plugin)` the client called `bbj_check_syntax` of the plugin `bbj-local`;
 `(bbj-local plugin connected)` the client listed the server of the plugin `bbj-local` as connected,
