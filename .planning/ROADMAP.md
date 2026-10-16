@@ -209,7 +209,7 @@ Plans:
   4. The gate-prefix block in `.claude/CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` lists exactly the prefixes `sh tests/run.sh` prints after this milestone's removals and renames, and a gate fails on a missing or an extra prefix (MAINT-09)
   5. No function, fake, fixture or gate remains whose only user was the installer or another retired feature, and a recorded sweep lists what went. `.planning/codebase/` and the generated sections of `.claude/CLAUDE.md` are refreshed and name neither the installer nor `bbj-docs` (MAINT-10, MAINT-11)
 
-**Plans**: 5/9 plans executed
+**Plans**: 6/9 plans executed
 
 Plans:
 **Wave 1**
@@ -224,7 +224,7 @@ Plans:
 - [x] 14-09-PLAN.md — Last four test files renamed to file prefixes; every printed gate name checked against the full prefix set (MAINT-09, D-13; wave 3)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 14-05-PLAN.md — Flat gate-prefix block; `run_prefix_block` in tests/run.sh with fixture proof in tests/test_ci_gates.sh (MAINT-09; wave 4)
+- [x] 14-05-PLAN.md — Flat gate-prefix block; `run_prefix_block` in tests/run.sh with fixture proof in tests/test_ci_gates.sh (MAINT-09; wave 4)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 14-06-PLAN.md — Sweep of retired-feature leftovers (fake seams, fake MCP modes, SC2181) recorded in 14-SWEEP.md (MAINT-10; wave 5)
@@ -269,5 +269,5 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | 11. Installer removal | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
-| 14. One install page and one term list | v0.2.2 | 5/9 | In Progress | - |
+| 14. One install page and one term list | v0.2.2 | 6/9 | In Progress | - |
 | 15. Release 0.2.2 | v0.2.2 | 0/TBD | Not started | - |
