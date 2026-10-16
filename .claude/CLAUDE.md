@@ -4,12 +4,14 @@
 
 **bbj-agent-plugins**
 
-The `basis-bbj` plugin marketplace for coding agents (Claude Code and
-OpenAI Codex). It gives an agent the BBj documentation MCP server, two BBj skills
+The `basis-bbj` plugin marketplace for coding agents (Claude Code and OpenAI Codex), each through
+its own plugin commands: the plugin is the only route for both clients. It gives an agent the BBj documentation MCP server, two BBj skills
 (`bbj-programming`, `bbj-web-programming`), and a hook that compile-checks every BBj file the
-agent writes, so agents write BBj that compiles. Release 0.2.0 makes this repository the home of
-the two skills, rewrites them to state only verified facts, and makes the local `bbj-ls` check
-the first choice wherever it is available.
+agent writes, so agents write BBj that compiles. Release 0.2.0 (shipped 2026-10-12) made this
+repository the home of the two skills, rewrote them to state only verified facts, and made the
+local `bbj-ls` check the preferred route over the hosted one wherever it is available. Release
+0.2.1 (shipped 2026-10-15) added the Codex plugin route and states, per platform and per route,
+what was verified on real machines.
 
 **Core Value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL
 cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t`
@@ -34,7 +36,7 @@ and `bbj-ls`).
 - POSIX shell (`sh`) - Claude Code and Codex hook script, test harness: `plugins/bbj/scripts/bbj-check.sh`, `tests/ci.sh`, `tests/run.sh`, `tests/lib.sh`, `tests/test_*.sh`
 - Python 3 (standard library only) - Repository and layout tests, a fake MCP server: `tests/test_layout.py`, `tests/test_ci_guards.py`, `tests/test_codex_patch.sh` (helpers), `tests/fake_mcp.py`
 - Markdown - Skills, references, install docs, changelog: `plugins/bbj/skills/**/*.md`, `docs/*.md`, `README.md`, `CHANGELOG.md`
-- JSON - Plugin and marketplace manifests, hooks, MCP config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/bbj/hooks/hooks.json`, `plugins/*/.mcp.json`
+- JSON - Plugin and marketplace manifests, hooks, MCP config: `.claude-plugin/marketplace.json`, `plugins/*/.claude-plugin/plugin.json`, `plugins/bbj/hooks/hooks.json`, `plugins/*/.mcp.json`, `plugins/bbj/.codex-plugin/plugin.json`, `plugins/bbj/.codex-mcp.json`
 - YAML - GitHub Actions workflow and Dependabot config: `.github/workflows/ci.yml`, `.github/dependabot.yml`
 - BBj (subject matter only) - The plugin checks BBj source files (`.bbj`, `.src`, `.bbx`) but never runs them. BBj code appears only in the skill references under `plugins/bbj/skills/`.
 
@@ -81,7 +83,7 @@ and `bbj-ls`).
 - `.github/workflows/ci.yml` - CI definition
 - `.github/ci-tools/package.json` and `package-lock.json` - Pinned CLI
 - `.claude-plugin/marketplace.json` - Marketplace definition (`basis-bbj`)
-- `plugins/bbj/hooks/hooks.json` - `PostToolUse` hook on `Write|Edit`, timeout 30 seconds, command `sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"`
+- `plugins/bbj/hooks/hooks.json` - `PostToolUse` hook on `Write|Edit`, timeout 30 seconds, command `sh "${CLAUDE_PLUGIN_ROOT}/scripts/bbj-check.sh"`, plus a `commandWindows` launcher that looks for Git for Windows `sh.exe` and says so loudly when it finds none
 
 ## Platform Requirements
 
@@ -141,7 +143,7 @@ and `bbj-ls`).
 - Use `command -v name > /dev/null 2>&1` to test for a tool; never `which`.
 - No `set -e` in shipped scripts. `plugins/bbj/scripts/bbj-check.sh` states this explicitly: "There is deliberately no set -e; every failure path ends in an explicit exit 0." Each failure path checks its own status and returns or exits.
 - Pattern for a fallible step: capture the value, test it, return on failure:
-- The hook's exit contract is fixed: exit `0` with empty stdout for "nothing to say", exit `2` with feedback on stderr for compiler errors. Stdout is never written by hook scripts (enforced by `tests/test_exit_contract.sh`).
+- The hook's exit contract is fixed: exit `0` for "nothing to say", exit `2` with feedback on stderr for compiler errors. Stdout stays empty except for the no-route notice, one JSON object written once per session (enforced by `tests/test_exit_contract.sh`).
 - Test helpers use `mktemp -d` with a `trap 'rm -rf "$WORK"' EXIT` cleanup (see `mkwork` in `tests/lib.sh`).
 - Never evaluate, source or interpolate file content into a command. File names reach external tools as one quoted absolute argument.
 - Every compiler call carries `-N` (compile-only). Calls without it fail the static gate.
@@ -214,7 +216,7 @@ and `bbj-ls`).
 
 ## Logging
 
-- Do not write to stdout from hook scripts; Claude Code treats hook stdout as a protocol channel and `tests/test_exit_contract.sh` enforces empty stdout.
+- Do not write to stdout from the hook except for the no-route notice (one JSON object, `hookSpecificOutput.additionalContext`); Claude Code treats hook stdout as a protocol channel and `tests/test_exit_contract.sh` enforces this.
 - Test diagnostics go to stdout as `gate` lines so `tests/run.sh` can count them; anything else is shown verbatim.
 
 ## Comments
@@ -238,6 +240,7 @@ and `bbj-ls`).
 
 - Shared helpers live in `tests/lib.sh` (gate, mkwork, json_escape, claude_payload, codex_payload, run_check). New test files source it instead of re-defining these.
 - Compiler fakes are copied into each temporary home (`mkhome` in `tests/test_discovery.sh`); tests never call a real compiler unless they opt in.
+- Hermetic environment: `tests/lib.sh` clears `BBJ_HOME`, `BBJHOME`, `CLAUDE_PLUGIN_OPTION_BBJ_HOME`, `CLAUDE_PROJECT_DIR`, sets `BBJ_CHECK_DEFAULT_HOMES` to empty and points `BBJ_LOCAL_MCP_URL` at a closed port. Any new test must start from the same hermetic state by sourcing `lib.sh`.
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
 - Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.1`), and `tests/test_layout.py` enforces this. Bump all five together.
 - Licence is `Apache-2.0` in every manifest.
@@ -283,7 +286,7 @@ and `bbj-ls`).
 - Used by: `claude plugin marketplace add` / `claude plugin install` (see `README.md`).
 - Purpose: Tell the host where the BBj MCP servers are.
 - Location: `plugins/bbj/.mcp.json` (the docs server `bbj`, URL `${user_config.docs_url}`),
-- Contains: Transport type `http` and URL only. No tool definitions live here.
+- Contains: Transport type `http`, the URL and, for the docs server, the pre-registered OAuth
 - Depends on: Remote hosted server, or a BBjServices instance on the same machine.
 - Used by: The host agent, which exposes `bbj_lookup`, `bbj_search`, `bbj_examples`,
 - Purpose: Compile-check every BBj file the agent writes or edits, and return compiler
@@ -312,6 +315,7 @@ and `bbj-ls`).
 
 - The plugin itself holds no state. The hook is one process per tool call.
 - `tests/run.sh` and `tests/ci.sh` keep counters only for the duration of one run.
+- The only state the hook leaves behind is the no-route notice marker (a directory with one empty
 
 ## Key Abstractions
 
@@ -327,12 +331,18 @@ and `bbj-ls`).
 - Purpose: The text the agent sees after a failed check.
 - Examples: `report` in `plugins/bbj/scripts/bbj-check.sh`
 - Pattern: Header `<route> reported N error(s) in <file>:`, compiler lines verbatim (at most
+- Purpose: Tell the agent, once per session, that a BBj file was written but not compile-checked.
+- Examples: `note_noroute`, `notice` in `plugins/bbj/scripts/bbj-check.sh`
+- Pattern: The only stdout write of the hook: one JSON object `hookSpecificOutput.additionalContext`;
 
 ## Entry Points
 
 - Location: `.claude-plugin/marketplace.json`
 - Triggers: `claude plugin marketplace add BBj-AI/bbj-agent-plugins`, then
 - Responsibilities: Lists the two plugins and marks `bbj-local` as `defaultEnabled: false`.
+- Location: `plugins/bbj/.codex-plugin/plugin.json` and `plugins/bbj/.codex-mcp.json`
+- Triggers: `codex plugin add bbj@basis-bbj` from the same marketplace.
+- Responsibilities: Register the docs server `bbj` for Codex; the skills and the hook come from the
 - Location: `plugins/bbj/scripts/bbj-check.sh` (its last statement is `main`)
 - Triggers: PostToolUse for `Write|Edit` (Claude Code) and `apply_patch` (Codex, via the
 - Responsibilities: Parse input, compile-check, exit 0 or 2 only.
@@ -349,16 +359,19 @@ and `bbj-ls`).
 - **Global state:** None in the plugin. The hook uses shell variables local to one process
 - **Circular imports:** Not applicable (no module graph). Inside `bbj-check.sh` the awk
 - **Never execute BBj:** The compiler is always invoked with `-N`; source text is never
-- **Exit contract:** The hook exits only 0 or 2 and prints nothing to stdout. Enforced by
+- **Exit contract:** The hook exits only 0 or 2. Stdout is written only for the no-route notice;
 - **Loopback only for tier 2:** Only `http` to `127.0.0.1`, `localhost` or `[::1]`; the
+- **Windows launcher:** `commandWindows` is pinned as text by `tests/test_layout.py`; a change to
 - **Portability:** POSIX `sh`, `awk`, `sed`, `grep`; Git for Windows paths are handled through
-- **Codex payload shape:** Documentation-derived; the header of `bbj-check.sh` marks it as
+- **Codex payload shape:** Top-level key order captured with Codex CLI 0.162.1 (plan 02-05);
 
 ## Anti-Patterns
 
 ### Calling the hosted check from the hook
 
 ### Adding a second feedback format
+
+### Copying the gate-prefix block into a map document
 
 ## Error Handling
 
@@ -383,7 +396,7 @@ No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skill
 Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
 
 Use these entry points:
-
+- `/gsd-fast` for a trivial task inline, with no subagents and no PLAN.md
 - `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
 - `/gsd-debug` for investigation and bug fixing
 - `/gsd-execute-phase` for planned phase work
