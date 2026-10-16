@@ -2,11 +2,12 @@
 
 > **Verified on Linux, Windows and macOS**, each with BBj 26.03:
 >
-> - Claude Code 2.1.299 on Linux, 2026-10-14.
+> - Claude Code 2.1.299 on Linux, 2026-10-14 and 2026-10-15 (the `bbjcpl` check there was seen with the
+>   hook run directly; the README table has the checks).
 > - Claude Code 2.1.292 on Windows, 2026-10-13 and 2026-10-14.
 > - Claude Code 2.1.296 on macOS, 2026-10-14.
-> - Codex plugin: Codex CLI 0.162.1 on Linux (2026-10-13 and 2026-10-14), on Windows (2026-10-13 and
->   2026-10-14) and on macOS (2026-10-14).
+> - Codex plugin: Codex CLI 0.162.1 on Linux (2026-10-13, 2026-10-14 and 2026-10-15), on Windows
+>   (2026-10-13, 2026-10-14 and 2026-10-16) and on macOS (2026-10-14).
 >
 > A sentence that starts "Observed on" below quotes what a run showed; a sentence that starts "Not
 > run" names a configuration nobody ran. The README table lists the check routes seen on each
