@@ -112,6 +112,17 @@ Conventions below are grouped by language. The shell rules are the most strictly
 - Scripts resolve the repository root from their own location: `REPO=$(cd "$(dirname "$0")/.." && pwd)` in `tests/lib.sh`; `ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))` in Python tests.
 - Python tests accept an optional `argv[1]` root so mutation checks can point them at a copy.
 
+## Terms
+
+- Term list (NAME-04, D-07 to D-09): user text names each thing one way. The gate `layout_no_retired_terms` rejects the retired variants in `README.md`, `docs/`, both skills, the non-comment lines of `plugins/bbj/scripts/bbj-check.sh`, the description strings of the four manifests and CHANGELOG entries newer than 0.2.1; this list must name the variants, so `.claude/CLAUDE.md`, `.planning/` and `tests/` are outside that scan.
+- The `bbjcpl` check: the hook's compile-only check, `bbjcpl -t -N -X` (syntax and types). Retired: "compiler check", "first route".
+- `bbj-ls`: `bbj-ls`, the BBj language server in BBjServices, on `127.0.0.1:5009` (syntax only). "Language server" appears in user text only in this definition. Retired: "second route", "local check".
+- The plugin `bbj-local`: the opt-in plugin that registers `bbj-ls` with the client so the agent can call `bbj_check_syntax`; its install step is headed "Enable the plugin `bbj-local`". Retired: "local check", "the `bbj-local` server".
+- The docs server `bbj`: the hosted BBj docs server, always named with its role noun. Retired: "docs MCP", "docs MCP server".
+- The hosted check: `bbj_check_syntax` of the docs server `bbj`; it sends the code to the server and checks it against a stock BBj.
+- Tier 1 and tier 2: maintainer terms for the hook's `bbjcpl` check and its `bbj-ls` check; the hook, the tests, these conventions and the planning records use them, user docs only where they define them.
+- Gate and test names follow the list too (D-11): a name that held a retired variant was renamed; tier names in tests are fine.
+
 ## Error Handling
 
 **Hook and installer scripts:**
