@@ -16,7 +16,9 @@
 #     attributed to the longest listed prefix of its own file it starts with),
 #   - a file that ran never printed a listed prefix of its own (an empty output counts),
 #   - .planning/codebase/CONVENTIONS.md exists and its block lines are not the same lines in
-#     the same order. When it is absent the gate is ok and says so, also under CI=true.
+#     the same order. When it is absent the gate is ok and says so, also under CI=true,
+#   - the prefix check itself did not run: its awk program printed no "gate run_prefix_block" line
+#     (it errored, was missing or rejected the program), WR-01.
 # A file that did not run (python3 missing) is not judged; the gates run.sh prints itself
 # (python_tests, run_prefix_block) belong to no file. The order of the block lines is free.
 # The check reads the block and the gate names as data with one awk program; no file text is
