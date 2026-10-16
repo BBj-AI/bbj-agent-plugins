@@ -7,6 +7,11 @@
 #
 # The test prints a skip gate when 127.0.0.1:5009 is unreachable; with BBJ_LS_LIVE=1 an
 # unreachable server is a FAIL instead.
+# Phase 12 review WR-03: live_blackhole_connect_timeout runs the real curl once, with the write-out
+# option of the hook, against an address that drops packets, and requires the contract the hook relies
+# on (exit 28, time_connect 0, empty remote_ip). The maintainer names that address in
+# BBJ_LS_BLACKHOLE_URL (a URL on a non-routable address, for example from a documentation range);
+# without it the gate is a skip. It lives in tests/ only: the shipped hook still contacts loopback.
 # Every gate name here starts with live_ (the prefix of this file, D-13, MAINT-09).
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -14,6 +19,26 @@ mkwork
 SYSPATH=/usr/bin:/bin
 unset BBJ_LOCAL_MCP_URL
 LIVE_URL=http://127.0.0.1:5009/mcp
+
+# WR-03: the exit-28 write-out contract of the hook, shown against the real curl (needs no bbj-ls)
+if [ -z "${BBJ_LS_BLACKHOLE_URL:-}" ]; then
+  gate live_blackhole_connect_timeout skip "BBJ_LS_BLACKHOLE_URL not set (a URL on an address that drops packets)"
+elif ! PATH=$SYSPATH command -v curl > /dev/null 2>&1; then
+  gate live_blackhole_connect_timeout skip "no curl on $SYSPATH"
+else
+  _bh=$(PATH=$SYSPATH curl -q -sS -g --noproxy '*' --proto =http --connect-timeout 2 -m 6 -w '\n%{time_connect} %{remote_ip}' \
+    -X POST --data-binary '{}' --url "$BBJ_LS_BLACKHOLE_URL" 2> /dev/null)
+  _bhrc=$?
+  _bhwo=${_bh##*
+}
+  _bht=${_bhwo%% *}
+  _bhip=${_bhwo#* }
+  if [ "$_bhrc" = 28 ] && [ -z "$(printf '%s' "$_bht" | tr -d '0.,')" ] && [ -z "$_bhip" ]; then
+    gate live_blackhole_connect_timeout ok "real curl: exit 28, time_connect '$_bht', empty remote_ip"
+  else
+    gate live_blackhole_connect_timeout FAIL "real curl: exit $_bhrc, write-out '$_bhwo' (want exit 28, time_connect 0, empty remote_ip)"
+  fi
+fi
 
 code=$(PATH=$SYSPATH curl -s -o /dev/null -w '%{http_code}' --connect-timeout 1 "$LIVE_URL" 2> /dev/null)
 if [ "$code" != 405 ]; then
