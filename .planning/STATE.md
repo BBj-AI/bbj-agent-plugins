@@ -5,17 +5,17 @@ milestone_name: Plugin-only cleanup
 current_phase: 15
 current_phase_name: Release 0.2.2
 status: executing
-stopped_at: Completed 15-02-PLAN.md
-last_updated: "2026-10-16T17:14:55.486Z"
+stopped_at: Completed 15-01-PLAN.md
+last_updated: "2026-10-16T17:55:54.165Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 15 execution started
-state_head: 60945fe6f1ee2e773630f305930d62a030e5e791
+state_head: fb3dbec0d0a69c1b46af5254b69825148165e7d2
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 34
-  completed_plans: 26
-  percent: 76
+  completed_plans: 27
+  percent: 79
 ---
 
 # Project State
@@ -30,11 +30,11 @@ See: .planning/PROJECT.md (updated 2026-10-16)
 ## Current Position
 
 Phase: 15 (Release 0.2.2) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 15 execution started
 
-Progress: [████████░░] 76%
+Progress: [████████░░] 79%
 
 ## Performance Metrics
 
@@ -176,6 +176,7 @@ Progress: [████████░░] 76%
 | Phase 14 P07 | 25min | 2 tasks | 4 files |
 | Phase 14 P08 | 20min | 2 tasks | 9 files |
 | Phase 15 P02 | 9 min | 2 tasks | 4 files |
+| Phase 15 P01 | 45 min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -224,6 +225,8 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 14]: review WR-04 deferred to Phase 15: the 0.2.2 entry names the Phase 14 changes to shipped 0.2.1 text; no version change in Phase 14 (07645a0)
 - [Phase 15]: 15-02: Codex hook readings keep the trust bypass in the throwaway home only and record hk_trust: bypassed; no reading claims the /hooks trust step
 - [Phase 15]: 15-02: real-client readings install only from RELEASE_TREE (need_tree guard) and record the tree head and id
+- [Phase 15]: CI pins @anthropic-ai/claude-code 2.1.301 (release-run version), owner-verified on npmjs.com 2026-10-16 before the pin edit (D-12, D-16)
+- [Phase 15]: Closure of the CI-pin finding lives in CONCERNS.md and evidence/pin.txt, never in 12-REVIEW-DISPOSITION.md (D-19)
 
 ### Pending Todos
 
@@ -255,8 +258,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T17:14:55.372Z
-Stopped at: Completed 15-02-PLAN.md
+Last session: 2026-10-16T17:55:54.049Z
+Stopped at: Completed 15-01-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
