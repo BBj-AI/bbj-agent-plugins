@@ -29,7 +29,7 @@ fix commits are on that branch. The numbers are reproducible from the main check
 
 ## Fixed Issues
 
-### WR-01: `run_prefix_block` fails open when its awk errors
+### WR-01: `run_prefix_block` fails open when its awk program errors
 
 **Files modified:** `tests/run.sh`, `tests/test_ci_gates.sh`
 **Commit:** 10d3d4f
