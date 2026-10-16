@@ -91,7 +91,7 @@ last_mapped_at: 2026-10-16
 - Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install.md`)
 - Installed for Codex through the Codex plugin (`codex plugin add bbj@basis-bbj`, `docs/install.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
-- Current version: 0.2.1 for both plugins (`CHANGELOG.md`)
+- Current version: 0.2.2 for both plugins (`CHANGELOG.md`)
 
 ---
 

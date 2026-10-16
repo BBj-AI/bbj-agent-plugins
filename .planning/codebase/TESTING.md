@@ -60,7 +60,7 @@ shellcheck -s sh plugins/bbj/scripts/bbj-check.sh   # lint a single script (conf
 | `tests/test_hook_mutation.sh` | proves that gates of the discovery and tier-2 tests can fail, by mutating a copy of the hook (backslash conversion, `..` check, the tier-2 cache, both halves of the connect-timeout test) |
 | `tests/test_hook_review_fixes.sh` | regression gates for review findings on the hook (symlinks, large patches, compiler name) |
 | `tests/test_install_pages.sh` | the one install page `docs/install.md` and the README: required phrases per client, the eleven headings, forbidden claims, the plugin `bbj-local` wording, relative links (and the history cut of old CHANGELOG entries), `claude plugin` subcommands, the verified platforms |
-| `tests/test_layout.py` | manifests, versions (`0.2.1` in five places), licence, `.mcp.json` and Codex overlay shape, the pinned `commandWindows`, the scans of tracked files (retired route, old server name, removed pages, retired terms, the term list and its definition), and their mutation cases |
+| `tests/test_layout.py` | manifests, versions (`0.2.2` in five places), licence, `.mcp.json` and Codex overlay shape, the pinned `commandWindows`, the scans of tracked files (retired route, old server name, removed pages, retired terms, the term list and its definition), and their mutation cases |
 | `tests/test_never_execute.sh` | the never-execute proof: no BBj interpreter sentinel appears, every logged compiler call carries `-t -N -X` |
 | `tests/test_noroute_notice.sh` | the no-route notice: shape under dash and bash, text, once-per-session marker, when it stays silent, the cases where the route was reached without a verdict |
 | `tests/test_path_scrub.sh` | proves that the `PATH` scrub of the no-route tests is load-bearing, by running them with a fake compiler first on `PATH` and from a copy with the scrub disabled |
@@ -227,7 +227,7 @@ grep -rn "D-12" tests/
 - `tests/test_ci_guards.py` reads `.github/workflows/ci.yml` and `.github/dependabot.yml` by line scan and enforces SHA pinning, read-only `contents`, `persist-credentials: false`, no secret reference, no privileged trigger, and the claude CLI lockfile install.
 
 **Manifest, text and term tests (Python):**
-- `tests/test_layout.py`: marketplace entries, plugin versions (`0.2.1` everywhere), license, `.mcp.json` and Codex overlay shape, the `PostToolUse` matcher `Write|Edit`, the exact `command` and `commandWindows`.
+- `tests/test_layout.py`: marketplace entries, plugin versions (`0.2.2` everywhere), license, `.mcp.json` and Codex overlay shape, the `PostToolUse` matcher `Write|Edit`, the exact `command` and `commandWindows`.
 - Scans of the tracked files (git mode, or a walk of a mutation copy; `.planning/` exempt): `layout_no_retired_route`, `layout_no_old_server_name`, `layout_no_removed_pages` (the two former install pages), `layout_no_retired_terms` (the five retired variants of the term list), `layout_term_list` (the term list in `.claude/CLAUDE.md` names all variants and terms) and `layout_term_definition` (`docs/install.md` holds the definition).
 - `tests/test_release_text.py`: the release text gates, including the per-cell README gates `release_cell_*` for the verified platforms (Phase 14, DOCS-07) and the version, addressee and section gates of the newest CHANGELOG entry.
 - `tests/test_install_pages.sh`: the install page and README; includes `link_history_cut_newer_entry` and `link_history_cut_old_entry` (a link to a missing page fails in a newer CHANGELOG entry and is not checked in a 0.2.1 entry).

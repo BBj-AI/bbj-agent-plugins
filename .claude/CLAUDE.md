@@ -94,7 +94,7 @@ and `bbj-ls`).
 - Installed as a Claude Code marketplace from a Git repository (`BBj-AI/bbj-agent-plugins`, per `homepage` in plugin manifests) or from a local directory (`docs/install.md`)
 - Installed for Codex through the Codex plugin (`codex plugin add bbj@basis-bbj`, `docs/install.md`)
 - Licensed Apache-2.0 (`LICENSE`, `NOTICE`)
-- Current version: 0.2.1 for both plugins (`CHANGELOG.md`)
+- Current version: 0.2.2 for both plugins (`CHANGELOG.md`)
 
 <!-- GSD:stack-end -->
 
@@ -221,7 +221,7 @@ and `bbj-ls`).
 - Compiler fakes are copied into each temporary home (`mkhome` in `tests/test_discovery.sh`); tests never call a real compiler unless they opt in.
 - Hermetic environment: `tests/lib.sh` clears `BBJ_HOME`, `BBJHOME`, `CLAUDE_PLUGIN_OPTION_BBJ_HOME`, `CLAUDE_PROJECT_DIR`, sets `BBJ_CHECK_DEFAULT_HOMES` to empty and points `BBJ_LOCAL_MCP_URL` at a closed port. Any new test must start from the same hermetic state by sourcing `lib.sh`.
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
-- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.1`), and `tests/test_layout.py` enforces this. Bump all five together.
+- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.2`), and `tests/test_layout.py` enforces this. Bump all five together.
 - Licence is `Apache-2.0` in every manifest.
 
 ## Git and Commit Conventions
@@ -234,7 +234,7 @@ and `bbj-ls`).
 
 - Markdown skill references use the `references/` subdirectory under each skill, one topic per file, lowercase hyphenated names.
 - `README.md` and `docs/install.md` describe installation; keep install steps there, not in the scripts' code comments.
-- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.1`).
+- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.2`).
 
 <!-- GSD:conventions-end -->
 

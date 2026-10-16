@@ -202,7 +202,7 @@ Conventions below are grouped by language. The shell rules are the most strictly
 
 **Plugin manifests:**
 - One manifest per plugin under `.claude-plugin/plugin.json`; the marketplace is `.claude-plugin/marketplace.json` at the root.
-- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.1`), and `tests/test_layout.py` enforces this. Bump all five together.
+- Versions are identical across both plugin manifests, the Codex overlay `plugins/bbj/.codex-plugin/plugin.json` and both marketplace entries (`0.2.2`), and `tests/test_layout.py` enforces this. Bump all five together.
 - Licence is `Apache-2.0` in every manifest.
 
 ## Git and Commit Conventions
@@ -215,7 +215,7 @@ Conventions below are grouped by language. The shell rules are the most strictly
 
 - Markdown skill references use the `references/` subdirectory under each skill, one topic per file, lowercase hyphenated names.
 - `README.md` and `docs/install.md` describe installation; keep install steps there, not in the scripts' code comments.
-- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.1`).
+- `CHANGELOG.md` records user-visible changes under a version heading (currently `## 0.2.2`).
 
 ---
 
