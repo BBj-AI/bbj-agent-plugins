@@ -33,7 +33,9 @@ else
 }
   _bht=${_bhwo%% *}
   _bhip=${_bhwo#* }
-  if [ "$_bhrc" = 28 ] && [ -z "$(printf '%s' "$_bht" | tr -d '0.,')" ] && [ -z "$_bhip" ]; then
+  # the hook treats exit 28 as "no connection" only when the write-out is non-empty (bbj-check.sh), so
+  # the gate requires a printed field too (REVIEW IN-06)
+  if [ "$_bhrc" = 28 ] && [ -n "$_bhwo" ] && [ -z "$(printf '%s' "$_bht" | tr -d '0.,')" ] && [ -z "$_bhip" ]; then
     gate live_blackhole_connect_timeout ok "real curl: exit 28, time_connect '$_bht', empty remote_ip"
   else
     gate live_blackhole_connect_timeout FAIL "real curl: exit $_bhrc, write-out '$_bhwo' (want exit 28, time_connect 0, empty remote_ip)"
