@@ -5,19 +5,19 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "Any `sh` on PATH is trusted as Git for Windows; a non-Git `sh.exe` makes every BBj check a silent no-op"
   - id: WR-02
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The empty-variable guard cannot fire for `LOCALAPPDATA`; with it unset the hook probes and runs `\\Programs\\Git\\bin\\sh.exe` on the current drive"
   - id: WR-03
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The not-found filter matches `.src` / `.bbj` / `.bbx` anywhere in the payload, including patch content, so ordinary web edits are blocked; the docs say they are not"
   - id: WR-04
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "`${CLAUDE_PLUGIN_ROOT}` is substituted into a PowerShell double-quoted string, so `$` or a backtick in the plugin root is interpreted"
   - id: IN-01
     severity: info
@@ -41,13 +41,13 @@ findings:
     title: "The FIX-02 header comments are partly stale"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The control comment claims more than the control proves; the control differs from D-17"
   - id: IN-07
     severity: info
     disposition: fixed
     title: "Known, accepted limits worth keeping visible"
-open: 5
+open: 0
 total: 11
 recorded: 2026-10-16T12:30:23.131Z
 ---
@@ -56,16 +56,16 @@ recorded: 2026-10-16T12:30:23.131Z
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | open | - |
-| WR-02 | warning | open | - |
-| WR-03 | warning | open | - |
-| WR-04 | warning | open | - |
+| WR-01 | warning | fixed | 13-REVIEW-FIX.md (fix report heading abbreviates the title; status all_fixed, 11 of 11) |
+| WR-02 | warning | fixed | 13-REVIEW-FIX.md (fix report heading abbreviates the title; status all_fixed, 11 of 11) |
+| WR-03 | warning | fixed | 13-REVIEW-FIX.md (fix report heading abbreviates the title; status all_fixed, 11 of 11) |
+| WR-04 | warning | fixed | 13-REVIEW-FIX.md (fix report heading abbreviates the title; status all_fixed, 11 of 11) |
 | IN-01 | info | fixed | 13-REVIEW-FIX.md |
 | IN-02 | info | fixed | 13-REVIEW-FIX.md |
 | IN-03 | info | fixed | 13-REVIEW-FIX.md |
 | IN-04 | info | fixed | 13-REVIEW-FIX.md |
 | IN-05 | info | fixed | 13-REVIEW-FIX.md |
-| IN-06 | info | open | - |
+| IN-06 | info | fixed | 13-REVIEW-FIX.md (fix report heading abbreviates the title; status all_fixed, 11 of 11) |
 | IN-07 | info | fixed | 13-REVIEW-FIX.md |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
