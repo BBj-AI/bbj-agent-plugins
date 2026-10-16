@@ -28,7 +28,7 @@ last_mapped_at: 2026-10-16
 - Protocol headers sent: `MCP-Protocol-Version: 2026-07-28`, `Mcp-Method: tools/call`, `Mcp-Name: bbj_check_syntax`
 
 **Anthropic / Claude Code CLI (CI only):**
-- Service: npm registry, package `@anthropic-ai/claude-code` pinned at 2.1.293
+- Service: npm registry, package `@anthropic-ai/claude-code` pinned at 2.1.301
 - Use: installs the `claude` CLI so CI can run `claude plugin validate --strict` (`tests/ci.sh`)
 - Integrity: `.github/ci-tools/package-lock.json` (integrity hashes), `npm ci --ignore-scripts`, `npm audit signatures`, and a single explicit run of the package's `install.cjs`
 - Auto-update of this pin is disabled: `.github/dependabot.yml` watches only `github-actions`

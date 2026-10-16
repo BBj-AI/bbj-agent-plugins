@@ -9,4 +9,12 @@ engines_node: >=22.0.0 (same as the 2.1.293 lock)
 platform_packages: same eight as the 2.1.293 lock (darwin-arm64, darwin-x64, linux-arm64, linux-arm64-musl, linux-x64, linux-x64-musl, win32-arm64, win32-x64), all at 2.1.301
 dist_tags: stable 2.1.292, next 2.1.302, latest 2.1.301
 maintainers: zak-anthropic, dylanc-anthropic, benjmann, nikhil-anthropic, ejlangev-ant, jv-anthropic, ollie-ant-2025, packy-anthropic, claude-code-npm, noahz-anthropic, sbidasaria, wolffiex, meorphis-anthropic, felixrieseberg-anthropic, joan-anthropic
-owner_verified: pending
+owner_verified: yes 2026-10-16
+lock_regenerated: yes
+lock_entries: 9
+npm_ci: ok
+install_cjs: ok
+audit_signatures: 2 packages have verified registry signatures
+scratch_claude_version: 2.1.301 (Claude Code)
+ci_guards: gate ci_guard_validator_exact_version ok; gate ci_guard_validator_install_locked ok
+client_test: gate claudeplugin_mcp_docs_oauth ok; gate claudeplugin_mcp_docs_answers ok

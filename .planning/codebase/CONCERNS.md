@@ -11,8 +11,11 @@ is gone from this file: the retired Codex route and its review warnings (Phase 1
 Windows warnings WR-01 to WR-03 (fixed in Phase 13, proven in 13-WINDOWS-RUN.md), the stale
 prefix block and the free-form gate names (plans 14-04 and 14-05), the dead fake seams and modes
 (plan 14-06, 14-SWEEP.md), the two former install pages (plan 14-01), the skill examples that
-violated the statement rule (v0.2.0 rewrite, now gated by `tests/test_skill_examples.py`), and
-the Codex payload shape (captured with Codex CLI 0.162.1, plan 02-05).
+violated the statement rule (v0.2.0 rewrite, now gated by `tests/test_skill_examples.py`), the
+Codex payload shape (captured with Codex CLI 0.162.1, plan 02-05), and the CI-pin finding of the
+first Phase 12 review (`mcp_docs_answers` and `claude mcp get` resting on a list format read on a
+newer client than CI pinned), closed by plan 15-01: CI pins 2.1.301, the release-run version, and
+both gates passed on it (`.planning/phases/15-release-0-2-2/evidence/pin.txt`).
 
 ## Review Dispositions
 
@@ -21,12 +24,6 @@ the Codex payload shape (captured with Codex CLI 0.162.1, plan 02-05).
 - WR-01 (install-page needles were prefixes of the old names): fixed in `c1951cb`. It is listed
   here only because the Blockers/Concerns list of `.planning/STATE.md` still words it as open;
   drop that line.
-- WR-02 (`mcp_docs_answers` in `tests/test_claude_plugin.sh` depends on the `<label>: <url>` list
-  format of `claude mcp list`, recorded on Claude Code 2.1.299 while CI pins 2.1.293): the gate was
-  loosened in `a15d383` and passes on 2.1.299, but it has not been run against the pinned CLI
-  (`npm ci` in `.github/ci-tools`), and the same layout assumption sits behind
-  `claude mcp get "$CC_LABEL"`, which the fix did not change. Open until a run on 2.1.293 is
-  recorded; due before the Phase 15 live run.
 - IN-01 (the hook notice and the skills name the docs server only as bare `bbj`): skipped on
   purpose. A qualified tool name is Claude Code specific and the Codex-side name is not verified
   here; a Claude-only variant needs a host branch in the hook and new text gates. Accepted.
