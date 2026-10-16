@@ -86,7 +86,7 @@ if [ -f "$ROOT/.planning/codebase/CONVENTIONS.md" ]; then
   COPY_FILE=$ROOT/.planning/codebase/CONVENTIONS.md
   HAS_COPY=1
 fi
-awk -v cl="$BLOCK_FILE" -v cp="$COPY_FILE" -v hascopy="$HAS_COPY" \
+_pb=$(awk -v cl="$BLOCK_FILE" -v cp="$COPY_FILE" -v hascopy="$HAS_COPY" \
     -v nm="$OUT.names" -v rn="$OUT.ran" -v dk="$OUT.disk" '
 function prob(t) { nprob++; pt[nprob] = t }
 BEGIN { G = "^- `test_[A-Za-z0-9_]+[.](sh|py)`: `[a-z0-9_]+_`(, `[a-z0-9_]+_`)*$" }
@@ -137,7 +137,14 @@ END {
     for (i = 2; i <= 3 && i <= nprob; i++) d = d "; " pt[i]
     printf "gate run_prefix_block FAIL %s (%d problem(s))\n", d, nprob
   }
-}' "$BLOCK_FILE" "$COPY_FILE" "$OUT.names" "$OUT.ran" "$OUT.disk" | tee -a "$OUT.gates"
+}' "$BLOCK_FILE" "$COPY_FILE" "$OUT.names" "$OUT.ran" "$OUT.disk")
+# fail closed (WR-01): the gate is the awk program's own output, so an awk that errors, is missing or
+# rejects the program prints nothing; that must be a FAIL, not a silent pass
+case "$_pb" in
+  "gate run_prefix_block "*) ;;
+  *) _pb="gate run_prefix_block FAIL the prefix check did not run (awk failed or printed no gate line)" ;;
+esac
+printf '%s\n' "$_pb" | tee -a "$OUT.gates"
 
 OK=0; FAIL=0; SKIP=0
 if [ -f "$OUT.gates" ]; then
