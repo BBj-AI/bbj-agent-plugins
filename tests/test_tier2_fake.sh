@@ -9,6 +9,7 @@
 # MAINT-06 (D-11, D-12): SYSPATH is scrubbed of any BBj compiler (no_compiler_path), so a compiler
 # in /usr/bin or /bin cannot turn a no-route or tier-2 gate into a tier-1 run.
 # Phase 13 (FIX-02, D-15) adds the once-per-run gates on a many-file Codex patch.
+# Gate names (D-13): every name starts with url_, req_, mode_ or tier2_.
 # Nothing here runs BBj; the "compiler" is the logging fake.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -38,7 +39,7 @@ start_fake() {
   FAKE_PIDS="$FAKE_PIDS $FAKE_PID"
   _w=0
   while [ ! -s "$PORTF" ] && [ "$_w" -lt 100 ]; do sleep 0.1; _w=$((_w + 1)); done
-  [ -s "$PORTF" ] || { gate "fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
+  [ -s "$PORTF" ] || { gate "tier2_fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
   BBJ_LOCAL_MCP_URL=http://127.0.0.1:$(cat "$PORTF")/mcp
   export BBJ_LOCAL_MCP_URL
 }
@@ -74,7 +75,7 @@ silent() {
 # ---- request shape ----
 start_fake clean
 run_t2 "$PAYLOAD"
-silent clean_reply_silent
+silent tier2_clean_reply_silent
 cat > "$WORK/shape.py" << 'PYEOF'
 import json, re, sys
 log, fx = sys.argv[1], sys.argv[2]
@@ -156,9 +157,9 @@ start_fake one-error
 printf 'ALIAS X0 SYSGUI\n' > "$WORK/proj/config.bbx"
 run_t2 "$(claude_payload Write "$WORK/proj/config.bbx" "$WORK/proj")"
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ]; then
-  gate config_skipped_no_request ok "config.bbx sends nothing to the loopback"
+  gate tier2_config_skipped_no_request ok "config.bbx sends nothing to the loopback"
 else
-  gate config_skipped_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
+  gate tier2_config_skipped_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
 fi
 stop_fake
 
@@ -173,9 +174,9 @@ export BBJ_HOME FAKE_LOG
 unset FAKE_OUT FAKE_STDOUT FAKE_EXIT
 run_t2 "$PAYLOAD"
 if [ "$RC" = 0 ] && [ ! -s "$LOGF" ] && [ -s "$FAKE_LOG" ]; then
-  gate tier1_wins_no_request ok "compiler called, fake server saw nothing"
+  gate tier2_tier1_wins_no_request ok "compiler called, fake server saw nothing"
 else
-  gate tier1_wins_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
+  gate tier2_tier1_wins_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
 fi
 
 # an unusable compiler (output without a compiler line) falls through to tier 2
@@ -184,9 +185,9 @@ FAKE_OUT=$WORK/unusable.txt
 export FAKE_OUT
 run_t2 "$PAYLOAD"
 if [ "$RC" = 2 ] && [ "$(head -n 1 "$WORK/stderr")" = "bbj-local reported 1 error(s) in $FILE:" ] && [ -s "$LOGF" ]; then
-  gate unusable_compiler_falls_to_tier2 ok "tier 2 answered"
+  gate tier2_unusable_compiler_falls_to_tier2 ok "tier 2 answered"
 else
-  gate unusable_compiler_falls_to_tier2 FAIL "exit $RC"
+  gate tier2_unusable_compiler_falls_to_tier2 FAIL "exit $RC"
 fi
 unset FAKE_OUT BBJ_HOME FAKE_LOG
 stop_fake
@@ -308,12 +309,12 @@ if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ] && [ "$_nrc" = 0
   && printf '%s' "$_ntext" | grep -F 'curl not found' > /dev/null; then
   run_t2 "$PAYLOAD" "$WORK/nocurl"
   if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ]; then
-    gate no_curl_notice_then_silent ok "first call notice with curl not found, no request, second call silent"
+    gate tier2_no_curl_notice_then_silent ok "first call notice with curl not found, no request, second call silent"
   else
-    gate no_curl_notice_then_silent FAIL "second call not silent (exit $RC)"
+    gate tier2_no_curl_notice_then_silent FAIL "second call not silent (exit $RC)"
   fi
 else
-  gate no_curl_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
+  gate tier2_no_curl_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
 fi
 stop_fake
 
