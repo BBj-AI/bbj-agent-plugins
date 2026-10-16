@@ -38,8 +38,15 @@ any of them, tree equal to the planning branch outside `.planning/`.
 
 Real home untouched: `run.sh realhome` took a `cksum` snapshot of the real Codex `config.toml` and of the
 plugin files of the caller's Claude Code configuration (`installed_plugins.json`,
-`known_marketplaces.json`) before the first scripted run. The comparison with a second snapshot after the
-last run is filled in Task 3.
+`known_marketplaces.json`) before the first scripted run. A second snapshot taken after the
+last run is identical to the first, line for line:
+
+        codex_config.toml 2396774368 367
+        cc_installed_plugins.json 828769961 1623
+        cc_known_marketplaces.json 813402332 553
+
+The throwaway homes that held sign-in tokens (`claude`, `codex`, `codexhook` and the dry-run homes)
+were removed once this record was written; the release-tree worktree stays for plan 15-06.
 
 ## Claude Code
 
@@ -72,7 +79,39 @@ mcp get` for the listed label, all with `HOME` and `CLAUDE_CONFIG_DIR` inside `<
 `cc_get_oauth: yes` means `claude mcp get plugin:bbj:bbj` showed an OAuth line with `client_id
 configured` (the id itself is never printed).
 
-Round 2 (owner pass in the throwaway configuration, then scripted after-reading): filled in Task 3.
+Reading 2026-10-16, round 2 (owner pass in the throwaway configuration, then scripted after-reading)
+
+The owner started `sh release-run/owner.sh claude`, opened `/mcp`, signed in to the docs server in the
+browser and read the TUI. Reply lines of the owner, copied as given (no authorization URL, state, code
+or token is part of them):
+
+        cc-mcp-label: plugin:bbj:bbj
+        cc-signin: signed in
+        cc-tool-name: not shown
+
+Before the sign-in `/mcp` listed `plugin:bbj:bbj` with `needs authentication` (under the heading
+"Built-in MCPs (always available)"); after it Claude Code printed `Authentication successful. Connected
+to plugin:bbj:bbj.`. The "Tools for plugin:bbj:bbj" view listed 5 tools: `bbj_examples`,
+`bbj_fetch_page`, `bbj_lookup`, `bbj_reserved_word`, `bbj_search`. The detail view of `bbj_search` was not
+opened, so no full tool name is recorded (`cc_tool_name: not shown`).
+
+Observation (NAME-03): the owner's `/mcp` in the throwaway configuration also listed account connectors
+under a "claude.ai" heading, among them `claude.ai BBj` (5 tools), `claude.ai Claude Docs` and `claude.ai
+Google Drive`, above the plugin's docs server. The plugin's docs server is the one labelled
+`plugin:bbj:bbj`; the `claude.ai` entry is a different registration of the same service that belongs to
+the owner's account, not to the plugin.
+
+Scripted after-reading, `sh release-run/run.sh after` (it enables `bbj-local` in the throwaway
+configuration, with BBjServices running, then reads `claude mcp list`; the credential readers print key
+paths only):
+
+        cc_after_run: 2026-10-16T18:44:41Z
+        cc_enable_local_rc: 0
+        cc_after_line: plugin:bbj:bbj: https://mcp.bbj-ai.com/mcp (HTTP) - ✔ Connected
+        cc_local_line: plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - ✔ Connected
+        cc_credentials: mcpOAuth[plugin:bbj:bbj] holds serverName, serverUrl, accessToken, refreshToken, clientId, issuer, redirectUri, expiresAt and scope=offline_access (values other than the name, the URL and the scope are not printed)
+
+Sentence for the docs: On Linux with Claude Code 2.1.301 (2026-10-16), the plugin installed fresh from the release candidate lists the docs server as `plugin:bbj:bbj` with `! Needs authentication`, then `✔ Connected` after the sign-in in `/mcp` completed; the installed hook run directly gives exit 2 and `bbjcpl reported 1 error(s)` for a bad file and exit 0 and silence for a clean one, and `bbj-local` (enabled, with BBjServices running) shows `✔ Connected`.
 
 ## Codex
 
@@ -120,7 +159,25 @@ from its output, never the URL, the state or the PKCE value). `HOME` and `CODEX_
 `cx_login_rc: 124` is the 25 s kill; `cx_login_started: yes` means the login command was accepted for the
 listed name and produced an authorization request with the client id and redirect URI above.
 
-Round 2 (owner pass in the throwaway home, then scripted after-reading): filled in Task 3.
+Reading 2026-10-16, round 2 (owner pass in the throwaway home, then scripted after-reading)
+
+The owner ran `sh release-run/owner.sh login --no-browser` (the machine is remote, so the callback URL
+is pasted back into the terminal; the sign-in itself was completed by the owner, never by the harness).
+Reply lines of the owner, copied as given (the authorization URL they pasted is not recorded):
+
+        cx-login-command: codex mcp login --no-browser bbj
+        cx-signin: Successfully logged in to MCP server 'bbj'.
+
+Scripted after-reading, `sh release-run/run.sh after` (the credential reader prints key paths only; the
+hashed part of the key is the store's own name for the server entry):
+
+        cx_after_run: 2026-10-16T18:44:41Z
+        cx_after_line: bbj https://mcp.bbj-ai.com/mcp - enabled OAuth
+        cx_credentials: credentials.bbj|<hash> holds server_name, server_url=https://mcp.bbj-ai.com/mcp, issuer, client_id, access_token, expires_at, refresh_token and scopes (values other than the name, the URL and the scopes are not printed)
+
+No Codex process was running when the live suite started (`pgrep -x codex` printed nothing).
+
+Sentence for the docs: On Linux with Codex CLI 0.162.1 (2026-10-16), the plugin installed fresh from the release candidate lists the docs server as `bbj` with `Not logged in`; `codex mcp login bbj` (with `--no-browser` on a remote machine) was accepted and the `Auth` column went to `OAuth` after the owner signed in; after `apply_patch` of a bad file the real compiler's feedback `bbjcpl reported 1 error(s)` reached the model and a clean file was silent, with hook trust bypassed in the throwaway home.
 
 ## Suite
 
@@ -130,12 +187,67 @@ The probe ran `BBJ_LS_BLACKHOLE_URL=http://192.0.2.1:5009/mcp sh tests/test_tier
 release-tree worktree, read only. It decides nothing: it shows the owner whether the address of D-17
 drops packets on this network.
 
-The release command: filled in Task 3.
+The release command, run in the release-tree worktree on head 0d619fb5f8de5043a3eb8771ce3006b537584653
+after the sign-in (BBjServices running, no Codex process running), output in
+`evidence/rc-suite-run.txt` with the home replaced by `<home>`:
+
+        CI=true BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1 BBJ_LS_BLACKHOLE_URL=http://192.0.2.1:5009/mcp sh tests/ci.sh
+
+The blackhole address is the one of D-17, `http://192.0.2.1:5009/mcp`; the owner answered
+`blackhole: D-17` at the Task 2 checkpoint, so no other address was tried and no approval of another
+address exists. First lines and end of the output:
+
+        claude: 2.1.301 (Claude Code)
+        node: v24.20.0
+        SUMMARY: ok=864 fail=0 skip=0
+        CI SUMMARY: ok=6 fail=0 skip=0 run_sh_exit=0
+
+The run holds `gate live_blackhole_connect_timeout ok real curl: exit 28, time_connect '0.000000', empty
+remote_ip` and no FAIL and no skip.
 
 ## CI pin (D-12, D-19)
 
-Filled in Task 3.
+The `claude` of this run (`claude: 2.1.301 (Claude Code)`, first line of `evidence/rc-suite-run.txt`) is
+the version pinned in `.github/ci-tools/package.json` of the release tree (`"@anthropic-ai/claude-code":
+"2.1.301"`). The two docs-server gates of the same run:
+
+        gate claudeplugin_mcp_docs_oauth ok claude mcp get shows client_id configured and callback_port 47613 (the id itself is pinned by layout_bbj_mcp)
+        gate claudeplugin_mcp_docs_answers ok the docs server bbj at https://mcp.bbj-ai.com/mcp answered (nothing past the 401 challenge is proven): plugin:bbj:bbj: https://mcp.bbj-ai.com/mcp (HTTP) - ! Needs authentication
+
+The CI-pin finding of the first Phase 12 review is closed: plan 15-01 moved the pin from 2.1.293 to
+2.1.301 and regenerated the lock (`evidence/pin.txt`), and this run used that version.
 
 ## For the CHANGELOG
 
-Filled in Task 3.
+Plan 15-06 copies from this block (eight-space `key: value` lines, values as the clients printed them).
+`cc_tool_name` is `not shown`: the owner did not open the detail view of `bbj_search`.
+`cx_hook_header` is the start of the hook's header line, without the path.
+
+        run_date: 2026-10-16
+        claude_version: 2.1.301 (Claude Code)
+        codex_version: codex-cli 0.162.1
+        release_head: 0d619fb5f8de5043a3eb8771ce3006b537584653
+        release_tree: 9146b54d5f962b7bf377abfe16e8a4df1caa323b
+        cc_list_label: plugin:bbj:bbj
+        cc_status_before: ! Needs authentication
+        cc_status_after: ✔ Connected
+        cc_mcp_label: plugin:bbj:bbj
+        cc_tool_name: not shown
+        cc_signin: completed
+        cc_hook_bad: exit 2, bbjcpl reported 1 error(s)
+        cc_hook_clean: exit 0, silent
+        cc_bbj_local_line: plugin:bbj-local:bbj-local: http://127.0.0.1:5009/mcp (HTTP) - ✔ Connected
+        cx_server_name: bbj
+        cx_auth_before: Not logged in
+        cx_auth_after: OAuth
+        cx_login_command: codex mcp login bbj
+        cx_login_option: --no-browser
+        cx_signin: completed
+        cx_hook_header: bbjcpl reported 1 error(s)
+        cx_hook_clean: exit 0, silent
+        cx_hook_trust: bypassed in the throwaway home
+        suite_summary: SUMMARY: ok=864 fail=0 skip=0
+        ci_summary: CI SUMMARY: ok=6 fail=0 skip=0 run_sh_exit=0
+        blackhole_url: http://192.0.2.1:5009/mcp
+        blackhole_approval: D-17
+
