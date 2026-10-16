@@ -187,10 +187,28 @@ and `bbj-ls`).
 - Report to the user through stderr with a fixed grammar. Example header from `report()` in `plugins/bbj/scripts/bbj-check.sh`: `bbj-local reported N error(s) in <file>:`.
 - Cap feedback at 40 lines and print `(M more line(s) not shown)` for the rest.
 - A check reports one line through `gate NAME STATUS DETAIL`, where STATUS is `ok`, `FAIL` or `skip`. `tests/lib.sh` sets `LIB_FAILED=1` on any FAIL and `finish()` exits accordingly.
-- Gate names start with a prefix that names their test file, but a prefix does not identify a file by itself: `ci_` (`test_ci_gates.sh`) is a string prefix of `ci_guard_` (`test_ci_guards.py`), and `release_` (`test_release_text.py`) is a string prefix of `release_mut_`. Pick a prefix that no existing gate name starts with. The prefixes `sh tests/run.sh` prints, in run order:
-  - Shell tests: `test_ci_gates.sh` `ci_`, `run_`; `test_codex_patch.sh` `plugin_route_`, plus free-form names; `test_discovery.sh` `order_`, plus free-form names; `test_exit_contract.sh` `contract_`, `argument_`, `no_marker_`, `glob_newline_not_passed_`, `real_hostile_reached_compiler`; `test_hook_mutation.sh` `hookmut_`; `test_install_pages.sh` `claude_`, `codex_`, `link_`, `readme_`; `test_noroute_notice.sh` `notice_`; `test_path_scrub.sh` `pathscrub_`; `test_release_text_mutation.sh` `release_mut_`; `test_static_guards.sh` `static_`; `test_tier2_fake.sh` `url_`, `req_`, `mode_`, plus free-form names (among them `tier2_once_*`, `tier2_every_file_*`, `tier2_transfer_timeout_not_cached`, `tier2_noconn_needs_*`); `test_tier2_live.sh` `live_`, plus the free-form `tier2_syntax_only`.
-  - Python tests: `test_check_order.py` `checkorder_`; `test_ci_guards.py` `ci_guard_`; `test_layout.py` `layout_`; `test_release_text.py` `release_`; `test_skill_examples.py` `skills_`.
-  - Free-form names, no shared prefix: `test_claude_plugin.sh`, `test_hook_review_fixes.sh`, `test_never_execute.sh`, `test_real_compiler.sh`.
+- Gate names start with a prefix listed for their own test file in the block below (MAINT-09, D-13 to D-16). `tests/run.sh` checks the block against the gate lines it saw under each `== <file>` header and prints `gate run_prefix_block`; it fails on a listed prefix its file did not print, on a gate name under no listed prefix of its file (the longest prefix wins), on a test file missing from the block or listed twice, and on a block file not in `tests/`. Files that did not run are not judged. A prefix can be a string prefix of another file's prefix (`ci_` and `ci_guard_`, `release_` and `release_mut_`), so the match is per file. A new prefix is one no existing gate name starts with, and a skip branch prints a name under its file's prefix. This block is the source; `.planning/codebase/CONVENTIONS.md` holds the same lines in the same order when present. The prefixes `sh tests/run.sh` prints, in run order:
+- `test_ci_gates.sh`: `ci_`, `run_`
+- `test_claude_plugin.sh`: `claudeplugin_`
+- `test_codex_patch.sh`: `codexpatch_`, `plugin_route_`
+- `test_discovery.sh`: `discovery_`, `order_`
+- `test_exit_contract.sh`: `argument_`, `contract_`, `glob_newline_not_passed_`, `no_marker_`
+- `test_hook_mutation.sh`: `hookmut_`
+- `test_hook_review_fixes.sh`: `reviewfix_`
+- `test_install_pages.sh`: `claude_`, `codex_`, `link_`, `readme_`
+- `test_never_execute.sh`: `neverexec_`
+- `test_noroute_notice.sh`: `notice_`
+- `test_path_scrub.sh`: `pathscrub_`
+- `test_real_compiler.sh`: `realcpl_`
+- `test_release_text_mutation.sh`: `release_mut_`
+- `test_static_guards.sh`: `static_`
+- `test_tier2_fake.sh`: `mode_`, `req_`, `tier2_`, `url_`
+- `test_tier2_live.sh`: `live_`
+- `test_check_order.py`: `checkorder_`
+- `test_ci_guards.py`: `ci_guard_`
+- `test_layout.py`: `layout_`
+- `test_release_text.py`: `release_`
+- `test_skill_examples.py`: `skills_`
 - Python tests print `gate <prefix>_<name> ok|FAIL <detail>` and exit 1 if any gate failed.
 - A test that cannot run because a prerequisite is missing reports `skip`, except under `CI=true`, where the missing prerequisite must be a `FAIL` (`tests/run.sh`, `tests/ci.sh`).
 
