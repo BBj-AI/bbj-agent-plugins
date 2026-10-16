@@ -5,7 +5,7 @@ titles: json
 findings:
   - id: WR-06
     severity: warning
-    disposition: open
+    disposition: fixed
     title: "The sixth retired term is matched only when written with backticks"
   - id: WR-03
     severity: warning
@@ -17,19 +17,19 @@ findings:
     title: "User-visible changes to shipped 0.2.1 content with no version bump or changelog entry"
   - id: IN-06
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The live blackhole gate accepts a curl that printed no write-out at all"
   - id: IN-07
     severity: info
-    disposition: open
+    disposition: fixed
     title: "The new `REMOVED_PAGES` anchor form and the moved comment have no test or the wrong place"
   - id: IN-08
     severity: info
-    disposition: open
+    disposition: fixed
     title: "Hand-copied pin list in a comment will drift"
   - id: IN-09
     severity: info
-    disposition: open
+    disposition: skipped
     title: "The blackhole gate is a skip even under `BBJ_LS_LIVE=1`"
   - id: WR-05
     severity: warning
@@ -63,22 +63,22 @@ findings:
     severity: warning
     disposition: fixed
     title: "README \"Verified\" intro contradicts the `(bbj-local plugin connected)` qualifier"
-open: 5
+open: 0
 total: 15
-recorded: 2026-10-16T12:59:38.435Z
+recorded: 2026-10-16T13:17:33.369Z
 ---
 
 # Phase 14: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-06 | warning | open | - |
+| WR-06 | warning | fixed | 14-REVIEW-FIX.md |
 | WR-03 | warning | skipped | 14-REVIEW-FIX.md |
 | WR-04 | warning | skipped | 14-REVIEW-FIX.md |
-| IN-06 | info | open | - |
-| IN-07 | info | open | - |
-| IN-08 | info | open | - |
-| IN-09 | info | open | - |
+| IN-06 | info | fixed | 14-REVIEW-FIX.md |
+| IN-07 | info | fixed | 14-REVIEW-FIX.md |
+| IN-08 | info | fixed | 14-REVIEW-FIX.md |
+| IN-09 | info | skipped | 14-REVIEW-FIX.md |
 | WR-05 | warning | fixed | 14-REVIEW-FIX.md (not in the current review) |
 | IN-01 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
 | IN-02 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
