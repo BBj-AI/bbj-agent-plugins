@@ -252,36 +252,39 @@ Plans:
   3. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
   4. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
 
-**Plans**: 8 plans
+**Plans**: 9 plans
 
 Plans:
 **Wave 1**
-- [ ] 15-01-PLAN.md — CI pins the claude CLI at 2.1.301 after the owner verifies the package; lockfile regenerated, scratch install with signatures verified, client gates green on the pinned CLI; CI-pin finding closed (D-12, D-16, D-19; REL-09, REL-10; owner checkpoint)
-- [ ] 15-02-PLAN.md — Release harness in release-run/: sign-in harness on RELEASE_TREE, install gate and Codex hook scenario at the phase depth, each dry-run against the checkout (NAME-03, REL-10; D-07, D-16)
+- [ ] 15-01-PLAN.md — CI pins the claude CLI at 2.1.301 after the owner verifies the package; lockfile regenerated, scratch install with signatures verified, client gates green on the pinned CLI; the ci.yml comment names the confirmation; CI-pin finding closed (D-12, D-16, D-19; REL-09, REL-10; owner checkpoint)
+- [ ] 15-02-PLAN.md — Release harness in release-run/: sign-in harness on RELEASE_TREE, install gate and Codex hook scenario (trust bypass recorded) at the phase depth, each dry-run against the checkout (NAME-03, REL-10; D-07, D-16)
 
 **Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 15-03-PLAN.md — The atomic bump: five versions, VERSION, README line, `## 0.2.2` entry (D-01 to D-09, D-20) and CONTENT_VERSION / NOT_RUN_LINES in one commit; project notes at 0.2.2 (REL-09)
+- [ ] 15-03-PLAN.md — The atomic bump: five versions, VERSION, README line, `## 0.2.2` entry (D-01 to D-09, D-20) and CONTENT_VERSION / NOT_RUN_LINES in one eight-file commit (REL-09)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 15-04-PLAN.md — Strict release branch gsd/release-0.2.2 from origin/main; both real clients installed from it; owner signs in under `bbj`; live suite `fail=0 skip=0` on the release tree; 15-LINUX-RUN.md (NAME-03, REL-10; D-07, D-17; owner checkpoint)
+- [ ] 15-04-PLAN.md — Project notes (.claude/CLAUDE.md, codebase map) at 0.2.2, history-cut sentences left at 0.2.1; full suite green on the bumped tree (REL-09)
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 15-05-PLAN.md — Tested against from the run and the Linux Claude Code 2.1.301 re-pin in one commit (D-09, D-16); final tree ships the run tree's files with the same suite count; owner-confirmed push, PR, CI, install gate on the ref, ready (REL-09, REL-10)
+- [ ] 15-05-PLAN.md — Strict release branch gsd/release-0.2.2 from origin/main; both real clients installed from it; owner signs in under `bbj` and approves any blackhole address other than D-17's; live suite `fail=0 skip=0` on the release tree; 15-LINUX-RUN.md (NAME-03, REL-10; D-07, D-17; owner checkpoint)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 15-06-PLAN.md — Owner-confirmed merge commit with the tested tree; CI on main; both clients install 0.2.2 fresh from main, recorded in planning only (REL-10; D-10, D-20)
+- [ ] 15-06-PLAN.md — Tested against from the run and the Linux Claude Code 2.1.301 re-pin in one commit (D-09, D-16); final tree ships the run tree's files with the same suite count; owner-confirmed push, PR, CI, install gate on the ref, ready (REL-09, REL-10)
 
 **Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 15-07-PLAN.md — Annotated tag `0.2.2` on the release merge commit and the GitHub Release with the entry as body, after the owner's confirmation (REL-10; D-10)
+- [ ] 15-07-PLAN.md — Owner-confirmed merge commit with the tested tree; CI on main; both clients install 0.2.2 fresh from main, recorded in planning only (REL-10; D-10, D-20)
 
 **Wave 7** *(blocked on Wave 6 completion)*
-- [ ] 15-08-PLAN.md — Released main merged back; dev home path scrubbed from the planning records; settled blocker lines dropped; owner-confirmed fast-forward push of the planning branch (D-15, D-18, D-19)
+- [ ] 15-08-PLAN.md — Annotated tag `0.2.2` on the release merge commit and the GitHub Release with the entry as body, blocked until merge.txt records CI on main and both post-merge installs, after the owner's confirmation (REL-10; D-10)
+
+**Wave 8** *(blocked on Wave 7 completion)*
+- [ ] 15-09-PLAN.md — Released main merged back; dev home path scrubbed from the planning records (run-time `git grep -lF` set); settled blocker lines dropped; owner-confirmed fast-forward push of the planning branch (D-15, D-18, D-19)
 
 **Notes**:
 - No Upgrading line about trusting the hook again in `/hooks`; no text refers to earlier versions (13-CONTEXT D-21, 12-CONTEXT D-12).
 - The Not run section lists only configurations absent from the run records, as in 0.2.1.
 - The release follows the Phase 6 and Phase 10 pattern: the tag goes on the final merge commit that carries the released text.
-- The `## 0.2.2` entry names the user-visible changes Phase 14 made to the shipped 0.2.1 text: the one install page `docs/install.md`, the two removed install pages, the skills' check-order text, and the manifest and `docs_url` descriptions. Phase 14 leaves the five versions at 0.2.1; this phase bumps them (14-REVIEW WR-04).
+- The `## 0.2.2` entry names the user-visible changes Phase 14 made to the shipped 0.2.1 text: the one install page `docs/install.md` (the removed pages are not named, CONTEXT D-03), the skills' check-order text, and the manifest and `docs_url` descriptions. Phase 14 leaves the five versions at 0.2.1; this phase bumps them (14-REVIEW WR-04).
 
 ## Progress
 
@@ -294,4 +297,4 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
 | 14. One install page and one term list | v0.2.2 | 9/9 | Complete    | 2026-10-16 |
-| 15. Release 0.2.2 | v0.2.2 | 0/8 | Planned | - |
+| 15. Release 0.2.2 | v0.2.2 | 0/9 | Planned | - |
