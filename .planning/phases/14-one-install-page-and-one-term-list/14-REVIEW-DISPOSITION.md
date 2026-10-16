@@ -3,6 +3,10 @@ phase: 14
 review: 14-REVIEW.md
 titles: json
 findings:
+  - id: IN-10
+    severity: info
+    disposition: open
+    title: "An unterminated or mismatched GSD region fails the prefix gate with a misleading message and no test"
   - id: WR-06
     severity: warning
     disposition: fixed
@@ -13,7 +17,7 @@ findings:
     title: "The gate's \"source of truth\" sits inside a regenerated GSD section"
   - id: WR-04
     severity: warning
-    disposition: deferred
+    disposition: skipped
     title: "User-visible changes to shipped 0.2.1 content with no version bump or changelog entry"
   - id: IN-06
     severity: info
@@ -63,22 +67,23 @@ findings:
     severity: warning
     disposition: fixed
     title: "README \"Verified\" intro contradicts the `(bbj-local plugin connected)` qualifier"
-open: 0
-total: 15
-recorded: 2026-10-16T13:25:02.354Z
+open: 1
+total: 16
+recorded: 2026-10-16T14:06:21.664Z
 ---
 
 # Phase 14: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-06 | warning | fixed | 14-REVIEW-FIX.md |
-| WR-03 | warning | fixed | 14-REVIEW-FIX.md |
-| WR-04 | warning | deferred | Phase 15 (Release 0.2.2) bumps the five versions and writes the 0.2.2 entry naming these changes; ROADMAP note 07645a0 |
-| IN-06 | info | fixed | 14-REVIEW-FIX.md |
-| IN-07 | info | fixed | 14-REVIEW-FIX.md |
-| IN-08 | info | fixed | 14-REVIEW-FIX.md |
-| IN-09 | info | skipped | 14-REVIEW-FIX.md |
+| IN-10 | info | open | - |
+| WR-06 | warning | fixed | 14-REVIEW-FIX.md (not in the current review) |
+| WR-03 | warning | fixed | 14-REVIEW-FIX.md (not in the current review) |
+| WR-04 | warning | skipped | 14-REVIEW-FIX.md (not in the current review) |
+| IN-06 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
+| IN-07 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
+| IN-08 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
+| IN-09 | info | skipped | 14-REVIEW-FIX.md (not in the current review) |
 | WR-05 | warning | fixed | 14-REVIEW-FIX.md (not in the current review) |
 | IN-01 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
 | IN-02 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
