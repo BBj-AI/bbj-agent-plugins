@@ -10,7 +10,7 @@
 # run_prefix_block are both counted, which is why the two run.sh summaries read ok=2.
 # The run_prefix_ cases prove the rules and edges of run_prefix_block (D-14, D-15): missing and extra
 # prefix, unlisted and unknown file, listed twice, longest prefix, empty output, not run, no block,
-# copy identical, differing or reordered, block order free.
+# copy identical, differing or reordered, block order free, and an awk that crashes (WR-01).
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -78,7 +78,7 @@ fi
 # WANT FAIL: exit 1 and a "gate run_prefix_block FAIL" line holding TEXT. NAME is also the gate name;
 # the detail gives the exit code and the run_prefix_block line.
 prefix_case() {
-  env -u CI PATH="$WORK/farm" sh "$WORK/$1/tests/run.sh" > "$WORK/$1.out" 2>&1
+  env -u CI PATH="${PFARM:-$WORK/farm}" sh "$WORK/$1/tests/run.sh" > "$WORK/$1.out" 2>&1
   _rc=$?
   _line=$(grep '^gate run_prefix_block ' "$WORK/$1.out")
   if [ "$2" = ok ]; then
@@ -169,5 +169,20 @@ printf '%s\n%s\n' '- `test_extra.sh`: `extra_`' '- `test_stub.sh`: `stub_`' > "$
 mkdir -p "$WORK/run_prefix_conventions_order/.planning/codebase"
 printf '%s\n%s\n' '- `test_stub.sh`: `stub_`' '- `test_extra.sh`: `extra_`' > "$WORK/run_prefix_conventions_order/.planning/codebase/CONVENTIONS.md"
 prefix_case run_prefix_conventions_order FAIL 'CONVENTIONS.md block differs'
+
+# WR-01: the gate is the awk program's own output, so an awk that errors on it must still fail the
+# run. A second farm holds the same tools with an awk wrapper that exits 2 for the prefix program
+# (the only awk call that gets -v cl=) and runs the real awk for every other call.
+mkdir -p "$WORK/farm_awk_crash"
+for _t in "$WORK"/farm/*; do
+  ln -s "$(readlink "$_t")" "$WORK/farm_awk_crash/$(basename "$_t")"
+done
+rm -f "$WORK/farm_awk_crash/awk"
+_realawk=$(readlink "$WORK/farm/awk")
+printf '#!/bin/sh\ncase "$1$2" in -vcl=*) echo "awk: syntax error" >&2; exit 2;; esac\nexec "%s" "$@"\n' "$_realawk" > "$WORK/farm_awk_crash/awk"
+chmod +x "$WORK/farm_awk_crash/awk"
+scratch "$WORK/run_prefix_awk_crash"
+PFARM=$WORK/farm_awk_crash prefix_case run_prefix_awk_crash FAIL 'the prefix check did not run'
+unset PFARM
 
 finish
