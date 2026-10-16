@@ -1,7 +1,7 @@
 #!/bin/sh
 # tests/test_hook_review_fixes.sh -- regression tests for the phase 19 code review findings
 # on plugins/bbj/scripts/bbj-check.sh (WR-04 symlinks, WR-05 large patches, IN-01 compiler
-# name). The compiler is a fake that only logs; nothing here runs BBj.
+# name; Phase 12 review WR-01 curl seams). The compiler is a fake that only logs; nothing here runs BBj.
 # Every gate name here starts with reviewfix_ (the prefix of this file, D-13, MAINT-09).
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -65,6 +65,15 @@ if [ "$RC" = 0 ] && ! grep -F 'evil.bbj' "$FAKE_LOG" > /dev/null; then
   gate reviewfix_patch_content_cannot_forge_header ok "backslash-n inside a content line is not a line break"
 else
   gate reviewfix_patch_content_cannot_forge_header FAIL "exit $RC, log: $(head -c 200 "$FAKE_LOG")"
+fi
+
+# ---- Phase 12 review WR-01: lib.sh clears the seams of the fake curl ----
+_seams=$(FAKE_CURL_EXIT=28 FAKE_CURL_WRITEOUT='0.000000 ' FAKE_CURL_LOG=/nonexistent/curl.log \
+  sh -c '. "$1/tests/lib.sh"; printf "%s|%s|%s" "${FAKE_CURL_EXIT+set}" "${FAKE_CURL_WRITEOUT+set}" "${FAKE_CURL_LOG+set}"' sh "$REPO")
+if [ "$_seams" = "||" ]; then
+  gate reviewfix_curl_seams_cleared ok "lib.sh unsets FAKE_CURL_EXIT, FAKE_CURL_WRITEOUT and FAKE_CURL_LOG"
+else
+  gate reviewfix_curl_seams_cleared FAIL "after sourcing lib.sh the seams read '$_seams'"
 fi
 
 finish
