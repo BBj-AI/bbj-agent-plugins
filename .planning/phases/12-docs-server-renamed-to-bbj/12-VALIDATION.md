@@ -30,7 +30,7 @@ created: "2026-10-15"
 
 - **After every task commit:** Run the task's verify block plus `python3 -I tests/test_layout.py`
 - **After every plan wave:** Run `sh tests/run.sh`
-- **Before `/gsd-verify-work`:** Full suite must be green (last run: `ok=767 fail=0 skip=0`)
+- **Before `/gsd-verify-work`:** Full suite must be green (last run 2026-10-16, tree after Phase 13: `ok=797 fail=0 skip=0`)
 - **Max feedback latency:** 60 seconds
 
 ---
@@ -47,7 +47,7 @@ created: "2026-10-15"
 | 12-02-03 | 02 | 2 | NAME-02 | — | no OAuth values or real paths in the record | record check | Task 3 verify block of 12-02-PLAN.md (`VERIFY_OK`) | ✅ | ✅ green |
 | 12-03-01 | 03 | 3 | NAME-02 | — | N/A | content gate | `python3 -I tests/test_check_order.py` (`checkorder_route_order`) | ✅ | ✅ green |
 | 12-03-02 | 03 | 3 | NAME-02 | — | hook exit contract unchanged | content gate | `sh tests/test_noroute_notice.sh` (`notice_text_claude`, `notice_codex_text`) | ✅ | ✅ green |
-| 12-04-01 | 04 | 3 | NAME-02 | — | N/A | content gate | `sh tests/test_install_pages.sh` (`claude_has_plugin_bbj_bbj`, `claude_has_mcp__plugin_bbj_bbj__`, `codex_has_codex_mcp_login_bbj`, `readme_has_codex_mcp_login_bbj`) | ✅ | ✅ green |
+| 12-04-01 | 04 | 3 | NAME-02 | — | N/A | content gate | `sh tests/test_install_pages.sh` (`claude_has__plugin_bbj_bbj_`, `claude_has_mcp__plugin_bbj_bbj__`, `codex_has__codex_mcp_login_bbj_`, `readme_has__codex_mcp_login_bbj_`; renamed by the WR-01 backtick-anchored needles) | ✅ | ✅ green |
 | 12-04-02 | 04 | 3 | NAME-02 | — | N/A | content gate | `sh tests/test_install_pages.sh` | ✅ | ✅ green |
 | 12-05-01 | 05 | 4 | NAME-01 | — | N/A | repo gate | `python3 -I tests/test_layout.py` (`layout_no_old_server_name`) | ✅ | ✅ green |
 | 12-05-02 | 05 | 4 | NAME-01 | — | N/A | mutation | `python3 -I tests/test_layout.py` (12 × `layout_mutation_old_server_name_*`) | ✅ | ✅ green |
@@ -80,3 +80,11 @@ Existing infrastructure covers all phase requirements.
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-10-15
+
+## Validation Audit 2026-10-16
+
+| Metric | Count |
+|---|---|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
