@@ -22,6 +22,14 @@ conventions file and in a newer CHANGELOG entry, bring a page file back, and pla
 exemption (a 0.2.1 entry, .planning/). The two cases that plant into the install page
 (retired_route_word_capitalized, old_server_name_capitalized) target docs/install.md, because
 plant() would recreate a removed page.
+Phase 14 (NAME-04; D-08 to D-10): layout_no_retired_terms scans the shipped text (README.md, docs/*.md, the
+skills, the non-comment lines of the hook, the description strings of the four manifests, CHANGELOG
+entries newer than 0.2.1) for the five retired variants of the term list (TERM_VARIANTS, assembled
+from pieces) on whitespace-squashed, lower-cased text, so a variant split by a line break, written in
+capitals or joined by a non-breaking space is found, and a longer word is not. The words "language
+server" pass only inside TERM_DEFINITION. .claude/CLAUDE.md, .planning/ and tests/ are outside the scan
+(the term list names the variants); the layout_mutation_retired_term_* cases plant a variant in each
+scope and each exemption.
 Phase 13 (FIX-01; D-01 to D-09): pins the new commandWindows of plugins/bbj/hooks/hooks.json
 exactly (layout_hook_command_windows): the ordered lookup of Git for Windows' sh.exe, the loud
 not-found branch and the exit-code passthrough. It pins text; the Windows run is 13-WINDOWS-RUN.md.
@@ -170,6 +178,66 @@ OLD_SERVER_NAME = "bbj" + "-docs"
 # DOCS-05 (phase 14, D-02): the two install pages that docs/install.md replaced; matched
 # case-insensitively in paths and text. Assembled from pieces, so this file never names them.
 REMOVED_PAGES = ("install" + "-claude-code", "install" + "-codex" + ".md")
+# NAME-04 (phase 14, D-08 to D-10): the five retired variants of the term list, each assembled from
+# two pieces (self-scan convention), and the one definition that may hold the words "language server"
+TERM_VARIANTS = (
+    "first" + " route",
+    "second" + " route",
+    "compiler" + " check",
+    "docs" + " mcp",
+    "local" + " check",
+)
+LANGUAGE_SERVER = "language" + " server"
+TERM_DEFINITION = "`bbj-ls`, the BBj " + LANGUAGE_SERVER + " in BBjServices"
+# "not a letter" on both sides: a longer word or a verb form ("a local checkout", "the compiler
+# checks the files") is not a hit
+TERM_RES = {v: re.compile(r"(?<![a-z])" + re.escape(v) + r"(?![a-z])") for v in TERM_VARIANTS}
+LANGUAGE_SERVER_RE = re.compile(r"(?<![a-z])" + re.escape(LANGUAGE_SERVER) + r"(?![a-z])")
+TERM_HOOK = "plugins/bbj/scripts/bbj-check.sh"
+TERM_MANIFESTS = (".claude-plugin/marketplace.json", "plugins/bbj/.claude-plugin/plugin.json",
+                  "plugins/bbj/.codex-plugin/plugin.json", "plugins/bbj-local/.claude-plugin/plugin.json")
+# a missing one of these is a hit: the gate must not pass over a tree that lost its scope
+TERM_REQUIRED = ("README.md", "docs/install.md", "plugins/bbj/skills/bbj-programming/SKILL.md",
+                 "plugins/bbj/skills/bbj-web-programming/SKILL.md", TERM_HOOK,
+                 "plugins/bbj/.claude-plugin/plugin.json", "plugins/bbj/.codex-plugin/plugin.json")
+
+
+def term_in_scope(rel):
+    return (rel in ("README.md", "CHANGELOG.md", TERM_HOOK) or rel in TERM_MANIFESTS
+            or (rel.startswith("docs/") and rel.endswith(".md"))
+            or (rel.startswith("plugins/bbj/skills/") and rel.endswith(".md")))
+
+
+def description_strings(node, out):
+    """Collect every value of a key named description, anywhere in a parsed JSON value."""
+    if isinstance(node, dict):
+        for k, v in node.items():
+            if k == "description" and isinstance(v, str):
+                out.append(v)
+            else:
+                description_strings(v, out)
+    elif isinstance(node, list):
+        for v in node:
+            description_strings(v, out)
+    return out
+
+
+def term_scan_text(rel, raw):
+    """The text the term gate scans in one file, whitespace-squashed (Unicode \\s, so a
+    non-breaking space and a line break count) and lower-cased: the CHANGELOG without its released
+    history, the hook without full-line comments, a manifest as its description strings, else the
+    whole file."""
+    text = raw
+    if rel == "CHANGELOG.md":
+        text = changelog_scan_text(raw)
+    elif rel == TERM_HOOK:
+        text = "\n".join(ln for ln in raw.split("\n") if not ln.lstrip().startswith("#"))
+    elif rel in TERM_MANIFESTS:
+        try:
+            text = "\n".join(description_strings(json.loads(raw), []))
+        except ValueError:
+            text = raw
+    return re.sub(r"\s+", " ", text).lower()
 
 
 def names_retired(term, low):
@@ -584,6 +652,45 @@ else:
 gate("no_removed_pages", removed_scanned > 0 and not removed_hits, removed_detail)
 
 
+# NAME-04 (phase 14, D-08 to D-10): one term list. The retired variants stay out of the shipped text;
+# "language server" passes only inside TERM_DEFINITION. Exempt: CHANGELOG entries up to 0.2.1,
+# .planning/, .claude/CLAUDE.md (the term list names the variants), tests/ and full-line comments
+# of the hook. Hits print as file:variant, sorted.
+term_hits = []
+term_scanned = 0
+for rel in TERM_REQUIRED:
+    if rel not in retired_rels:
+        term_hits.append("%s:missing" % (rel,))
+for rel in retired_rels:
+    if not term_in_scope(rel):
+        continue
+    try:
+        with open(os.path.join(ROOT, rel), "rb") as f:
+            raw = f.read().decode("utf-8", errors="replace")
+    except OSError:
+        if rel in TERM_REQUIRED:
+            term_hits.append("%s:unreadable" % (rel,))
+        continue
+    term_scanned += 1
+    low = term_scan_text(rel, raw)
+    for v in TERM_VARIANTS:
+        if TERM_RES[v].search(low):
+            term_hits.append("%s:%s" % (rel, v))
+    if LANGUAGE_SERVER_RE.search(low.replace(TERM_DEFINITION.lower(), "")):
+        term_hits.append("%s:%s" % (rel, LANGUAGE_SERVER))
+if retired_mode == "nogit":
+    term_detail = "git ls-files listed nothing in the checkout (git missing, unsafe directory or GIT_DIR set)"
+elif term_scanned == 0:
+    term_detail = "no file scanned (%s mode)" % (retired_mode,)
+elif term_hits:
+    term_detail = "retired terms in shipped text (%s mode): %s" % (retired_mode, ", ".join(sorted(set(term_hits))))
+else:
+    term_detail = ("%d shipped files scanned (%s mode); no retired term, the words language server only in "
+                   "the definition (CHANGELOG up to 0.2.1, .planning/, .claude/CLAUDE.md, tests/ and hook "
+                   "comments exempt)" % (term_scanned, retired_mode))
+gate("no_retired_terms", retired_mode != "nogit" and term_scanned > 0 and not term_hits, term_detail)
+
+
 # CODEX-04: prove the gates above can fail. Each case copies the repository files this script
 # reads into a fresh temp directory, changes one thing, runs this file on the copy (a root
 # argument turns this section off, so a copy run never recurses) and requires the named gates to
@@ -981,5 +1088,10 @@ if len(sys.argv) == 1:
     mutation_case("removed_page_planning_exempt", [".planning/notes.md"],
                   lambda dst: plant(dst, ".planning/notes.md", "the page docs/" + REMOVED_PAGES[1]),
                   [])
+
+    # NAME-04 (phase 14, D-10): a planted retired variant fails the term gate
+    mutation_case("retired_term_readme", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "Use the " + TERM_VARIANTS[0] + " that exists."),
+                  ["no_retired_terms"])
 
 sys.exit(1 if failed else 0)
