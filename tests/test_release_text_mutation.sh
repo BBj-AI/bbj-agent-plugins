@@ -17,6 +17,9 @@
 # install page and require release_no_unrun_hint to fail (DOCS-04). Plan 14-01 (D-04) merged the two
 # install pages into docs/install.md, so the page cases are no_unrun_hint_install_page and
 # no_unrun_hint_install_page_linux_only (the two hints of the former Claude Code and Codex cases).
+# Plan 14-02 (DOCS-07, D-06): one case per README Verified cell (cell_<row>_<platform>), each a change of
+# one qualifier or word in that cell's row, and one case (cell_qualifiers_defined) that renames a
+# qualifier in the intro only.
 # Plan 10-08 (REL-07): the not_run case is generic (it prefixes every Not run line), so a later
 # re-pin of NOT_RUN_LINES does not touch this file.
 # Plan 11-02 (D-07 to D-09): the copy holds no Codex script, so the script's quote, status line and
@@ -186,6 +189,10 @@ mutate codex_version_single docs/install.md '1,/Codex CLI [0-9][0-9.]*/s/Codex C
 # version of the README row "| Claude Code |" (the Linux column); the other mentions stay as they are
 mutate claude_version_single docs/install.md '1,/Claude Code [0-9][0-9.]* on Windows/s/Claude Code [0-9][0-9.]* on Windows/Claude Code 2.1.0 on Windows/'
 mutate claude_version_single README.md '/^| Claude Code |/s/[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*/9.9.0/' claude_version_single_readme
+# DOCS-07 (plan 14-02, D-06): a changed qualifier in a cell fails that cell's gate; a qualifier the
+# intro no longer defines fails cell_qualifiers_defined
+mutate cell_claude_code_macos README.md '/^| Claude Code |/s/(hook run directly); Claude Code 2.1.296/(hook); Claude Code 2.1.296/'
+mutate cell_qualifiers_defined README.md '/^## Verified/,/^| Client/s/(hook run directly)/(by hand)/g'
 # DOCS-04 (plan 10-06): an old hint put back into the README or the install page fails the gate
 mutate no_unrun_hint README.md '/^| Claude Code |/s/$/ Tested on Linux only./' no_unrun_hint_readme
 mutate no_unrun_hint docs/install.md '1s/$/ The plugin has not yet been run on Windows./' no_unrun_hint_install_page
