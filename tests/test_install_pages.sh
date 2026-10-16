@@ -95,12 +95,10 @@ HOOK_TRUST_BYPASS='dangerously-bypass'
 # ---- the install page, Claude Code pins ----
 if [ -f "$PAGE" ]; then
   n=claude
-  # IN-04: the pins both lists hold on purpose (D-04; one gate per prefix, each naming the reader it
-  # protects): '## Check routes', '## Not covered', '## Windows', '## macOS', 'Git for Windows',
-  # 'commandWindows', 'once per session', 'not compile-checked', 'recommended where BBjServices 26.03',
-  # 'preferred over the hosted check', 'PREFIX, classpath and config', '## 4. Enable the plugin
-  # `bbj-local`', 'Verified on Linux, Windows and macOS' and 'the hosted BBj docs server'. A failure of
-  # one of them names its prefix, not which of the two lists caught it: look in both lists.
+  # IN-04: the pins that appear in both lists (claude_ and codex_) are there on purpose (D-04; one gate
+  # per prefix, each naming the reader it protects). A failure of one of them names its prefix, not
+  # which of the two lists caught it: look in both lists. The pins are not enumerated here, so this
+  # comment cannot drift from the lists (REVIEW IN-08).
   for p in \
     'claude plugin install bbj@basis-bbj' \
     'claude plugin marketplace add BBj-AI/bbj-agent-plugins' \
