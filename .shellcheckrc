@@ -8,7 +8,6 @@
 #   SC2016  awk and sed programs live in single quotes on purpose; the shell must not expand them
 #   SC1003  case patterns such as *'\'* match a backslash or an apostrophe literally
 #   SC2012  resolve_link parses "ls -ld" only to read a link target where readlink is missing
-#   SC2181  one reply check reads $? after a command substitution on purpose
 # Warnings are never disabled here; a deliberate one carries an inline directive and a reason.
 shell=sh
-disable=SC1091,SC2015,SC2016,SC1003,SC2012,SC2181
+disable=SC1091,SC2015,SC2016,SC1003,SC2012
