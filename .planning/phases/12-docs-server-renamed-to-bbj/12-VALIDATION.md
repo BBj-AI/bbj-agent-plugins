@@ -30,7 +30,7 @@ created: "2026-10-15"
 
 - **After every task commit:** Run the task's verify block plus `python3 -I tests/test_layout.py`
 - **After every plan wave:** Run `sh tests/run.sh`
-- **Before `/gsd-verify-work`:** Full suite must be green (last run 2026-10-16, tree after Phase 13: `ok=797 fail=0 skip=0`)
+- **Before `/gsd-verify-work`:** Full suite must be green (last run 2026-10-16, tree after Phase 14: `ok=857 fail=0 skip=0`)
 - **Max feedback latency:** 60 seconds
 
 ---
@@ -40,7 +40,7 @@ created: "2026-10-15"
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
 | 12-01-01 | 01 | 1 | NAME-01 | — | N/A | layout pin | `python3 -I tests/test_layout.py` (`layout_bbj_mcp`) | ✅ | ✅ green |
-| 12-01-01 | 01 | 1 | NAME-01 | — | N/A | client (real Claude Code, CI) | `sh tests/test_claude_plugin.sh` (`mcp_docs_answers`, CC_LABEL `plugin:bbj:bbj`) | ✅ | ✅ green |
+| 12-01-01 | 01 | 1 | NAME-01 | — | N/A | client (real Claude Code, CI) | `sh tests/test_claude_plugin.sh` (`claudeplugin_mcp_docs_answers`, CC_LABEL `plugin:bbj:bbj`) | ✅ | ✅ green |
 | 12-01-02 | 01 | 1 | NAME-01 | — | N/A | layout pin | `python3 -I tests/test_layout.py` (`layout_codex_mcp`, `layout_codex_url_equals_default`) | ✅ | ✅ green |
 | 12-02-01 | 02 | 2 | NAME-02 | — | throwaway homes only; real config cksums unchanged | harness self-test | `sh .planning/phases/12-docs-server-renamed-to-bbj/signin-run/run.sh selftest` | ✅ | ✅ green |
 | 12-02-02 | 02 | 2 | NAME-02 | — | owner signs in; agent never does | manual | see Manual-Only | ✅ | ✅ recorded |
@@ -87,4 +87,12 @@ Existing infrastructure covers all phase requirements.
 |---|---|
 | Gaps found | 0 |
 | Resolved | 0 |
+| Escalated | 0 |
+
+## Validation Audit 2026-10-16
+
+| Metric | Count |
+|---|---|
+| Gaps found | 1 |
+| Resolved | 1 |
 | Escalated | 0 |
