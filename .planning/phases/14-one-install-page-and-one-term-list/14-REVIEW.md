@@ -2,41 +2,24 @@
 phase: 14-one-install-page-and-one-term-list
 reviewed: 2026-10-16T00:00:00Z
 depth: standard
-files_reviewed: 28
+files_reviewed: 11
 files_reviewed_list:
-  - .claude/CLAUDE.md
-  - .shellcheckrc
   - README.md
   - docs/install.md
-  - plugins/bbj/.claude-plugin/plugin.json
-  - plugins/bbj/.codex-plugin/plugin.json
-  - plugins/bbj/skills/bbj-programming/SKILL.md
-  - plugins/bbj/skills/bbj-web-programming/SKILL.md
-  - tests/fake-bin/cygpath
-  - tests/fake_mcp.py
+  - tests/lib.sh
   - tests/run.sh
   - tests/test_ci_gates.sh
-  - tests/test_claude_plugin.sh
-  - tests/test_codex_patch.sh
-  - tests/test_discovery.sh
-  - tests/test_exit_contract.sh
   - tests/test_hook_mutation.sh
   - tests/test_hook_review_fixes.sh
   - tests/test_install_pages.sh
   - tests/test_layout.py
-  - tests/test_never_execute.sh
-  - tests/test_noroute_notice.sh
-  - tests/test_real_compiler.sh
-  - tests/test_release_text.py
-  - tests/test_release_text_mutation.sh
-  - tests/test_static_guards.sh
   - tests/test_tier2_fake.sh
   - tests/test_tier2_live.sh
 findings:
   critical: 0
   warning: 3
-  info: 6
-  total: 9
+  info: 4
+  total: 7
 status: issues_found
 ---
 
@@ -44,159 +27,123 @@ status: issues_found
 
 **Reviewed:** 2026-10-16
 **Depth:** standard
-**Files Reviewed:** 28
+**Files Reviewed:** 11
 **Status:** issues_found
 
 ## Summary
 
-Incremental review of the two fix commits since `6fb6594` (`10d3d4f` WR-01, `5b78d6c` WR-02) on top of the
-previous Phase 14 review. The full suite was run once (`sh tests/run.sh`): `SUMMARY: ok=856 fail=0 skip=0`,
-`gate run_prefix_block ok`. `tests/test_ci_gates.sh` was also run under dash, bash and busybox sh: 19 ok
-gates each, including the new `run_prefix_awk_crash`.
+Incremental re-review of `git diff a416ad8..HEAD` over the eleven listed files: the Phase 14 review
+fixes (WR-05, IN-01 to IN-06) and the later Phase 12 review fixes (`tests/lib.sh` curl seams, the
+`@empty` write-out case, the live blackhole gate, the hook-mutation comment). ShellCheck (`-s sh`) is
+clean on all touched shell files. `tests/test_hook_review_fixes.sh` and `tests/test_tier2_live.sh` were run
+by hand, also from a different working directory; the live blackhole gate was run against
+`http://192.0.2.1:9/mcp` and printed `ok` (curl exit 28, `time_connect 0.000000`, empty `remote_ip`), so the
+contract the hook relies on holds on this machine's curl.
 
-WR-01 is fixed and complete. `tests/run.sh` now captures the prefix awk program's output in `_pb` and
-replaces anything that does not start with `gate run_prefix_block ` by a FAIL gate, so an awk that errors,
-is missing or rejects the program can no longer pass silently. The `$(...)` around the single-quoted awk
-program holds no `#`, no unbalanced quote and no new expansion; it runs under all three shells. The new
-case crashes the awk only for the prefix program (`-v cl=`) and asserts exit 1 plus the FAIL text, and the
-gate name sits under the existing `run_` prefix, so the prefix block is unchanged. No regression found in
-the gate-prefix contract.
+### Disposition of the previously fixed findings
 
-WR-02 is not complete. The reworded README intro still tells the reader something the
-`(bbj-local plugin connected)` qualifier says was not seen (WR-05). WR-03, WR-04 and IN-01 to IN-04 were
-re-checked against the current source and all still apply; they are carried forward unchanged. Two small
-new Info items concern the fix itself.
+| Finding | Fix correct? | Note |
+|---------|--------------|------|
+| WR-05 README "seen working" | Yes | Intro and first sentence now say "seen"; the qualifiers carry the strength. The `(bbj-local plugin connected)` cell is no longer contradicted. |
+| IN-01 sixth term variant, `REMOVED_PAGES` | Partly | Variant added and mutation-tested, but it only matches with backticks (new WR-06), and the new anchor form of `REMOVED_PAGES` has no mutation case (IN-07). |
+| IN-02 banner dates | Yes | Every added date (Linux Claude Code 2026-10-15, Linux Codex 2026-10-15, Windows Codex 2026-10-16) matches a dated "Observed on" line (`docs/install.md:138, 153, 391`). |
+| IN-03 wording | Yes | "step 3" is the sign-in step; "item 3" is the "Neither" item of the check-route list. |
+| IN-04 slug width | Yes | 60 characters; comment added. The pin list in the comment is hand-copied (see IN-08). |
+| IN-05 run.sh header | Yes | Bullet matches the fail-closed branch at `tests/run.sh:143-147`. |
+| IN-06 awk wrapper | Yes | ` -v cl=` is unique to the prefix call (`tests/run.sh:91`); the other awk calls use `-v f=`. |
+| Phase 12 WR-01 `lib.sh` seams | Yes | The three seams are unset; the new `reviewfix_curl_seams_cleared` gate proves all three (a missing one makes the `\|\|` comparison fail). No test sets a seam before sourcing `lib.sh`. |
+| Phase 12 IN-04 `@empty` | Yes | The fake curl keys on `${X+x}`, so `FAKE_CURL_WRITEOUT=` reproduces "set but empty"; the hook (`bbj-check.sh:307`) needs `-n "$_wo"`, so the route stays a reached one and stays silent, as the gate asserts. `oncegate` unsets the seams after each call. |
+| Phase 12 WR-03 live blackhole gate | Yes, with a weak spot | See IN-06 below. |
+
+WR-03 (source of truth for the gate-prefix block inside the generated `GSD:conventions` region,
+`.claude/CLAUDE.md:101-260`) and WR-04 (content changed with all five versions still `0.2.1` and the top
+`CHANGELOG.md` entry still `## 0.2.1`) were re-checked and still apply. Both are recorded as skipped,
+waiting on a user decision, in `14-REVIEW-FIX.md`; they are carried forward unchanged below.
 
 ## Warnings
 
+### WR-06: The sixth retired term is matched only when written with backticks
+
+**File:** `tests/test_layout.py:188-194` (`TERM_VARIANTS`), `tests/test_layout.py:200` (`TERM_RES`), `tests/test_layout.py:231-246` (`term_scan_text`)
+**Issue:** The IN-01 fix added the variant as the literal text ``the `bbj-local` server``. `term_scan_text`
+only squashes whitespace and lower-cases; it keeps backticks, and the regex is `re.escape` of the variant.
+So ``the bbj-local server`` (no backticks) is not found. That is how a sentence in prose, and above all a
+manifest description string, is usually written (a JSON `description` rarely carries Markdown backticks).
+Reproduced by reading the code: the only mutation case plants the backtick form into `README.md`, so the
+gate passes its own test while the plain form passes the gate. `grep` finds neither form in shipped text
+today, so nothing is wrong now; the gate just does not hold the line the term list draws.
+**Fix:** Match with the backticks optional, for example build the sixth regex with a pattern instead of
+`re.escape`, or drop backticks before matching:
+```python
+return re.sub(r"\s+", " ", text.replace("`", "")).lower()   # in term_scan_text
+```
+and write the variant without backticks (``"the bbj-local" + " server"``); `TERM_LIST_PHRASES` must then
+find the variant in `.claude/CLAUDE.md` with the same stripping, or keep a separate backtick-free needle for
+that gate. Add a mutation case that plants the plain form into a manifest description.
+
 ### WR-03: The gate's "source of truth" sits inside a regenerated GSD section
 
-**Carried forward from the previous review (not fixed; still applies).**
+**Carried forward (not fixed; still applies).**
 
 **File:** `.claude/CLAUDE.md:101-260` (block at lines 193-213), `tests/run.sh:10-20, 80-95`
 **Issue:** `run.sh` calls `.claude/CLAUDE.md` the source of truth for the prefix block, but the block is
-inside `<!-- GSD:conventions-start source:CONVENTIONS.md -->` (line 101, end marker line 260). That region
-is generated from `.planning/codebase/CONVENTIONS.md`, and the generator visibly shortens text (new Phase 14
-entries are cut mid-sentence, and the anti-pattern heading at line 374 still has no body). The gate keeps
-passing only while a person keeps both files identical by hand. A regeneration that reformats a block line
-makes the line fail the strict regex `G`, and the file is then reported as "in tests/, not in the block"
-(a confusing message for a formatting change).
-**Fix:** Either move the block outside the generated markers (for example above `GSD:conventions-start`),
-or make `CONVENTIONS.md` the source and have `run.sh` read only it. Whichever is chosen, state in the
-anti-pattern text (currently empty at `.claude/CLAUDE.md:374`) which file is edited by hand.
+inside `<!-- GSD:conventions-start source:CONVENTIONS.md -->` (line 101, end marker line 260), a region
+generated from `.planning/codebase/CONVENTIONS.md`. A regeneration that shortens or reformats a block line
+fails the strict regex and is then reported as "in tests/, not in the block", a confusing message for a
+formatting change.
+**Fix:** Move the block outside the generated markers, or make `CONVENTIONS.md` the only source and have
+`run.sh` read just it; state in the anti-pattern text which file is edited by hand.
 
 ### WR-04: User-visible changes to shipped 0.2.1 content with no version bump or changelog entry
 
-**Carried forward from the previous review (not fixed; still applies).**
+**Carried forward (not fixed; still applies).**
 
 **File:** `plugins/bbj/skills/bbj-programming/SKILL.md:7-10`, `plugins/bbj/skills/bbj-web-programming/SKILL.md:7-10`, `plugins/bbj/.claude-plugin/plugin.json:4,15`, `plugins/bbj/.codex-plugin/plugin.json:4`, `CHANGELOG.md`
-**Issue:** The check-order text the agent reads, both manifest descriptions and the `docs_url` option
-description changed, and `docs/install-claude-code.md` and `docs/install-codex.md` were deleted (any
-external link to them now 404s). The version stays `0.2.1` in all five fields (re-checked), which
-`CLAUDE.md` describes as shipped on 2026-10-15, and the top of `CHANGELOG.md` is still the unchanged
-`## 0.2.1` entry. Claude Code and Codex key the plugin cache on the version, so users on 0.2.1 are not
-offered the new skill text, and `tests/test_layout.py` `no_removed_pages` exempts the frozen 0.2.0 entry that
-still links the removed pages. If a later phase of this milestone bumps the version and writes the entry,
-this is only an ordering risk; as merged, the repository states 0.2.1 for two different contents.
-**Fix:** Before this phase ships on its own, bump all five version fields together and add a changelog entry
-that names the single install page (`docs/install.md`) and the removed pages; otherwise record in the phase
-plan that the release phase owns both.
-
-### WR-05: README "Verified" intro still claims `bbj-ls` "was seen working" in a cell whose qualifier says no check call was seen
-
-**File:** `README.md:42-46` (intro) and `README.md:51` (Claude Code / Linux cell)
-**Issue:** New finding; the WR-02 fix is incomplete. The fix replaced "gave a verdict" with "was seen working
-in every cell that names `bbj-ls`". The intro defines `(bbj-local plugin connected)` as "the client listed
-the server ... as connected, and no check call was seen". The Claude Code / Linux cell carries exactly that
-qualifier, so for that cell the server was listed, not seen working: nothing was observed to work, which is
-the same contradiction in different words. The first sentence of the section ("A cell names the checks seen
-working") has the same overreach for that one cell. This is the verified-claims table the project's Core
-Value rests on. `tests/test_release_text.py` (`cell_qualifiers_defined`) only checks that each qualifier
-string occurs in the intro, so no test catches it.
-**Fix:** Say only what all five qualifiers share, and let the qualifier carry the strength, for example:
-"`bbj-ls`, the BBj language server in BBjServices, was seen in every cell that names `bbj-ls`; the qualifier
-says what was seen." Keep the qualifier definitions, the `connected` cell and the closing sentence ("A check
-that is not named in a cell was not seen there") unchanged, and soften "checks seen working" in the first
-sentence to "checks seen" if that sentence is meant to cover the `connected` cell too. If the owner prefers
-to keep "working", move the `connected` case out of the cell into the "Not run, so not claimed" list.
+**Issue:** Skill check-order text, manifest descriptions and the `docs_url` description changed, and the two
+old install pages were removed, while all five version fields (re-checked) stay `0.2.1` and the top
+`CHANGELOG.md` heading is still `## 0.2.1`. The plugin cache is keyed on the version, so users on 0.2.1 are
+not offered the new text, and the repository states 0.2.1 for two contents.
+**Fix:** Bump all five version fields together and add a changelog entry naming `docs/install.md` and the
+removed pages, or record in the phase plan that the release phase owns both.
 
 ## Info
 
-### IN-01: The term list names more retired variants than the gate enforces
+### IN-06: The live blackhole gate accepts a curl that printed no write-out at all
 
-**Carried forward from the previous review (not fixed; still applies).**
+**File:** `tests/test_tier2_live.sh:30-41`
+**Issue:** The hook only treats exit 28 as "no connection" when the write-out is non-empty
+(`bbj-check.sh:307`, `[ -n "$_wo" ]`). The gate omits that half: with exit 28 and nothing after the last
+newline, `_bht` and `_bhip` are both empty, the `tr` test is empty, and the gate prints `ok` although the
+`-w` contract (a `time_connect` field was printed) was not shown. A real curl always prints it, so this is
+a weak assertion, not a wrong result.
+**Fix:** Require a field: add `[ -n "$_bhwo" ] &&` to the condition.
 
-**File:** `.claude/CLAUDE.md:176-186` (line 181), `tests/test_layout.py:180-189`
-**Issue:** The term list retires "the `bbj-local` server" and "docs MCP server" (the second is covered by
-the `docs mcp` pattern), but `TERM_VARIANTS` holds five patterns and none matches "the `bbj-local` server".
-`grep` finds no current use in shipped text, so nothing is wrong today. Related: `REMOVED_PAGES` is
-asymmetric (`install-claude-code` without `.md`, `install-codex.md` with it, line 180), so
-`docs/install-codex#x` or a bare `install-codex` in README is not flagged.
-**Fix:** Add the sixth pattern (`bbj-local` followed by a backtick and ` server`) to `TERM_VARIANTS`, or drop
-it from the list; use `install-codex.md` and `install-codex#` consistently, or state why the asymmetry exists.
+### IN-07: The new `REMOVED_PAGES` anchor form and the moved comment have no test or the wrong place
 
-### IN-02: Banner dates and counts on `docs/install.md` lag the runs the page describes
+**File:** `tests/test_layout.py:183`, `tests/test_layout.py:1105-1126`, `tests/test_layout.py:1146-1152`
+**Issue:** (a) `REMOVED_PAGES[2]` (the Codex stem followed by `#`) is new, but the six removed-page mutation
+cases plant only index 0 and 1; a regression that drops the third entry passes. (b) The IN-01 insertion
+split the comment `# scope: a skill reference` from its case: it now sits above the new
+`retired_term_bbj_local_server` case, and `retired_term_reference` has no comment. (c) A bare link
+without extension to the Codex page is still not matched; the comment explains why, but README links
+normally carry `.md`, so this is acceptable.
+**Fix:** Add `mutation_case("removed_page_anchor", ...)` planting ``"docs/install.md ... " + REMOVED_PAGES[2]``
+style text into the README, and move the comment line back above `retired_term_reference`.
 
-**Carried forward from the previous review (not fixed; still applies).**
+### IN-08: Hand-copied pin list in a comment will drift
 
-**File:** `docs/install.md:3-9`, `docs/install.md:131-142`, `docs/install.md:374-379`
-**Issue:** The banner gives Claude Code 2.1.299 on Linux as 2026-10-14 and Codex on Windows as 2026-10-13
-and 2026-10-14, but the page describes a Claude Code Linux run on 2026-10-15 (line 137), a Codex Linux run
-on 2026-10-15 (line 152) and a Windows PowerShell/Codex run on 2026-10-16. The banner also does not say that
-the Linux Claude Code hook was run directly (the README cell does). Nothing is false, but a banner meant as
-the summary is not one.
-**Fix:** Align the banner dates with the dated "Observed on" lines, or remove dates from the banner and let
-the README table carry them.
+**File:** `tests/test_install_pages.sh:98-103`
+**Issue:** The IN-04 comment lists fourteen pins that both the `claude_` and `codex_` lists hold. If one is
+removed from one list the comment is silently wrong, and nothing checks it. Content verified accurate today.
+**Fix:** Say "the pins that appear in both lists" without enumerating them, or derive the list in a gate.
 
-### IN-03: Install page wording that the page itself contradicts
+### IN-09: The blackhole gate is a skip even under `BBJ_LS_LIVE=1`
 
-**Carried forward from the previous review (not fixed; still applies).**
-
-**File:** `docs/install.md:19-20`, `docs/install.md:253-254`
-**Issue:** "Installing takes a few minutes; nothing asks you a question, the defaults apply" precedes steps
-that need a browser sign-in (step 3) and, in Codex, a hook review in `/hooks`. "The hook has two checks and
-tries them in this order" is followed by three numbered items (the third is "Neither"). The sentence on the
-`docs_url` option is stated twice in the "Options" section ("Codex has no options ... Codex plugins have no
-options", lines 236-237).
-**Fix:** "Installing takes a few minutes; the defaults apply, then you sign in (step 3)." "The hook has two
-checks and tries them in this order; item 3 is the case where neither answers." Drop the repeated clause.
-
-### IN-04: Test pins are duplicated under two prefixes on one page
-
-**Carried forward from the previous review (not fixed; still applies).**
-
-**File:** `tests/test_install_pages.sh:101-228`
-**Issue:** After the merge the `claude_` and `codex_` lists both pin `## Check routes` (lines 104, 153, 219),
-`## Not covered` (108, 154, 220), `once per session` (130, 230, 275) and others against the same file,
-producing two gates per fact. The header says this is on purpose (D-04, a prefix names the reader it
-protects), so a failure message cannot tell the two apart. Also `slug` (line 47) cuts gate names at 40
-characters, so two long pins sharing a 40-character stem would print one gate name twice (none do today).
-**Fix:** Keep each shared pin under one prefix, or note the duplication next to the lists; widen `slug` or
-add an index if a pin is ever added with a long common stem.
-
-### IN-05: The `run.sh` header does not list the new FAIL condition
-
-**File:** `tests/run.sh:10-25`
-**Issue:** New finding, from the WR-01 fix. The header enumerates every reason `run_prefix_block` is FAIL
-("The gate is FAIL when ..."), and `tests/test_ci_gates.sh` line 11 lists the cases. The fix added a fifth
-reason (the prefix check itself did not run, lines 141-146) but the `run.sh` header still lists only the
-earlier ones. The header is what a maintainer reads to learn when this gate can fail, and the new message
-("the prefix check did not run (awk failed or printed no gate line)") is not explained anywhere except the
-two-line comment at the `case`.
-**Fix:** Add a bullet to the header list: "- the prefix check itself did not run: the awk program printed no
-`gate run_prefix_block` line (it errored, was missing or rejected the program)."
-
-### IN-06: The awk-crash test keys on argument order of the production call
-
-**File:** `tests/test_ci_gates.sh:173-186`
-**Issue:** New finding, from the WR-01 fix. The wrapper crashes when `"$1$2"` matches `-vcl=*`, which holds
-only while `run.sh` passes `-v cl=...` as the first two arguments of the prefix awk call. If that call is
-reordered or `cl` renamed, the wrapper never fires, the real awk runs, the gate is ok, and the case reports
-`want FAIL holding 'the prefix check did not run', exit 0: gate run_prefix_block ok ...`: a loud failure, but
-one that points at the guard rather than at the wrapper. The case also covers only an awk that fails before
-printing; an awk that prints a non-gate line first is handled by the same `case`, but is not tested.
-**Fix:** Name the coupling in the comment on lines 173-175 ("keys on the first two arguments of the prefix
-call in run.sh"), or match on any argument (`case " $* " in *" -v cl="*)`) so a reorder keeps the test valid.
+**File:** `tests/test_tier2_live.sh:24-26`
+**Issue:** The rest of the file turns an unreachable `bbj-ls` into FAIL when `BBJ_LS_LIVE=1`, but a maintainer
+who sets `BBJ_LS_LIVE=1` and forgets `BBJ_LS_BLACKHOLE_URL` gets `skip` for the one gate that proves the
+exit-28 contract. This follows the documented opt-in (header comment), so it is a convention gap only.
+**Fix:** Either leave as is (documented) or make the missing variable a FAIL when `BBJ_LS_LIVE=1`.
 
 ---
 
