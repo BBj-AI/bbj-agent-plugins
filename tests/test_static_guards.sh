@@ -3,6 +3,7 @@
 # Scans plugins/bbj/scripts/*.sh (override: SCRIPTS_GLOB) with comment lines removed. The
 # forbidden patterns live in this file only; the scripts' own comments are not scanned,
 # so they may describe the rules in words. One gate per pattern and per file.
+# Gate names (D-13): every name starts with static_.
 # Nothing here runs BBj.
 . "$(dirname "$0")/lib.sh"
 
@@ -123,7 +124,7 @@ for f in $SCRIPTS_GLOB; do
       gate "static_shellcheck_$(basename "$f")" FAIL "$(head -n 3 "$WORK/shellcheck" | tr '\n' ' ')"
     fi
   else
-    gate shellcheck skip "not installed"
+    gate "static_shellcheck_$(basename "$f")" skip "not installed"
   fi
 done
 [ "$found" = 1 ] || gate static_files FAIL "no script matched $SCRIPTS_GLOB"
