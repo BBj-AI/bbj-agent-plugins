@@ -18,7 +18,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 - [x] **NAME-01**: The docs server is named `bbj` in `plugins/bbj/.mcp.json` and `plugins/bbj/.codex-mcp.json`; no `bbj-docs` remains in shipped files outside CHANGELOG history; a gate keeps it out
 - [x] **NAME-02**: Skills, the check-order block, the hook notice and the docs name `bbj` and give the sign-in with the labels the real clients show (expected `/mcp` → `plugin:bbj:bbj` and `codex mcp login bbj`)
 - [ ] **NAME-03**: Sign-in under the new name is confirmed on real Claude Code and real Codex (Linux at least) on the release tree
-- [ ] **NAME-04**: One term list is written down in the conventions (plugin `bbj-local` vs server `bbj-ls`, "docs server", "hosted check", "tier 1"/"tier 2"); docs, skills and test names follow it; a gate rejects the retired variants in shipped Markdown
+- [x] **NAME-04**: One term list is written down in the conventions (plugin `bbj-local` vs server `bbj-ls`, "docs server", "hosted check", "tier 1"/"tier 2"); docs, skills and test names follow it; a gate rejects the retired variants in shipped Markdown
 
 ### Docs
 
@@ -68,7 +68,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | NAME-01 | Phase 12 | Complete |
 | NAME-02 | Phase 12 | Complete |
 | NAME-03 | Phase 15 | Pending |
-| NAME-04 | Phase 14 | Pending |
+| NAME-04 | Phase 14 | Complete |
 | DOCS-05 | Phase 14 | Complete |
 | DOCS-06 | Phase 11 | Complete |
 | DOCS-07 | Phase 14 | Complete |
