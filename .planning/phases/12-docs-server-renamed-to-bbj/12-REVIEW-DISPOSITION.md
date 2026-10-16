@@ -5,38 +5,48 @@ titles: json
 findings:
   - id: WR-01
     severity: warning
-    disposition: fixed
-    title: "Install-page needles are prefixes of the old names, so they cannot detect a regression"
+    disposition: open
+    title: "`FAKE_CURL_WRITEOUT` leaks into tests that assume the fake prints no write-out"
   - id: WR-02
     severity: warning
-    disposition: fixed
-    title: "`mcp_docs_answers` now depends on Claude Code's `<label>: <url>` list format, recorded on 2.1.299 but CI pins 2.1.293"
+    disposition: open
+    title: "The test runner and a layout gate read their rules from `.claude/CLAUDE.md`, a tool-managed instructions file"
+  - id: WR-03
+    severity: warning
+    disposition: open
+    title: "Sibling gates do not prove the exit-28 write-out contract against a real curl"
   - id: IN-01
     severity: info
-    disposition: skipped
-    title: "Hook notice and skills name the server only as bare `bbj`, which the model may confuse with the plugin or the `bbj-local` tool"
+    disposition: open
+    title: "The tier-2 feedback header names the plugin `bbj-local`, but the hook does not use the plugin"
   - id: IN-02
     severity: info
-    disposition: fixed
-    title: "Misaligned continuation lines after the `DOCS_SERVER` substitution in `test_layout.py`"
+    disposition: open
+    title: "Stale comment about the prefix list"
   - id: IN-03
     severity: info
-    disposition: fixed
-    title: "README bullet reads awkwardly after the rename"
-open: 0
-total: 5
-recorded: 2026-10-15T14:25:52.790Z
+    disposition: open
+    title: "One hook run can still outlast its 30-second timeout when `bbj-ls` accepts but never answers"
+  - id: IN-04
+    severity: info
+    disposition: open
+    title: "`FAKE_CURL_WRITEOUT` cannot express \"set but empty\" through `oncegate`"
+open: 7
+total: 7
+recorded: 2026-10-16T11:35:34.351Z
 ---
 
 # Phase 12: Code Review Disposition
 
 | Finding | Severity | Disposition | Source |
 |---------|----------|-------------|--------|
-| WR-01 | warning | fixed | 12-REVIEW-FIX.md |
-| WR-02 | warning | fixed | 12-REVIEW-FIX.md |
-| IN-01 | info | skipped | 12-REVIEW-FIX.md |
-| IN-02 | info | fixed | 12-REVIEW-FIX.md |
-| IN-03 | info | fixed | 12-REVIEW-FIX.md |
+| WR-01 | warning | open | - |
+| WR-02 | warning | open | - |
+| WR-03 | warning | open | - |
+| IN-01 | info | open | - |
+| IN-02 | info | open | - |
+| IN-03 | info | open | - |
+| IN-04 | info | open | - |
 
 Dispositions: `open` (recorded, not yet triaged), `fixed`, `skipped`, `deferred`.
 Set `deferred` by hand and put the reason in the Source cell; both are preserved. A `|` in the reason is kept as prose and escaped on the next run.
