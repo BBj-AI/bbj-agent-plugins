@@ -1,0 +1,16 @@
+Date: 2026-10-16
+Mode: strict (planning.pr_strict=true); commit list restricted to bd711f2..gsd/planning-setup (research Pattern 3) and to commits touching a path outside .planning/
+branch: gsd/release-0.2.2
+base: 4234e76ccb369d0fe984ac36825e06b3b8fbf3f1
+head: 0d619fb5f8de5043a3eb8771ce3006b537584653
+tree: 9146b54d5f962b7bf377abfe16e8a4df1caa323b
+commits: 89
+planning_paths: 0
+tree_equal: yes
+version: 0.2.2
+worktree: <home>/.cache/bbj-phase15/release-tree
+planning_head: cd64a2d713816f785c2a6341d40458ce9ffab957 (before this evidence commit)
+origin_main: 4234e76ccb369d0fe984ac36825e06b3b8fbf3f1 (tag 0.2.1 peels to the same commit)
+pushed_to_origin: no
+conflicts: 15 modify/delete conflicts, every one on a .planning/ path only (the path is absent from the base by construction); resolved by the strict filter; no conflict outside .planning/; no commit became empty
+note: 89 commits of bd711f2..gsd/planning-setup touch a path outside .planning/ (planning head cd64a2d at build time)
