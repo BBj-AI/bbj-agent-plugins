@@ -1,0 +1,12 @@
+installed_claude: 2.1.301 (Claude Code)
+current_pin: 2.1.293
+target: 2.1.301
+integrity: sha512-sEqs0D9IIc6GwbdMvss5GHOjLjhaoqbrZWdickLRlG6v4kT946t4pq3zFAmQdUpRgdv1CvtSLyRrrdp+hDS9ww==
+tarball: https://registry.npmjs.org/@anthropic-ai/claude-code/-/claude-code-2.1.301.tgz
+published: 2026-10-15T14:34:23.330Z (2.1.293 was published 2026-10-07T17:18:04.464Z)
+postinstall: node install.cjs (hasInstallScript: true in the 2.1.293 lock, the same)
+engines_node: >=22.0.0 (same as the 2.1.293 lock)
+platform_packages: same eight as the 2.1.293 lock (darwin-arm64, darwin-x64, linux-arm64, linux-arm64-musl, linux-x64, linux-x64-musl, win32-arm64, win32-x64), all at 2.1.301
+dist_tags: stable 2.1.292, next 2.1.302, latest 2.1.301
+maintainers: zak-anthropic, dylanc-anthropic, benjmann, nikhil-anthropic, ejlangev-ant, jv-anthropic, ollie-ant-2025, packy-anthropic, claude-code-npm, noahz-anthropic, sbidasaria, wolffiex, meorphis-anthropic, felixrieseberg-anthropic, joan-anthropic
+owner_verified: pending
