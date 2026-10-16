@@ -87,7 +87,7 @@ Conventions below are grouped by language. The shell rules are the most strictly
 - YAML is hand-written; `tests/test_ci_guards.py` reads it by line scanning, not with a YAML library, so keep each `uses:` and `run:` on its own line in the expected form (`- uses: owner/repo@<40-hex-sha> # vX.Y.Z`).
 
 **Linting:**
-- ShellCheck is the linter. Settings live in `.shellcheckrc` (`shell=sh`, with a list of disabled codes and a comment explaining each one: SC1091, SC2015, SC2016, SC1003, SC2012, SC2181).
+- ShellCheck is the linter. Settings live in `.shellcheckrc` (`shell=sh`, with a list of disabled codes and a comment explaining each one: SC1091, SC2015, SC2016, SC1003, SC2012).
 - Warnings are never disabled globally. A deliberate single warning carries an inline directive with a reason, for example:
   ```sh
   # shellcheck disable=SC2143  # the find output is filtered, not just tested for a match

@@ -157,7 +157,7 @@ and `bbj-ls`).
 - Exit via `sys.exit(1 if failed else 0)` or a `done()` helper.
 - JSON uses 2-space indentation (see `.github/ci-tools/package.json`).
 - YAML is hand-written; `tests/test_ci_guards.py` reads it by line scanning, not with a YAML library, so keep each `uses:` and `run:` on its own line in the expected form (`- uses: owner/repo@<40-hex-sha> # vX.Y.Z`).
-- ShellCheck is the linter. Settings live in `.shellcheckrc` (`shell=sh`, with a list of disabled codes and a comment explaining each one: SC1091, SC2015, SC2016, SC1003, SC2012, SC2181).
+- ShellCheck is the linter. Settings live in `.shellcheckrc` (`shell=sh`, with a list of disabled codes and a comment explaining each one: SC1091, SC2015, SC2016, SC1003, SC2012).
 - Warnings are never disabled globally. A deliberate single warning carries an inline directive with a reason, for example:
 - `tests/ci.sh` runs `shellcheck -s sh` over shipped and test scripts. Under `CI=true` a missing `shellcheck` is a failure.
 - Python has no configured linter; keep to the stdlib style above.
