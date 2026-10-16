@@ -24,7 +24,7 @@ exemption (a 0.2.1 entry, .planning/). The two cases that plant into the install
 plant() would recreate a removed page.
 Phase 14 (NAME-04; D-08 to D-10): layout_no_retired_terms scans the shipped text (README.md, docs/*.md, the
 skills, the non-comment lines of the hook, the description strings of the four manifests, CHANGELOG
-entries newer than 0.2.1) for the five retired variants of the term list (TERM_VARIANTS, assembled
+entries newer than 0.2.1) for the six retired variants of the term list (TERM_VARIANTS, assembled
 from pieces) on whitespace-squashed, lower-cased text, so a variant split by a line break, written in
 capitals or joined by a non-breaking space is found, and a longer word is not. The words "language
 server" pass only inside TERM_DEFINITION. .claude/CLAUDE.md, .planning/ and tests/ are outside the scan
@@ -177,15 +177,21 @@ RETIRED_WORD_RE = re.compile(r"(?<![a-z])" + RETIRED_WORD + r"s?(?![a-z])")
 OLD_SERVER_NAME = "bbj" + "-docs"
 # DOCS-05 (phase 14, D-02): the two install pages that docs/install.md replaced; matched
 # case-insensitively in paths and text. Assembled from pieces, so this file never names them.
-REMOVED_PAGES = ("install" + "-claude-code", "install" + "-codex" + ".md")
-# NAME-04 (phase 14, D-08 to D-10): the five retired variants of the term list, each assembled from
-# two pieces (self-scan convention), and the one definition that may hold the words "language server"
+# The Claude Code page is matched by its bare stem. The Codex stem is also the start of a retired
+# script name (the stem followed by .sh, found in the frozen CHANGELOG entries and in .planning/),
+# so that page is matched only as a page: with ".md" or with a "#" anchor (REVIEW IN-01).
+REMOVED_PAGES = ("install" + "-claude-code", "install" + "-codex" + ".md", "install" + "-codex" + "#")
+# NAME-04 (phase 14, D-08 to D-10): the six retired variants of the term list, each assembled from
+# two pieces (self-scan convention), and the one definition that may hold the words "language server".
+# The sixth is the retired name of the plugin bbj-local (REVIEW IN-01); it is matched with the
+# article, as the term list writes it.
 TERM_VARIANTS = (
     "first" + " route",
     "second" + " route",
     "compiler" + " check",
     "docs" + " mcp",
     "local" + " check",
+    "the `bbj-local`" + " server",
 )
 LANGUAGE_SERVER = "language" + " server"
 TERM_DEFINITION = "`bbj-ls`, the BBj " + LANGUAGE_SERVER + " in BBjServices"
@@ -691,7 +697,7 @@ else:
 gate("no_retired_terms", retired_mode != "nogit" and term_scanned > 0 and not term_hits, term_detail)
 
 
-# NAME-04 (D-07, D-09): the term list stands in the conventions: the five retired variants, the
+# NAME-04 (D-07, D-09): the term list stands in the conventions: the six retired variants, the
 # words of the definition and the allowed terms; a list that loses one fails
 TERM_LIST_FILE = ".claude/CLAUDE.md"
 TERM_LIST_PHRASES = TERM_VARIANTS + (LANGUAGE_SERVER, TERM_DEFINITION.lower(), "tier 1", "tier 2",
@@ -1138,6 +1144,10 @@ if len(sys.argv) == 1:
                   lambda dst: plant(dst, WEB_SKILL, "Run the " + TERM_VARIANTS[4].replace(" ", "\n") + "."),
                   ["no_retired_terms"])
     # scope: a skill reference
+    # the sixth variant: the retired name of the plugin bbj-local (REVIEW IN-01)
+    mutation_case("retired_term_bbj_local_server", ["README.md"],
+                  lambda dst: plant(dst, "README.md", "Start " + TERM_VARIANTS[5] + " first."),
+                  ["no_retired_terms"])
     mutation_case("retired_term_reference", [REFERENCE],
                   lambda dst: plant(dst, REFERENCE, "Run the " + TERM_VARIANTS[2] + "."),
                   ["no_retired_terms"])
