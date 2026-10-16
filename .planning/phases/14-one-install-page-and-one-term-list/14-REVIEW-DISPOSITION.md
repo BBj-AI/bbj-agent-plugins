@@ -17,7 +17,7 @@ findings:
     title: "The gate's \"source of truth\" sits inside a regenerated GSD section"
   - id: WR-04
     severity: warning
-    disposition: skipped
+    disposition: deferred
     title: "User-visible changes to shipped 0.2.1 content with no version bump or changelog entry"
   - id: IN-06
     severity: info
@@ -79,7 +79,7 @@ recorded: 2026-10-16T14:06:21.664Z
 | IN-10 | info | open | - |
 | WR-06 | warning | fixed | 14-REVIEW-FIX.md (not in the current review) |
 | WR-03 | warning | fixed | 14-REVIEW-FIX.md (not in the current review) |
-| WR-04 | warning | skipped | 14-REVIEW-FIX.md (not in the current review) |
+| WR-04 | warning | deferred | Phase 15 (Release 0.2.2) bumps the five versions and writes the 0.2.2 entry naming these changes; ROADMAP note 07645a0 |
 | IN-06 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
 | IN-07 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
 | IN-08 | info | fixed | 14-REVIEW-FIX.md (not in the current review) |
