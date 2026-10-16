@@ -4,17 +4,17 @@ milestone: v0.2.2
 milestone_name: Plugin-only cleanup
 current_phase: 14
 current_phase_name: one-install-page-and-one-term-list
-status: executing
-stopped_at: Completed 14-07-PLAN.md
-last_updated: "2026-10-16T09:09:42.436Z"
+status: verifying
+stopped_at: Completed 14-08-PLAN.md
+last_updated: "2026-10-16T09:17:00.295Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 14 execution started
-state_head: 6b08b56c6918dadd89b2a15c761abd913d62555a
+state_head: d40d1da3e1e92f2910614b52a90febccd1a84664
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 25
-  completed_plans: 24
+  completed_plans: 25
   percent: 60
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 Phase: 14 (one-install-page-and-one-term-list) — EXECUTING
 Plan: 9 of 9
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-10-16 — Phase 14 execution started
 
 Progress: [██████░░░░] 60%
@@ -173,6 +173,7 @@ Progress: [██████░░░░] 60%
 | Phase 14 P05 | 25 min | 2 tasks | 4 files |
 | Phase 14 P06 | 20 min | 2 tasks | 6 files |
 | Phase 14 P07 | 25min | 2 tasks | 4 files |
+| Phase 14 P08 | 20min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -216,6 +217,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 14]: 14-05: the CONVENTIONS.md identity check lives in run.sh inside run_prefix_block; the gate never prints skip (an absent copy is an ok detail, also under CI=true)
 - [Phase 14]: 14-06: FAKE_CYGDRIVE_ROOT kept; only the two cygpath seams without a setter and the fake MCP tools-list modes removed; SC2181 exemption dropped (MAINT-10)
 - [Phase 14]: 14-07: ARCHITECTURE.md keeps the first line of every still-true CLAUDE.md architecture bullet; CONCERNS.md follows the review dispositions (12-REVIEW WR-01 fixed, WR-02 open until a run on the pinned CLI), not the older STATE wording
+- [Phase 14]: 14-08: Core Value section restored in PROJECT.md so generate-claude-md keeps it; CONVENTIONS stdout rule corrected for the no-route notice
 
 ### Pending Todos
 
@@ -246,8 +248,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-16T09:09:42.356Z
-Stopped at: Completed 14-07-PLAN.md
+Last session: 2026-10-16T09:17:00.195Z
+Stopped at: Completed 14-08-PLAN.md
 Resume file: None
 
 ## Operator Next Steps

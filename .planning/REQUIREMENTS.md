@@ -36,7 +36,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 
 - [x] **MAINT-09**: The gate-prefix block in `.claude/CLAUDE.md` and `CONVENTIONS.md` lists exactly the prefixes `sh tests/run.sh` prints; a gate checks it
 - [x] **MAINT-10**: No function, fake, fixture or gate remains whose only user was the installer or a retired feature
-- [ ] **MAINT-11**: `.planning/codebase/` is refreshed after the removal and the rename
+- [x] **MAINT-11**: `.planning/codebase/` is refreshed after the removal and the rename
 
 ### Release
 
@@ -77,7 +77,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | FIX-03 | Phase 13 | Complete |
 | MAINT-09 | Phase 14 | Complete |
 | MAINT-10 | Phase 14 | Complete |
-| MAINT-11 | Phase 14 | Pending |
+| MAINT-11 | Phase 14 | Complete |
 | REL-09 | Phase 15 | Pending |
 | REL-10 | Phase 15 | Pending |
 
