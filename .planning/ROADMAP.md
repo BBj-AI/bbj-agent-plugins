@@ -209,7 +209,31 @@ Plans:
   4. The gate-prefix block in `.claude/CLAUDE.md` and `.planning/codebase/CONVENTIONS.md` lists exactly the prefixes `sh tests/run.sh` prints after this milestone's removals and renames, and a gate fails on a missing or an extra prefix (MAINT-09)
   5. No function, fake, fixture or gate remains whose only user was the installer or another retired feature, and a recorded sweep lists what went. `.planning/codebase/` and the generated sections of `.claude/CLAUDE.md` are refreshed and name neither the installer nor `bbj-docs` (MAINT-10, MAINT-11)
 
-**Plans**: TBD
+**Plans**: 9 plans
+
+Plans:
+**Wave 1**
+- [ ] 14-01-PLAN.md — One plugin-only install page `docs/install.md` by step for both clients; README short path; every reader moved; old pages removed; `layout_no_removed_pages` and the CHANGELOG history cut in the link gates (DOCS-05; wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 14-02-PLAN.md — Every README Verified cell audited and pinned (`release_cell_*`), macOS and Linux Claude Code qualifiers, page claim trace in 14-CLAIM-TRACE.md (DOCS-07, DOCS-05; wave 2)
+- [ ] 14-04-PLAN.md — Free-form and skip-branch gate names of eight test files renamed to file prefixes; hook mutation follows (MAINT-09, D-13; wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 14-03-PLAN.md — Term list in the conventions; `layout_no_retired_terms` over shipped text and manifest descriptions; check-order block and manifests follow (NAME-04; wave 3)
+- [ ] 14-09-PLAN.md — Last four test files renamed to file prefixes; every printed gate name checked against the full prefix set (MAINT-09, D-13; wave 3)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 14-05-PLAN.md — Flat gate-prefix block; `run_prefix_block` in tests/run.sh with fixture proof in tests/test_ci_gates.sh (MAINT-09; wave 4)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 14-06-PLAN.md — Sweep of retired-feature leftovers (fake seams, fake MCP modes, SC2181) recorded in 14-SWEEP.md (MAINT-10; wave 5)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 14-07-PLAN.md — Codebase map refresh part 1: STRUCTURE, TESTING, ARCHITECTURE, CONCERNS (MAINT-11; wave 6)
+
+**Wave 7** *(blocked on Wave 6 completion)*
+- [ ] 14-08-PLAN.md — Codebase map refresh part 2: STACK, INTEGRATIONS, CONVENTIONS, PROJECT.md; CLAUDE.md sections regenerated; map stamped (MAINT-11; wave 7)
 
 **Notes**:
 - Order inside the phase: the install page and the term pass first, because the term pass may rename tests and gates; then the prefix gate (MAINT-09); the sweep and the map refresh last.

@@ -38,19 +38,28 @@ created: "2026-10-16"
 
 ## Per-Task Verification Map
 
-Filled by the planner from the PLAN.md `<automated>` commands. Requirement → check:
+Filled by the planner from the PLAN.md `<automated>` commands (each task's full command is in its plan; every one ends with `sh tests/run.sh` or `sh tests/ci.sh` and requires ` fail=0 `).
 
-| Requirement | Behavior | Automated Command | File Exists | Status |
-|-------------|----------|-------------------|-------------|--------|
-| DOCS-05 | one page exists, old two gone, readers repointed | `test -f docs/install.md && ! test -e docs/install-claude-code.md && ! test -e docs/install-codex.md`; `sh tests/test_install_pages.sh` no FAIL | edit | ⬜ pending |
-| DOCS-05 | no live link names a removed page | `git grep -nE 'install-claude-code\|install-codex\.md' -- . ':!.planning' ':!CHANGELOG.md'` → empty | ❌ W0 | ⬜ pending |
-| DOCS-05 | release-text gates read the new page | `python3 -I tests/test_release_text.py`; `sh tests/test_release_text_mutation.sh` no FAIL | edit | ⬜ pending |
-| DOCS-07 | README Verified cells pinned; macOS cell has one reading | `python3 -I tests/test_release_text.py \| grep release_verified_cells` | ❌ W0 | ⬜ pending |
-| NAME-04 | no retired term variant in shipped Markdown; a planted one fails | `python3 -I tests/test_layout.py \| grep -E 'layout_(no_retired_terms\|mutation_retired_term)'` | ❌ W0 | ⬜ pending |
-| MAINT-09 | prefix block equals what run.sh prints; FAIL on missing/extra | `sh tests/run.sh \| grep '^gate run_prefix'`; `sh tests/test_ci_gates.sh` mutation lines ok | ❌ W0 | ⬜ pending |
-| MAINT-10 | dead items gone, sweep recorded | `grep -rn 'FAKE_CYGPATH_W_FAIL\|FAKE_CYGPATH_GIT_ROOT\|tools-list' tests` → empty; `test -s .planning/phases/14-one-install-page-and-one-term-list/14-SWEEP.md` | ❌ W0 | ⬜ pending |
-| MAINT-11 | map and generated sections name neither the installer nor `bbj-docs` | `grep -rniE 'installer\|install-codex\|bbj-docs\|install-claude-code' .planning/codebase .claude/CLAUDE.md` → empty | edit | ⬜ pending |
-| all | skill code blocks untouched | `python3 -I tests/test_skill_examples.py` no FAIL | yes | ⬜ pending |
+| Task | Wave | Requirement | Behavior checked | Key gates / checks in the automated command | Status |
+|------|------|-------------|------------------|---------------------------------------------|--------|
+| 14-01 T1 | 1 | DOCS-05 | one page by step, readers moved, old pages still present | `claude_sections` (exact D-01 headings), new heading pins, `link_README_md_docs_install_md`, `release_upgrade_install_page`, `release_codex_version_single`, `release_mut_no_unrun_hint_install_page*`, no duplicate sentences, no retired variant or tier word on the page | ⬜ pending |
+| 14-01 T2 | 1 | DOCS-05 | old pages gone, history-only exemption, names kept out | `link_history_cut_newer_entry`, `link_history_cut_old_entry`, `layout_no_removed_pages`, six `layout_mutation_removed_page_*`, `git grep` for the removed names outside .planning/ and CHANGELOG empty | ⬜ pending |
+| 14-02 T1 | 2 | DOCS-07 | macOS Claude Code cell and qualifier definitions | `release_cell_claude_code_macos`, `release_cell_qualifiers_defined`, their `release_mut_cell_*` cases | ⬜ pending |
+| 14-02 T2 | 2 | DOCS-07, DOCS-05 | six cells audited and pinned, page claims traced | seven `release_cell_*` and seven `release_mut_cell_*`, 14-CLAIM-TRACE.md row for each cell and each 'Observed on' / 'Verified on' / 'Not run' line of docs/install.md | ⬜ pending |
+| 14-04 T1 | 2 | MAINT-09 | discovery_ and tier2_ prefixes, hook mutation follows | HEAD-versus-tree (name, status) pairs under the rename rule, `hookmut_*` ok, test_path_scrub.sh ok | ⬜ pending |
+| 14-04 T2 | 2 | MAINT-09 | BBj/claude/shellcheck-dependent files and skip branches | pairs check, source scan of literal gate names, runs with `BBJ_TEST_HOME=/nonexistent-bbj` and without claude on PATH | ⬜ pending |
+| 14-03 T1 | 3 | NAME-04 | term gate over shipped scope, skills and manifests follow | `layout_no_retired_terms`, `layout_mutation_retired_term_readme`, `checkorder_*`, `layout_codex_overlay_fields`, `layout_docs_url_description`, `sh tests/ci.sh` (validate --strict) | ⬜ pending |
+| 14-03 T2 | 3 | NAME-04 | term list in both conventions files, every scope and edge proven | `layout_term_list`, `layout_term_definition`, 20 `layout_mutation_*` term cases, identical '## Terms' sections, no gate name with a retired variant | ⬜ pending |
+| 14-09 T1 | 3 | MAINT-09 | neverexec_ and reviewfix_; names followed into the run.sh output | HEAD-versus-tree (name, status) pairs under the rename rule, source scan of literal gate names, gate lines under the two `== file` headers of the full run | ⬜ pending |
+| 14-09 T2 | 3 | MAINT-09 | last free-form names; every printed name under its file's prefixes | pairs check, source scan, awk check of the whole run against the full prefix set | ⬜ pending |
+| 14-05 T1 | 4 | MAINT-09 | run.sh checks the flat block; fixture follows | `run_prefix_block ok ... CONVENTIONS.md copy identical`, `run_prefix_control`, `run_python_missing_*`, 21 identical block lines | ⬜ pending |
+| 14-05 T2 | 4 | MAINT-09 | every failure rule and edge of the prefix gate | 14 `run_prefix_*` fixture cases | ⬜ pending |
+| 14-06 T1 | 5 | MAINT-10 | retired-route leftovers out of the fakes | grep of the removed seams and modes empty, the five tests that use the fakes ok, 14-SWEEP.md rows S1-S4 | ⬜ pending |
+| 14-06 T2 | 5 | MAINT-10 | dead SC2181 out; every sweep category re-run | `shellcheck --norc --include=SC2181` clean, function and seam scans empty, 14-SWEEP.md S5 and six 'nothing found' categories, `sh tests/ci.sh` | ⬜ pending |
+| 14-07 T1 | 6 | MAINT-11 | STRUCTURE and TESTING match the tree | stale-name grep empty, every tracked tests/ file named, run_prefix_block named, no block line copied | ⬜ pending |
+| 14-07 T2 | 6 | MAINT-11 | ARCHITECTURE and CONCERNS current | stale-name grep empty, shipped mechanisms named, no block-grammar line, open concerns only | ⬜ pending |
+| 14-08 T1 | 7 | MAINT-11 | STACK, INTEGRATIONS, CONVENTIONS, PROJECT.md sources current | stale-name grep empty, '## Terms' kept, SC2181 absent, run_prefix_block identical copy | ⬜ pending |
+| 14-08 T2 | 7 | MAINT-11 | CLAUDE.md regenerated, no-op regeneration, map stamped | scratch `generate-claude-md` byte-identical, stale-name grep empty, 7 stamped files, `layout_no_retired_route`, `layout_no_old_server_name`, `layout_no_removed_pages`, `layout_term_list`, `sh tests/ci.sh` | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
