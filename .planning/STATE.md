@@ -5,16 +5,16 @@ milestone_name: Plugin-only cleanup
 current_phase: 15
 current_phase_name: Release 0.2.2
 status: executing
-stopped_at: Completed 15-07-PLAN.md
-last_updated: "2026-10-17T05:49:51.068Z"
+stopped_at: Completed 15-08-PLAN.md
+last_updated: "2026-10-17T06:11:04.535Z"
 last_activity: 2026-10-16
 last_activity_desc: Phase 15 execution started
-state_head: 0785ca4d4605e0dcc019aa82959947c7f06bf5af
+state_head: f07eb629709e693a625534165e51e1a3a112d585
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 34
-  completed_plans: 32
+  completed_plans: 33
   percent: 80
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-10-16)
 ## Current Position
 
 Phase: 15 (Release 0.2.2) — EXECUTING
-Plan: 8 of 9
+Plan: 9 of 9
 Status: Ready to execute
 Last activity: 2026-10-16 — Phase 15 execution started
 
@@ -182,6 +182,7 @@ Progress: [████████░░] 80%
 | Phase 15 P05 | 35 min | 3 tasks | 5 files |
 | Phase 15 P06 | n/a | 3 tasks | 10 files |
 | Phase 15 P07 | not measured | 3 tasks | 5 files |
+| Phase 15 P08 | not measured | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -239,6 +240,7 @@ Roadmap v0.2.2 (2026-10-15):
 - [Phase 15]: Plan 15-05: claude.ai BBj connector listed above plugin:bbj:bbj in Claude Code /mcp recorded as a NAME-03 observation
 - [Phase 15]: 15-06: owner confirmed push; gsd/release-0.2.2 pushed at d7e5a53, PR #4 into main ready, CI and install gate green; no merge, no tag
 - [Phase 15]: 15-07: PR #4 merged into main with a merge commit 0e9b3c0d (two parents, tested tree e141f79b); CI on main success; both clients install 0.2.2 fresh from main; tag waits for 15-08
+- [Phase 15]: 15-08: tag 0.2.2 pushed by its own ref after owner 'publish'; remote tag peels to M 0e9b3c0d; Release published with the CHANGELOG entry as body
 
 ### Pending Todos
 
@@ -270,8 +272,8 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 ## Session Continuity
 
-Last session: 2026-10-17T05:49:50.953Z
-Stopped at: Completed 15-07-PLAN.md
+Last session: 2026-10-17T06:11:04.417Z
+Stopped at: Completed 15-08-PLAN.md
 Resume file: None
 
 ## Operator Next Steps
