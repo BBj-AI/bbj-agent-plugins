@@ -107,10 +107,12 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - ✓ One term list in the conventions; `layout_no_retired_terms` rejects the six retired variants, with or without backticks (NAME-04) — Phase 14
 - ✓ Gate-prefix block checked against the suite by `run_prefix_block`, kept by hand outside the GSD-generated regions of `.claude/CLAUDE.md` with a checked copy in `CONVENTIONS.md`; dead code swept (`14-SWEEP.md`); codebase map and generated CLAUDE.md sections refreshed (MAINT-09, MAINT-10, MAINT-11) — Phase 14
 
+- ✓ Sign-in under the docs server's new name `bbj` re-confirmed on the release tree with real Claude Code 2.1.301 and Codex 0.162.1 on Linux; the CHANGELOG `## 0.2.2` entry tells users to sign in again; Windows and macOS sign-in stays under "Not run" (NAME-03) — Phase 15
+- ✓ Release 0.2.2: five versions at 0.2.2, CHANGELOG `## 0.2.2` with Upgrading, Tested against and Not run, CI pin `@anthropic-ai/claude-code` 2.1.301, release suite `ok=864 fail=0 skip=0` with live gates, PR #4 merged as 0e9b3c0, annotated tag `0.2.2` (no `v`) on it and GitHub Release published 2026-10-17 (REL-09, REL-10) — Phase 15
+
 ### Active
 
-- [ ] CHANGELOG line that users sign in again under the docs server's new name `bbj`, plus the Windows and macOS sign-in re-confirmation (NAME-03, Phase 15); the rename itself shipped in Phase 12
-- [ ] Release 0.2.2
+(none; every v0.2.2 requirement shipped)
 
 ### Out of Scope
 
@@ -199,7 +201,9 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 | CI ShellCheck 0.9.0 reports SC2317 where local 0.11.0 reports SC2329; the directive in `tests/test_path_scrub.sh` names both codes | The same line must pass on both versions; recording or pinning the CI ShellCheck version is a follow-up | ✓ Good — Phase 10 (10-09; follow-up not implemented) |
 | Codex plugin upgrade from a Git marketplace on Linux (Codex 0.162.1) keeps the hook hash and the trust; CHANGELOG states only that reading, the installer-route re-trust sentence stays | Observed 0.2.0 to 0.2.1, no re-trust asked; other upgrade cases stay under "Not run" | ✓ Good — Phase 10 (D-22, plan 10-11) |
 | The gate-prefix block lives in a hand-kept section "Gate prefixes" at the end of `.claude/CLAUDE.md`, outside every GSD marker; `tests/run.sh` reads block lines only outside the GSD regions; `CONVENTIONS.md` keeps the checked copy (14-REVIEW WR-03, owner's choice) | A regeneration of the conventions region must not be able to change or duplicate the source the gate reads | ✓ Good — Phase 14 (`run_prefix_generated_*` cases; IN-10 open: an unterminated region gives an unnamed failure) |
-| Phase 14's changes to shipped 0.2.1 text get no version bump or CHANGELOG entry in Phase 14; the `## 0.2.2` entry in Phase 15 names them (14-REVIEW WR-04, owner's choice) | `changelog_heading` allows no placeholder entry, and the release bumps all five versions together | — Pending Phase 15 |
+| Phase 14's changes to shipped 0.2.1 text get no version bump or CHANGELOG entry in Phase 14; the `## 0.2.2` entry in Phase 15 names them (14-REVIEW WR-04, owner's choice) | `changelog_heading` allows no placeholder entry, and the release bumps all five versions together | ✓ Good — Phase 15 (the `## 0.2.2` entry names them) |
+| CI pins `@anthropic-ai/claude-code` 2.1.301 only after the owner checked the package on npmjs.com; lock integrity and `npm audit signatures` verified in a scratch install | A new CLI version is a supply-chain input; the release run must use the CI version | ✓ Good — Phase 15 (first CI run on the pin passed) |
+| The dev home path is scrubbed from the planning records by one commit, no history rewrite; older blobs on the pushed planning branch keep it (D-18, D-15) | A rewrite would need a force push, which D-15 forbids; the owner accepted the public older blobs before the push | ✓ Accepted — Phase 15 (owner's "push") |
 
 ## Evolution
 
@@ -219,4 +223,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-16 after Phase 14*
+*Last updated: 2026-10-17 after Phase 15*

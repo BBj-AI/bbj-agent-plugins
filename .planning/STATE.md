@@ -21,10 +21,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-10-16)
+See: .planning/PROJECT.md (updated 2026-10-17)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Phase 15 — Release 0.2.2
+**Current focus:** Milestone v0.2.2 complete — ready to close with /gsd-complete-milestone v0.2.2
 
 ## Current Position
 
@@ -250,6 +250,7 @@ None. `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` closed with Phase 12 
 
 ### Blockers/Concerns
 
+- [Phase 15]: Code review 15-REVIEW.md left WR-01, WR-02 and IN-01..IN-03 open (15-REVIEW-DISPOSITION.md), all in release text or test gates and fixable only in a later release: WR-01 `release_claude_version_single` misses the word order 'Claude Code 2.1.299' in `docs/install.md:138` and `CHANGELOG.md:64`; WR-02 the `## 0.2.2` entry does not name the installer removal for 0.2.1 installer users (conflicts with Phase 11 D-01/D-02 and `layout_no_retired_route`; needs an owner decision)
 - [Phase 14]: Code review 14-REVIEW.md left IN-10 open (14-REVIEW-DISPOSITION.md): a GSD region in `.claude/CLAUDE.md` that loses its end marker swallows the hand-kept gate-prefix block; `run_prefix_block` fails closed but does not name the unclosed region, and no fixture covers it
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
 - [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Closed by the installer removal in v0.2.2 Phase 11 (out of scope in REQUIREMENTS.md). The README macOS Claude Code cell qualifier (10-VERIFICATION.md) is v0.2.2 Phase 14 (DOCS-07)
@@ -277,7 +278,8 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Discuss or plan Phase 15: /gsd-discuss-phase 15, then /gsd-plan-phase 15
+- Close the milestone: /gsd-complete-milestone v0.2.2
+- Optional: /gsd-secure-phase 15 (no 15-SECURITY.md yet; security enforcement is on)
 
 ### Quick Tasks Completed
 
