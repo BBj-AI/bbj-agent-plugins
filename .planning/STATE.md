@@ -1,19 +1,19 @@
 ---
 gsd_state_version: "1.0"
 milestone: v0.2.2
-milestone_name: Plugin-only cleanup
 status: Awaiting next milestone
 stopped_at: Phase 15 complete — all phases complete
-last_updated: "2026-10-17T07:52:19.928Z"
+last_updated: "2026-10-17T10:28:53.765Z"
 last_activity: 2026-10-17
 last_activity_desc: Milestone v0.2.2 completed and archived
-state_head: 3758cac3effec39b0db3806caf0987e73ed0af7a
+state_head: a387222f4ad905a43373b5cf942f20ec02ea35b8
 progress:
   total_phases: 5
   completed_phases: 5
   total_plans: 34
   completed_plans: 34
   percent: 100
+milestone_name: Plugin-only cleanup
 current_phase: 15
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 Phase: Milestone v0.2.2 complete
 Plan: —
 Status: Awaiting next milestone
-Last activity: 2026-10-17 — Milestone v0.2.2 completed and archived
+Last activity: 2026-10-17 - Completed quick task 261017-e2f: Training-material handoff for dev-training
 
 ## Performance Metrics
 
@@ -236,3 +236,4 @@ Resume file: None
 |---|-------------|------|--------|-----------|
 | 261013-cpn | Point bbj-docs at mcp.bbj-ai.com with OAuth client settings in Claude Code and Codex | 2026-10-13 | 4409b7e | [261013-cpn-point-bbj-docs-at-mcp-bbj-ai-com-with-oa](./quick/261013-cpn-point-bbj-docs-at-mcp-bbj-ai-com-with-oa/) |
 | 261017-a1r | Record Phase 15 review dispositions | 2026-10-17 | e7f31b0 | [261017-a1r-record-phase-15-review-dispositions](./quick/261017-a1r-record-phase-15-review-dispositions/) |
+| 261017-e2f | Training-material handoff for dev-training: what attendees need to know about bbj-agent-plugins | 2026-10-17 | a387222 | [261017-e2f-training-material-handoff-for-dev-traini](./quick/261017-e2f-training-material-handoff-for-dev-traini/) |
