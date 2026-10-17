@@ -5,10 +5,10 @@ milestone_name: Plugin-only cleanup
 current_phase: 15
 status: completed
 stopped_at: Phase 15 complete — all phases complete
-last_updated: "2026-10-17T06:44:56.015Z"
+last_updated: "2026-10-17T07:25:26.413Z"
 last_activity: 2026-10-17
 last_activity_desc: Phase 15 complete
-state_head: 4c5978b8e3f7a01142c6663bada4b696b7865d06
+state_head: e7f31b091d705cebc41f557d3c4ef3c1dcdafde6
 progress:
   total_phases: 5
   completed_phases: 5
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-10-17)
 Phase: 15
 Plan: Not started
 Status: All phases complete
-Last activity: 2026-10-17 — Phase 15 complete
+Last activity: 2026-10-17 - Completed quick task 261017-a1r: Record Phase 15 review dispositions
 
 Progress: [██████████] 100%
 
@@ -250,7 +250,7 @@ None. `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` closed with Phase 12 
 
 ### Blockers/Concerns
 
-- [Phase 15]: Code review 15-REVIEW.md left WR-01, WR-02 and IN-01..IN-03 open (15-REVIEW-DISPOSITION.md), all in release text or test gates and fixable only in a later release: WR-01 `release_claude_version_single` misses the word order 'Claude Code 2.1.299' in `docs/install.md:138` and `CHANGELOG.md:64`; WR-02 the `## 0.2.2` entry does not name the installer removal for 0.2.1 installer users (conflicts with Phase 11 D-01/D-02 and `layout_no_retired_route`; needs an owner decision)
+- [Phase 15]: Code review 15-REVIEW.md left WR-01, WR-02 and IN-01..IN-03 open (15-REVIEW-DISPOSITION.md), all in release text or test gates and fixable only in a later release: WR-01 `release_claude_version_single` misses the word order 'Claude Code 2.1.299' in `docs/install.md:138` and `CHANGELOG.md:64`; WR-02 the `## 0.2.2` entry does not name the installer removal for 0.2.1 installer users (conflicts with Phase 11 D-01/D-02 and `layout_no_retired_route`). Triaged by the owner 2026-10-17 (quick 261017-a1r): WR-01, IN-01, IN-02 deferred to the next release; WR-02 skipped (Phase 11 D-01/D-02, Phase 12 D-12); IN-03 open, to be fixed in `.claude/CLAUDE.md` only
 - [Phase 14]: Code review 14-REVIEW.md left IN-10 open (14-REVIEW-DISPOSITION.md): a GSD region in `.claude/CLAUDE.md` that loses its end marker swallows the hand-kept gate-prefix block; `run_prefix_block` fails closed but does not name the unclosed region, and no fixture covers it
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
 - [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Closed by the installer removal in v0.2.2 Phase 11 (out of scope in REQUIREMENTS.md). The README macOS Claude Code cell qualifier (10-VERIFICATION.md) is v0.2.2 Phase 14 (DOCS-07)
@@ -286,3 +286,4 @@ Resume file: None
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 261013-cpn | Point bbj-docs at mcp.bbj-ai.com with OAuth client settings in Claude Code and Codex | 2026-10-13 | 4409b7e | [261013-cpn-point-bbj-docs-at-mcp-bbj-ai-com-with-oa](./quick/261013-cpn-point-bbj-docs-at-mcp-bbj-ai-com-with-oa/) |
+| 261017-a1r | Record Phase 15 review dispositions | 2026-10-17 | e7f31b0 | [261017-a1r-record-phase-15-review-dispositions](./quick/261017-a1r-record-phase-15-review-dispositions/) |
