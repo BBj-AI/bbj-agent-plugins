@@ -5,22 +5,26 @@
 # with one JSON object on stdout (hookSpecificOutput.additionalContext); the next call of the
 # same session is silent. Gates: the object's shape under dash and bash, the text, the
 # once-per-session marker in BBJ_CHECK_STATE_DIR, and that no marker reaches the real temp
-# directory. Prefix notice_.
+# directory. Prefix notice_ (D-13, MAINT-09), the failure path of the fake server start included.
 # Plan 02-02 (D-02 to D-05): a compiler that gives no verdict is no route too ("bbjcpl found but
 # gave no result"); and the notice never appears for a clean file, for compile errors, for a
-# route that was reached without a verdict (every curl exit but 7, an empty or junk reply, an
-# error reply), for a file the hook skips early, or in a mixed patch with compile errors.
+# route that was reached without a verdict (every curl exit but 7, and but an exit 28 whose write-out
+# shows no connection; an empty or junk reply, an error reply), for a file the hook skips early, or in
+# a mixed patch with compile errors. The fake curl prints no write-out (phase 13, FIX-02, D-12), so
+# notice_curl_exit_28_silent keeps its meaning.
 # Fix 02-02 (deferred item D-1): the once-per-session winner is an exclusive claim file inside the
 # marker directory, not mkdir alone (uutils mkdir lets parallel calls of one path all succeed);
 # gates notice_concurrent_once (repeated rounds), notice_claim_present_silent,
 # notice_marker_without_claim, notice_claim_symlink_squat.
 # MAINT-06 (D-11, D-12): PATH is scrubbed of any BBj compiler right after mkwork (no_compiler_path),
 # so a maintainer with bbjcpl on PATH still gets the no-route gates.
-# Phase 8 (CODEX-03, D-07 to D-09): the apply_patch enable step follows the route. With
-# CLAUDE_PLUGIN_ROOT non-empty (the Codex plugin route) it names codex plugin add
-# bbj-local@basis-bbj; unset or empty (the install-codex.sh route) it keeps install-codex.sh
-# --with-local; Claude Code keeps its plugin wording, also with the variable set. The variable is
-# set, exported, used and unset as separate statements, never as a prefix on run_check (Pitfall 4).
+# Phase 8 (CODEX-03) and phase 11 (INST-03, D-16): the apply_patch enable step names codex plugin
+# add bbj-local@basis-bbj whether CLAUDE_PLUGIN_ROOT is set, empty or unset (gates
+# notice_codex_unset_root, notice_codex_empty_root, notice_codex_one_text); Claude Code keeps its
+# plugin wording, also with the variable set. The variable is set, exported, used and unset as
+# separate statements, never as a prefix on run_check (Pitfall 4).
+# Phase 12 (NAME-02, D-07): both texts name the hosted check as bbj_check_syntax of the docs server bbj
+# (a fragment of notice_text_claude and notice_codex_text).
 # Nothing here runs BBj; there is no compiler and the bbj-ls URL is a closed port.
 . "$(dirname "$0")/lib.sh"
 mkwork
@@ -28,8 +32,8 @@ mkwork
 _np=$(no_compiler_path) || { gate notice_path_scrub FAIL "no_compiler_path could not build a PATH"; finish; }
 PATH=$_np
 no_compiler_env
-# an inherited CLAUDE_PLUGIN_ROOT would turn the installer-route gates into plugin-route ones
-# (Phase 8, D-07); the route gates below set, export and unset it themselves
+# an inherited CLAUDE_PLUGIN_ROOT must not decide what a gate sees; the route gates below set,
+# export and unset it themselves
 unset CLAUDE_PLUGIN_ROOT
 
 # plan 02-02 starts fake servers: kill them as well as removing WORK (as tests/test_tier2_fake.sh does)
@@ -102,7 +106,7 @@ if [ "$_nr" = 0 ]; then
   holds_all notice_text_claude "$TEXT" "$FILE" 'was written but not compile-checked' 'no bbjcpl found' \
     'no bbj-ls answering on 127.0.0.1:9' 'Later BBj files in this session are not checked either' \
     'this notice is not repeated' 'bbj_home' 'bbj-local@basis-bbj' 'start BBjServices 26.03' 'the hook does not need it' \
-    'bbj_check_syntax' 'sends the code' 'stock BBj'
+    'bbj_check_syntax' 'sends the code' 'stock BBj' 'bbj_check_syntax of the docs server bbj, the hosted check'
   case "${TEXT##*. }" in
     'Tell the user'*) gate notice_last_sentence ok "the last sentence starts Tell the user" ;;
     *) gate notice_last_sentence FAIL "last sentence: ${TEXT##*. }" ;;
@@ -167,6 +171,9 @@ patch() {
 }
 
 # ---- Codex: its own enable steps; several, long and hostile file names (plan 02-01 Task 2) ----
+# Phase 8 (D-07, D-08) and phase 11 (INST-03, D-16): the one Codex text names codex plugin add. The
+# script reads no CLAUDE_PLUGIN_ROOT, so there is one Codex text gate here; notice_codex_one_text
+# below is the contract that the variable changes nothing.
 CPROJ=$WORK/cproj
 mkdir "$CPROJ"
 : > "$CPROJ/a.bbj"
@@ -176,31 +183,15 @@ run_check "$(codex_payload "$CPROJ" "$(patch '*** Add File: a.bbj' '+print "a"')
 CTEXT=$(notice_text "$WORK/stdout")
 _nr=$?
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
-  holds_all notice_codex_text "$CTEXT" 'BBJ_HOME' 'bbjcpl on PATH' 'install-codex.sh --with-local' \
-    'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found'
-  holds_none notice_codex_text_no_claude_steps "$CTEXT" 'bbj_home' 'bbj-local@basis-bbj' \
-    'or rerun install-codex.sh' 'running on this machine)'
+  holds_all notice_codex_text "$CTEXT" 'BBJ_HOME' 'bbjcpl on PATH' \
+    'codex plugin add bbj-local@basis-bbj only gives the model' \
+    'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found' \
+    'bbj_check_syntax of the docs server bbj, the hosted check'
+  holds_none notice_codex_text_no_claude_steps "$CTEXT" 'bbj_home' \
+    'The bbj-local@basis-bbj plugin' 'or run codex plugin add' 'running on this machine)'
 else
   gate notice_codex_text FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
   gate notice_codex_text_no_claude_steps FAIL "no valid notice object"
-fi
-
-# ---- Phase 8, CODEX-03 (D-07, D-08): the plugin route names codex plugin add ----
-CLAUDE_PLUGIN_ROOT=$WORK/plugins/cache/basis-bbj/bbj/0.2.0
-export CLAUDE_PLUGIN_ROOT
-fresh_state
-run_check "$(codex_payload "$CPROJ" "$(patch '*** Add File: a.bbj' '+print "a"')")"
-unset CLAUDE_PLUGIN_ROOT
-RTEXT=$(notice_text "$WORK/stdout")
-_nr=$?
-if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ]; then
-  holds_all notice_codex_plugin_route "$RTEXT" 'codex plugin add bbj-local@basis-bbj' 'BBJ_HOME' \
-    'bbjcpl on PATH' 'start BBjServices 26.03' 'the hook does not need it' 'bbj_check_syntax' 'no bbjcpl found'
-  holds_none notice_codex_plugin_route_no_other_steps "$RTEXT" 'install-codex.sh' 'bbj_home' \
-    'The bbj-local@basis-bbj plugin' 'or run codex plugin add' 'running on this machine)'
-else
-  gate notice_codex_plugin_route FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
-  gate notice_codex_plugin_route_no_other_steps FAIL "no valid notice object"
 fi
 
 # route_run ROOT PAYLOAD: one hook call in a fresh session with CLAUDE_PLUGIN_ROOT exported as ROOT,
@@ -219,19 +210,18 @@ route_run() {
 
 CODEX_ADD=$(codex_payload "$CPROJ" "$(patch '*** Add File: a.bbj' '+print "a"')")
 
-# installer route (D-08): the variable is unset, the 0.2.0 wording stays
+# INST-03, D-16: the variable is unset and the text is still the plugin text
 fresh_state
 run_check "$CODEX_ADD"
-RTEXT=$(notice_text "$WORK/stdout")
+UNSET_TEXT=$(notice_text "$WORK/stdout")
 _nr=$?
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$_nr" = 0 ] \
-  && printf '%s' "$RTEXT" | grep -F 'install-codex.sh --with-local only registers' > /dev/null \
-  && printf '%s' "$RTEXT" | grep -F 'bbjcpl on PATH' > /dev/null \
-  && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null \
-  && ! printf '%s' "$RTEXT" | grep -F 'The bbj-local@basis-bbj plugin' > /dev/null; then
-  gate notice_codex_installer_route ok "unset CLAUDE_PLUGIN_ROOT gives the install-codex.sh wording"
+  && printf '%s' "$UNSET_TEXT" | grep -F 'codex plugin add bbj-local@basis-bbj only gives the model' > /dev/null \
+  && printf '%s' "$UNSET_TEXT" | grep -F 'bbjcpl on PATH' > /dev/null \
+  && ! printf '%s' "$UNSET_TEXT" | grep -F 'The bbj-local@basis-bbj plugin' > /dev/null; then
+  gate notice_codex_unset_root ok "unset CLAUDE_PLUGIN_ROOT gives the plugin text"
 else
-  gate notice_codex_installer_route FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
+  gate notice_codex_unset_root FAIL "exit $RC, notice_text $_nr: $(head -c 160 "$WORK/stdout")"
 fi
 
 # Claude Code keeps its wording, also with the variable set as Claude Code sets it for a plugin hook
@@ -241,21 +231,36 @@ if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$RNR" = 0 ] \
   && printf '%s' "$RTEXT" | grep -F 'start BBjServices 26.03' > /dev/null \
   && printf '%s' "$RTEXT" | grep -F 'the hook does not need it' > /dev/null \
   && ! printf '%s' "$RTEXT" | grep -F 'or enable the bbj-local' > /dev/null \
-  && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null \
-  && ! printf '%s' "$RTEXT" | grep -F 'install-codex.sh' > /dev/null; then
+  && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null; then
   gate notice_claude_route_command ok "Claude Code text with CLAUDE_PLUGIN_ROOT set"
 else
   gate notice_claude_route_command FAIL "exit $RC, notice_text $RNR: $(head -c 160 "$WORK/stdout")"
 fi
 
-# CODEX-03 edge (empty input): exported but empty counts as unset
+# CODEX-03 edge (empty input): exported but empty gives the same text as unset
 route_run '' "$CODEX_ADD"
+EMPTY_TEXT=$RTEXT
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ "$RNR" = 0 ] \
-  && printf '%s' "$RTEXT" | grep -F 'install-codex.sh --with-local only registers' > /dev/null \
-  && ! printf '%s' "$RTEXT" | grep -F 'codex plugin add' > /dev/null; then
-  gate notice_codex_empty_root ok "empty CLAUDE_PLUGIN_ROOT gives the installer wording"
+  && printf '%s' "$RTEXT" | grep -F 'codex plugin add bbj-local@basis-bbj only gives the model' > /dev/null \
+  && ! printf '%s' "$RTEXT" | grep -F 'The bbj-local@basis-bbj plugin' > /dev/null; then
+  gate notice_codex_empty_root ok "empty CLAUDE_PLUGIN_ROOT gives the plugin text"
 else
   gate notice_codex_empty_root FAIL "exit $RC, notice_text $RNR: $(head -c 160 "$WORK/stdout")"
+fi
+
+# D-16: one Codex text whether the variable is set, empty or unset
+route_run "$WORK/plugins/cache/basis-bbj/bbj/0.2.0" "$CODEX_ADD"
+SET_TEXT=$RTEXT
+if [ "$RNR" != 0 ] || [ -z "$SET_TEXT" ]; then
+  gate notice_codex_one_text FAIL "set root: notice_text $RNR, text $(printf '%s' "$SET_TEXT" | head -c 120)"
+elif [ "$SET_TEXT" != "$EMPTY_TEXT" ]; then
+  gate notice_codex_one_text FAIL "the set and the empty texts differ"
+elif [ "$SET_TEXT" != "$UNSET_TEXT" ]; then
+  gate notice_codex_one_text FAIL "the set and the unset texts differ"
+elif [ "$EMPTY_TEXT" != "$UNSET_TEXT" ]; then
+  gate notice_codex_one_text FAIL "the empty and the unset texts differ"
+else
+  gate notice_codex_one_text ok "set, empty and unset CLAUDE_PLUGIN_ROOT give one text"
 fi
 
 # CODEX-03 edge (encoding, T-08-05): a root with a quote, a backslash, a space and UTF-8 bytes is
@@ -695,7 +700,7 @@ start_fake() {
   FAKE_PIDS="$FAKE_PIDS $FAKE_PID"
   _w=0
   while [ ! -s "$PORTF" ] && [ "$_w" -lt 100 ]; do sleep 0.1; _w=$((_w + 1)); done
-  [ -s "$PORTF" ] || { gate "fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
+  [ -s "$PORTF" ] || { gate "notice_fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
   BBJ_LOCAL_MCP_URL=http://127.0.0.1:$(cat "$PORTF")/mcp
   export BBJ_LOCAL_MCP_URL
 }

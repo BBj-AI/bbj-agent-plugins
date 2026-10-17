@@ -1,40 +1,38 @@
 #!/bin/sh
-# tests/test_install_pages.sh -- keeps the install pages honest (plan 19-07, PLUG-05; plan 01-07, LOCAL-06).
+# tests/test_install_pages.sh -- keeps the install page honest (plan 19-07, PLUG-05; plan 01-07, LOCAL-06;
+# plan 14-01, DOCS-05, D-01 to D-04).
 #
-# For every docs/install-*.md that exists:
-#   - a required-phrase list per page (what the page must state),
+# There is one install page, docs/install.md, for Claude Code and Codex (D-01). Its pins keep two
+# prefixes, claude_ and codex_, so that each prefix still names the client whose reader the pin
+# protects (D-04); the forbids run on the one page under both prefixes. When the page exists:
+#   - a required-phrase list per client (what the page must state),
+#   - gate claude_sections: the "## " headings of the page are exactly the eleven headings of D-01,
+#     in that order,
 #   - forbidden claims: the go-live host as a default, and "subagent edits are not covered",
-#   - the local check (plan 01-07, LOCAL-06; D-13, D-14): its own numbered step on both install pages,
-#     the two reasons it is preferred over the hosted check on both pages and in README, and a forbid
-#     so that no page ranks bbj-local above bbjcpl; the bbj-local tool tables of the Codex page equal
-#     LOCAL_TOOLS of the installer, and every installer message the Codex page quotes is printed by
-#     the installer on a line that is not a comment,
+#   - the plugin bbj-local (plan 01-07, LOCAL-06; D-13, D-14; plan 14-01, D-08): its own numbered
+#     heading, the two reasons it is preferred over the hosted check on the page and in README, and a
+#     forbid so that no text ranks bbj-local above the bbjcpl check,
 #   - every relative Markdown link in docs/*.md, README.md and CHANGELOG.md resolves,
-#   - every "claude plugin <subcommand>" line in the Claude page's fenced blocks names a real
+#   - every "claude plugin <subcommand>" line in the page's fenced blocks names a real
 #     subcommand of the installed CLI (claude plugin <words> --help exits 0); skipped when
 #     claude is not installed.
-#   - the no-route notice wording (plan 02-03, HOOK-02): "once per session" on README, both pages and the
-#     installer, "not compile-checked" on both pages, and the old claim that the hook stays silent when
-#     no check route exists is forbidden on all four (NOROUTE_SILENCE),
-#   - the OAuth sign-in of bbj-docs (quick 261013-cpn): port 47613 and the sign-in steps on both pages,
-#     and the installer messages the Codex page quotes about the OAuth table; the Codex page shows the
-#     client id of the installer (IN-07),
-#   - the Codex plugin route (phase 8, CODEX-05, CODEX-06; D-15, D-16): the plugin-route heading, the
-#     two install commands, the bbj-local opt-in command, the verified line, the first-use prompts, the
-#     upgrade-trust sentence, the switch heading and --remove, the fallback heading and the
-#     plugin-scoped key, on the Codex page; the two plugin commands in README; twelve installer
-#     messages quoted on the page (four more for --remove); and a forbid so that neither the Codex page
-#     nor README recommends the hook-trust bypass flag of codex exec.
-#   - the Codex page, verified platforms (plan 10-07, DOCS-02, DOCS-04; D-03 to D-05, D-10, D-11): the banner "Verified on
-#     Linux, Windows and macOS", "## macOS", the --sh-exe option, the "hook exited" symptom and the plugin's
-#     commandWindows path, the "Observed on <platform> with" lines, the hosted-server wording and the daemon
-#     environment sentence; the two forbids of check_released_wording; and codex_plugin_route_first (the
-#     plugin-route heading comes before the fallback heading).
-#   - the verified platforms (plan 10-06, DOCS-01, DOCS-02, DOCS-04; D-01 to D-05): the banner "Verified on
-#     Linux, Windows and macOS", the three Claude Code versions (one per platform) and the sections
-#     "## Windows" and "## macOS" on the Claude Code page; the README table rows and the BBj version
-#     beside them; the hosted-server wording on both; the plugin commands before the installer in
-#     README (readme_codex_plugin_first); and two forbids on README and the Claude Code page
+#   - the no-route notice wording (plan 02-03, HOOK-02): "once per session" on README and the page,
+#     "not compile-checked" on the page, and the old claim that the hook stays silent when no check
+#     route exists is forbidden on both (NOROUTE_SILENCE),
+#   - the OAuth sign-in of the docs server bbj (quick 261013-cpn; phase 12, NAME-02): port 47613 and the sign-in commands and labels of 12-LINUX-RUN.md on the page and README,
+#   - the Codex plugin route (phase 8, CODEX-05, CODEX-06; D-15, D-16; plan 11-03, D-04, D-05): the
+#     install heading, the two install commands, the bbj-local opt-in command, the verified line,
+#     the sentence on the Codex CLI version the route was verified with, the sentence that only the
+#     Claude Code plugin has the docs_url option and the file that holds the Codex URL, the first-use
+#     prompts, the plugin-scoped key and the sentence that it is for the five docs tools and nothing
+#     else (T-14-03), on the page; the two plugin commands in README; and a forbid so that neither
+#     the page nor README recommends the hook-trust bypass flag of codex exec.
+#   - the verified platforms (plan 10-06, 10-07, DOCS-01, DOCS-02, DOCS-04; D-01 to D-05): the banner
+#     "Verified on Linux, Windows and macOS", the three Claude Code versions (one per platform) and
+#     the sections "## Windows" and "## macOS"; the "Observed on <platform> with" lines, the
+#     "hook exited" symptom, the plugin's commandWindows lookup and its not-found message (phase 13,
+#     D-10), the hosted-server wording and the daemon environment sentence; the README table
+#     rows and the BBj version beside them; and two forbids on README and the page
 #     (check_released_wording): the old "not yet run" platform hints and the pre-production or go-live
 #     wording of the docs server, so neither can come back.
 # Nothing here runs BBj code; "claude plugin ... --help" only prints help.
@@ -43,12 +41,12 @@
 mkwork
 
 DOCS=$REPO/docs
-CLAUDE_PAGE=$DOCS/install-claude-code.md
-CODEX_PAGE=$DOCS/install-codex.md
+PAGE=$DOCS/install.md
 
-# slug TEXT: a gate-name-safe form of TEXT
+# slug TEXT: a gate-name-safe form of TEXT, cut at 60 characters (IN-04): two pins that share a long
+# stem must still print two different gate names; widen it again if a pin ever shares more than that
 slug() {
-  printf '%s' "$1" | tr -c 'A-Za-z0-9\n' '_' | cut -c1-40
+  printf '%s' "$1" | tr -c 'A-Za-z0-9\n' '_' | cut -c1-60
 }
 
 # need NAME FILE PHRASE: gate NAME_has_<phrase> passes when FILE contains PHRASE (fixed string)
@@ -87,16 +85,20 @@ check_released_wording() {
 # the hook now speaks when no check route exists (plan 02-03, HOOK-02): no text may say it stays silent
 NOROUTE_SILENCE='says nothing|missing compiler is silent'
 
-# the local check must never read as better than the compiler (D-13): bbjcpl also checks types
+# the plugin bbj-local must never read as better than the bbjcpl check (D-13): bbjcpl also checks types
 LOCAL_ABOVE_BBJCPL='(preferred|better) (than|over) `?bbjcpl'
 
 # nothing may recommend skipping the Codex hook review (phase 8, T-08-26): the flag of codex exec that
 # does it is named by its stem only, so this file never holds the whole flag
 HOOK_TRUST_BYPASS='dangerously-bypass'
 
-# ---- Claude Code page ----
-if [ -f "$CLAUDE_PAGE" ]; then
+# ---- the install page, Claude Code pins ----
+if [ -f "$PAGE" ]; then
   n=claude
+  # IN-04: the pins that appear in both lists (claude_ and codex_) are there on purpose (D-04; one gate
+  # per prefix, each naming the reader it protects). A failure of one of them names its prefix, not
+  # which of the two lists caught it: look in both lists. The pins are not enumerated here, so this
+  # comment cannot drift from the lists (REVIEW IN-08).
   for p in \
     'claude plugin install bbj@basis-bbj' \
     'claude plugin marketplace add BBj-AI/bbj-agent-plugins' \
@@ -111,7 +113,6 @@ if [ -f "$CLAUDE_PAGE" ]; then
     '## Not covered' \
     'Bash' \
     'NotebookEdit' \
-    'subagent' \
     '## Windows' \
     'Git for Windows' \
     'data-handling' \
@@ -120,7 +121,7 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'Verified on Linux, Windows and macOS' \
     'the hosted BBj docs server' \
     'commandWindows' \
-    'Claude Code 2.1.299 on Linux' \
+    'Claude Code 2.1.301 on Linux' \
     'Claude Code 2.1.292 on Windows' \
     'Claude Code 2.1.296 on macOS' \
     '`bbj-local reported' \
@@ -128,31 +129,54 @@ if [ -f "$CLAUDE_PAGE" ]; then
     'recommended where BBjServices 26.03' \
     'preferred over the hosted check' \
     'PREFIX, classpath and config' \
-    '## 3. Enable the local check' \
+    '## 3. Sign in to the docs server `bbj`' \
+    '## 4. Enable the plugin `bbj-local`' \
     'claude plugin enable bbj-local@basis-bbj' \
     'once per session' \
     'not compile-checked' \
     '47613' \
     'Needs authentication' \
+    '`plugin:bbj:bbj`' \
+    'mcp__plugin_bbj_bbj__' \
     'oauth.clientId'
   do
-    need "$n" "$CLAUDE_PAGE" "$p"
+    need "$n" "$PAGE" "$p"
   done
-  check_common "$n" "$CLAUDE_PAGE"
-  check_released_wording "$n" "$CLAUDE_PAGE"
-  forbid "$n" "$CLAUDE_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
-  forbid "$n" "$CLAUDE_PAGE" "$NOROUTE_SILENCE" noroute_silence
+  check_common "$n" "$PAGE"
+  check_released_wording "$n" "$PAGE"
+  forbid "$n" "$PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$PAGE" "$NOROUTE_SILENCE" noroute_silence
 
-  sections=$(grep -c '^## ' "$CLAUDE_PAGE")
-  if [ "$sections" -ge 5 ]; then
-    gate "${n}_sections" ok "$sections sections"
+  # the "## " headings are exactly the eleven of D-01, in order (an extra or a missing step fails)
+  printf '%s\n' \
+    '## Requirements' \
+    '## 1. Add the marketplace' \
+    '## 2. Install' \
+    '## 3. Sign in to the docs server `bbj`' \
+    '## 4. Enable the plugin `bbj-local`' \
+    '## Options' \
+    '## Check routes' \
+    '## Not covered' \
+    '## Windows' \
+    '## macOS' \
+    '## Update and remove' > "$WORK/headings.want"
+  grep '^## ' "$PAGE" > "$WORK/headings.got"
+  _diff=$(awk 'NR == FNR { want[NR] = $0; nw = NR; next }
+    { got[FNR] = $0; ng = FNR }
+    END {
+      n = (nw > ng) ? nw : ng
+      for (i = 1; i <= n; i++)
+        if (want[i] != got[i]) { printf "heading %d: wanted [%s], got [%s]", i, want[i], got[i]; exit }
+    }' "$WORK/headings.want" "$WORK/headings.got")
+  if [ -z "$_diff" ]; then
+    gate "${n}_sections" ok "the D-01 headings in order"
   else
-    gate "${n}_sections" FAIL "only $sections sections"
+    gate "${n}_sections" FAIL "$_diff"
   fi
 
   # every "claude plugin <words>" line in a fenced block names a real subcommand
   if command -v claude > /dev/null 2>&1; then
-    awk '/^```/ { f = !f; next } f && /^claude plugin / { print }' "$CLAUDE_PAGE" > "$WORK/cmds"
+    awk '/^```/ { f = !f; next } f && /^claude plugin / { print }' "$PAGE" > "$WORK/cmds"
     count=0
     while IFS= read -r line; do
       [ -n "$line" ] || continue
@@ -188,28 +212,13 @@ if [ -f "$CLAUDE_PAGE" ]; then
   else
     gate "${n}_commands" skip "claude is not installed"
   fi
-fi
 
-# ---- Codex page ----
-if [ -f "$CODEX_PAGE" ]; then
+  # ---- the install page, Codex pins ----
   n=codex
-  # shellcheck disable=SC2088  # the tilde is literal text searched for in the page
   for p in \
     'Verified on Linux, Windows and macOS' \
-    'install-codex.sh' \
-    '--docs-url' \
-    '--skills-dir' \
-    '--codex-home' \
-    'default_tools_approval_mode' \
-    '[mcp_servers.bbj-docs.tools.bbj_search]' \
-    '[mcp_servers.bbj-docs.tools.bbj_fetch_page]' \
-    '[mcp_servers.bbj-docs.tools.bbj_lookup]' \
-    '[mcp_servers.bbj-docs.tools.bbj_reserved_word]' \
-    '[mcp_servers.bbj-docs.tools.bbj_examples]' \
-    'approval_mode = "approve"' \
+    'The plugin route was verified with Codex CLI 0.162.1' \
     'bbj_check_syntax' \
-    '~/.agents/skills' \
-    '~/.codex/skills' \
     '/hooks' \
     'apply_patch' \
     '## Check routes' \
@@ -218,112 +227,48 @@ if [ -f "$CODEX_PAGE" ]; then
     'Git for Windows' \
     'commandWindows' \
     'guardrail' \
-    '--with-local' \
     'recommended where BBjServices 26.03' \
     'preferred over the hosted check' \
     'PREFIX, classpath and config' \
-    '## 2. Enable the local check' \
-    '[mcp_servers.bbj-local]' \
-    '[mcp_servers.bbj-local.tools.bbj_check_syntax]' \
-    '[mcp_servers.bbj-local.tools.bbj_format]' \
-    '[mcp_servers.bbj-local.tools.bbj_denum]' \
+    '## 4. Enable the plugin `bbj-local`' \
     'http://127.0.0.1:5009/mcp' \
-    'codex mcp remove bbj-local' \
-    'BBJ_LOCAL_MCP_URL' \
-    'tools/list' \
     'once per session' \
     'not compile-checked' \
-    '[mcp_servers.bbj-docs.oauth]' \
-    'callback_port = 47613' \
     'http://localhost:47613/callback' \
-    'codex mcp login bbj-docs' \
-    '## Install with the Codex plugin (recommended)' \
+    '`codex mcp login bbj`' \
+    'only the Claude Code plugin has the `docs_url` option' \
+    'plugins/bbj/.codex-mcp.json' \
+    '## 2. Install' \
     'codex plugin marketplace add BBj-AI/bbj-agent-plugins' \
     'codex plugin add bbj@basis-bbj' \
     'codex plugin add bbj-local@basis-bbj' \
     'Verified on Linux with Codex CLI 0.162.1 on' \
-    '### Trust the hook in /hooks' \
+    '### Codex: trust the hook in /hooks' \
     'first use' \
     'Observed on Linux with Codex CLI 0.162.1:' \
     'Observed on Windows with' \
     'Observed on macOS with' \
     '## macOS' \
-    '--sh-exe' \
     'hook exited' \
-    'C:\PROGRA~1\Git\bin\sh.exe' \
+    '%LOCALAPPDATA%\Programs\Git' \
+    'Git for Windows sh.exe not found' \
     'the hosted BBj docs server' \
     'stop every Codex process' \
-    '### Switch from the installer script' \
-    'sh codex/install-codex.sh --remove' \
-    '## Fallback: the installer script' \
-    '## Add the AGENTS.md snippet (both routes)' \
-    'plugins."bbj@basis-bbj".mcp_servers.bbj-docs'
+    'approval_mode = "approve"' \
+    '`plugins."bbj@basis-bbj".mcp_servers.bbj`' \
+    'and for nothing else'
   do
-    need "$n" "$CODEX_PAGE" "$p"
+    need "$n" "$PAGE" "$p"
   done
-  # the client id of the example on the page is the installer's OAUTH_CLIENT_ID, read from the installer
-  # (one source; layout_oauth_codex_matches_plugin ties the installer to the plugin manifest) (IN-07)
-  _oid=$(sed -n 's/^OAUTH_CLIENT_ID=//p' "$REPO/codex/install-codex.sh" | head -n 1)
-  if [ -n "$_oid" ]; then
-    need "$n" "$CODEX_PAGE" "client_id = \"$_oid\""
-  else
-    gate codex_oauth_client_id FAIL "no OAUTH_CLIENT_ID line in codex/install-codex.sh"
-  fi
-  check_common "$n" "$CODEX_PAGE"
-  check_released_wording "$n" "$CODEX_PAGE"
-  forbid "$n" "$CODEX_PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
-  forbid "$n" "$CODEX_PAGE" "$NOROUTE_SILENCE" noroute_silence
+  check_common "$n" "$PAGE"
+  check_released_wording "$n" "$PAGE"
+  forbid "$n" "$PAGE" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
+  forbid "$n" "$PAGE" "$NOROUTE_SILENCE" noroute_silence
   # no text may tell users to skip the hook review (T-08-26, CODEX-05)
-  forbid "$n" "$CODEX_PAGE" "$HOOK_TRUST_BYPASS" hook_trust_bypass
-
-  # the bbj-local tool tables of the page are the installer's LOCAL_TOOLS, one list (plan 01-07)
-  INSTALLER=$REPO/codex/install-codex.sh
-  inst_local=$(sed -n "s/^LOCAL_TOOLS='\(.*\)'\$/\1/p" "$INSTALLER" | tr ' ' '\n' | sort)
-  page_local=$(sed -n 's/^ *\[mcp_servers\.bbj-local\.tools\.\([a-z_]*\)\]$/\1/p' "$CODEX_PAGE" | sort)
-  if [ -n "$inst_local" ] && [ "$inst_local" = "$page_local" ]; then
-    gate codex_local_tools_single_source ok "LOCAL_TOOLS equals the bbj-local tool tables of the page ($(printf '%s\n' "$inst_local" | awk 'END { print NR }') tools)"
-  else
-    gate codex_local_tools_single_source FAIL "installer '$(printf '%s' "$inst_local" | tr '\n' ' ')', page '$(printf '%s' "$page_local" | tr '\n' ' ')'"
-  fi
-
-  # every installer message the page quotes is printed by the installer, on a line that is not a
-  # comment, so the page cannot describe a message the installer does not print (T-01-28)
-  grep -v '^[[:space:]]*#' "$INSTALLER" > "$WORK/installer.code"
-  quoted_bad=0
-  quoted_n=0
-  for p in \
-    'a bbj-ls answers at' \
-    'no bbj-ls answered at' \
-    'not probed: curl not found' \
-    'is not a loopback http URL' \
-    'registering it anyway' \
-    'already registered in' \
-    'added the OAuth client to' \
-    'OAuth settings of its own' \
-    'nothing to remove' \
-    'left in place' \
-    'holds more than the hook this script writes' \
-    'rerun with --docs-url' \
-    'pass --sh-exe PATH' \
-    'names the launcher bin\sh.exe of the Git for Windows this script ran under'
-  do
-    quoted_n=$((quoted_n + 1))
-    grep -qF -e "$p" "$CODEX_PAGE" || { gate codex_quoted_messages_in_installer FAIL "the page does not quote: $p"; quoted_bad=1; }
-    grep -qF -e "$p" "$WORK/installer.code" || { gate codex_quoted_messages_in_installer FAIL "codex/install-codex.sh does not print: $p"; quoted_bad=1; }
-  done
-  [ "$quoted_bad" = 1 ] || gate codex_quoted_messages_in_installer ok "$quoted_n quoted fragments, each on the page and on a non-comment installer line"
-
-  # the plugin route comes before the installer script on the page (phase 8 D-15, D-16; plan 10-07)
-  _plug=$(grep -n -F -x '## Install with the Codex plugin (recommended)' "$CODEX_PAGE" | head -n 1 | cut -d: -f1)
-  _fall=$(grep -n -F -x '## Fallback: the installer script' "$CODEX_PAGE" | head -n 1 | cut -d: -f1)
-  if [ -n "$_plug" ] && [ -n "$_fall" ] && [ "$_plug" -lt "$_fall" ]; then
-    gate codex_plugin_route_first ok "the plugin-route heading (line $_plug) comes before the fallback heading (line $_fall)"
-  else
-    gate codex_plugin_route_first FAIL "plugin-route heading line '$_plug', fallback heading line '$_fall'"
-  fi
+  forbid "$n" "$PAGE" "$HOOK_TRUST_BYPASS" hook_trust_bypass
 fi
 
-# ---- README: the local check, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
+# ---- README: the plugin bbj-local, preferred over the hosted check, for two reasons (plan 01-07, D-13) ----
 README=$REPO/README.md
 if [ -f "$README" ]; then
   n=readme
@@ -331,14 +276,14 @@ if [ -f "$README" ]; then
     'recommended where BBjServices 26.03' \
     'preferred over the hosted check' \
     'PREFIX, classpath and config' \
-    '--with-local' \
     '## Skills' \
     'once per session' \
     'codex plugin add bbj@basis-bbj' \
     'codex plugin add bbj-local@basis-bbj' \
+    '`codex mcp login bbj`' \
+    '](docs/install.md)' \
     '| Claude Code |' \
     '| Codex plugin |' \
-    '| Codex installer |' \
     'Verified on Linux, Windows and macOS' \
     'BBj 26.03' \
     'the hosted BBj docs server'
@@ -346,52 +291,92 @@ if [ -f "$README" ]; then
     need "$n" "$README" "$p"
   done
   check_released_wording "$n" "$README"
-  # the plugin commands come before the installer script in README (phase 8 D-15, D-16; plan 10-06)
-  _flat=$(tr '\n' ' ' < "$README")
-  _before_plugin=${_flat%%codex plugin add*}
-  _before_installer=${_flat%%install-codex.sh*}
-  if [ "${#_before_plugin}" -lt "${#_flat}" ] && [ "${#_before_installer}" -lt "${#_flat}" ] \
-    && [ "${#_before_plugin}" -lt "${#_before_installer}" ]; then
-    gate "${n}_codex_plugin_first" ok "the first 'codex plugin add' comes before the first 'install-codex.sh'"
-  else
-    gate "${n}_codex_plugin_first" FAIL "README names the installer script before the plugin commands, or lacks one of them"
-  fi
   forbid "$n" "$README" "$HOOK_TRUST_BYPASS" hook_trust_bypass
   forbid "$n" "$README" 'until this release|release is merged to it|this release is on github' release_time_caveat
   forbid "$n" "$README" "$LOCAL_ABOVE_BBJCPL" local_not_above_bbjcpl
   forbid "$n" "$README" "$NOROUTE_SILENCE" noroute_silence
 fi
 
-# ---- installer output: the Known gaps line names the no-route notice (plan 02-03, HOOK-02) ----
-if [ -f "$REPO/codex/install-codex.sh" ]; then
-  n=installer
-  need "$n" "$REPO/codex/install-codex.sh" 'once per session'
-  # plan 10-07 (DOCS-04, D-03, D-05): the installer file, header comment included, holds none of the old hints
-  check_released_wording "$n" "$REPO/codex/install-codex.sh"
-  forbid "$n" "$REPO/codex/install-codex.sh" "$NOROUTE_SILENCE" noroute_silence
-fi
-
 # ---- relative Markdown links resolve ----
-for f in "$REPO"/README.md "$REPO"/CHANGELOG.md "$DOCS"/*.md; do
-  [ -f "$f" ] || continue
-  dir=$(dirname "$f")
-  rel=${f#"$REPO"/}
-  grep -o '\]([^)]*)' "$f" | sed -e 's/^\](//' -e 's/)$//' > "$WORK/links"
-  checked=0
-  while IFS= read -r target; do
-    [ -n "$target" ] || continue
-    case "$target" in
+# The 0.2.0 entry of CHANGELOG.md is frozen (11 D-03) and links pages that no longer exist; the cut
+# below drops the entries headed 0.2.1 or older (compared as integers, the rule of changelog_scan_text
+# in tests/test_layout.py), so a link in a newer entry is still checked. Any other "## " line keeps
+# the text after it (fail closed).
+CUT_MAJOR=0
+CUT_MINOR=2
+CUT_PATCH=1
+
+# history_cut FILE: prints FILE without the CHANGELOG entries headed CUT_MAJOR.CUT_MINOR.CUT_PATCH or older
+history_cut() {
+  awk -v c1="$CUT_MAJOR" -v c2="$CUT_MINOR" -v c3="$CUT_PATCH" '
+    BEGIN { keep = 1 }
+    /^## / {
+      keep = 1
+      if ($0 ~ /^## [0-9]+\.[0-9]+\.[0-9]+( |\t|$)/) {
+        split(substr($0, 4), v, /[. \t]/)
+        a = v[1] + 0; b = v[2] + 0; c = v[3] + 0
+        if (a < c1 || (a == c1 && (b < c2 || (b == c2 && c <= c3)))) keep = 0
+      }
+    }
+    keep { print }
+  ' "$1"
+}
+
+# check_links FILE: gate link_<file>_<target> for every relative Markdown link of FILE; a file named
+# CHANGELOG.md is read through history_cut
+check_links() {
+  _f=$1
+  [ -f "$_f" ] || return 0
+  _dir=$(dirname "$_f")
+  _rel=${_f#"$REPO"/}
+  _src=$_f
+  if [ "$(basename "$_f")" = CHANGELOG.md ]; then
+    history_cut "$_f" > "$WORK/changelog.cut"
+    _src=$WORK/changelog.cut
+  fi
+  grep -o '\]([^)]*)' "$_src" | sed -e 's/^\](//' -e 's/)$//' > "$WORK/links"
+  while IFS= read -r _target; do
+    [ -n "$_target" ] || continue
+    case "$_target" in
       http://*|https://*|mailto:*|'#'*) continue ;;
     esac
-    path=${target%%#*}
-    [ -n "$path" ] || continue
-    checked=$((checked + 1))
-    if [ -e "$dir/$path" ]; then
-      gate "link_$(slug "$rel")_$(slug "$path")" ok "$rel -> $path"
+    _path=${_target%%#*}
+    [ -n "$_path" ] || continue
+    if [ -e "$_dir/$_path" ]; then
+      gate "link_$(slug "$_rel")_$(slug "$_path")" ok "$_rel -> $_path"
     else
-      gate "link_$(slug "$rel")_$(slug "$path")" FAIL "$rel links to $path, which does not exist"
+      gate "link_$(slug "$_rel")_$(slug "$_path")" FAIL "$_rel links to $_path, which does not exist"
     fi
   done < "$WORK/links"
+}
+
+for f in "$REPO"/README.md "$REPO"/CHANGELOG.md "$DOCS"/*.md; do
+  check_links "$f"
 done
+
+# proof that the cut skips only history: a scratch CHANGELOG with a missing link in a newer entry
+# and one in a 0.2.1 entry. Their gate lines go to a file, not to this test's output.
+mkdir -p "$WORK/cl"
+printf '%s\n' \
+  '# Changelog' \
+  '' \
+  '## 9.9.9' \
+  '' \
+  '- [new](docs/gone-new.md)' \
+  '' \
+  '## 0.2.1' \
+  '' \
+  '- [old](docs/gone-old.md)' > "$WORK/cl/CHANGELOG.md"
+( check_links "$WORK/cl/CHANGELOG.md" ) > "$WORK/cl.out" 2>&1
+if grep -q '^gate link_.* FAIL .*gone-new\.md' "$WORK/cl.out"; then
+  gate link_history_cut_newer_entry ok "a link to a missing page in a 9.9.9 entry fails"
+else
+  gate link_history_cut_newer_entry FAIL "no FAIL line for the missing page of the newer entry"
+fi
+if grep -q 'gone-old\.md' "$WORK/cl.out"; then
+  gate link_history_cut_old_entry FAIL "the 0.2.1 entry was checked"
+else
+  gate link_history_cut_old_entry ok "the links of a 0.2.1 entry are not checked"
+fi
 
 finish

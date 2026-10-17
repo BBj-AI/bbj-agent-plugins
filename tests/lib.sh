@@ -29,19 +29,16 @@
 #                       holds a BBj compiler (MAINT-06, D-11); only for no-route tests
 #   no_compiler_env     unsets BBJ_HOME, BBJHOME and CLAUDE_PLUGIN_OPTION_BBJ_HOME and sets
 #                       BBJ_CHECK_DEFAULT_HOMES empty, in the calling shell (MAINT-06, D-11)
-#   home_snapshot CODEXHOME SKILLSDIR   prints a sorted content snapshot of the paths the Codex
-#                       installer can write, with its temp files and parent dirs (MAINT-07, D-08,
-#                       D-09): one line per entry, a kind and a path, never a time
-#   home_diff BEFORE AFTER   returns 0 when two snapshot files are identical; otherwise prints at
-#                       most three changed lines and returns 1 (MAINT-07, D-10)
 #
 # Hermetic defaults (exported here): the built-in default homes are replaced by an empty
 # list, no BBj environment variable is set, and the loopback check URL is a closed port,
 # so no test reaches a real BBj or a real bbj-ls unless it opts in explicitly. mkwork also
 # points BBJ_CHECK_STATE_DIR at $WORK/state (HOOK-02, D-18), so the once-per-session marker
 # of the no-route notice never reaches the real temp directory. Claude Code and the Codex plugin
-# route export CLAUDE_PLUGIN_ROOT to a hook, so it is unset here too: a value inherited from the
-# caller must never turn an installer-route gate into a plugin-route one (Phase 8, Pitfall 4).
+# export CLAUDE_PLUGIN_ROOT to a hook, so it is unset here too: a value inherited from the caller
+# must never decide what a gate sees (Phase 8, Pitfall 4). The seams of the fake curl are unset
+# for the same reason (Phase 12 review WR-01): a stray FAKE_CURL_WRITEOUT would turn gates that
+# assume the fake prints no write-out red, and the failure would point at the hook.
 
 REPO=$(cd "$(dirname "$0")/.." && pwd)
 SCRIPT=${SCRIPT:-$REPO/plugins/bbj/scripts/bbj-check.sh}
@@ -49,7 +46,8 @@ SHELL_UNDER_TEST=${SHELL_UNDER_TEST:-sh}
 
 BBJ_CHECK_DEFAULT_HOMES=
 export BBJ_CHECK_DEFAULT_HOMES
-unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR CLAUDE_PLUGIN_ROOT
+unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME CLAUDE_PROJECT_DIR CLAUDE_PLUGIN_ROOT \
+  FAKE_CURL_EXIT FAKE_CURL_WRITEOUT FAKE_CURL_LOG
 BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp
 export BBJ_LOCAL_MCP_URL
 
@@ -221,137 +219,4 @@ no_compiler_env() {
   unset BBJ_HOME BBJHOME CLAUDE_PLUGIN_OPTION_BBJ_HOME
   BBJ_CHECK_DEFAULT_HOMES=
   export BBJ_CHECK_DEFAULT_HOMES
-}
-
-# home_snapshot CODEXHOME SKILLSDIR: one line per entry under the paths the Codex installer can
-# write, sorted with LC_ALL=C (MAINT-07, D-08, D-09, D-10):
-#   F <mode> <crc> <size> <path>   regular file (permission string and cksum of the content, never a time)
-#   T <crc> <size> <path>   content behind a symlink to a regular file (WR-01: a write through the link)
-#   D <mode> <path>   directory (permission string; IN-02)    L <path> -> <target>   symlink
-#   U <path>   unreadable file, or a symlink whose regular target is unreadable
-#   O <path>   other (FIFO, socket, device; never opened)    - <path>   absent
-#   E <path>   find failed below this watched path (an unreadable directory); the walk is incomplete
-#   H <path> present|absent   the Codex home and the skills dir themselves (the installer mkdir -p's both)
-# Content, never mtime (D-09): a touch changes nothing, an edited, added or removed file does. Only
-# the paths below are read, so daemon files (logs_*.sqlite*, state_*.sqlite, history.jsonl,
-# sessions/, log/, tmp/) and credential files (auth.json) are never opened, with one exception: a
-# symlink below a watched path is followed for a T line, so the cksum of a regular file it points at
-# is read even when that file lies outside the watched set (IN-01). The watched set is the
-# installer's whole write set: config.toml, config.toml.bbj-backup, hooks.json, bbj/, the two skill
-# directories, the mktemp files the installer leaves in the Codex home when it dies between
-# mktemp and mv (config.toml.XXXXXX, hooks.json.XXXXXX), and the two parent directories. A glob
-# that matches nothing stays literal and prints as an absent path. A symlink is recorded with its
-# target; a watched top-level symlink to a directory is also followed (find -H), so retargeting it
-# and writing through it both show, and a symlink to a regular file also gets a T line with the
-# cksum of what it points at, so a write through that link shows too. File content is never
-# printed, only its cksum values. Pass the real homes or fake ones; this helper only reads.
-# The two temp globs are exactly six characters wide, so they also match a user file of that width
-# (config.toml.backup): a harmless false FAIL, not a missed change (IN-04).
-# Accepted residual risk: Codex itself rewrites config.toml when a session trusts a new project or
-# changes a TUI option. That is a real content change and fails real_home_untouched by design, so do
-# not open Codex in a new project during a suite run (0.2.0 D-18 advice, narrowed).
-home_snapshot() {
-  _hs_c=$1
-  _hs_s=$2
-  # D-08: the paths codex/install-codex.sh can write. Phase 8 decision (Claude's discretion in
-  # 08-CONTEXT.md, recorded there, dated, under the locked Phase 7 D-08 line): no plugin-route path
-  # is added. $CODEX_HOME/plugins/ and the [marketplaces] and [plugins] tables of config.toml are
-  # written by Codex itself, change whenever the owner uses Codex, and no suite test writes them.
-  # The installer's write set is unchanged, and its --remove (plans 08-03, 08-04) deletes only
-  # inside that set.
-  {
-    # the temp-file globs below need globbing: noglob from the caller is lifted here and put back
-    # at the end of the block, so leaked temp files are never silently unwatched (IN-01)
-    case "$-" in *f*) _hs_nf=1 ;; *) _hs_nf=0 ;; esac
-    set +f
-    for _hs_d in "$_hs_c" "$_hs_s"; do
-      if [ -d "$_hs_d" ]; then printf 'H %s present\n' "$_hs_d"; else printf 'H %s absent\n' "$_hs_d"; fi
-    done
-    for _hs_p in "$_hs_c/config.toml" "$_hs_c/config.toml.bbj-backup" "$_hs_c/hooks.json" \
-      "$_hs_c"/config.toml.?????? "$_hs_c"/hooks.json.?????? \
-      "$_hs_c/bbj" "$_hs_s/bbj-programming" "$_hs_s/bbj-web-programming"; do
-      if [ -e "$_hs_p" ] || [ -L "$_hs_p" ]; then
-        # -H: a watched top-level path that is a symlink to a directory is followed, so a write
-        # through the link is seen; links below it are recorded with their target, not followed
-        # names reach the classifier as arguments, never through a line-oriented read (a newline
-        # in a name cannot split an entry), and only a regular file is ever opened (a FIFO would
-        # block cksum forever); a find that fails, for an unreadable directory, adds an E line
-        find -H "$_hs_p" -exec sh -c '
-          # readlink is not POSIX: without it the target is cut from the ls -l line, so a retarget
-          # is still seen (IN-02)
-          if command -v readlink > /dev/null 2>&1; then _rl=1; else _rl=0; fi
-          for _f; do
-            if [ -L "$_f" ]; then
-              if [ "$_rl" = 1 ]; then _t=$(readlink "$_f"); else _t=$(ls -ld "$_f" | sed "s/.* -> //"); fi
-              printf "L %s -> %s\n" "$_f" "$_t"
-              # the content behind a file link: a write through the link changes this and nothing else
-              if [ -f "$_f" ] && [ -r "$_f" ]; then
-                printf "T %s %s\n" "$(cksum < "$_f")" "$_f"
-              elif [ -f "$_f" ]; then
-                # a regular target that cannot be read: say so, a write behind the link is not silent
-                printf "U %s\n" "$_f"
-              fi
-            elif [ -d "$_f" ]; then
-              printf "D %s %s\n" "$(ls -ld "$_f" | awk "{ print \$1 }")" "$_f"
-            elif [ -f "$_f" ] && [ -r "$_f" ]; then
-              printf "F %s %s %s\n" "$(ls -ld "$_f" | awk "{ print \$1 }")" "$(cksum < "$_f")" "$_f"
-            elif [ -f "$_f" ]; then
-              printf "U %s\n" "$_f"
-            else
-              printf "O %s\n" "$_f"
-            fi
-          done' sh {} + 2> /dev/null || printf 'E %s\n' "$_hs_p"
-      else
-        printf -- '- %s\n' "$_hs_p"
-      fi
-    done
-    [ "$_hs_nf" = 0 ] || set -f
-  } | LC_ALL=C sort
-}
-
-# home_diff BEFORE AFTER: returns 0 and prints nothing when the two snapshot files are identical;
-# otherwise prints the first three changed lines ("<" before, ">" after) and returns 1. A missing
-# or unreadable snapshot file, or a diff that fails, prints "home_diff: cannot compare ..." and
-# returns 1, so the caller never reports an empty "changed:" (IN-05).
-home_diff() {
-  cmp -s "$1" "$2" && return 0
-  if [ ! -r "$1" ] || [ ! -r "$2" ]; then
-    printf 'home_diff: cannot compare %s and %s (missing or unreadable snapshot)\n' "$1" "$2"
-    return 1
-  fi
-  _hd_out=$(diff "$1" "$2")
-  _hd_rc=$?
-  if [ "$_hd_rc" -gt 1 ]; then
-    printf 'home_diff: cannot compare %s and %s (diff exit %s)\n' "$1" "$2" "$_hd_rc"
-    return 1
-  fi
-  printf '%s\n' "$_hd_out" | grep -e '^<' -e '^>' | head -n 3
-  return 1
-}
-
-# home_incomplete BEFORE AFTER: returns 0 and prints the reason when a comparison of the two
-# snapshot files would prove nothing, 1 and nothing when both are complete (WR-02). A snapshot is
-# incomplete when it is missing, empty (every real one holds the two H lines, so empty means the walk
-# produced nothing, for example a PATH without sort) or holds an E line (a find failure: everything
-# below that path was skipped on both sides, so an identical pair is no evidence).
-home_incomplete() {
-  for _hi_f in "$1" "$2"; do
-    if [ ! -s "$_hi_f" ]; then
-      printf 'the snapshot %s is missing or empty' "$_hi_f"
-      return 0
-    fi
-  done
-  _hi_e=$(grep -h '^E ' "$1" "$2" | LC_ALL=C sort -u | head -n 3 | tr '\n' ' ')
-  if [ -n "$_hi_e" ]; then
-    printf 'the walk could not read: %s' "$_hi_e"
-    return 0
-  fi
-  return 1
-}
-
-# home_incomplete_status: the gate status for an incomplete snapshot. An unreadable directory is an
-# environment fact, so it is skip; under CI=true a prerequisite that is missing is a FAIL (the
-# project rule for tests/run.sh and tests/ci.sh).
-home_incomplete_status() {
-  if [ "${CI:-}" = true ]; then echo FAIL; else echo skip; fi
 }

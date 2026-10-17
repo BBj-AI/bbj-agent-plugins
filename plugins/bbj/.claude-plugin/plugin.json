@@ -1,7 +1,7 @@
 {
   "name": "bbj",
-  "version": "0.2.1",
-  "description": "The hosted BBj docs MCP server, the two BBj skills (bbj-programming, bbj-web-programming), and a compile-only check of every BBj file the agent writes (bbjcpl -N; BBj code is never run).",
+  "version": "0.2.2",
+  "description": "The docs server bbj (the hosted BBj docs server), the two BBj skills (bbj-programming, bbj-web-programming), and a compile-only check of every BBj file the agent writes (bbjcpl -N; BBj code is never run).",
   "author": {
     "name": "BASIS International Ltd."
   },
@@ -12,7 +12,7 @@
     "docs_url": {
       "type": "string",
       "title": "BBj docs server URL",
-      "description": "URL of the BBj docs MCP server; the default is the hosted BBj docs server.",
+      "description": "URL of the docs server bbj; the default is the hosted BBj docs server.",
       "default": "https://mcp.bbj-ai.com/mcp"
     },
     "bbj_home": {

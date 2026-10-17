@@ -30,23 +30,29 @@
 #                                bbj-local reported N error(s) in <file>:
 # The outcome of tier 2 is one of four (D-01, D-03):
 #   curl exit 7 (connection refused)           no route: the notice
+#   curl exit 28 with no connection made (write-out time_connect 0, no remote_ip): no route:
+#                                              the notice (phase 13, FIX-02, D-12)
 #   curl 0, "No errors found."                 clean, silent
 #   curl 0, "line N, column M:" error lines    errors, exit 2 as above
 #   curl 0 with an empty reply, a JSON-RPC error, an isError result, or text with neither
-#   verdict; and every other curl exit (28 timeout, 52 empty reply, 56 reset, 18 short
-#   body, 1 not HTTP, 6 unresolved host and the rest)
-#                                              route failed, silent
-# Only exit 7 is no route: a reachable but slow or broken bbj-ls must never be reported as
-# absent. No curl on PATH and a URL the loopback check refuses are no route as well (D-01).
+#   verdict; and every other curl exit (28 after a connection was made or without the
+#   write-out, 52 empty reply, 56 reset, 18 short body, 1 not HTTP, 6 unresolved host and
+#   the rest)                                  route failed, silent
+# Only exit 7, and exit 28 with no connection made, are no route: a reachable but slow or broken
+# bbj-ls must never be reported as absent. No curl on PATH and a URL the loopback check refuses
+# are no route as well (D-01). The first no-route outcome of a hook run is remembered, so later
+# files of the same run skip curl and are still listed in the notice (D-11, D-14). The limit that
+# remains: a bbj-ls that accepts the connection and never answers is a reached route, is not
+# remembered and costs up to -m 12 for each file (RESEARCH Open Question 2, D-11, D-13).
 #
 # The no-route notice (HOOK-02): when a BBj file of the call had no check route (no compiler
 # found, and tier 2 is no route) and no file of the call had compiler errors (D-04), the script
 # exits 0 and writes ONE line to stdout, the only stdout write of the script:
 #     {"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"<text>"}}
 # The text names the files that were written but not compile-checked, the reasons (D-09),
-# that later BBj files of the session are not checked either, how to enable a check (three
-# texts: by tool_name, D-06, and for apply_patch by whether CLAUDE_PLUGIN_ROOT is non-empty, the
-# Codex plugin route or the install-codex.sh route: D-07, D-08 of phase 8), the hosted check as the agent's fallback with its disclosure
+# that later BBj files of the session are not checked either, how to enable a check (two
+# texts, by tool_name: D-06 of phase 2; the apply_patch text names the Codex plugin commands,
+# phase 11 D-16), the hosted check as the agent's fallback with its disclosure
 # (D-08: it sends the code to a server, so the user must be told; the hook itself never calls
 # it and the text names no address), and asks the agent to tell the user (D-07). It is its own
 # message class and never uses the error header above (D-12). File names are reduced to
@@ -127,8 +133,6 @@
 # launcher bbjcpl finds its BBj home from its own path, so a symlink to it breaks: symlinks
 # are resolved and the real path is called. BBJ_CHECK_STATE_DIR (default ${TMPDIR:-/tmp}) is
 # the directory of the notice's once-per-session marker, a test seam (D-18).
-# CLAUDE_PLUGIN_ROOT (set by Claude Code and by the Codex plugin route, absent on the install-codex.sh
-# route) is read only to choose the notice's enable step; it is never printed.
 # With Git for Windows (cygpath on PATH) paths are converted: the compiler and -P get
 # Windows paths and the -P list is joined with ";".
 # Portable by design: POSIX sh plus awk, sed, grep, head, cat, dirname, tr, mkdir.
@@ -198,6 +202,7 @@ notice() {
   esac
   case "$NR_T2" in
     refused) _why2="no bbj-ls answering on $NR_HOSTPORT" ;;
+    noconn) _why2="no bbj-ls answering on $NR_HOSTPORT (connect timed out)" ;;
     nocurl) _why2='curl not found' ;;
     badurl) _why2='bbj-ls URL refused (not loopback)' ;;
     *) _why2='no bbj-ls answering' ;;
@@ -217,21 +222,17 @@ notice() {
   fi
   _later='Later BBj files in this session are not checked either unless a check is enabled'
   if [ "$_fresh" = 1 ]; then _later="$_later, and this notice is not repeated"; fi
-  # the enable steps differ by tool (D-06 of phase 2) and, for apply_patch, by route: Codex sets
-  # CLAUDE_PLUGIN_ROOT for a plugin hook, the installer's hooks.json sets nothing (D-07, D-08 of
-  # phase 8). The variable is only tested for non-empty, never printed or interpolated.
+  # the enable steps differ by tool (D-06 of phase 2); apply_patch is Codex and gets the plugin
+  # commands, every other tool is Claude Code (phase 11, D-16)
   case "$1" in
     apply_patch)
-      if [ -n "${CLAUDE_PLUGIN_ROOT:-}" ]; then
-        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. codex plugin add bbj-local@basis-bbj only gives the model the local bbj_check_syntax tool; the hook does not need it.'
-      else
-        _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. install-codex.sh --with-local only registers the local bbj_check_syntax tool for the model; the hook does not need it.'
-      fi
+      _how='To enable a check, start BBjServices 26.03+ on this machine so that bbj-ls answers, or set BBJ_HOME to the BBj installation directory, or put bbjcpl on PATH. codex plugin add bbj-local@basis-bbj only gives the model the local bbj_check_syntax tool; the hook does not need it.'
       ;;
     *) _how='To enable a check, set the plugin option bbj_home to the BBj installation directory (for bbjcpl), or start BBjServices 26.03+ on this machine so that bbj-ls answers. The bbj-local@basis-bbj plugin only gives the model the local bbj_check_syntax tool; the hook does not need it.' ;;
   esac
   _txt="$_files $_were written but not compile-checked: $_why1; $_why2. $_later. $_how"
-  _txt="$_txt Otherwise bbj_check_syntax of the hosted docs server bbj-docs can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
+  # phase 12 (NAME-02, D-07): the hosted check is named by role noun and name, the docs server bbj
+  _txt="$_txt Otherwise bbj_check_syntax of the docs server bbj, the hosted check, can check the code; it sends the code to that server and checks it against a stock BBj, so the user must be told."
   _txt="$_txt Tell the user that $_these not compile-checked and how to enable a check."
   # user data (file names) only ever goes in the printf arguments, never in the format
   printf '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"%s"}}\n' \
@@ -241,10 +242,16 @@ notice() {
 
 # Where to go when no BBj compiler can be used for the file: tier 2, the loopback bbj-local
 # check (D-14). Returns 0 when a verdict was reached (clean, or report ran), 1 when there is no
-# route (NR_T2 says why: refused = nothing answers on the port, nocurl, badurl; NR_HOSTPORT holds
-# the authority of the URL), 2 when a route was reached but gave no verdict. Every path ends in
-# an explicit return.
+# route (NR_T2 says why: refused = nothing answers on the port, noconn = a connect timeout with no
+# connection made, nocurl, badurl; NR_HOSTPORT holds the authority of the URL), 2 when a route was
+# reached but gave no verdict. Every path ends in an explicit return. A "nothing reached" outcome is
+# remembered for the rest of the hook run (FIX-02).
 no_tier1_route() {
+  # FIX-02 (phase 13, D-11, D-14): the outcome "nothing reached" of the first tier-2 attempt of this
+  # hook run holds for every later file of the same run (one process per tool call), so one run pays
+  # the connect cost once; a reached route is never cached; skipped files are still counted and
+  # listed by note_noroute.
+  case "$NR_T2" in refused|nocurl|badurl|noconn) return 1 ;; esac # t2-cache
   _url=${BBJ_LOCAL_MCP_URL:-http://127.0.0.1:5009/mcp}
   # loopback only: plain http to 127.0.0.1, localhost or [::1], an optional port and path;
   # no whitespace, backslash, userinfo (@), query (?) or fragment (#). A refused URL is
@@ -278,11 +285,30 @@ no_tier1_route() {
   # verdict instead of no route (phase 9, W-2). 5 s still fits under -m 12 and the hook timeout.
   _ct=1
   if [ "$WIN" = 1 ]; then _ct=5; fi
-  _reply=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout "$_ct" -m 12 -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
+  # -w appends "<time_connect> <remote_ip>" on a last line: it tells a connect timeout where no TCP
+  # connection was made (no route) from a transfer timeout after a connection (a reached route)
+  _out=$(printf '%s' "$_body" | curl -q -sS -g --noproxy '*' --proto =http --connect-timeout "$_ct" -m 12 -w '\n%{time_connect} %{remote_ip}' -X POST -H 'Content-Type: application/json' -H 'MCP-Protocol-Version: 2026-07-28' -H 'Mcp-Method: tools/call' -H 'Mcp-Name: bbj_check_syntax' --data-binary @- --url "$_url" 2> /dev/null)
   _rc=$?
-  # curl exit 7 (connection refused) is the only "nothing answers" outcome; every other failure
-  # or an empty reply reached something and is a route that gave no verdict (see the header)
+  # split the capture at its last newline: the write-out after it, the reply before it
+  _nl='
+'
+  case "$_out" in
+    *"$_nl"*) _wo=${_out##*"$_nl"}; _reply=${_out%"$_nl"*} ;;
+    *) _wo=; _reply=$_out ;;
+  esac
+  # curl exit 7 (connection refused) is a "nothing answers" outcome, and so is exit 28 when the
+  # write-out shows no connection (the test below); every other failure or an empty reply reached
+  # something and is a route that gave no verdict (see the header)
   if [ "$_rc" = 7 ]; then NR_T2=refused; return 1; fi
+  # FIX-02, D-12: a connect timeout where no TCP connection was made (for example a firewall that
+  # drops loopback packets) is no route, told apart from a transfer timeout by the write-out;
+  # anything else with exit 28 (a connection made, or no write-out from an old or fake curl)
+  # stays a reached route without a verdict.
+  if [ "$_rc" = 28 ] && [ -n "$_wo" ] && [ -z "${_wo#* }" ] \
+    && [ -z "$(printf '%s' "${_wo%% *}" | tr -d '0.,')" ]; then
+    NR_T2=noconn
+    return 1
+  fi
   { [ "$_rc" = 0 ] && [ -n "$_reply" ]; } || return 2
 
   # a text/event-stream reply: the payload of the last data: line

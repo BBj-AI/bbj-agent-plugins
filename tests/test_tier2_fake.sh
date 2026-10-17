@@ -8,7 +8,9 @@
 # --noproxy '*' and --proto =http and no redirect flag.
 # MAINT-06 (D-11, D-12): SYSPATH is scrubbed of any BBj compiler (no_compiler_path), so a compiler
 # in /usr/bin or /bin cannot turn a no-route or tier-2 gate into a tier-1 run.
+# Phase 13 (FIX-02, D-15) adds the once-per-run gates on a many-file Codex patch.
 # Nothing here runs BBj; the "compiler" is the logging fake.
+# Gate names (D-13): every name starts with url_, req_, mode_ or tier2_.
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -37,7 +39,7 @@ start_fake() {
   FAKE_PIDS="$FAKE_PIDS $FAKE_PID"
   _w=0
   while [ ! -s "$PORTF" ] && [ "$_w" -lt 100 ]; do sleep 0.1; _w=$((_w + 1)); done
-  [ -s "$PORTF" ] || { gate "fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
+  [ -s "$PORTF" ] || { gate "tier2_fake_start_$1" FAIL "the fake server wrote no port file"; finish; }
   BBJ_LOCAL_MCP_URL=http://127.0.0.1:$(cat "$PORTF")/mcp
   export BBJ_LOCAL_MCP_URL
 }
@@ -73,7 +75,7 @@ silent() {
 # ---- request shape ----
 start_fake clean
 run_t2 "$PAYLOAD"
-silent clean_reply_silent
+silent tier2_clean_reply_silent
 cat > "$WORK/shape.py" << 'PYEOF'
 import json, re, sys
 log, fx = sys.argv[1], sys.argv[2]
@@ -155,9 +157,9 @@ start_fake one-error
 printf 'ALIAS X0 SYSGUI\n' > "$WORK/proj/config.bbx"
 run_t2 "$(claude_payload Write "$WORK/proj/config.bbx" "$WORK/proj")"
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ]; then
-  gate config_skipped_no_request ok "config.bbx sends nothing to the loopback"
+  gate tier2_config_skipped_no_request ok "config.bbx sends nothing to the loopback"
 else
-  gate config_skipped_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
+  gate tier2_config_skipped_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
 fi
 stop_fake
 
@@ -172,9 +174,9 @@ export BBJ_HOME FAKE_LOG
 unset FAKE_OUT FAKE_STDOUT FAKE_EXIT
 run_t2 "$PAYLOAD"
 if [ "$RC" = 0 ] && [ ! -s "$LOGF" ] && [ -s "$FAKE_LOG" ]; then
-  gate tier1_wins_no_request ok "compiler called, fake server saw nothing"
+  gate tier2_tier1_wins_no_request ok "compiler called, fake server saw nothing"
 else
-  gate tier1_wins_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
+  gate tier2_tier1_wins_no_request FAIL "exit $RC, requests: $(awk 'END { print NR }' "$LOGF")"
 fi
 
 # an unusable compiler (output without a compiler line) falls through to tier 2
@@ -183,9 +185,9 @@ FAKE_OUT=$WORK/unusable.txt
 export FAKE_OUT
 run_t2 "$PAYLOAD"
 if [ "$RC" = 2 ] && [ "$(head -n 1 "$WORK/stderr")" = "bbj-local reported 1 error(s) in $FILE:" ] && [ -s "$LOGF" ]; then
-  gate unusable_compiler_falls_to_tier2 ok "tier 2 answered"
+  gate tier2_unusable_compiler_falls_to_tier2 ok "tier 2 answered"
 else
-  gate unusable_compiler_falls_to_tier2 FAIL "exit $RC"
+  gate tier2_unusable_compiler_falls_to_tier2 FAIL "exit $RC"
 fi
 unset FAKE_OUT BBJ_HOME FAKE_LOG
 stop_fake
@@ -307,13 +309,103 @@ if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ] && [ "$_nrc" = 0
   && printf '%s' "$_ntext" | grep -F 'curl not found' > /dev/null; then
   run_t2 "$PAYLOAD" "$WORK/nocurl"
   if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$LOGF" ]; then
-    gate no_curl_notice_then_silent ok "first call notice with curl not found, no request, second call silent"
+    gate tier2_no_curl_notice_then_silent ok "first call notice with curl not found, no request, second call silent"
   else
-    gate no_curl_notice_then_silent FAIL "second call not silent (exit $RC)"
+    gate tier2_no_curl_notice_then_silent FAIL "second call not silent (exit $RC)"
   fi
 else
-  gate no_curl_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
+  gate tier2_no_curl_notice_then_silent FAIL "exit $RC, notice_text $_nrc: $(head -c 160 "$WORK/stdout")"
 fi
 stop_fake
+
+# ---- one tier-2 attempt per hook run on a many-file Codex patch (phase 13, FIX-02, D-14, D-15) ----
+# WR-02 of the phase 9 review: every BBj file of one apply_patch paid the tier-2 connect again, and on
+# the Windows branch (cygpath on PATH, 5 s connect timeout per attempt) a many-file patch with no
+# check route ran past the 30 s hook timeout. The gates run on that branch for this reason. No clock
+# is asserted: the fake does not sleep; the bound is one call at --connect-timeout 5 plus -m 12.
+NMANY=12
+mkdir "$WORK/many"
+_i=1
+_patch='*** Begin Patch'
+while [ "$_i" -le "$NMANY" ]; do
+  printf 'print "a"\n' > "$WORK/many/f$_i.bbj"
+  _patch="$_patch
+*** Add File: f$_i.bbj
++print \"a\""
+  _i=$((_i + 1))
+done
+_patch="$_patch
+*** End Patch"
+MANYPAYLOAD=$(codex_payload "$WORK/many" "$_patch")
+
+# oncegate NAME EXIT WRITEOUT WANTCALLS TEXT: one hook call over the NMANY-file patch on the Windows
+# branch, fake curl exiting EXIT (printing WRITEOUT when it is not empty; the word @empty exports
+# FAKE_CURL_WRITEOUT set but empty, a curl that prints only the leading newline), no compiler. Ok when curl
+# was called WANTCALLS times with --connect-timeout 5 and the call exits 0 with either no output at
+# all (TEXT is the word silent) or one valid no-route notice that holds TEXT.
+oncegate() {
+  fresh_state
+  : > "$FAKE_CURL_LOG"
+  BBJ_LOCAL_MCP_URL=http://127.0.0.1:5009/mcp
+  FAKE_CURL_EXIT=$2
+  export BBJ_LOCAL_MCP_URL FAKE_CURL_EXIT
+  if [ "$3" = @empty ]; then
+    FAKE_CURL_WRITEOUT=
+    export FAKE_CURL_WRITEOUT
+  elif [ -n "$3" ]; then
+    FAKE_CURL_WRITEOUT=$3
+    export FAKE_CURL_WRITEOUT
+  fi
+  run_t2 "$MANYPAYLOAD" "$WORK/cygbin:$CURLPATH"
+  unset FAKE_CURL_EXIT FAKE_CURL_WRITEOUT
+  _calls=$(grep -cx CALL "$FAKE_CURL_LOG")
+  _ct=$(awk '/^--connect-timeout$/ { getline; print; exit }' "$FAKE_CURL_LOG")
+  if [ "$5" = silent ]; then
+    if [ "$RC" = 0 ] && [ "$_calls" = "$4" ] && [ "$_ct" = 5 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ]; then
+      gate "$1" ok "$NMANY files, $_calls curl call(s), --connect-timeout $_ct, silent"
+    else
+      gate "$1" FAIL "exit $RC, $_calls curl call(s) want $4, connect timeout '$_ct', output: $(head -c 200 "$WORK/stdout" "$WORK/stderr")"
+    fi
+    return 0
+  fi
+  _ntext=$(notice_text "$WORK/stdout")
+  _nrc=$?
+  if [ "$RC" = 0 ] && [ "$_calls" = "$4" ] && [ "$_ct" = 5 ] && [ "$_nrc" = 0 ] && [ ! -s "$WORK/stderr" ] \
+    && printf '%s' "$_ntext" | grep -F -- "$5" > /dev/null; then
+    gate "$1" ok "$NMANY files, $_calls curl call(s), --connect-timeout $_ct, notice holds '$5'"
+  else
+    gate "$1" FAIL "exit $RC, $_calls curl call(s) want $4, connect timeout '$_ct', notice_text $_nrc: $(printf '%s' "$_ntext" | head -c 200)"
+  fi
+}
+oncegate tier2_once_windows_refused 7 '' 1 'and 7 more' # the 11 cached files are counted and listed (D-14)
+# D-12, D-15 case 3: a connect timeout where no TCP connection was made (write-out time_connect 0, no
+# remote_ip) is no route: one call, the notice names it instead of the old silent outcome
+oncegate tier2_once_windows_connect_timeout 28 '0.000000 ' 1 '(connect timed out)'
+# D-11, D-15 case 2: a transfer timeout after a connection was made is a reached route, never cached:
+# curl is asked once per file and the call stays silent
+oncegate tier2_transfer_timeout_not_cached 28 '0.000129 127.0.0.1' 12 silent
+# review IN-01: exit 28 is no route only when both write-out fields say no connection was made. A
+# connect time of 0 with a remote address, or a connect time above 0 without one (curl builds may fill
+# the two fields differently), stays a reached route: asked once per file, silent. Each case fails when
+# its half of the condition is dropped (hookmut_noconn_ip, hookmut_noconn_time).
+oncegate tier2_noconn_needs_no_ip 28 '0.000000 127.0.0.1' 12 silent
+oncegate tier2_noconn_needs_zero_time 28 '0.000500 ' 12 silent
+# review IN-04: a curl that prints only the leading newline (write-out set but empty) gives no fields to
+# judge, so the route stays a reached one: asked once per file, silent
+oncegate tier2_noconn_empty_writeout 28 @empty 12 silent
+
+# D-11: a bbj-ls that answers is a reached route, so every file of the patch is checked (the real
+# curl against the fake server; one request per file)
+start_fake clean
+fresh_state
+run_t2 "$MANYPAYLOAD" "$WORK/cygbin:$SYSPATH"
+_reqs=$(wc -l < "$LOGF" | tr -d ' ')
+if [ "$RC" = 0 ] && [ ! -s "$WORK/stdout" ] && [ ! -s "$WORK/stderr" ] && [ "$_reqs" = "$NMANY" ]; then
+  gate tier2_every_file_when_answering ok "$NMANY files, $_reqs requests, silent"
+else
+  gate tier2_every_file_when_answering FAIL "exit $RC, $_reqs requests want $NMANY, output: $(head -c 200 "$WORK/stdout" "$WORK/stderr")"
+fi
+stop_fake
+
 
 finish

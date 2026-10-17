@@ -1,5 +1,5 @@
-"""A stdlib fake of the bbj-ls MCP endpoint, for tests/test_tier2_fake.sh (plan 19-04) and
-the tools/list probe tests of tests/test_install_codex.sh (plan 01-06, LOCAL-07).
+"""A stdlib fake of the bbj-ls MCP endpoint, for tests/test_tier2_fake.sh (plan 19-04),
+tests/test_noroute_notice.sh and tests/test_skill_examples.py.
 
 Binds 127.0.0.1 on a free port, writes the port number to --port-file and logs one JSON
 line per request to --log: method, path, lowercased headers, body. Like the real server
@@ -16,15 +16,6 @@ MCP-Protocol-Version header is missing, and 405 to a GET. Modes:
   no-verdict  a result whose text holds neither "No errors found." nor a "line N, column M:"
               line (plan 02-02, D-03)
   sse         text/event-stream with one "data:" line holding the one-error reply
-  tools-list        tools/list answers the three bbj-ls tools (bbj_check_syntax, bbj_denum,
-                    bbj_format) as compact JSON like the real server; every other request gets
-                    the clean tools/call reply
-  tools-list-other  tools/list answers one tool named other_tool, no bbj_check_syntax (another
-                    server on the port); every other request gets the clean tools/call reply
-
-In the two tools-list modes a tools/list request whose Mcp-Method header is missing or is not
-tools/list gets HTTP 400 with JSON-RPC error -32020 "Mcp-Method header mismatch", as the live
-bbj-ls does.
 
 Like the real server's Gson, the reply JSON writes ' and = as unicode escapes. Nothing here
 runs BBj. Standard library only; run it as: python3 -I tests/fake_mcp.py ...
@@ -69,28 +60,10 @@ def body_for(mode):
         return 200, "application/json", ""
     if mode == "no-verdict":
         return 200, "application/json", gson_style(result_for("Checked. " + HEADER_LINE))
-    if mode in ("tools-list", "tools-list-other"):
-        return 200, "application/json", gson_style(result_for("No errors found. " + HEADER_LINE))
     if mode == "sse":
         text = "1 error found. " + HEADER_LINE + "\nline 1, column 1: [SyntaxError] syntax error"
         return 200, "text/event-stream", "event: message\ndata: " + gson_style(result_for(text)) + "\n\n"
     raise SystemExit("unknown mode " + mode)
-
-
-def tools_list_reply(mode):
-    """The tools/list result of a tools-list mode (compact JSON in tools-list, default spacing in the other)."""
-    if mode == "tools-list-other":
-        tools = [{"name": "other_tool", "description": "Not a bbj-ls tool.", "inputSchema": {"type": "object"}}]
-        return json.dumps({"jsonrpc": "2.0", "id": 1, "result": {"tools": tools}})
-    tools = [
-        {"name": name, "description": desc, "inputSchema": {"type": "object", "properties": {"code": {"type": "string"}}, "required": ["code"]}}
-        for name, desc in (
-            ("bbj_check_syntax", "Checks BBj code for syntax errors."),
-            ("bbj_denum", "Converts a line-numbered BBj program into labelled source."),
-            ("bbj_format", "Formats BBj code."),
-        )
-    ]
-    return json.dumps({"jsonrpc": "2.0", "id": 1, "result": {"resultType": "complete", "tools": tools}}, separators=(",", ":"))
 
 
 def make_handler(mode, log_path):
@@ -130,18 +103,6 @@ def make_handler(mode, log_path):
                 err = {"jsonrpc": "2.0", "id": None, "error": {"code": -32020, "message": "missing MCP-Protocol-Version"}}
                 self._reply(400, "application/json", json.dumps(err))
                 return
-            if mode.startswith("tools-list"):
-                try:
-                    method = json.loads(body).get("method")
-                except (ValueError, AttributeError):
-                    method = None
-                if method == "tools/list":
-                    if self.headers.get("Mcp-Method") != "tools/list":
-                        err = {"jsonrpc": "2.0", "id": None, "error": {"code": -32020, "message": "Mcp-Method header mismatch"}}
-                        self._reply(400, "application/json", json.dumps(err))
-                    else:
-                        self._reply(200, "application/json", tools_list_reply(mode))
-                    return
             self._reply(*body_for(mode))
 
     return Handler

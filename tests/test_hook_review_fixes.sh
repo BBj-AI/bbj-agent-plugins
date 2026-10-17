@@ -1,7 +1,8 @@
 #!/bin/sh
 # tests/test_hook_review_fixes.sh -- regression tests for the phase 19 code review findings
 # on plugins/bbj/scripts/bbj-check.sh (WR-04 symlinks, WR-05 large patches, IN-01 compiler
-# name). The compiler is a fake that only logs; nothing here runs BBj.
+# name; Phase 12 review WR-01 curl seams). The compiler is a fake that only logs; nothing here runs BBj.
+# Every gate name here starts with reviewfix_ (the prefix of this file, D-13, MAINT-09).
 . "$(dirname "$0")/lib.sh"
 mkwork
 
@@ -20,24 +21,24 @@ printf 'secret line\n' > "$WORK/outside/secret.txt"
 ln -s "$WORK/outside/secret.txt" "$WORK/proj/s.bbj"
 run_check "$(claude_payload Edit "$WORK/proj/s.bbj" "$WORK/proj")"
 if [ "$RC" = 0 ] && [ ! -s "$WORK/stderr" ] && [ ! -s "$FAKE_LOG" ]; then
-  gate symlink_not_checked ok "a .bbj link to another file: exit 0, silent, compiler not called"
+  gate reviewfix_symlink_not_checked ok "a .bbj link to another file: exit 0, silent, compiler not called"
 else
-  gate symlink_not_checked FAIL "exit $RC, stderr $(head -c 120 "$WORK/stderr"), calls $(wc -c < "$FAKE_LOG")"
+  gate reviewfix_symlink_not_checked FAIL "exit $RC, stderr $(head -c 120 "$WORK/stderr"), calls $(wc -c < "$FAKE_LOG")"
 fi
 : > "$WORK/proj/real.bbj"
 run_check "$(claude_payload Edit "$WORK/proj/real.bbj" "$WORK/proj")"
 if [ "$RC" = 2 ] && [ -s "$FAKE_LOG" ]; then
-  gate regular_file_still_checked ok "a regular file next to the link is still compiled"
+  gate reviewfix_regular_file_still_checked ok "a regular file next to the link is still compiled"
 else
-  gate regular_file_still_checked FAIL "exit $RC"
+  gate reviewfix_regular_file_still_checked FAIL "exit $RC"
 fi
 : > "$FAKE_LOG"
 ln -s "$WORK/proj/real.bbj" "$WORK/proj/viaCodex.bbj"
 run_check "$(codex_payload "$WORK/proj" "$(printf '%s\n' '*** Begin Patch' '*** Update File: viaCodex.bbj' '*** End Patch')")"
 if [ "$RC" = 0 ] && [ ! -s "$FAKE_LOG" ]; then
-  gate symlink_not_checked_patch ok "a patch naming a link: exit 0, compiler not called"
+  gate reviewfix_symlink_not_checked_patch ok "a patch naming a link: exit 0, compiler not called"
 else
-  gate symlink_not_checked_patch FAIL "exit $RC"
+  gate reviewfix_symlink_not_checked_patch FAIL "exit $RC"
 fi
 
 # ---- WR-05: a large patch is read in linear time; the failing file after it is still reported ----
@@ -50,9 +51,9 @@ t0=$(date +%s)
 run_check "$(cat "$WORK/bigpayload")"
 t1=$(date +%s)
 if [ "$RC" = 2 ] && grep -F "zz_after_big.bbj" "$WORK/stderr" > /dev/null && [ $((t1 - t0)) -lt 10 ]; then
-  gate big_patch_linear ok "a $bigbytes byte patch: header after the bulk found, exit 2 in $((t1 - t0)) s"
+  gate reviewfix_big_patch_linear ok "a $bigbytes byte patch: header after the bulk found, exit 2 in $((t1 - t0)) s"
 else
-  gate big_patch_linear FAIL "exit $RC after $((t1 - t0)) s: $(head -c 120 "$WORK/stderr")"
+  gate reviewfix_big_patch_linear FAIL "exit $RC after $((t1 - t0)) s: $(head -c 120 "$WORK/stderr")"
 fi
 
 # ---- a "+" content line holding a backslash-n text never forges a header ----
@@ -61,9 +62,18 @@ fi
 codex_payload "$WORK/proj" "$(printf '%s\n' '*** Begin Patch' '*** Add File: n.txt' '+x\n*** Add File: evil.bbj' '+y\\n*** Add File: evil.bbj' '*** End Patch')" > "$WORK/forge"
 run_check "$(cat "$WORK/forge")"
 if [ "$RC" = 0 ] && ! grep -F 'evil.bbj' "$FAKE_LOG" > /dev/null; then
-  gate patch_content_cannot_forge_header ok "backslash-n inside a content line is not a line break"
+  gate reviewfix_patch_content_cannot_forge_header ok "backslash-n inside a content line is not a line break"
 else
-  gate patch_content_cannot_forge_header FAIL "exit $RC, log: $(head -c 200 "$FAKE_LOG")"
+  gate reviewfix_patch_content_cannot_forge_header FAIL "exit $RC, log: $(head -c 200 "$FAKE_LOG")"
+fi
+
+# ---- Phase 12 review WR-01: lib.sh clears the seams of the fake curl ----
+_seams=$(FAKE_CURL_EXIT=28 FAKE_CURL_WRITEOUT='0.000000 ' FAKE_CURL_LOG=/nonexistent/curl.log \
+  sh -c '. "$1/tests/lib.sh"; printf "%s|%s|%s" "${FAKE_CURL_EXIT+set}" "${FAKE_CURL_WRITEOUT+set}" "${FAKE_CURL_LOG+set}"' sh "$REPO")
+if [ "$_seams" = "||" ]; then
+  gate reviewfix_curl_seams_cleared ok "lib.sh unsets FAKE_CURL_EXIT, FAKE_CURL_WRITEOUT and FAKE_CURL_LOG"
+else
+  gate reviewfix_curl_seams_cleared FAIL "after sourcing lib.sh the seams read '$_seams'"
 fi
 
 finish

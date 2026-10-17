@@ -30,9 +30,9 @@ jobs:
         with:
           persist-credentials: false
       # The validator: claude plugin validate --strict needs the claude CLI. The exact version
-      # was confirmed by the owner as the official Anthropic package (2026-10-08); bump it
-      # as a conscious edit of .github/ci-tools/package.json and its package-lock.json (one
-      # place, checked by tests/test_ci_guards.py). The tree is installed from that lockfile
+      # (2.1.301) was confirmed by the owner as the official Anthropic package (2026-10-16);
+      # bump it as a conscious edit of .github/ci-tools/package.json and its package-lock.json
+      # (one place, checked by tests/test_ci_guards.py). The tree is installed from that lockfile
       # (integrity hashes) with lifecycle scripts off; the package's one postinstall, which
       # only links the platform binary into place, is then run explicitly, so no script of any
       # other package ever runs. The registry signatures are verified before the CLI is used.
