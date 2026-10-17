@@ -19,9 +19,10 @@ Codex, and this handoff covers both.
   heading is quoted exactly as it stands in the file.
 - `new:dev-training/<path>` is a page that does not exist yet and should be created.
 - A claim that no file of either repository backs starts with `Unverified:` and is listed in section 7.
-- Files under `bbj-agent-plugins/.planning/` and `bbj-agent-plugins/.claude/` are maintainer records, not
-  shipped text; they are cited only where a user-facing file does not hold the fact, and each such
-  citation says so.
+- Files under `bbj-agent-plugins/.planning/` and `bbj-agent-plugins/.claude/`, and the test files under
+  `bbj-agent-plugins/tests/`, are maintainer records, not shipped text. They are cited for the term list (which
+  README and install page also use), for one test, and for pending todos that no shipped file records; each
+  such citation says it is a maintainer record.
 
 **Terms the course should use.** The plugin repository fixes one name for each thing (maintainer source:
 `bbj-agent-plugins/.claude/CLAUDE.md`, section Terms; the same names run through
@@ -52,7 +53,8 @@ two clients, Claude Code and Codex. Source: `bbj-agent-plugins/.claude-plugin/ma
   BBjServices (`127.0.0.1:5009`, BBj 26.03 or later) with the client, so the agent can call
   `bbj_check_syntax`, `bbj_denum` and `bbj_format` itself. Source: `bbj-agent-plugins/README.md`.
 - **What it promises.** Most skill rules were reproduced with `bbjcpl` and `bbj-ls` on BBj 26.03, and the
-  others cite the documentation page that states them. The hook only compiles; BBj code is never run.
+  others cite the documentation page that states them or say that the skill maintainer confirmed them on
+  BBj 26.03. The hook only compiles; BBj code is never run.
   Source: `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`,
   `bbj-agent-plugins/README.md#the-check-hook`.
 - **How it is set up.** Two commands per client add the marketplace and install the plugin; then a one-time
@@ -63,7 +65,8 @@ two clients, Claude Code and Codex. Source: `bbj-agent-plugins/.claude-plugin/ma
 
 1. The agent inside the client (Claude Code or Codex).
 2. An arrow to the docs server `bbj` over http, labelled "one-time sign-in"; the server answers with the
-   documentation URL it relied on. Source: `bbj-agent-plugins/plugins/bbj/.mcp.json`.
+   documentation URL it relied on. Source: `bbj-agent-plugins/plugins/bbj/.mcp.json`,
+   `bbj-agent-plugins/docs/install.md#2-install`.
 3. An arrow from the client's file write (`Write` or `Edit`; `apply_patch` in Codex) to the hook, labelled
    "PostToolUse, 30 s". Source: `bbj-agent-plugins/plugins/bbj/hooks/hooks.json`.
 4. From the hook, a first arrow to `bbjcpl` on the same machine, labelled "syntax and types" (the `bbjcpl`
@@ -74,7 +77,8 @@ two clients, Claude Code and Codex. Source: `bbj-agent-plugins/.claude-plugin/ma
    `bbj-agent-plugins/docs/install.md#check-routes`.
 6. A side box, drawn dashed and marked "never": the hosted check. The hook does not call it; only the agent
    can, for code it hands back without writing a file, and it says that the code was sent. Source:
-   `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`.
+   `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`,
+   `bbj-agent-plugins/docs/install.md#check-routes`.
 
 ## 3. Subjects for the course
 
@@ -103,8 +107,9 @@ and where it goes. Course locations are repeated in the section 4 table.
 - What each tool is for, as the skill tells the agent: `bbj_lookup` for the exact syntax of a named symbol,
   `bbj_reserved_word` before naming a variable, `bbj_examples` for verified code (collections, JDBC,
   SysGui), `bbj_search` for everything else, `bbj_fetch_page` for a whole page; read `bbj://primer` before
-  writing BBj and cite the URL of every page relied on. Source:
-  `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`.
+  writing BBj and cite the URL of every page relied on. The hook's feedback adds "bbj_lookup gives exact syntax
+  for a named symbol". Source: `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`,
+  `bbj-agent-plugins/plugins/bbj/scripts/bbj-check.sh`.
 - Claude Code shows the server as `plugin:bbj:bbj` and each tool as `mcp__plugin_bbj_bbj__<tool>`, for
   example `mcp__plugin_bbj_bbj__bbj_search`. Source: `bbj-agent-plugins/CHANGELOG.md#022`.
 - Where BASIS runs the hosted check next to the docs server, the server also lists `bbj_check_syntax`,
@@ -160,7 +165,8 @@ and where it goes. Course locations are repeated in the section 4 table.
   `bbj-agent-plugins/plugins/bbj/skills/bbj-web-programming/SKILL.md`.
 - Traps the skill teaches, usable as course examples: a comment on a statement's line needs `;` before
   `rem`; a bare function-style call is not a statement; a missing `USE` is caught by `bbjcpl` but passed by
-  `bbj-ls`; a value held in an undeclared variable fails the type check; `bbjcpl` exits 0 even with errors,
+  `bbj-ls`; a value held in an undeclared variable fails the type check when it is assigned to a declared
+  field, returned from a typed method or passed to a declared object; `bbjcpl` exits 0 even with errors,
   so read its output. Source: `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`.
 - Both skills open with the same check order for code handed back without being written to a file: first
   `bbjcpl -t -N -X <file>`, then `bbj_check_syntax` of the plugin `bbj-local`, and only when neither exists
@@ -194,7 +200,8 @@ and where it goes. Course locations are repeated in the section 4 table.
   `*** Update File:` or `*** Move to:` line. A path outside the working directory is skipped. Source:
   `bbj-agent-plugins/docs/install.md#not-covered`.
 - The hook never runs BBj code (it compiles with `-N`, which writes no output) and sends nothing off the
-  machine; it does not use the hosted check. Source: `bbj-agent-plugins/docs/install.md#check-routes`.
+  machine; it does not use the hosted check. Source: `bbj-agent-plugins/docs/install.md#check-routes`,
+  `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`.
 - BBj is found in this order: the `bbj_home` option (Claude Code), `BBJ_HOME`, `BBJHOME`, `bbjcpl` on
   `PATH`, then `/c/bbx` (`C:\bbx` on Windows), `/Applications/bbx`, `/usr/local/bbx` and `/opt/bbx`. Source:
   `bbj-agent-plugins/docs/install.md#check-routes`.
@@ -366,11 +373,11 @@ marketplace version changed; `codex plugin marketplace upgrade basis-bbj` is for
 **Windows.** Git for Windows is required (the hook runs `sh`). Claude Code finds `sh` through Git Bash;
 Codex starts the hook through PowerShell with the `commandWindows` entry, which looks for `sh.exe` in a fixed
 order of places and, when none holds it, blocks a Codex change that names a `.bbj`, `.src` or `.bbx` file
-with `bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.`. The BBj home on
-Windows is `C:\bbx` by default. Source: `bbj-agent-plugins/docs/install.md#windows`,
+with `bbj-check: Git for Windows sh.exe not found, so BBj files are not compile-checked.`. The default homes
+the hook tries include `C:\bbx` on Windows. Source: `bbj-agent-plugins/docs/install.md#windows`,
 `bbj-agent-plugins/CHANGELOG.md#022`.
 
-**macOS.** The default BBj homes are `/Applications/bbx`, `/usr/local/bbx` and `/opt/bbx`; a BBj in a `bbx`
+**macOS.** The default BBj homes include `/Applications/bbx`, `/usr/local/bbx` and `/opt/bbx`; a BBj in a `bbx`
 folder in the user's home directory was found only because `bbj_home` or `BBJ_HOME` named it. Source:
 `bbj-agent-plugins/docs/install.md#macos`.
 
@@ -474,7 +481,7 @@ Each rule has its reason and its source. The table is also the outline of the pa
 
 | Rule | Reason | Source |
 |------|--------|--------|
-| Do: let the hook compile; never ask an agent to run BBj code to "check" it. | The hook compiles with `-N` and never runs BBj; a run is a separate decision that stays with the user. | `bbj-agent-plugins/docs/install.md#check-routes`, `bbj-agent-plugins/tests/test_never_execute.sh` |
+| Do: check by compiling; run a program only when you decide to. | The hook compiles with `-N` and never runs BBj; the skill tells the agent that checking never needs a run and not to run a program on its own initiative. | `bbj-agent-plugins/docs/install.md#check-routes`, `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/references/running.md`, `bbj-agent-plugins/tests/test_never_execute.sh` |
 | Do: expect that the hook sends nothing off the machine, and say so. | The hook never uses the hosted check. | `bbj-agent-plugins/docs/install.md#check-routes` |
 | Do: know that the hosted check does send code. | The agent may use it only when no compiler and no `bbj-local` exist, and tells the user. | `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md` |
 | Do: keep the plugin `bbj-local` opt-in; enable it only where BBjServices 26.03 or later runs. | A registered server without a running BBjServices shows as failed on every start. | `bbj-agent-plugins/docs/install.md#4-enable-the-plugin-bbj-local` |
@@ -483,11 +490,11 @@ Each rule has its reason and its source. The table is also the outline of the pa
 | Do: trust the hook in `/hooks`, and again when Codex asks after a changed hook. | Codex runs a plugin hook only after review and trusts it by hash. | `bbj-agent-plugins/docs/install.md#codex-trust-the-hook-in-hooks` |
 | Do: on Windows, install Git for Windows. | The hook runs `sh`; without it a Codex change that names a BBj file is blocked. | `bbj-agent-plugins/docs/install.md#windows` |
 | Do: ask for the Write tool, and for code that compiles. | A client that writes a file through `Bash` is not seen by the hook; asking for a compiling file can help. | `bbj-agent-plugins/docs/install.md#not-covered`, `bbj-agent-plugins/docs/install.md#check-routes` |
-| Do: have the agent cite the URL of every page it relies on, and open it. | The skills require the citation; the docs server answers with it. | `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md` |
+| Do: have the agent cite the URL of every page it relies on, and open it (opening it is the course's habit, not a plugin rule). | The skills require the citation; the docs server answers with it. | `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`, `bbj-agent-plugins/docs/install.md#2-install` |
 | Don't: read a clean check as a correct program. | The check covers syntax and types (`bbj-ls`: syntax only); neither validates an event constant. | `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md`, `bbj-agent-plugins/docs/install.md#check-routes` |
 | Don't: expect the hook to see files written by a shell command, a `NotebookEdit`, or tools outside `Write` and `Edit`. | They do not match the hook. | `bbj-agent-plugins/docs/install.md#not-covered` |
 | Don't: treat the hook as enforcement. | It helps the agent notice a compile error; whether the agent repairs a file is up to the model. | `bbj-agent-plugins/docs/install.md#check-routes` |
-| Don't: copy the OAuth client settings or the callback details into course pages. | The plugin carries them; a copy goes stale. | `bbj-agent-plugins/plugins/bbj/.mcp.json` |
+| Don't: copy the OAuth client settings or the callback details into course pages. | The plugin's `.mcp.json` already carries them, and a second copy has nothing to keep it true (this handoff's recommendation). | `bbj-agent-plugins/plugins/bbj/.mcp.json` |
 | Don't: point `docs_url` at a server that rejects this client without removing the `oauth` block. | The block is static and applies to any `docs_url`. | `bbj-agent-plugins/docs/install.md#options` |
 | Don't: claim a platform or route was tested when it was not. | The README table names what was seen and the "Not run" lists name what was not. | `bbj-agent-plugins/README.md#verified`, `bbj-agent-plugins/CHANGELOG.md#022` |
 
@@ -555,7 +562,7 @@ Only two pages are proposed. Everything else fits an existing file (section 4). 
 
 **No sidebar edit.** `dev-training/sidebars.ts` builds the reference sidebar with `{type: 'autogenerated', dirName: 'reference'}`; its own comment says adding a segment is one file and no sidebar edit, and `dev-training/README.md` § "Adding a segment" says the same. The category label and order come from `dev-training/docs/reference/_category_.json`, which needs no change either.
 
-**No new module segment is proposed.** Module 3 has a segment for each subject already (3.3 install, 3.5 skills, 3.6 write, check, fix). A new segment would need the entry in `dev-training/src/data/curriculum.ts`, an entry in `dev-training/src/data/videos.ts` with kind pending, and a page `docs/module-3/<NN>-<slug>.mdx` whose numeric prefix matches its place in the run of show (`dev-training/README.md` § "Adding a segment"); because the prefix sets the order, every later page would need renaming, so inline text on the existing segments is the cheaper route. For Modules 5 and 6, which have only overview pages with a "Materials still to come" section, wait for the run of show to settle (`dev-training/src/data/curriculum.ts` carries the same advice in its Module 4 comment).
+**No new module segment is proposed.** Module 3 has a segment for each subject already (3.3 install, 3.5 skills, 3.6 write, check, fix). A new segment would need the entry in `dev-training/src/data/curriculum.ts`, an entry in `dev-training/src/data/videos.ts` with kind pending, and a page `docs/module-3/<NN>-<slug>.mdx` whose numeric prefix matches its place in the run of show (`dev-training/README.md` § "Adding a segment"); because the prefix sets the order, every later page would need renaming (an inference from that rule), so inline text on the existing segments is the cheaper route. For Modules 5 and 6, which have only overview pages with a "Materials still to come" section, wait for the run of show to settle (`dev-training/src/data/curriculum.ts` carries the same advice in its Module 4 comment).
 
 ## 6. Out-of-date course text
 
@@ -565,12 +572,12 @@ Each row is a place where the course at commit c41996d contradicts release 0.2.2
 |-------------------------|----------------------|--------------|--------|
 | `dev-training/docs/module-3/07-write-check-fix.mdx` § "What it needs" | "BBj **26.03 or later**, with the language server switched on." | The check hook compiles with `bbjcpl -t -N -X` wherever BBj is found, and asks `bbj-ls` only when no usable compiler exists; BBj 26.03 or later is the requirement of `bbj-ls`. With neither, the hook is silent except for one notice per session. | `bbj-agent-plugins/docs/install.md#check-routes` |
 | `dev-training/docs/module-3/07-write-check-fix.mdx` § "It runs on your BBjServices" | "The check runs against **your own installation** — your PREFIX, your classpath, your config." | The `bbjcpl` check runs the compiler found on the machine with `-P` directories for the file, the project and the working directory. `Unverified:` that the compiler uses the PREFIX, classpath and config; the repository states that only for `bbj-ls`. | `bbj-agent-plugins/docs/install.md#check-routes`, `bbj-agent-plugins/README.md` |
-| `dev-training/docs/module-3/10-exercise-3c-run-the-loop-yourself.mdx` § "What to look for in the last check" | "When the check comes back clean it reports where it ran and which BBj version judged it." | A clean file is silent in every route of the hook; only errors and the no-route notice are shown. | `bbj-agent-plugins/docs/install.md#check-routes` |
+| `dev-training/docs/module-3/10-exercise-3c-run-the-loop-yourself.mdx` § "What to look for in the last check" | "When the check comes back clean it reports where it ran and which BBj version judged it." | A clean file is silent in every route of the hook; only errors and the no-route notice are shown. An answer of the hosted check says `hosted check, stock BBj <version>`. `Unverified:` the wording of a `bbj-ls` answer (section 7, item 13). | `bbj-agent-plugins/docs/install.md#check-routes`, `bbj-agent-plugins/docs/install.md#3-sign-in-to-the-docs-server-bbj` |
 | `dev-training/docs/module-3/10-exercise-3c-run-the-loop-yourself.mdx` § "If the check never runs" | "It needs BBj 26.03 or later with the language server switched on." | It needs a BBj compiler the hook can find (`bbj_home`, `BBJ_HOME`, `BBJHOME`, `PATH`, default folders) or a running `bbj-ls`; with neither the hook says so once per session. | `bbj-agent-plugins/docs/install.md#check-routes` |
 | `dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "One install, three things" | "Two commands in Claude Code; one installer script in Codex." | Codex uses the plugin: `codex plugin marketplace add BBj-AI/bbj-agent-plugins`, then `codex plugin add bbj@basis-bbj`. The script and the `AGENTS.md` snippet are in git tag 0.2.1 and absent from tag 0.2.2. | `bbj-agent-plugins/README.md`, `bbj-agent-plugins/docs/install.md#2-install` |
 | `dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "Two things the Codex installer cannot do for you" | "Approving the hook, and adding the `AGENTS.md` snippet." | The remaining Codex steps are the sign-in (`codex mcp login bbj`) and trusting the hook in `/hooks`; there is no snippet. | `bbj-agent-plugins/docs/install.md#codex-trust-the-hook-in-hooks`, `bbj-agent-plugins/docs/install.md#3-sign-in-to-the-docs-server-bbj` |
 | `dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "Confirming it worked" | "a server that failed to connect looks exactly like one that was never added" | Before the sign-in `claude mcp list` shows `plugin:bbj:bbj` with `Needs authentication` and `codex mcp list` shows `Not logged in`; the course never mentions the sign-in. | `bbj-agent-plugins/docs/install.md#3-sign-in-to-the-docs-server-bbj` |
-| `dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "The two skills" | "`bbj-web-programming` ... DWC and BUI theming, and DOM structure" and "Skills are a Claude Code format. Other clients treat them as ordinary context files, or ignore them entirely" | The skill also covers CSS and JavaScript injection, `setAttribute` against `setProperty`, Automatic Layout, web components, client form validation and DWC registration. Codex lists both skills from the plugin as `bbj:bbj-programming` and `bbj:bbj-web-programming`. | `bbj-agent-plugins/plugins/bbj/skills/bbj-web-programming/SKILL.md`, `bbj-agent-plugins/docs/install.md#2-install` |
+| `dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "The two skills" | "`bbj-web-programming` ... DWC and BUI theming, and DOM structure" and "**Skills are a Claude Code format.** Other clients treat them as ordinary context files, or ignore them entirely" | The skill also covers CSS and JavaScript injection, `setAttribute` against `setProperty`, Automatic Layout, web components, client form validation and DWC registration. Codex lists both skills from the plugin as `bbj:bbj-programming` and `bbj:bbj-web-programming`. | `bbj-agent-plugins/plugins/bbj/skills/bbj-web-programming/SKILL.md`, `bbj-agent-plugins/docs/install.md#2-install` |
 | `dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "The two skills" | ":::note[If you installed the skills by hand] An earlier route had you copy two folders ... That still works" | `Unverified:` no file of the plugin repository describes a hand install, so "still works" has no source. | none (section 7, item 7) |
 | `dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "The commands" | ":::note[The addresses are pre-production]" ... "the server URL, the marketplace and the install commands may still change" | The manifests of release 0.2.2 carry `https://mcp.bbj-ai.com/mcp` as the default `docs_url`; the marketplace is `basis-bbj`. `Unverified:` whether that address is final. | `bbj-agent-plugins/plugins/bbj/.claude-plugin/plugin.json`, `bbj-agent-plugins/docs/install.md#options` |
 | `dev-training/docs/module-3/00-overview.mdx` § "What you need" | "The setup sheet with the MCP server URL" | The setup sheet holds no server URL (the address is the default of the plugin's `docs_url` option and a fixed value in the Codex file). | `bbj-agent-plugins/plugins/bbj/.codex-mcp.json` |
@@ -587,18 +594,18 @@ Each row is a place where the course at commit c41996d contradicts release 0.2.2
 | `dev-training/docs/reference/02-syntax-checking.mdx` § "Local and hosted" | "Registered as ... `bbj-local` ... `bbj-docs` (the server you already have)" | The plugin `bbj-local` registers `bbj-ls`; the hosted check is `bbj_check_syntax` of the docs server `bbj`. The `bbjcpl` check, which the hook tries first, is missing from the table. | `bbj-agent-plugins/README.md`, `bbj-agent-plugins/docs/install.md#check-routes` |
 | `dev-training/docs/reference/02-syntax-checking.mdx` § "Local and hosted" | ":::warning[The hosted check is not deployed yet]" | `Unverified:` whether the hosted check is deployed. The install page says "Where BASIS runs the hosted check next to the docs server". | none (section 7, item 1) |
 | `dev-training/docs/reference/03-trusting-an-answer.mdx` § "The identity footer" | "bbj-docs · hosted · docs · 2026-10-02 · a1b2c3d" | `Unverified:` the footer line and its first field after the rename; no file of the plugin repository states a footer. | none (section 7, item 3) |
-| `dev-training/docs/reference/03-trusting-an-answer.mdx` § "What the docs server gives you" | "A style label - `PRO/5-style` ... or `modern (BBj only)`" | `Unverified:` the label; no file of the plugin repository states it. | none (section 7, item 2) |
+| `dev-training/docs/reference/03-trusting-an-answer.mdx` § "What the docs server gives you" | "**A style label** - `PRO/5-style` ... or `modern (BBj only)`" | `Unverified:` the label; no file of the plugin repository states it. | none (section 7, item 2) |
 | `dev-training/docs/reference/04-data-handling.mdx` § "What the server does with your requests" | "There are no accounts, no sign-in and no per-user profile." | The docs server `bbj` asks for a one-time OAuth sign-in in both clients. | `bbj-agent-plugins/docs/install.md#3-sign-in-to-the-docs-server-bbj` |
 | `dev-training/docs/reference/07-troubleshooting-guide.mdx` § "Setup" | "With none of those it is silent by design." and "or a running `bbj-local`" | The `bbj_home` option is a route too; the hook asks `bbj-ls` itself and does not need the plugin `bbj-local`; with no route it gives the once-per-session notice. | `bbj-agent-plugins/docs/install.md#check-routes` |
 | `dev-training/docs/reference/07-troubleshooting-guide.mdx` § "Setup" | "the address may have changed" (server not connected) | Check the sign-in first: `Needs authentication` (Claude Code) or `Not logged in` (Codex). | `bbj-agent-plugins/docs/install.md#3-sign-in-to-the-docs-server-bbj` |
-| `dev-training/docs/reference/07-troubleshooting-guide.mdx` § "Setup" | "`bbj-local` will not connect. It needs BBj 26.03 or later and the language server switched on" | The plugin installs disabled and must be enabled; it needs BBjServices 26.03 or later running. `Unverified:` the `BBj.properties` key. | `bbj-agent-plugins/docs/install.md#4-enable-the-plugin-bbj-local` |
+| `dev-training/docs/reference/07-troubleshooting-guide.mdx` § "Setup" | "**`bbj-local` will not connect.** It needs BBj 26.03 or later and the language server switched on" | The plugin installs disabled and must be enabled; it needs BBjServices 26.03 or later running. `Unverified:` the `BBj.properties` key. | `bbj-agent-plugins/docs/install.md#4-enable-the-plugin-bbj-local` |
 | `dev-training/docs/reference/08-glossary.mdx` | "**`bbj-docs`** - the hosted BBj documentation MCP server" and "**`bbj-local`** - the MCP endpoint served by `bbj-ls`" | The docs server `bbj`; the plugin `bbj-local` registers `bbj-ls` with the client. | `bbj-agent-plugins/README.md` |
 | `dev-training/docs/reference/11-course-reference-sheet.mdx` § "Installing the BBj plugin" | "git clone ... sh codex/install-codex.sh" | As the setup sheet's Codex row above. | `bbj-agent-plugins/README.md` |
 | `dev-training/docs/reference/11-course-reference-sheet.mdx` § "Confirming the plugin connected" | "You are looking for a `bbj-docs` line marked connected." | `plugin:bbj:bbj` in Claude Code, `bbj` in Codex, after the sign-in. | `bbj-agent-plugins/docs/install.md#3-sign-in-to-the-docs-server-bbj` |
 | `dev-training/docs/reference/11-course-reference-sheet.mdx` § "Switching on the BBj language server" | "**For Module 3's check hook** — one line in `BBj.properties`" | The hook uses the `bbjcpl` check first and needs no `BBj.properties` line for it. `Unverified:` the line itself. | `bbj-agent-plugins/docs/install.md#check-routes` |
 | `dev-training/docs/start-here/02-prerequisites.mdx` § "Before Module 3" | "Nothing to do in advance" and "The language server switched on" for the local check | Requirements are Claude Code 2.1.281 or later or a Codex CLI with plugin support, a browser for the sign-in, and Git for Windows on Windows. | `bbj-agent-plugins/docs/install.md#requirements`, `bbj-agent-plugins/docs/install.md#windows` |
 | `dev-training/docs/module-1/04-installing-the-bbj-extension.mdx` § "The written guide: BBjServices and the Language Server" | ":::note[Also needed in Module 3] Module 3's check hook needs the language server too, configured through `BBj.properties`" | As the first row: the hook needs a compiler or `bbj-ls`, and the repository does not state a `BBj.properties` step. | `bbj-agent-plugins/docs/install.md#check-routes` |
-| `dev-training/COURSE-NOTES.md` § "1. The MCP addresses and install routes are not final" | "`https://bbj-mcp.basis-europe.eu/mcp`" (pre-production) and "`https://bbj-mcp.basis.cloud/mcp`" (production) | The manifests of release 0.2.2 carry `https://mcp.bbj-ai.com/mcp`. The note's claim that every address "lives in one place", the setup sheet, no longer holds. | `bbj-agent-plugins/plugins/bbj/.codex-mcp.json` |
+| `dev-training/COURSE-NOTES.md` § "1. The MCP addresses and install routes are not final" | "`https://bbj-mcp.basis-europe.eu/mcp`" (pre-production) and "`https://bbj-mcp.basis.cloud/mcp`" (production) | The manifests of release 0.2.2 carry `https://mcp.bbj-ai.com/mcp`. The note's claim that every address "lives in **one place**", the setup sheet, no longer holds: the sheet holds no docs server address. | `bbj-agent-plugins/plugins/bbj/.codex-mcp.json` |
 | `dev-training/COURSE-NOTES.md` § "3. Module 3's install narration is out of date" | "two commands in Claude Code, one installer script in Codex" | Plugin commands in both clients, as in the first Codex row. | `bbj-agent-plugins/README.md` |
 
 ## 7. Unverified items and open questions
@@ -608,7 +615,7 @@ Items 1 to 14 are claims or states that no file of `bbj-agent-plugins` backs, or
 1. **Is the hosted check deployed?** The course says it is not (`dev-training/COURSE-NOTES.md` § "4. The hosted syntax check is not deployed"). The install page says "Where BASIS runs the hosted check next to the docs server, as on the hosted server, the server also lists" the three tools (`bbj-agent-plugins/docs/install.md#3-sign-in-to-the-docs-server-bbj`). No file settles it. `Unverified:` until BASIS confirms.
 2. **The style label** (`PRO/5-style` and `modern (BBj only)`) on docs-server answers, taught in `dev-training/docs/reference/03-trusting-an-answer.mdx` § "What the docs server gives you" and the glossary. `Unverified:` no file of the plugin repository states it.
 3. **The identity footer line** and whether its first field still reads the old name after the rename (`dev-training/docs/reference/03-trusting-an-answer.mdx` § "The identity footer"). `Unverified:`.
-4. **The owner of the data-handling statement**, and whether its line "no sign-in" is to be changed for the one-time OAuth sign-in. The statement is a statement of record (`dev-training/docs/reference/04-data-handling.mdx` § "What this covers"); the plugin repository only links the hosted server's page, `https://mcp.bbj-ai.com/data-handling`. Decision needed from the statement's owner, not from the course.
+4. **The owner of the data-handling statement**, and whether its line "no sign-in" is to be changed for the one-time OAuth sign-in. The copy in the course is the published statement of record (`dev-training/COURSE-NOTES.md` § "5. The data-handling statement now lives here, and needs an owner"); the plugin repository only links the hosted server's page, `https://mcp.bbj-ai.com/data-handling`. Decision needed from the statement's owner, not from the course.
 5. **The `BBj.properties` key** `com.basis.languageServer.addr` and its value ending in `:true`, taught in four course pages (section 6). `Unverified:` the repository says only that `bbj-ls` answers on `127.0.0.1:5009` in BBj 26.03 or later. The course's example value names port 5008, a different port.
 6. **Whether the `bbjcpl` check uses the installation's PREFIX, classpath and config.** The README states this for `bbj-ls` and the plugin `bbj-local`. `Unverified:` for the compiler.
 7. **A hand install "still works"** (`dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "The two skills"). `Unverified:` no file of the plugin repository describes a hand install; remove the sentence or get a source.
@@ -617,7 +624,7 @@ Items 1 to 14 are claims or states that no file of `bbj-agent-plugins` backs, or
 10. **The Codex pre-approval key** `plugins."bbj@basis-bbj".mcp_servers.bbj` with `approval_mode = "approve"`. The install page says it is from the Codex documentation and was not tried. Do not teach it as verified.
 11. **The Codex tool prompt itself** was not watched in the recorded runs (`bbj-agent-plugins/docs/install.md#codex-tool-prompts-on-first-use`); do not show a screenshot as verified.
 12. **The VS Code extension.** The install page assumes the `claude` CLI; the course installs Claude Code as a VS Code extension (`dev-training/docs/module-2/02-meet-claude-code-and-codex.mdx` § "In this video"). Whether plugin, sign-in and hook work from the extension alone is an open todo of the plugin repository, not shipped (`bbj-agent-plugins/.planning/todos/pending/2026-10-16-vscode-extension-install-route.md`, maintainer record).
-13. **What `bbj_format` and `bbj_denum` do.** The repository gives their names and says they are tools of `bbj-ls` and of the hosted check. The course's one-line purposes (`dev-training/docs/reference/02-syntax-checking.mdx` § "The three tools") are `Unverified:`.
+13. **What `bbj_format` and `bbj_denum` do.** The repository gives their names and says they are tools of `bbj-ls` and of the hosted check. The course's one-line purposes (`dev-training/docs/reference/02-syntax-checking.mdx` § "The three tools") are `Unverified:`, and so is the wording of the summary line of a `bbj-ls` answer that the course quotes (`dev-training/docs/reference/02-syntax-checking.mdx` § "Reading the result").
 14. **Older client versions.** The plugin repository has a pending todo to refuse versions older than the tested ones and a pending todo on social sign-in for the hosted server (`bbj-agent-plugins/.planning/todos/pending/2026-10-16-refuse-untested-client-versions.md`, `bbj-agent-plugins/.planning/todos/pending/2026-10-16-social-sign-in-needs-no-client-change.md`; maintainer records, nothing shipped). Until the first ships, state the tested versions only.
 
 Not Unverified but not run (so not to be claimed): the list in section 3.2 under "What was verified, and what was not".
