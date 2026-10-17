@@ -80,7 +80,7 @@ About 187 claim units read against their cited source (96 list items of sections
 4. The check hook: the course says it needs the language server switched on and reports "where it ran and which BBj version" when clean. The hook tries `bbjcpl` first, falls back to `bbj-ls`, is silent on a clean file, and gives a once-per-session notice when neither answers (the course says "silent by design").
 5. "Skills are a Claude Code format" (`module-2/06`, `module-3/03`) is wrong: Codex lists both skills from the plugin. The `bbj-web-programming` description in the course is much narrower than the skill.
 6. The course's server addresses (`COURSE-NOTES.md`) differ from the manifests' `https://mcp.bbj-ai.com/mcp`, and the setup sheet holds no server address at all.
-7. Open for BASIS: whether the hosted check is deployed, the style label and identity footer (no repo file backs them), and the `BBj.properties` key (port 5008 in the course; `bbj-ls` is on 5009 here).
+7. Open for BASIS: whether the hosted check is deployed, the style label and identity footer (no repo file backs them), and the `BBj.properties` key name (its port 5008 is correct: language-server RPC 5008, MCP 5009, per the project owner on 2026-10-17).
 8. The install page assumes the `claude` CLI while the course installs Claude Code as a VS Code extension; whether the plugin works from the extension alone is an open, unverified todo of the plugin repository.
 
 ## Deviations from Plan

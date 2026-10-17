@@ -34,7 +34,7 @@ still use are listed in section 6 with the replacement.
 | the docs server `bbj` | The hosted BBj docs server. Always written with its role noun. |
 | the hosted check | `bbj_check_syntax` of the docs server `bbj`. It sends the code to the server and checks it against a stock BBj. |
 | the `bbjcpl` check | The hook's compile-only check, `bbjcpl -t -N -X`: syntax and types. |
-| `bbj-ls`, the BBj language server in BBjServices | Listens on `127.0.0.1:5009`; checks syntax only. |
+| `bbj-ls`, the BBj language server in BBjServices | Speaks its language-server RPC on port 5008 and serves MCP on `127.0.0.1:5009`; the plugin uses only the MCP endpoint. Checks syntax only. |
 | the plugin `bbj-local` | The opt-in plugin that registers `bbj-ls` with the client, so the agent can call `bbj_check_syntax` itself. Its install step is headed "Enable the plugin `bbj-local`". |
 | the plugin `bbj` | The main plugin: the docs server `bbj`, the two skills and the check hook. |
 | tier 1 and tier 2 | Maintainer terms for the `bbjcpl` check and the `bbj-ls` check. Use them in a maintainer page at most; an attendee page names the checks. |
@@ -50,7 +50,7 @@ two clients, Claude Code and Codex. Source: `bbj-agent-plugins/.claude-plugin/ma
   server), the two BBj skills `bbj-programming` and `bbj-web-programming`, and a check hook that compiles
   every BBj file the agent writes. Source: `bbj-agent-plugins/README.md`.
 - **The plugin `bbj-local`** is separate and installs disabled. It registers `bbj-ls` of a running
-  BBjServices (`127.0.0.1:5009`, BBj 26.03 or later) with the client, so the agent can call
+  BBjServices (MCP endpoint `127.0.0.1:5009`, BBj 26.03 or later) with the client, so the agent can call
   `bbj_check_syntax`, `bbj_denum` and `bbj_format` itself. Source: `bbj-agent-plugins/README.md`.
 - **What it promises.** Most skill rules were reproduced with `bbjcpl` and `bbj-ls` on BBj 26.03, and the
   others cite the documentation page that states them or say that the skill maintainer confirmed them on
@@ -70,8 +70,8 @@ two clients, Claude Code and Codex. Source: `bbj-agent-plugins/.claude-plugin/ma
 3. An arrow from the client's file write (`Write` or `Edit`; `apply_patch` in Codex) to the hook, labelled
    "PostToolUse, 30 s". Source: `bbj-agent-plugins/plugins/bbj/hooks/hooks.json`.
 4. From the hook, a first arrow to `bbjcpl` on the same machine, labelled "syntax and types" (the `bbjcpl`
-   check), and a second arrow, taken only when no usable compiler exists, to `bbj-ls` on the loopback
-   address `127.0.0.1:5009`, labelled "syntax only". Source: `bbj-agent-plugins/docs/install.md#check-routes`.
+   check), and a second arrow, taken only when no usable compiler exists, to the MCP endpoint of `bbj-ls` on the
+   loopback address `127.0.0.1:5009`, labelled "syntax only". Source: `bbj-agent-plugins/docs/install.md#check-routes`.
 5. From the hook back to the agent: exit code 2 with the compiler's lines on stderr, or silence for a clean
    file, or, when neither check answers, one notice per session. Source:
    `bbj-agent-plugins/docs/install.md#check-routes`.
@@ -207,7 +207,7 @@ and where it goes. Course locations are repeated in the section 4 table.
   `bbj-agent-plugins/docs/install.md#check-routes`.
 - The failing message starts `bbjcpl reported N error(s) in <file>:` and then holds the compiler's lines, at
   most 40. Source: `bbj-agent-plugins/docs/install.md#check-routes`.
-- With no usable compiler the hook asks `bbj-ls` instead, on `127.0.0.1:5009`. That check is syntax only and
+- With no usable compiler the hook asks `bbj-ls` instead, on its MCP endpoint `127.0.0.1:5009`. That check is syntax only and
   its message starts `bbj-local reported N error(s) in <file>:`, so the attendee can see which check spoke.
   Source: `bbj-agent-plugins/docs/install.md#check-routes`.
 - With neither a compiler nor a reachable `bbj-ls`, the hook tells the agent once per session that the file
@@ -246,7 +246,11 @@ and where it goes. Course locations are repeated in the section 4 table.
 
 **What an attendee needs to know**
 
-- `bbj-ls`, the BBj language server in BBjServices, answers on `127.0.0.1:5009` (BBj 26.03 or later). The
+- `bbj-ls`, the BBj language server in BBjServices, has two ports: its language-server RPC on 5008 (the
+  port `com.basis.languageServer.addr` sets) and its MCP endpoint on `127.0.0.1:5009` (BBj 26.03 or
+  later). The hook and the plugin `bbj-local` talk only to the MCP endpoint; the course should teach
+  both numbers so attendees do not mix them up. Source for 5008: the project owner, 2026-10-17; the
+  repository names only 5009. The
   plugin `bbj-local` registers it with the client at `http://127.0.0.1:5009/mcp`, so the client has a check
   it can call itself: `bbj_check_syntax`, `bbj_format`, `bbj_denum`. Source:
   `bbj-agent-plugins/docs/install.md#4-enable-the-plugin-bbj-local`,
@@ -588,7 +592,7 @@ Each row is a place where the course at commit c41996d contradicts release 0.2.2
 | `dev-training/docs/reference/01-mcp-setup-sheet.mdx` § "Codex" | "git clone ... cd bbj-agent-plugins ... sh codex/install-codex.sh" and "The installer approves the `bbj-docs` tools only" | Plugin commands (`codex plugin marketplace add`, `codex plugin add bbj@basis-bbj`); the plugin ships no tool approvals, so Codex asks before the first call of each tool. | `bbj-agent-plugins/docs/install.md#codex-tool-prompts-on-first-use` |
 | `dev-training/docs/reference/01-mcp-setup-sheet.mdx` § "Codex" | "verified on Linux with Codex CLI 0.156.1 on 8 Oct 2026. It has not yet been run on Windows or macOS." | Verified with Codex CLI 0.162.1 on Linux, Windows and macOS (what was not run is listed in the README). | `bbj-agent-plugins/README.md#verified` |
 | `dev-training/docs/reference/01-mcp-setup-sheet.mdx` § "Prove it works" | "With no BBj on the machine the hook is silent by design." and the footer `bbj-docs · hosted · docs` | With no compiler and no `bbj-ls`, the hook tells the agent once per session that the file was not compile-checked. `Unverified:` the footer line and its first field after the rename. | `bbj-agent-plugins/docs/install.md#check-routes` |
-| `dev-training/docs/reference/01-mcp-setup-sheet.mdx` § "Adding the local syntax check" | "codex mcp add bbj-local --url http://127.0.0.1:5009/mcp" and the key `com.basis.languageServer.addr` ending in `:true` | The Codex command is `codex plugin add bbj-local@basis-bbj`; the step is "Enable the plugin `bbj-local`". `Unverified:` the key and the port 5008; the repository states only that `bbj-ls` answers on `127.0.0.1:5009` in BBj 26.03 or later. | `bbj-agent-plugins/docs/install.md#4-enable-the-plugin-bbj-local` |
+| `dev-training/docs/reference/01-mcp-setup-sheet.mdx` § "Adding the local syntax check" | "codex mcp add bbj-local --url http://127.0.0.1:5009/mcp" and the key `com.basis.languageServer.addr` ending in `:true` | The Codex command is `codex plugin add bbj-local@basis-bbj`; the step is "Enable the plugin `bbj-local`". Port 5008 in the key is correct: it is the language-server RPC port, while 5009 is the MCP endpoint (project owner, 2026-10-17). The course should say which number is which. `Unverified:` the key name and its `:true` suffix. | `bbj-agent-plugins/docs/install.md#4-enable-the-plugin-bbj-local` |
 | `dev-training/docs/reference/01-mcp-setup-sheet.mdx` § "Upgrading from a hand install" | "claude mcp remove bbj-docs -s user" and "delete the `[mcp_servers.bbj-docs]` table ... before running the installer" | The old name and the script are retired. Updating the plugin is `claude plugin marketplace update basis-bbj` and `claude plugin update bbj@basis-bbj` (Claude Code), `codex plugin marketplace upgrade basis-bbj` and `codex plugin add bbj@basis-bbj` (Codex). | `bbj-agent-plugins/CHANGELOG.md#022`, `bbj-agent-plugins/docs/install.md#update-and-remove` |
 | `dev-training/docs/reference/02-syntax-checking.mdx` § "The loop" | "It sends the draft to `bbj_check_syntax`" | The hook compiles every BBj file the agent writes (`Write`, `Edit`, `apply_patch`); `bbj_check_syntax` is the agent's own call for code it hands back without writing a file. | `bbj-agent-plugins/README.md#the-check-hook`, `bbj-agent-plugins/plugins/bbj/skills/bbj-programming/SKILL.md` |
 | `dev-training/docs/reference/02-syntax-checking.mdx` § "Local and hosted" | "Registered as ... `bbj-local` ... `bbj-docs` (the server you already have)" | The plugin `bbj-local` registers `bbj-ls`; the hosted check is `bbj_check_syntax` of the docs server `bbj`. The `bbjcpl` check, which the hook tries first, is missing from the table. | `bbj-agent-plugins/README.md`, `bbj-agent-plugins/docs/install.md#check-routes` |
@@ -616,7 +620,7 @@ Items 1 to 14 are claims or states that no file of `bbj-agent-plugins` backs, or
 2. **The style label** (`PRO/5-style` and `modern (BBj only)`) on docs-server answers, taught in `dev-training/docs/reference/03-trusting-an-answer.mdx` § "What the docs server gives you" and the glossary. `Unverified:` no file of the plugin repository states it.
 3. **The identity footer line** and whether its first field still reads the old name after the rename (`dev-training/docs/reference/03-trusting-an-answer.mdx` § "The identity footer"). `Unverified:`.
 4. **The owner of the data-handling statement**, and whether its line "no sign-in" is to be changed for the one-time OAuth sign-in. The copy in the course is the published statement of record (`dev-training/COURSE-NOTES.md` § "5. The data-handling statement now lives here, and needs an owner"); the plugin repository only links the hosted server's page, `https://mcp.bbj-ai.com/data-handling`. Decision needed from the statement's owner, not from the course.
-5. **The `BBj.properties` key** `com.basis.languageServer.addr` and its value ending in `:true`, taught in four course pages (section 6). `Unverified:` the repository says only that `bbj-ls` answers on `127.0.0.1:5009` in BBj 26.03 or later. The course's example value names port 5008, a different port.
+5. **The `BBj.properties` key** `com.basis.languageServer.addr` and its value ending in `:true`, taught in four course pages (section 6). The port is settled: 5008 is the language-server RPC port that this key sets, and 5009 is the MCP endpoint the plugin uses (project owner, 2026-10-17). `Unverified:` the key name and the meaning of `:true`. Follow-up for this repository: `README.md` and `docs/install.md` say `bbj-ls` "answers on `127.0.0.1:5009`", which should name it as the MCP endpoint.
 6. **Whether the `bbjcpl` check uses the installation's PREFIX, classpath and config.** The README states this for `bbj-ls` and the plugin `bbj-local`. `Unverified:` for the compiler.
 7. **A hand install "still works"** (`dev-training/docs/module-3/03-installing-the-bbj-plugin.mdx` § "The two skills"). `Unverified:` no file of the plugin repository describes a hand install; remove the sentence or get a source.
 8. **Is `https://mcp.bbj-ai.com/mcp` the final production address?** It is the default in release 0.2.2; the course notes call their addresses pre-production. `Unverified:` finality.
