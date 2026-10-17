@@ -1,5 +1,63 @@
 # Milestones
 
+## v0.2.2 Plugin-only cleanup (Shipped: 2026-10-17)
+
+**Delivered:** The plugin is the only install route for Claude Code and Codex. The docs server
+is named `bbj` everywhere, the Windows hook fixes left over from Phase 9 are in, and one install
+page and one term list replace the per-client pages and the mixed wording. Released as plugin
+0.2.2 (annotated tag `0.2.2` on merge commit 0e9b3c0, GitHub Release published).
+
+**Phases completed:** 5 phases (11-15), 34 plans, 66 tasks
+
+**Key accomplishments:**
+
+- Codex installer route removed: `install-codex.sh`, `AGENTS-snippet.md`, their tests, gates,
+  fakes and the hook's installer branch are gone, and `layout_no_retired_route` keeps them out,
+  proven by nine mutation cases (Phase 11).
+- Docs server renamed `bbj-docs` → `bbj` in both MCP configs, both skills, the hook notice and
+  the docs. The sign-in labels in the docs (`plugin:bbj:bbj`, `codex mcp login bbj`) are the ones
+  real Claude Code and Codex showed on Linux, and `layout_no_old_server_name` keeps the old name
+  out (Phase 12).
+- Phase 9 review WR-01..WR-03 closed: `commandWindows` finds `sh.exe` outside the default Git
+  location or says so loudly, one tier-2 connect timeout per hook run instead of per file, and a
+  backslash gate that catches a regression. Confirmed on a real Windows 10 machine (Phase 13).
+- One install page `docs/install.md` for both clients, every README Verified cell traced to a
+  run record and pinned by gates, one term list enforced by `layout_no_retired_terms`, and a
+  gate-prefix block that `tests/run.sh` checks against every gate name (Phase 14).
+- Release 0.2.2: CI pinned to `@anthropic-ai/claude-code` 2.1.301, release suite
+  `ok=864 fail=0 skip=0` with live gates, fresh installs and sign-in under `bbj` in real Claude
+  Code 2.1.301 and Codex 0.162.1, PR #4 merged, tag `0.2.2` and GitHub Release published
+  (Phase 15).
+
+**Stats:**
+
+- Timeline: 2026-10-15 → 2026-10-17 (3 days), 378 commits (e1a4ff5 → 3758cac)
+- Shipped files (outside `.planning/`, `0.2.1..0.2.2`): 49 changed, +2,895 / −6,219 lines
+- Requirements: 18/18; audit status `tech_debt` (no gaps)
+
+**Closeout:** override_closeout. All five phase verifications passed; phases 11-14 were marked
+stale only because later summaries are newer than their VERIFICATION.md (the milestone audit of
+2026-10-17 covers all five phases).
+Known verification overrides: 3 newly acknowledged, 4 carried forward from a prior close (see
+STATE.md Deferred Items). The three new ones are the 2026-10-16 todos: refuse untested client
+versions, the VS Code extension install route, and the social sign-in help text.
+
+**Tech debt carried forward** (details in `milestones/v0.2.2-MILESTONE-AUDIT.md`):
+
+- Phase 15 review WR-01 (`docs/install.md` names Claude Code 2.1.299 for Linux next to the
+  2.1.301 banner; `release_claude_version_single` misses that word order), IN-01 (README "Not
+  run" paragraph is an ungated subset of the CHANGELOG list), IN-02 (CLI version in the `ci.yml`
+  comment is unguarded), IN-03 (`.claude/CLAUDE.md` project overview stops at 0.2.1)
+- Phase 14 review IN-10: an unterminated GSD region makes `run_prefix_block` fail closed without
+  naming the cause; IN-09: `live_blackhole_connect_timeout` skips unless `BBJ_LS_BLACKHOLE_URL` is
+  set
+- Integration F4: the Claude Code no-route notice does not name the `/plugin` enable step;
+  F5: `.codex-mcp.json` hard-codes the hosted docs URL (Codex has no `docs_url`); F1:
+  `commandWindows` on real Windows only through owner runs
+- Local `main` is at f15c257 (0.2.0) while `origin/main` and tag `0.2.2` are at 0e9b3c0
+
+---
+
 ## v0.2.1 Platform verification and release hygiene (Shipped: 2026-10-15)
 
 **Delivered:** Codex got its native plugin route, and the Claude Code plugin and the Codex

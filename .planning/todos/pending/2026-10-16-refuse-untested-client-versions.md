@@ -11,6 +11,9 @@ files:
   - plugins/bbj/.codex-plugin/plugin.json
   - plugins/bbj/scripts/bbj-check.sh
   - CHANGELOG.md
+audit_acknowledged:
+  milestone: v0.2.2
+  at: 2026-10-17
 ---
 
 ## Problem

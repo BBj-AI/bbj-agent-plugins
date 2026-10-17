@@ -8,6 +8,9 @@ files:
 
   - docs/install.md
   - README.md
+audit_acknowledged:
+  milestone: v0.2.2
+  at: 2026-10-17
 ---
 
 ## Problem

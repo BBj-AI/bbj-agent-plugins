@@ -2,19 +2,19 @@
 gsd_state_version: "1.0"
 milestone: v0.2.2
 milestone_name: Plugin-only cleanup
-current_phase: 15
-status: completed
+status: Awaiting next milestone
 stopped_at: Phase 15 complete — all phases complete
-last_updated: "2026-10-17T07:25:26.413Z"
+last_updated: "2026-10-17T07:52:19.928Z"
 last_activity: 2026-10-17
-last_activity_desc: Phase 15 complete
-state_head: e7f31b091d705cebc41f557d3c4ef3c1dcdafde6
+last_activity_desc: Milestone v0.2.2 completed and archived
+state_head: 3758cac3effec39b0db3806caf0987e73ed0af7a
 progress:
   total_phases: 5
   completed_phases: 5
   total_plans: 34
   completed_plans: 34
   percent: 100
+current_phase: 15
 ---
 
 # Project State
@@ -24,16 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-10-17)
 
 **Core value:** Every BBj claim and every code example the plugin hands an agent is correct: documented (URL cited) or reproduced on a real BBj, and every code block passes the local checks (`bbjcpl -t` and `bbj-ls`).
-**Current focus:** Milestone v0.2.2 complete — ready to close with /gsd-complete-milestone v0.2.2
+**Current focus:** Planning next milestone (v0.2.2 shipped and archived 2026-10-17)
 
 ## Current Position
 
-Phase: 15
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-10-17 - Completed quick task 261017-a1r: Record Phase 15 review dispositions
-
-Progress: [██████████] 100%
+Phase: Milestone v0.2.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-10-17 — Milestone v0.2.2 completed and archived
 
 ## Performance Metrics
 
@@ -189,74 +187,23 @@ Progress: [██████████] 100%
 
 ### Decisions
 
-The v0.2.0 and v0.2.1 decision logs are archived with their milestones (`.planning/milestones/v0.2.0-phases/`, `.planning/milestones/v0.2.1-phases/`); the lasting decisions are in the Key Decisions table of PROJECT.md.
-
-Roadmap v0.2.2 (2026-10-15):
-
-- [Roadmap]: Five phases, 11-15: installer removal → rename `bbj-docs` → `bbj` → Windows hook fixes (may run alongside the rename) → one install page, one term list and the maintenance sweep → release 0.2.2
-- [Roadmap]: INST-04 and NAME-03 map to Phase 15: `changelog_heading` requires the newest CHANGELOG heading to be the current version and allows no placeholder entry, so the `## 0.2.2` lines can only land in the bump commit. Phase 12 still takes an owner sign-in reading on Linux so the docs name the label the clients show
-- [Roadmap]: DOCS-06 maps to Phase 11: the `install-codex.sh` gate (INST-02) forces the README table and install wording to drop the installer route in the same phase
-- [Roadmap]: The installer mentions in `.claude/CLAUDE.md` and `.planning/codebase/` go with the map refresh in Phase 14 (MAINT-11), since those sections are generated
-- [Phase 11]: D-16: the Codex apply_patch no-route notice has one plugin-commands text; the hook no longer reads CLAUDE_PLUGIN_ROOT
-- [Phase 11]: D-15: curl_check lost its message-line exclusion; static_curl_unsafe_caught and static_curl_safe_passes keep a mutation proof that it fails an unsafe curl call
-- [Phase 11]: D-10: NOT_RUN_LINES keeps the frozen 0.2.1 text; the retired route word is assembled from pieces (RETIRED_WORD) in tests/test_release_text.py
-- [Phase 11]: D-04/D-05: the Codex page and README say only the Claude Code plugin has the docs_url option; the 2.1.294 subagent claim was removed because no run record backs it
-- [Phase 11]: D-13/D-15: the Codex-home guard test, its four snapshot helpers, the fake codex and the FAKE_CODEX_EXIT seam are deleted; test_home_guard.sh went in the tracer commit because it read the deleted install test
-- [Phase 11]: D-11/D-12: layout_no_retired_route scans tracked files outside .planning/ with the CHANGELOG cut at 0.2.1 by integer-tuple heading; mutation copies hold every tracked file so walk mode matches git mode
-- [Phase 12]: D-08/D-09: CC_LABEL in tests/test_claude_plugin.sh is plugin:bbj:bbj, read from real Claude Code 2.1.299; mcp_docs_answers pins the listed label
-- [Phase 12]: 12-02: cx_login_command is 'codex mcp login bbj' (Codex accepted it); --no-browser is only a note for machines whose browser is elsewhere; no ROADMAP/REQUIREMENTS amendment
-- [Phase 12]: 12-03: route_order needle is the whole phrase docs server `bbj` (a bare bbj matches inside bbjcpl); notice gates pin the longer fragment 'bbj_check_syntax of the docs server bbj, the hosted check'
-- [Phase 12]: 12-04: Windows and macOS sign-in sentences removed from README and the Codex page, not reworded; sign-in under bbj on those platforms is confirmed in Phase 15 (NAME-03)
-- [Phase 12]: NAME-01 gate layout_no_old_server_name is its own gate in tests/test_layout.py: literal hyphenated name only, case-insensitive, paths and text, .planning/ and CHANGELOG entries up to 0.2.1 exempt, tests and .claude/CLAUDE.md scanned (D-01 to D-03)
-- [Phase 13]: 13-01: tier-2 no-route state for a connect timeout is noconn (not the D-12 example word, which fails the static timeout scan); a bbj-ls that accepts and never answers is a reached route, uncached, up to -m 12 per file (D-11, D-13)
-- [Phase 13]: 13-02: commandWindows not-found branch reads stdin only through native findstr (never the automatic input variable) and is silent only after a full read that names no BBj file; the string ends with exit $LASTEXITCODE with the loud branch before the call (D-06, D-07, D-09)
-- [Phase 13]: 13-03: D-17 control is sub\.\f.bbj (the CONTEXT path gives no call); bait lives in the existing gate windows_codex_backslash_dotdot_skipped; prefix hookmut_ (CLAUDE.md prefix list left to Phase 14)
-- [Phase 13]: 13-04: D-20 case 2 hides Git by an environment override in the Codex window (renamed Git folder is the fallback); case 3 uses a junction under a throwaway LOCALAPPDATA or a real per-user install
-- [Phase 13]: 13-04: none_long_bbj and none_long_notes have fixed expectations (rc=2, not-found first line); a silent long BBj payload is recorded as a defect, never a known gap
-- [Phase 13]: 13-04: launcher clean removes only a directory that run marked (launcher.marker), junctions first with a non-recursive rmdir
-- [Phase 13]: 13-05: FIX-01 met on Windows 10 19045, Git for Windows 2.52.0, Windows PowerShell 5.1, Codex CLI 0.162.1 (15 launcher cases as expected, 2 pwsh not run, seven Codex readings hold); harness defects H1-H4 fixed in faf5008, planning files only
-- [Phase 13]: 13-06: Codex page Windows text copied from 13-WINDOWS-RUN.md '## For the install page' (DOCS-06); the Codex case 3 sentence left out because that run cannot show the per-user lookup found Git; the timeout paragraph states one bbj-ls try per hook run and up to 12 seconds per file for a reached bbj-ls, not observed in a run
-- [Phase 13]: 13-06: phase 9 review WR-01..WR-03 and IN-02 fixed (open: 2; IN-01, IN-03 stay open); ROADMAP Phase 15 Upgrading trust note removed per D-21; CHANGELOG short-name mentions left to Phase 15
-- [Phase 14]: 14-01: docs/install.md is the one install page; shared forbids run on it under both claude_ and codex_ prefixes
-- [Phase 14]: 14-01: link gates cut CHANGELOG entries 0.2.1 and older by integer comparison; layout_no_removed_pages keeps the two old page names out of the tree
-- [Phase 14]: 14-02: Claude Code / macOS cell reads (hook run directly) and Claude Code / Linux cell reads bbjcpl (hook run directly), bbj-ls (bbj-local plugin connected); all six cells pinned by release_cell_* gates with mutation cases
-- [Phase 14]: 14-02: Codex plugin / macOS keeps (hook) although its bbj-ls reading comes from uncounted Codex runs recorded as prose; flagged in 14-CLAIM-TRACE.md for Phase 15
-- [Phase 14]: 14-04: gate renames put the file prefix in front of the old name; skip-branch names carry the prefix; test_noroute_notice.sh fake_start_ left for 14-09
-- [Phase 14]: 14-03: TERM_VARIANTS order is first route, second route, compiler check, docs MCP, local check; a missing required scope file is a gate hit (fails closed); 'the bbj-local server' is listed as retired but not gated
-- [Phase 14]: 14-09: the last four test files take the prefixes neverexec_, reviewfix_, live_ and notice_ (notice_fake_start_ for the failure path); renames change names and header comments only
-- [Phase 14]: 14-05: the CONVENTIONS.md identity check lives in run.sh inside run_prefix_block; the gate never prints skip (an absent copy is an ok detail, also under CI=true)
-- [Phase 14]: 14-06: FAKE_CYGDRIVE_ROOT kept; only the two cygpath seams without a setter and the fake MCP tools-list modes removed; SC2181 exemption dropped (MAINT-10)
-- [Phase 14]: 14-07: ARCHITECTURE.md keeps the first line of every still-true CLAUDE.md architecture bullet; CONCERNS.md follows the review dispositions (12-REVIEW WR-01 fixed, WR-02 open until a run on the pinned CLI), not the older STATE wording
-- [Phase 14]: 14-08: Core Value section restored in PROJECT.md so generate-claude-md keeps it; CONVENTIONS stdout rule corrected for the no-route notice
-- [Phase 14]: review WR-03: the gate-prefix block moved to a hand-kept section "Gate prefixes" at the end of .claude/CLAUDE.md; run.sh ignores block lines inside GSD regions (6aa73e5)
-- [Phase 14]: review WR-04 deferred to Phase 15: the 0.2.2 entry names the Phase 14 changes to shipped 0.2.1 text; no version change in Phase 14 (07645a0)
-- [Phase 15]: 15-02: Codex hook readings keep the trust bypass in the throwaway home only and record hk_trust: bypassed; no reading claims the /hooks trust step
-- [Phase 15]: 15-02: real-client readings install only from RELEASE_TREE (need_tree guard) and record the tree head and id
-- [Phase 15]: CI pins @anthropic-ai/claude-code 2.1.301 (release-run version), owner-verified on npmjs.com 2026-10-16 before the pin edit (D-12, D-16)
-- [Phase 15]: Closure of the CI-pin finding lives in CONCERNS.md and evidence/pin.txt, never in 12-REVIEW-DISPOSITION.md (D-19)
-- [Phase 15]: 15-03: Linux sign-in line in the 0.2.2 Tested against avoids the pattern 'Claude Code <version> on Linux' so claude_version_single keeps one Linux version when 15-06 adds the release run
-- [Phase 15]: 15-03: Not run line 8 reads 'an upgrade to this release through a Git marketplace'; RETIRED_WORD removed from tests/test_release_text.py
-- [Phase 15]: D-17 blackhole address http://192.0.2.1:5009/mcp used unchanged (probe: curl exit 28; owner: blackhole D-17)
-- [Phase 15]: Plan 15-05: cc_tool_name recorded as not shown (bbj_search detail not opened); cx_login_option --no-browser
-- [Phase 15]: Plan 15-05: claude.ai BBj connector listed above plugin:bbj:bbj in Claude Code /mcp recorded as a NAME-03 observation
-- [Phase 15]: 15-06: owner confirmed push; gsd/release-0.2.2 pushed at d7e5a53, PR #4 into main ready, CI and install gate green; no merge, no tag
-- [Phase 15]: 15-07: PR #4 merged into main with a merge commit 0e9b3c0d (two parents, tested tree e141f79b); CI on main success; both clients install 0.2.2 fresh from main; tag waits for 15-08
-- [Phase 15]: 15-08: tag 0.2.2 pushed by its own ref after owner 'publish'; remote tag peels to M 0e9b3c0d; Release published with the CHANGELOG entry as body
-- [Phase 15]: 15-09: owner confirmed plain fast-forward push of gsd/planning-setup (035e8a2); older pushed blobs keep the dev home path (D-18, accepted)
+The v0.2.0, v0.2.1 and v0.2.2 decision logs are archived with their milestones (`.planning/milestones/v0.2.0-phases/`, `.planning/milestones/v0.2.1-phases/`, `.planning/milestones/v0.2.2-phases/`); the lasting decisions are in the Key Decisions table of PROJECT.md.
 
 ### Pending Todos
 
-None. `2026-10-13-oauth-client-handoff-from-bbjlangmcp.md` closed with Phase 12 (rename done; CHANGELOG line is NAME-03 in Phase 15; client id as a setting stays out of scope).
+Acknowledged at the v0.2.2 close; input for the next milestone:
+
+- `2026-10-16-refuse-untested-client-versions.md` (install, major): refuse to install on Claude Code or Codex versions older than the tested ones
+- `2026-10-16-vscode-extension-install-route.md` (install, major): the install page assumes the `claude` CLI; users of the VS Code extension may not have it
+- `2026-10-16-social-sign-in-needs-no-client-change.md` (oauth, minor): Google and Microsoft sign-in on the docs server need no plugin change; help text only, optional
 
 ### Blockers/Concerns
 
 - [Phase 15]: Code review 15-REVIEW.md left WR-01, WR-02 and IN-01..IN-03 open (15-REVIEW-DISPOSITION.md), all in release text or test gates and fixable only in a later release: WR-01 `release_claude_version_single` misses the word order 'Claude Code 2.1.299' in `docs/install.md:138` and `CHANGELOG.md:64`; WR-02 the `## 0.2.2` entry does not name the installer removal for 0.2.1 installer users (conflicts with Phase 11 D-01/D-02 and `layout_no_retired_route`). Triaged by the owner 2026-10-17 (quick 261017-a1r): WR-01, IN-01, IN-02 deferred to the next release; WR-02 skipped (Phase 11 D-01/D-02, Phase 12 D-12); IN-03 open, to be fixed in `.claude/CLAUDE.md` only
 - [Phase 14]: Code review 14-REVIEW.md left IN-10 open (14-REVIEW-DISPOSITION.md): a GSD region in `.claude/CLAUDE.md` that loses its end marker swallows the hand-kept gate-prefix block; `run_prefix_block` fails closed but does not name the unclosed region, and no fixture covers it
 - [Phase 8]: ROADMAP Phase 8 SC3 says the no-route notice "keeps its Claude Code wording", but review fix WR-05 reworded the Claude Code text too (it still names `bbj_home` and `bbj-local@basis-bbj`, pinned by notice_claude_route_command); the re-verification passed with this as an advisory. Amend SC3 or record it as an accepted override
-- [Phase 10]: Code review 10-REVIEW.md left WR-01..WR-03 open (10-REVIEW-DISPOSITION.md, plus IN-01..IN-04): WR-01 the `usr\bin` sh.exe refusal in `codex/install-codex.sh` is bypassed by a non-canonical path; WR-02 `--remove` leaves `hooks.json` when the recorded sh.exe no longer exists; WR-03 `command_windows_remove_unaffected` and `command_windows_sh_exe_chars_refused` assert too little. Closed by the installer removal in v0.2.2 Phase 11 (out of scope in REQUIREMENTS.md). The README macOS Claude Code cell qualifier (10-VERIFICATION.md) is v0.2.2 Phase 14 (DOCS-07)
 - [Phase 10]: The `## 0.2.0` CHANGELOG entry on `main` differs from tag `0.2.0`: commits from phases 06, 07, 08 and a quick task edited it and PR #2 published them (10-SECURITY.md observation 1); Phase 10's own commits leave it byte-identical
-- [Phase 10]: CI ShellCheck is 0.9.0 and local is 0.11.0; the SC2317/SC2329 directive covers both, pinning or recording the CI version is not done (10-09); listed under Future Requirements in REQUIREMENTS.md, not in v0.2.2
-- [Phase 9]: Code review 09-REVIEW.md left three warnings open in 09-REVIEW-DISPOSITION.md: WR-01 `commandWindows` hardcodes `C:\PROGRA~1\Git\bin\sh.exe` (a non-default Git location fails, and probably silently); WR-02 the 5 s Windows tier-2 connect timeout is paid per file, so a many-file `apply_patch` with no route can hit the 30 s hook timeout; WR-03 `windows_codex_backslash_dotdot_skipped` also passes without the backslash conversion (the property is covered by the sibling gates, not independently). Phase 10 stated the WR-01 limit in the install wording and replaced the hardcoded launcher in the installer (D-27..D-29). All three are v0.2.2 Phase 13 (FIX-01..FIX-03); FIX-01 needs an owner run on Windows or a recorded known gap
+- [Phase 10]: CI ShellCheck is 0.9.0 and local is 0.11.0; the SC2317/SC2329 directive covers both, pinning or recording the CI version is not done (10-09); listed under Future Requirements in `milestones/v0.2.2-REQUIREMENTS.md`
 
 ## Deferred Items
 
@@ -264,6 +211,9 @@ Items acknowledged and deferred at milestone close, most recent first:
 
 | Category | Item | Status | Deferred At | Milestone |
 |----------|------|--------|-------------|-----------|
+| todos | 2026-10-16-refuse-untested-client-versions.md | (presence-only) | 2026-10-17 | v0.2.2 |
+| todos | 2026-10-16-social-sign-in-needs-no-client-change.md | (presence-only) | 2026-10-17 | v0.2.2 |
+| todos | 2026-10-16-vscode-extension-install-route.md | (presence-only) | 2026-10-17 | v0.2.2 |
 | todos | 2026-10-13-oauth-client-handoff-from-bbjlangmcp.md | (presence-only) | 2026-10-15 | v0.2.1 |
 | debug_sessions | dialog-flag-modality (fixed in sysgui.md by 0210c5b; session never closed) | diagnosed | 2026-10-12 | v0.2.0 |
 | seeds | SEED-001 (skills home and local bbj-ls; delivered by v0.2.0) | dormant | 2026-10-12 | v0.2.0 |
@@ -278,8 +228,7 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Close the milestone: /gsd-complete-milestone v0.2.2
-- Optional: /gsd-secure-phase 15 (no 15-SECURITY.md yet; security enforcement is on)
+- Start the next milestone with /gsd-new-milestone
 
 ### Quick Tasks Completed
 

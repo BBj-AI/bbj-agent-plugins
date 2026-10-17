@@ -6,6 +6,9 @@ severity: minor
 target: the next plugin release (help text only, optional)
 source: BBj-AI/bbj-lang-mcp release/PLUGIN-OAUTH-HANDOFF.md
 files:
+audit_acknowledged:
+  milestone: v0.2.2
+  at: 2026-10-17
 ---
 
 ## Problem

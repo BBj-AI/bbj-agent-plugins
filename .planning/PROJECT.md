@@ -9,7 +9,9 @@ agent writes, so agents write BBj that compiles. Release 0.2.0 (shipped 2026-10-
 repository the home of the two skills, rewrote them to state only verified facts, and made the
 local `bbj-ls` check the preferred route over the hosted one wherever it is available. Release
 0.2.1 (shipped 2026-10-15) added the Codex plugin route and states, per platform and per route,
-what was verified on real machines.
+what was verified on real machines. Release 0.2.2 (shipped 2026-10-17) removed the Codex
+installer, renamed the docs server to `bbj`, fixed the Windows hook leftovers and put both
+clients on one install page under one set of terms.
 
 ## Core Value
 
@@ -19,15 +21,28 @@ and `bbj-ls`).
 
 ## Current State
 
-Shipped **v0.2.1** (plugin release 0.2.1, annotated tag `0.2.1` on merge commit 4234e76, GitHub
-Release published 2026-10-15: https://github.com/BBj-AI/bbj-agent-plugins/releases/tag/0.2.1).
-The full suite passes at `ok=979 fail=0 skip=0` with live gates. Both skills stay fully enforced
-by the example gate on `bbjcpl -t` and `bbj-ls` (baseline pending `{}`, `nocheck` 0). Previous:
-**v0.2.0** (tag `0.2.0` on f15c257, Release 2026-10-12). Milestone record:
-`.planning/MILESTONES.md`; archive: `.planning/milestones/` (v0.2.1 phases in
-`milestones/v0.2.1-phases/`). No milestone is open; the next one starts with `/gsd-new-milestone`.
+Shipped **v0.2.2** (plugin release 0.2.2, annotated tag `0.2.2` on merge commit 0e9b3c0, GitHub
+Release published 2026-10-17: https://github.com/BBj-AI/bbj-agent-plugins/releases/tag/0.2.2).
+The release suite passes at `ok=864 fail=0 skip=0` with live gates; CI runs the pinned
+`@anthropic-ai/claude-code` 2.1.301. The plugin is the only install route for Claude Code and
+Codex, and `docs/install.md` is the one install page. Previous: **v0.2.1** (tag `0.2.1` on
+4234e76, Release 2026-10-15) and **v0.2.0** (tag `0.2.0` on f15c257, Release 2026-10-12).
+Milestone record: `.planning/MILESTONES.md`; archive: `.planning/milestones/` (v0.2.2 phases in
+`milestones/v0.2.2-phases/`). No milestone is open; the next one starts with `/gsd-new-milestone`.
 
-## Current Milestone: v0.2.2 Plugin-only cleanup
+## Next Milestone Goals
+
+Not defined yet. Candidates from the pending todos (acknowledged at the v0.2.2 close):
+
+- Refuse to install on Claude Code or Codex versions older than the tested ones (install, major)
+- An install route for users of the VS Code extension, who may not have the `claude` CLI
+  (install, major)
+- Optional help text: Google and Microsoft sign-in on the docs server need no plugin change
+  (oauth, minor)
+- Open review debt from the v0.2.2 audit: 15-REVIEW WR-01 and IN-01..IN-03, 14-REVIEW IN-10
+
+<details>
+<summary>v0.2.2 milestone goal and target features (shipped 2026-10-17)</summary>
 
 **Goal:** Ship the plugin as the only install route for Claude Code and Codex, under
 consistent names, with the open review debt cleared, as release 0.2.2.
@@ -35,9 +50,7 @@ consistent names, with the open review debt cleared, as release 0.2.2.
 **Target features:**
 - Installer route removed: `codex/install-codex.sh`, `codex/AGENTS-snippet.md`, their tests,
   gates and fakes, and every installer mention in the hook, `tests/lib.sh`, release-text gates,
-  README and `.claude/CLAUDE.md`; one CHANGELOG line points 0.2.1 installer users to
-  `install-codex.sh --remove` at tag `0.2.1` (a stale `~/.codex/hooks.json` fires alongside the
-  plugin hook)
+  README and `.claude/CLAUDE.md` (shipped without migration text, Phase 11 D-01/D-02)
 - One plugin-only install page for both clients replaces `docs/install-claude-code.md` and
   `docs/install-codex.md`
 - Docs server renamed `bbj-docs` → `bbj` in both MCP configs, skills, docs, hook notice and tests;
@@ -49,6 +62,8 @@ consistent names, with the open review debt cleared, as release 0.2.2.
   qualifier, refreshed codebase map; dead-code sweep of anything that only served the installer
 - Release 0.2.2: five versions bumped, CHANGELOG, full suite with live gates, tag `0.2.2`,
   GitHub Release
+
+</details>
 
 <details>
 <summary>v0.2.1 milestone goal and target features (shipped 2026-10-15)</summary>
@@ -74,10 +89,10 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 ### Validated
 
 - ✓ Marketplace `basis-bbj` with plugins `bbj` and `bbj-local`, passing `claude plugin validate --strict` — 0.1.0
-- ✓ `bbj` plugin registers the hosted `bbj-docs` MCP server (`docs_url` option) — 0.1.0
+- ✓ `bbj` plugin registers the hosted `bbj-docs` MCP server (`docs_url` option) — 0.1.0 (renamed `bbj` in 0.2.2)
 - ✓ `bbj-local` plugin registers `bbj-ls` at `http://127.0.0.1:5009/mcp`, disabled by default — 0.1.0
 - ✓ `PostToolUse` hook on `Write|Edit` compile-checks BBj files: `bbjcpl -t -N -X`, then loopback `bbj-ls`, never the hosted check, never runs BBj code — 0.1.0
-- ✓ Codex installer (`codex/install-codex.sh`) registers `bbj-docs`, installs skills and the hook; the five docs tools auto-approved, the three code-sending tools keep the prompt — 0.1.0
+- ✓ Codex installer (`codex/install-codex.sh`) registers `bbj-docs`, installs skills and the hook; the five docs tools auto-approved, the three code-sending tools keep the prompt — 0.1.0 (installer removed in 0.2.2)
 - ✓ Shell/Python test suite (`tests/run.sh`, `tests/ci.sh`) with ShellCheck and plugin validation in CI — 0.1.0
 - ✓ Codex installer `--with-local`: registers `bbj-local` at `http://127.0.0.1:5009/mcp` with its three tools auto-approved; opt-in, suggested by an install-time probe; registers and warns when the probe does not find it — Phase 1
 - ✓ `codex/AGENTS-snippet.md` and both SKILL.md files carry one shared check-order block (`bbjcpl`, then `bbj-local`, then hosted only when neither exists, disclosing that hosted sends code away), pinned byte-identical by `tests/test_check_order.py` — Phase 1
@@ -112,7 +127,7 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 
 ### Active
 
-(none; every v0.2.2 requirement shipped)
+(none yet; the next milestone defines them. Candidates are under Next Milestone Goals.)
 
 ### Out of Scope
 
@@ -125,12 +140,11 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 - OAuth client id as a setting — one public client per tenant, pre-production and production share the tenant, and Codex cannot expand `${user_config.*}`, so the setting would be Claude Code only; the literal id stays in both configs. Revisit when a second tenant exists (decided at v0.2.2 start)
 - Renaming the plugins (`bbj`, `bbj-local`) or the marketplace (`basis-bbj`) — users and docs refer to them
 - Pinning or recording the CI ShellCheck version — not chosen for v0.2.2
-- Single go-live constant for the docs URL, installer backups on `--force`, deduplicating hook/installer logic — known concerns, not in 0.2.0
+- Single go-live constant for the docs URL — known concern, not taken up through 0.2.2 (the installer concerns listed here at 0.2.0 went with the installer)
 
 ## Context
 
-- Brownfield; codebase map in `.planning/codebase/` (2026-10-09, predates the Codex plugin route
-  and the Windows changes; refresh before relying on it). Seed:
+- Brownfield; codebase map in `.planning/codebase/` (refreshed in Phase 14, 2026-10-16, MAINT-11). Seed:
   `.planning/seeds/SEED-001-skills-home-and-local-bbj-ls.md`.
 - BBjServices 26.03+ runs `bbj-ls` on `127.0.0.1:5009` with `bbj_check_syntax`, `bbj_denum`,
   `bbj_format`; verified 2026-10-09 (`BBJ_LS_LIVE=1 sh tests/test_tier2_live.sh` passes).
@@ -145,17 +159,18 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
   (pre-production); that is the reason the local route is preferred.
 - Vendoring retired in Phase 1: the skills are edited here under `tests/test_layout.py`; the
   hash test is gone.
-- After v0.2.1: suite at `ok=979 fail=0 skip=0` with live gates (738 at 0.2.0). Codex has two
-  routes: the native plugin (first) and `install-codex.sh` (fallback). Verified platforms per
-  client and route are in the README table and the `## 0.2.1` CHANGELOG entry; the run records
-  are archived in `.planning/milestones/v0.2.1-phases/` (`09-WINDOWS-RUN.md`, `09-MACOS-RUN.md`,
-  `10-LINUX-RUN.md`, Windows installer rounds) and are the only source for that wording.
+- After v0.2.2: release suite at `ok=864 fail=0 skip=0` with live gates (979 at 0.2.1, before the
+  installer tests went; 738 at 0.2.0). Codex has one route, the native plugin. Verified
+  platforms per client and route are in the README table and the `## 0.2.2` CHANGELOG entry; the
+  run records are archived in `.planning/milestones/v0.2.1-phases/` and
+  `.planning/milestones/v0.2.2-phases/` (`12-LINUX-RUN.md`, `13-WINDOWS-RUN.md`, the Phase 15
+  release run) and are the only source for that wording.
 - Facts the records show: `BBJ_HOME` must be in the Codex app-server daemon's environment (a shell
-  export does not reach a daemon started earlier); a stale installer `~/.codex/hooks.json` fires
-  alongside the plugin hook until `install-codex.sh --remove`; a Git-marketplace Codex upgrade
-  0.2.0 → 0.2.1 on Linux kept the hook hash and trust.
+  export does not reach a daemon started earlier); a Git-marketplace Codex upgrade 0.2.0 → 0.2.1
+  on Linux kept the hook hash and trust. Windows and macOS sign-in under `bbj` is not run yet.
 - The hosted docs server requires sign-in since 2026-10-13 (OAuth, `offline_access`); both
-  clients signed in on Linux with the shipped config.
+  clients signed in under `bbj` on Linux with the shipped config (Claude Code 2.1.301, Codex
+  0.162.1, Phase 15).
 
 ## Constraints
 
@@ -204,6 +219,9 @@ ship it, with the fixes left over from 0.2.0, as release 0.2.1.
 | Phase 14's changes to shipped 0.2.1 text get no version bump or CHANGELOG entry in Phase 14; the `## 0.2.2` entry in Phase 15 names them (14-REVIEW WR-04, owner's choice) | `changelog_heading` allows no placeholder entry, and the release bumps all five versions together | ✓ Good — Phase 15 (the `## 0.2.2` entry names them) |
 | CI pins `@anthropic-ai/claude-code` 2.1.301 only after the owner checked the package on npmjs.com; lock integrity and `npm audit signatures` verified in a scratch install | A new CLI version is a supply-chain input; the release run must use the CI version | ✓ Good — Phase 15 (first CI run on the pin passed) |
 | The dev home path is scrubbed from the planning records by one commit, no history rewrite; older blobs on the pushed planning branch keep it (D-18, D-15) | A rewrite would need a force push, which D-15 forbids; the owner accepted the public older blobs before the push | ✓ Accepted — Phase 15 (owner's "push") |
+| Installer removed and docs server renamed with no migration or upgrade text; docs and the 0.2.2 CHANGELOG read as if the plugin and the name `bbj` always were the only ones (Phase 11 D-01/D-02, Phase 12 D-12) | No outside user ran the installer; the owner does not want earlier versions referenced | ✓ Good — Phases 11, 12 (`layout_no_retired_route`, `layout_no_old_server_name` keep the old forms out) |
+| `commandWindows` looks up Git for Windows `sh.exe` and says so loudly when none is found, instead of the hardcoded `C:\PROGRA~1` path (9-REVIEW WR-01) | A non-default Git location failed silently | ✓ Good — Phase 13 (confirmed on Windows 10, Git 2.52, Codex 0.162.1) |
+| The 0.2.2 tag targets the release merge commit 0e9b3c0 carrying the tested tree | Same pattern as 0.2.0 and 0.2.1: the tag carries the final released text | ✓ Good — Phase 15 (annotated tag `0.2.2`, no `v`) |
 
 ## Evolution
 
@@ -223,4 +241,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-10-17 after Phase 15*
+*Last updated: 2026-10-17 after v0.2.2 milestone*
