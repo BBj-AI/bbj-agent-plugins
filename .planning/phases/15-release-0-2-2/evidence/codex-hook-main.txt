@@ -1,0 +1,18 @@
+hk_run: 2026-10-17T05:48:44Z
+hk_source: BBj-AI/bbj-agent-plugins
+hk_codex_version: codex-cli 0.162.1
+hk_served_version: 0.2.2
+hk_clone_sha: 0e9b3c0d368573047c71e8530ac0b19f89343a3c
+hk_plugin_version: 0.2.2
+hk_mcp_docs: bbj https://mcp.bbj-ai.com/mcp - enabled Not logged in
+hk_skills: bbj:bbj-programming bbj:bbj-web-programming
+hk_exec_rc: 0
+hk_trust: bypassed (codex exec --dangerously-bypass-hook-trust, throwaway home)
+hk_requests_posted: 2
+hk_feedback_reached_model: yes
+hk_notice_plugin_command: no
+hk_bad_feedback: yes
+hk_header: bbjcpl reported 1 error(s) in <out>/proj/bad.bbj:
+hk_bad_file_written: yes
+hk_clean: exit 0, silent
+hk_done: yes

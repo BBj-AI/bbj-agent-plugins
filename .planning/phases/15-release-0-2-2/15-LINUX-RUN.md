@@ -217,6 +217,47 @@ the version pinned in `.github/ci-tools/package.json` of the release tree (`"@an
 The CI-pin finding of the first Phase 12 review is closed: plan 15-01 moved the pin from 2.1.293 to
 2.1.301 and regenerated the lock (`evidence/pin.txt`), and this run used that version.
 
+## After the merge (D-10)
+
+Reading 2026-10-17, round 1 (scripted, fresh installs from `main`, no upgrade pass)
+
+Merge commit M `0e9b3c0d368573047c71e8530ac0b19f89343a3c` on `origin/main`: parents `4234e76ccb369d0fe984ac36825e06b3b8fbf3f1` (the old main) and `d7e5a53ef31690a49834d760b3eee3c63e95501a` (the tested head), tree `e141f79b082f139bab8c0e061497ffe95bfa4bc5` (the tested tree), no `.planning/` path. CI on main for M: https://github.com/BBj-AI/bbj-agent-plugins/actions/runs/39007523223 (success). Clients: Claude Code 2.1.301, codex-cli 0.162.1.
+
+Claude Code, `WANT_VERSION=0.2.2 sh release-run/install-gate.sh BBj-AI/bbj-agent-plugins` (throwaway configuration, `<home>` replaces the home directory):
+
+        claude: 2.1.301 (Claude Code)
+        gate install_marketplace_add ok marketplace added from BBj-AI/bbj-agent-plugins
+        gate install_bbj ok bbj@basis-bbj installed
+        gate install_bbj_version ok bbj 0.2.2 enabled
+        gate install_bbj_local_disabled ok bbj-local installed and disabled
+        gate install_hook_bad ok exit 2, bbjcpl reported 1 error(s)
+        gate install_hook_clean ok exit 0, silent
+        gate install_real_config_untouched ok plugin files of <home>/.claude-shared/dot-claude unchanged
+        exit=0
+
+Codex, `sh release-run/codex-hook.sh hook BBj-AI/bbj-agent-plugins <home>/.cache/bbj-phase15/main-codex` (throwaway home, `<out>` replaces the run directory):
+
+        hk_run: 2026-10-17T05:48:44Z
+        hk_source: BBj-AI/bbj-agent-plugins
+        hk_codex_version: codex-cli 0.162.1
+        hk_served_version: 0.2.2
+        hk_clone_sha: 0e9b3c0d368573047c71e8530ac0b19f89343a3c
+        hk_plugin_version: 0.2.2
+        hk_mcp_docs: bbj https://mcp.bbj-ai.com/mcp - enabled Not logged in
+        hk_skills: bbj:bbj-programming bbj:bbj-web-programming
+        hk_exec_rc: 0
+        hk_trust: bypassed (codex exec --dangerously-bypass-hook-trust, throwaway home)
+        hk_requests_posted: 2
+        hk_feedback_reached_model: yes
+        hk_notice_plugin_command: no
+        hk_bad_feedback: yes
+        hk_header: bbjcpl reported 1 error(s) in <out>/proj/bad.bbj:
+        hk_bad_file_written: yes
+        hk_clean: exit 0, silent
+        hk_done: yes
+
+Sentence for the docs: Claude Code and Codex both installed 0.2.2 fresh from main through the GitHub marketplace (the Codex clone at M served 0.2.2 and listed the docs server `bbj`), and the hook gave `bbjcpl reported 1 error(s)` for a bad file and stayed silent for a clean one; the Codex hook reading ran with the hook trust bypassed in the throwaway home and claims nothing about the `/hooks` trust step.
+
 ## For the CHANGELOG
 
 Plan 15-06 copies from this block (eight-space `key: value` lines, values as the clients printed them).
