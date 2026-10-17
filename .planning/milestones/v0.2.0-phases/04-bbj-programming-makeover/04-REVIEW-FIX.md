@@ -22,12 +22,12 @@ status: all_fixed
 
 All fixes were made in an isolated worktree and fast-forwarded onto `gsd/planning-setup`; the worktree, the temporary
 branch and the recovery sentinel are removed. Each fix is its own `fix(04): ...` commit. The doc claims were checked
-against the local copy of the official documentation (`/home/coder/repos/bbjdocs/Content`, the source of
+against the local copy of the official documentation (`<home>/repos/bbjdocs/Content`, the source of
 documentation.basis.cloud), because the BBj documentation MCP tools were not available to this agent.
 
 **Verification (where it ran):** `sh tests/run.sh` ran in the isolated worktree, which has the same files as the
 main checkout after the fast-forward. Result after the last fix: `SUMMARY: ok=702 fail=0 skip=55`. One earlier run
-reported `real_home_untouched FAIL changed: /home/coder/.codex/logs_2.sqlite-shm`; that is a log file of a Codex
+reported `real_home_untouched FAIL changed: <home>/.codex/logs_2.sqlite-shm`; that is a log file of a Codex
 process outside the repository, it did not recur on the next two runs, and it is unrelated to the edits. A second
 failure in that run (`skills_structure_bbj-programming_references_running.md_46`) was caused by IN-05 and is fixed
 in the last commit (see IN-05). `python3 -I .planning/phases/04-bbj-programming-makeover/ledger_check.py` reports no

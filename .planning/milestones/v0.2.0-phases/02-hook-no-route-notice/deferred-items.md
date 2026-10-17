@@ -14,7 +14,7 @@
 
 ## D-2: real_home_untouched fails while a real Codex app-server daemon runs (found in plan 02-06) - OPEN
 
-- **Symptom:** `tests/test_install_codex.sh` gate `real_home_untouched` failed once in `sh tests/ci.sh` with "changed: /home/coder/.codex/logs_2.sqlite-wal"; the `sh tests/run.sh` runs just before and just after showed `fail=0`.
+- **Symptom:** `tests/test_install_codex.sh` gate `real_home_untouched` failed once in `sh tests/ci.sh` with "changed: <home>/.codex/logs_2.sqlite-wal"; the `sh tests/run.sh` runs just before and just after showed `fail=0`.
 - **Cause:** the gate runs `find ~/.codex ~/.agents -newer <marker>`, so any write under the real `~/.codex` during the test window counts. On this machine a real `codex app-server` daemon (codex-cli 0.162.1, `--managed-daemon`, started by the interactive Codex session of plan 02-05) is still running and writes its own log database (`logs_2.sqlite-wal`, `-shm`) whenever it chooses. The installer under test works in temp homes and does not write there.
 - **Not caused by plan 02-06:** plan 02-06 changed comments in `bbj-check.sh`, the `codex_payload` fixture and a test header. It did not touch `codex/install-codex.sh` or `tests/test_install_codex.sh`. The failure depends on when the daemon writes. CI has no Codex daemon.
 - **Why deferred:** out of this plan's files and scope, and the executor must not touch `~/.codex` (stopping the daemon would). Possible fixes: the user stops the daemon (`codex app-server` processes) on dev machines, or the gate ignores Codex's own runtime files (`logs_*.sqlite*`, other state databases) and keeps checking config, hooks and skills.

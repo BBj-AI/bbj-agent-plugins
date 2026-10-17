@@ -110,7 +110,7 @@ L112 (undeclared child window, a COMPILE row folded into SKILL.md) is pointed to
 ## Both tests/run.sh views
 
 - Live view (`BBJ_SKILLS_LIVE=1 BBJ_LS_LIVE=1 sh tests/run.sh`): `SUMMARY: ok=703 fail=0 skip=78`
-- CI view (`BBJ_TEST_HOME=/nonexistent BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp CI=true sh tests/run.sh`): `SUMMARY: ok=657 fail=0 skip=30` (three consecutive runs). Two earlier runs failed `real_home_untouched` (`changed: /home/coder/.codex/models_cache.json`, later `logs_2.sqlite-shm`): the local Codex daemon writing under `~/.codex`, unrelated to this plan; reruns were clean.
+- CI view (`BBJ_TEST_HOME=/nonexistent BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp CI=true sh tests/run.sh`): `SUMMARY: ok=657 fail=0 skip=30` (three consecutive runs). Two earlier runs failed `real_home_untouched` (`changed: <home>/.codex/models_cache.json`, later `logs_2.sqlite-shm`): the local Codex daemon writing under `~/.codex`, unrelated to this plan; reruns were clean.
 
 Baseline: bbj-programming grammar 6, structure 3, bbjcpl 8, bbj-ls 6, should-fail 0 (was 10 / 5 / 20 / 15 / 0); bbj-web-programming unchanged at 15 / 25 / 5 / 0 / 8; nocheck 0; a fresh `--report` is byte-identical to the committed files. What remains in bbj-programming pending belongs to database.md, java-interop.md and reserved-words.md (plan 04-06).
 

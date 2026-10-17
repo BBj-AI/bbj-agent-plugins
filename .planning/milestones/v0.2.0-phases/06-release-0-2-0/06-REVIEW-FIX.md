@@ -1,7 +1,7 @@
 ---
 phase: 06-release-0-2-0
 fixed_at: 2026-10-12T00:00:00Z
-review_path: /home/coder/repos/bbj-agent-plugins/.planning/phases/06-release-0-2-0/06-REVIEW.md
+review_path: <home>/repos/bbj-agent-plugins/.planning/phases/06-release-0-2-0/06-REVIEW.md
 iteration: 1
 findings_in_scope: 4
 fixed: 4
@@ -12,7 +12,7 @@ status: all_fixed
 # Phase 6: Code Review Fix Report
 
 **Fixed at:** 2026-10-12
-**Source review:** /home/coder/repos/bbj-agent-plugins/.planning/phases/06-release-0-2-0/06-REVIEW.md
+**Source review:** <home>/repos/bbj-agent-plugins/.planning/phases/06-release-0-2-0/06-REVIEW.md
 **Iteration:** 1
 
 **Summary:**

@@ -75,7 +75,7 @@ database.md rewritten with the documented `LIMIT (first, count)` form and a chec
 ## Both tests/run.sh views
 
 - Live view (`BBJ_SKILLS_LIVE=1 BBJ_LS_LIVE=1 sh tests/run.sh`): `SUMMARY: ok=702 fail=0 skip=55`
-- CI view (`BBJ_TEST_HOME=/nonexistent BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp CI=true sh tests/run.sh`): `SUMMARY: ok=656 fail=0 skip=21` on the rerun. The first run failed `real_home_untouched` (`changed: /home/coder/.codex/logs_2.sqlite-shm`): the local Codex daemon writing under `~/.codex`, unrelated to this plan, as noted in 04-05.
+- CI view (`BBJ_TEST_HOME=/nonexistent BBJ_LOCAL_MCP_URL=http://127.0.0.1:9/mcp CI=true sh tests/run.sh`): `SUMMARY: ok=656 fail=0 skip=21` on the rerun. The first run failed `real_home_untouched` (`changed: <home>/.codex/logs_2.sqlite-shm`): the local Codex daemon writing under `~/.codex`, unrelated to this plan, as noted in 04-05.
 - `probes/run.py --check` and `ledger_check.py` exit 0.
 
 ## Hand-offs

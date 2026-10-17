@@ -142,7 +142,7 @@ Ledger rows with verdict drop for SKILL.md are absent (the cut-list grep of Task
 
 **2. [Environment, not a code issue] One transient `real_home_untouched` FAIL**
 - **Found during:** Task 3, first live full run (`ok=702 fail=1`)
-- **Issue:** the live Codex daemon of this machine wrote `/home/coder/.codex/logs_2.sqlite-wal` while `test_install_codex.sh` took its before/after snapshot of the real home.
+- **Issue:** the live Codex daemon of this machine wrote `<home>/.codex/logs_2.sqlite-wal` while `test_install_codex.sh` took its before/after snapshot of the real home.
 - **Fix:** none needed; `sh tests/test_install_codex.sh` alone passes, and the full live run repeated passes (`ok=703 fail=0`). The CI view passed first time.
 
 **Total deviations:** 1 auto-fixed (Rule 3, check regex only), 1 environmental flake. **Impact:** none on the shipped files.

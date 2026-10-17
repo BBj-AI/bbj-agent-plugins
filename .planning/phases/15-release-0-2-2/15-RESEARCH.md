@@ -37,7 +37,7 @@
 - **D-12:** 12-REVIEW WR-02 is closed by bumping the CI Claude CLI pin in `.github/ci-tools/package.json` (and `package-lock.json`, integrity regenerated, `npm ci --ignore-scripts` + `npm audit signatures` still pass) to the Claude Code version used in the Linux release run, so CI, Tested against and the `mcp_docs_answers` / `claude mcp get` gates rest on one version. Update `12-REVIEW-DISPOSITION.md` and `.planning/codebase/CONCERNS.md` accordingly.
 - **D-13:** 12-REVIEW WR-01 (needle prefixes in `tests/test_install_pages.sh`) stays open: `layout_no_old_server_name` catches a revert.
 - **D-14:** 14-REVIEW IN-10 (an unclosed GSD region swallows the gate-prefix block) stays open: it fails closed.
-- **D-15:** After the Release is published: scrub the dev path `/home/coder` from the planning records named in STATE.md (`evidence/install-gate-*.txt`, `10-RESEARCH.md`, `10-VALIDATION.md`, and any new run files), then a plain fast-forward push of `gsd/planning-setup` only, after the owner's confirmation. Never `main`, never a tag, never forced.
+- **D-15:** After the Release is published: scrub the dev home path from the planning records named in STATE.md (`evidence/install-gate-*.txt`, `10-RESEARCH.md`, `10-VALIDATION.md`, and any new run files), then a plain fast-forward push of `gsd/planning-setup` only, after the owner's confirmation. Never `main`, never a tag, never forced.
 
 ### Claude's Discretion
 - Exact wording of the summary, Upgrading, Tested against and Not run lines within D-01 to D-09 and the term list.
@@ -71,7 +71,7 @@ Four findings change the plan relative to CONTEXT. (1) `CI=true BBJ_LS_LIVE=1 BB
 
 ## Project Constraints (from CLAUDE.md)
 
-Read from `/home/coder/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) and `/home/coder/.claude-shared/dot-claude/CLAUDE.md` (global; it holds only a team-facts note and no coding directive).
+Read from `<home>/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) and `<home>/.claude-shared/dot-claude/CLAUDE.md` (global; it holds only a team-facts note and no coding directive).
 
 - POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime dependencies. Any release helper script is `#!/bin/sh`, no `set -e`, `[ ]` not `[[ ]]`, `printf` for user data, `$(...)`, two-space indent, ShellCheck `-s sh` clean (CI runs ShellCheck 0.9.0, local is 0.11.0).
 - BBj code is never executed; the hook never calls the hosted check (`tests/test_never_execute.sh`). Any run script calls the compiler only through the shipped hook.
@@ -114,7 +114,7 @@ No new library. The tools the phase uses, as found on this machine:
 ### Supporting
 | Tool | Version | Purpose | When to Use |
 |------|---------|---------|-------------|
-| Claude Code CLI (user) | 2.1.301 (`/home/coder/.local/bin/claude` -> `versions/2.1.301`) | Release run, post-merge install | Throwaway `CLAUDE_CONFIG_DIR` only |
+| Claude Code CLI (user) | 2.1.301 (`<home>/.local/bin/claude` -> `versions/2.1.301`) | Release run, post-merge install | Throwaway `CLAUDE_CONFIG_DIR` only |
 | Codex CLI | codex-cli 0.162.1 (`@openai/codex@0.162.1`) | Release run, post-merge install | Throwaway `HOME`/`CODEX_HOME` under `~/.cache/bbj-phase15/`, never `/tmp` |
 | BBj 26.03 | `/opt/bbx/bin/bbjcpl`, BBjServices answering 405 on `127.0.0.1:5009/mcp` | Hook route evidence, live gates | Needed for `skip=0` |
 | ShellCheck | 0.11.0 local (0.9.0 in CI) | `ci_shellcheck` | New helper scripts must pass both |
@@ -183,7 +183,7 @@ Only one package is touched, and it is already the project's pinned CI tool; no 
    OWNER CONFIRM -> git tag -a 0.2.2 -m "basis-bbj 0.2.2" M ; push refs/tags/0.2.2 ;
         |            gh release create 0.2.2 --verify-tag --title 0.2.2 --notes-file <entry>
         v
-   merge origin/main back into planning branch (local) -> scrub /home/coder -> OWNER CONFIRM -> plain ff push of gsd/planning-setup
+   merge origin/main back into planning branch (local) -> scrub the dev home path -> OWNER CONFIRM -> plain ff push of gsd/planning-setup
 ```
 
 ### Recommended file touch list (the bump)
@@ -305,8 +305,8 @@ Quoted from `tests/test_layout.py` (HISTORY_CUT `HISTORY_CUT = (0, 2, 1)`, l.260
 **How to avoid:** make the pre-merge worktree run as close to a GitHub install as possible (install gate against `BBj-AI/bbj-agent-plugins#gsd/release-0.2.2` on the pushed ref before merging, as 10-09 did), and tag only after the post-merge run is recorded green.
 
 ### Pitfall 10: The dev-path scrub list is larger than STATE.md says
-**What goes wrong:** D-15 names `evidence/install-gate-*.txt`, `10-RESEARCH.md`, `10-VALIDATION.md`. `git grep -l "/home/coder"` finds 33 tracked files under `.planning` (all but `15-CONTEXT.md` already on `origin/gsd/planning-setup`): `STATE.md`, `debug/dialog-flag-modality.md`, six `v0.2.0-phases` research/summary files, `06-release-0-2-0/evidence/install-gate-{main,pr}.txt`, the v0.2.1 phase 07-10 files (including `10-SECURITY.md`, `10-RESEARCH.md`, `10-VALIDATION.md`, `evidence/install-gate-{main,pr}.txt`), `13-RESEARCH.md`, `13-REVIEW-FIX.md`, `spikes/004-copilot-plugin-parity/{run.sh,session.sh}`. The STATE.md note that the install-gate evidence is "local, unpushed" is stale: those files are on origin. A scrub commit does not remove the path from pushed history.
-**How to avoid:** the planner should have the owner confirm the scope (named four + new run files, or all 34). Replace by `<home>` (the record convention). Exempt the prose in `STATE.md` and `15-CONTEXT.md` that merely names the path, or reword them. Check with `git grep -l '/home/coder' -- .planning` before the push.
+**What goes wrong:** D-15 names `evidence/install-gate-*.txt`, `10-RESEARCH.md`, `10-VALIDATION.md`. `git grep -lF` for the dev home path finds 33 tracked files under `.planning` (all but `15-CONTEXT.md` already on `origin/gsd/planning-setup`): `STATE.md`, `debug/dialog-flag-modality.md`, six `v0.2.0-phases` research/summary files, `06-release-0-2-0/evidence/install-gate-{main,pr}.txt`, the v0.2.1 phase 07-10 files (including `10-SECURITY.md`, `10-RESEARCH.md`, `10-VALIDATION.md`, `evidence/install-gate-{main,pr}.txt`), `13-RESEARCH.md`, `13-REVIEW-FIX.md`, `spikes/004-copilot-plugin-parity/{run.sh,session.sh}`. The STATE.md note that the install-gate evidence is "local, unpushed" is stale: those files are on origin. A scrub commit does not remove the path from pushed history.
+**How to avoid:** the planner should have the owner confirm the scope (named four + new run files, or all 34). Replace by `<home>` (the record convention). Exempt the prose in `STATE.md` and `15-CONTEXT.md` that merely names the path, or reword them. Check with `git grep -lF` for the dev home path over `.planning` before the push.
 
 ### Pitfall 11: Local `main` is stale
 **What goes wrong:** `git rev-parse main` is `f15c257` (0.2.0); `origin/main` is `4234e76` (0.2.1). A PR branch based on `main` would carry 0.2.1 as part of the diff.

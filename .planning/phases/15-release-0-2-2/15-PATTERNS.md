@@ -267,7 +267,7 @@ commit, rebuild the PR branch, re-run the suite on a worktree of the final branc
 
 | File | Role | Data Flow | Reason |
 |------|------|-----------|--------|
-| Dev-path scrub commit over the 33 tracked `.planning/` files containing `/home/coder` (D-15, D-18) | utility | batch | No earlier scrub exists. Convention for the replacement is `<home>`, taken from the run-record rules in `12-LINUX-RUN.md`. Verify with `git grep -l '/home/coder' -- .planning`. Use a short POSIX sed/sh loop; exempt `STATE.md` and `15-CONTEXT.md` prose that only names the path. |
+| Dev-path scrub commit over the 33 tracked `.planning/` files containing the dev home path (D-15, D-18) | utility | batch | No earlier scrub exists. Convention for the replacement is `<home>`, taken from the run-record rules in `12-LINUX-RUN.md`. Verify with `git grep -lF` for the dev home path over `.planning`. Use a short POSIX sed/sh loop; exempt `STATE.md` and `15-CONTEXT.md` prose that only names the path. |
 
 ## Metadata
 

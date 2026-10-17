@@ -1,7 +1,7 @@
 ---
 phase: 03
 fixed_at: 2026-10-10T00:00:00Z
-review_path: /home/coder/repos/bbj-agent-plugins/.planning/phases/03-example-gate-and-structure-lints/03-REVIEW.md
+review_path: <home>/repos/bbj-agent-plugins/.planning/phases/03-example-gate-and-structure-lints/03-REVIEW.md
 iteration: 1
 findings_in_scope: 3
 fixed: 3
@@ -12,7 +12,7 @@ status: all_fixed
 # Phase 3: Code Review Fix Report
 
 **Fixed at:** 2026-10-10
-**Source review:** /home/coder/repos/bbj-agent-plugins/.planning/phases/03-example-gate-and-structure-lints/03-REVIEW.md
+**Source review:** <home>/repos/bbj-agent-plugins/.planning/phases/03-example-gate-and-structure-lints/03-REVIEW.md
 **Iteration:** 1
 
 **Summary:**

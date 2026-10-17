@@ -453,7 +453,7 @@ CLAUDE_CONFIG_DIR=$T claude plugin list     # expect bbj@basis-bbj Version: 0.2.
 | BBj 26.03 `bbjcpl` | live gates | ✓ (`/opt/bbx/bin/bbjcpl`, `BBJ_HOME=/opt/bbx`) | 26.03 | — |
 | `bbj-ls` on 127.0.0.1:5009 | `BBJ_LS_LIVE`, `BBJ_SKILLS_LIVE`, `--with-local`, `bbj-local` | ✓ (HTTP 405 on GET, as the tests expect) | 26.03 | owner starts BBjServices (D-19) |
 | claude CLI | strict validate, real-client run | ✓ 2.1.296; lockfile 2.1.293 reproducible in scratch | | — |
-| codex CLI | real-Codex gates, D-11 | ✓ 0.162.1 (`/home/coder/.npm-global/bin/codex`) | | — |
+| codex CLI | real-Codex gates, D-11 | ✓ 0.162.1 (`<home>/.npm-global/bin/codex`) | | — |
 | Codex daemon | must be **stopped** for the release suite | running (3 processes) | | `codex app-server daemon stop` |
 | busybox | `contract_busybox_*` (D-17) | ✗ | apt candidate 1:1.37.0-7ubuntu1 | `sudo apt-get install busybox` (sudo works) |
 | shellcheck | `ci_shellcheck`, `static_shellcheck_*` | ✗ | apt candidate 0.11.0-2 | `sudo apt-get install shellcheck` |
@@ -532,7 +532,7 @@ CLAUDE_CONFIG_DIR=$T claude plugin list     # expect bbj@basis-bbj Version: 0.2.
 
 ## Project Constraints (from CLAUDE.md)
 
-Source: `/home/coder/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) and `~/.claude-shared/dot-claude/CLAUDE.md` (global; contains only an unrelated self-test fact, nothing that constrains this phase).
+Source: `<home>/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) and `~/.claude-shared/dot-claude/CLAUDE.md` (global; contains only an unrelated self-test fact, nothing that constrains this phase).
 - POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime dependencies.
 - BBj code is never executed; the hook never calls the hosted check (`tests/test_never_execute.sh`).
 - `bbj-local` stays opt-in in both clients.

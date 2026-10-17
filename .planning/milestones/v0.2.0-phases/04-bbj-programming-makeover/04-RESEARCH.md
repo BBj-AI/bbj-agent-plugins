@@ -652,7 +652,7 @@ print shown$
 | Hosted `bbj-docs` MCP (docs and primer, read-only) | DOC evidence, ledger URLs | yes | server `bbj-docs` 1.1.1, docs 2026-09-29 | `WebFetch` on `documentation.basis.cloud` |
 | `python3` | gate, probe runner | yes | on PATH | none |
 | `shellcheck` | `tests/ci.sh` lint | no | not installed (skip outside CI) | none needed: no shell file changes in this phase |
-| `claude` CLI | `tests/test_claude_plugin.sh` | yes | `/home/coder/.local/bin/claude` | skip outside CI |
+| `claude` CLI | `tests/test_claude_plugin.sh` | yes | `<home>/.local/bin/claude` | skip outside CI |
 | `busybox` | `tests/test_exit_contract.sh` | no | skip | none |
 
 **Missing dependencies with no fallback:** none. Full suite result before any change: `SUMMARY: ok=703 fail=0 skip=163`, 79 s, with `BBJ_SKILLS_LIVE=1 BBJ_LS_LIVE=1` [VERIFIED: run this session]. Skips: 118 `pending (Phase 4)` and 59 `pending (Phase 5)` detail lines plus shellcheck and busybox.

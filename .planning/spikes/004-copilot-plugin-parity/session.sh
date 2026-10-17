@@ -5,7 +5,7 @@
 SPIKE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$SPIKE/../../.." && pwd)
 OUT=$1; SRC=${2:-$REPO}
-CP=/home/coder/.cache/bbj-spike/copilot-npm/node_modules/.bin/copilot
+CP=$HOME/.cache/bbj-spike/copilot-npm/node_modules/.bin/copilot
 rm -rf "$OUT"; mkdir -p "$OUT/home" "$OUT/proj" "$OUT/bbj/bin"
 cp "$REPO/tests/fake-bin/bbjcpl" "$OUT/bbj/bin/bbjcpl"; chmod 755 "$OUT/bbj/bin/bbjcpl"
 printf 'bad.bbj: error at line 1 (1): PRINT x   rem missing semicolon\n' > "$OUT/cpl-err.txt"

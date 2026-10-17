@@ -137,7 +137,7 @@ All not-found expectations now also require that no stderr line ends in a space 
 
 ## Verification
 
-Where it ran: the main checkout `/home/coder/repos/bbj-agent-plugins`, branch `gsd/planning-setup`. No worktree was used, at the owner's instruction, so every number below can be reproduced from this tree.
+Where it ran: the main checkout `<home>/repos/bbj-agent-plugins`, branch `gsd/planning-setup`. No worktree was used, at the owner's instruction, so every number below can be reproduced from this tree.
 
 - `sh tests/run.sh`: SUMMARY ok=797 fail=0 skip=0 (786 before the fixes).
 - `sh tests/ci.sh`: CI SUMMARY ok=6 fail=0 skip=0 run_sh_exit=0. This includes `claude plugin validate --strict` of the root and both plugins, and `shellcheck -s sh` over the hook and the tests.

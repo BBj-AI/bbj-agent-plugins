@@ -77,7 +77,7 @@ The regenerated baseline of the 93 `bbj` blocks: 69 fail `bbjcpl` (51 with synta
 
 ## Project Constraints (from CLAUDE.md)
 
-Source: `/home/coder/repos/bbj-agent-plugins/.claude/CLAUDE.md` (read this session). The planner must keep all of these.
+Source: `<home>/repos/bbj-agent-plugins/.claude/CLAUDE.md` (read this session). The planner must keep all of these.
 
 - Tech stack: POSIX `sh` plus Python 3 stdlib only for scripts and tests; no new runtime dependencies.
 - Safety: BBj code is never executed; every compiler call carries `-N`; the hook never calls the hosted check; `tests/test_never_execute.sh` enforces the hook side.

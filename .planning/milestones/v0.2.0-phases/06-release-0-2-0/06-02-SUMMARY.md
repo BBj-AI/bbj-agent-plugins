@@ -232,7 +232,7 @@ If you installed from `main` before 0.2.0:
 
 ## Issues Encountered
 
-- Plan-level verification `BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1 sh tests/run.sh`: `SUMMARY: ok=737 fail=1 skip=0`. The one failure is `gate real_home_untouched FAIL changed: /home/coder/.codex/logs_2.sqlite-shm`. A managed Codex daemon (`codex app-server ... --managed-daemon`, started Oct 10) is running on this machine and writes to `~/.codex`, so the gate sees a change it did not cause. The plan names this case: the skip=0 run "with the Codex daemon stopped is plan 06-03". Not caused by this plan's changes (no installer or hook file was touched); not fixed here (scope boundary). All other gates, including the live skill-example routes, pass.
+- Plan-level verification `BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1 sh tests/run.sh`: `SUMMARY: ok=737 fail=1 skip=0`. The one failure is `gate real_home_untouched FAIL changed: <home>/.codex/logs_2.sqlite-shm`. A managed Codex daemon (`codex app-server ... --managed-daemon`, started Oct 10) is running on this machine and writes to `~/.codex`, so the gate sees a change it did not cause. The plan names this case: the skip=0 run "with the Codex daemon stopped is plan 06-03". Not caused by this plan's changes (no installer or hook file was touched); not fixed here (scope boundary). All other gates, including the live skill-example routes, pass.
 
 ## Known Stubs
 

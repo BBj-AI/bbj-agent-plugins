@@ -5,5 +5,5 @@ gate install_bbj_version ok bbj 0.2.1 enabled
 gate install_bbj_local_disabled ok bbj-local installed and disabled
 gate install_hook_bad ok exit 2, bbjcpl reported 1 error(s)
 gate install_hook_clean ok exit 0, silent
-gate install_real_config_untouched ok plugin files of /home/coder/.claude-shared/dot-claude unchanged
+gate install_real_config_untouched ok plugin files of <home>/.claude-shared/dot-claude unchanged
 exit: 0

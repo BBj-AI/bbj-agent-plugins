@@ -5,7 +5,7 @@
 SPIKE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$SPIKE/../../.." && pwd)
 OUT=$1; SRC=${2:-$REPO}
-CP=/home/coder/.cache/bbj-spike/copilot-npm/node_modules/.bin/copilot
+CP=$HOME/.cache/bbj-spike/copilot-npm/node_modules/.bin/copilot
 rm -rf "$OUT"; mkdir -p "$OUT/home"
 export HOME="$OUT/home" XDG_CONFIG_HOME="$OUT/home/.config"
 unset COPILOT_HOME COPILOT_CONFIG_DIR

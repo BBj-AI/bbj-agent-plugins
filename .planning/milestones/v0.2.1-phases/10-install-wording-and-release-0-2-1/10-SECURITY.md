@@ -114,7 +114,7 @@ created: "2026-10-15"
 1. The `## 0.2.0` CHANGELOG entry on `main` differs from tag `0.2.0`: commits 8383489, 199aa88,
    adaa2e1, 904dea8 and 8abb18b from earlier phases (06, 07, 08, a quick task) edited it, and PR #2
    published them. Phase 10's own commits leave it byte-identical; T-10-19 checks only Phase 10.
-2. This machine's path `/home/coder` appears in 10-RESEARCH.md:870 and 10-VALIDATION.md:25
+2. This machine's path `<home>` appears in 10-RESEARCH.md:870 and 10-VALIDATION.md:25
    (already on `origin/gsd/planning-setup`) and in evidence/install-gate-main.txt:8 and
    evidence/install-gate-pr.txt:7 (local; published by the next planning-branch push).
    install-gate-local.txt uses `<home>`. It is a dev-machine path, not owner personal data.

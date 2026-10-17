@@ -95,7 +95,7 @@ the merge commit, GitHub Release published (NAME-03, REL-09, REL-10). No new cap
   `layout_no_old_server_name` catches a revert.
 - **D-14:** 14-REVIEW IN-10 (an unclosed GSD region swallows the gate-prefix block) stays open: it
   fails closed.
-- **D-15:** After the Release is published: scrub the dev path `/home/coder` from the planning records
+- **D-15:** After the Release is published: scrub the dev home path from the planning records
   named in STATE.md (`evidence/install-gate-*.txt`, `10-RESEARCH.md`, `10-VALIDATION.md`, and any new run
   files), then a plain fast-forward push of `gsd/planning-setup` only, after the owner's confirmation.
   Never `main`, never a tag, never forced.

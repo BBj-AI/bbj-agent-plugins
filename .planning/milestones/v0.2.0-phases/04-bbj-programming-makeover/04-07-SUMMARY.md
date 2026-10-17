@@ -196,8 +196,8 @@ Not reported as clean: the live view, and therefore the suite. The CI view alone
 
 - **View:** `BBJ_SKILLS_LIVE=1 BBJ_LS_LIVE=1 sh tests/run.sh`
 - **Run 1 SUMMARY line:** `SUMMARY: ok=701 fail=1 skip=55`
-- **FAIL gate line:** `gate real_home_untouched FAIL changed: /home/coder/.codex/logs_2.sqlite-wal`
-- **Changed under the real home (all printed paths):** `/home/coder/.codex/logs_2.sqlite-wal`, `/home/coder/.codex/models_cache.json`, `/home/coder/.codex/logs_2.sqlite-shm`
+- **FAIL gate line:** `gate real_home_untouched FAIL changed: <home>/.codex/logs_2.sqlite-wal`
+- **Changed under the real home (all printed paths):** `<home>/.codex/logs_2.sqlite-wal`, `<home>/.codex/models_cache.json`, `<home>/.codex/logs_2.sqlite-shm`
 - **Rerun SUMMARY line (diagnosis only):** `SUMMARY: ok=702 fail=0 skip=55`
 - **Status:** open. The paths are files the local Codex daemon writes (same cause as 04-05 and 04-06); no test of this plan writes there. The live view is not reported as clean and the suite is not reported as clean. The verify was not run again.
 

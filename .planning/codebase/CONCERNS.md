@@ -21,9 +21,6 @@ both gates passed on it (`.planning/phases/15-release-0-2-2/evidence/pin.txt`).
 
 **12-REVIEW (docs server renamed to `bbj`):**
 - Source: `.planning/phases/12-docs-server-renamed-to-bbj/12-REVIEW-DISPOSITION.md`, `12-REVIEW-FIX.md`.
-- WR-01 (install-page needles were prefixes of the old names): fixed in `c1951cb`. It is listed
-  here only because the Blockers/Concerns list of `.planning/STATE.md` still words it as open;
-  drop that line.
 - IN-01 (the hook notice and the skills name the docs server only as bare `bbj`): skipped on
   purpose. A qualified tool name is Claude Code specific and the Codex-side name is not verified
   here; a Claude-only variant needs a host branch in the hook and new text gates. Accepted.

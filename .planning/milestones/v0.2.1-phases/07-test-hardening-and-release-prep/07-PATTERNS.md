@@ -221,6 +221,6 @@ None. The symlink-farm helper has precedent in `$WORK/farm` (`tests/test_install
 
 ## Metadata
 
-**Analog search scope:** `/home/coder/repos/bbj-agent-plugins/tests/`, `tests/fake-bin/`
+**Analog search scope:** `<home>/repos/bbj-agent-plugins/tests/`, `tests/fake-bin/`
 **Files read:** `lib.sh`, `test_release_text_mutation.sh`, slices of `test_install_codex.sh`, `test_tier2_fake.sh`, `test_exit_contract.sh`, `test_noroute_notice.sh`, `test_release_text.py`, plus CONTEXT.md and RESEARCH.md lines 1-546 (the rest of RESEARCH.md was not needed for pattern mapping)
 **Pattern extraction date:** 2026-10-12

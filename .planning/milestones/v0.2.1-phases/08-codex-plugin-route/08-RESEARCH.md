@@ -146,7 +146,7 @@
 
 ## Project Constraints (from CLAUDE.md)
 
-Source: `/home/coder/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) and `~/.claude-shared/dot-claude/CLAUDE.md` (global; contains only a self-test fact, nothing that constrains this phase).
+Source: `<home>/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) and `~/.claude-shared/dot-claude/CLAUDE.md` (global; contains only a self-test fact, nothing that constrains this phase).
 
 - POSIX `sh` plus Python 3 stdlib only for scripts and tests; no new runtime dependencies.
 - BBj code is never executed; `tests/test_never_execute.sh` enforces it. Every compiler call carries `-N`.
@@ -529,7 +529,7 @@ Pattern to copy [VERIFIED: tests/test_noroute_notice.sh:163-175 and `notice_text
 | Python 3 + `tomllib` | layout, installer tests | yes | 3.14.4 | tests skip tomllib gates without it |
 | ShellCheck | `tests/ci.sh` lint | yes | installed | skip locally, FAIL in CI |
 | Claude CLI | `claude plugin validate --strict`, `test_claude_plugin.sh` | yes | 2.1.296 | skip locally, FAIL in CI |
-| Codex CLI | Linux real runs only (D-05, D-17, D-18) | yes | 0.162.1 (`/home/coder/.npm-global/bin/codex`) | none needed for CI |
+| Codex CLI | Linux real runs only (D-05, D-17, D-18) | yes | 0.162.1 (`<home>/.npm-global/bin/codex`) | none needed for CI |
 | Throwaway Codex home outside `/tmp` | Linux runs | yes | `~/.cache` has 346 GB free; `~/.cache/bbj-spike/` exists from the spikes | use `~/.cache/bbj-phase8/<run>` |
 | Loopback ports 18765/18766 | fake Responses server | assumed free | - | set `PORT` |
 | BBj (`bbjcpl`) | not needed | no compiler on `PATH` | - | fakes only; BBj is never run |
@@ -610,7 +610,7 @@ Baseline in this session: `python3 -I tests/test_layout.py` and `python3 -I test
 ## Sources
 
 ### Primary (HIGH confidence) - files read this session
-- `/home/coder/repos/bbj-agent-plugins/.planning/phases/08-codex-plugin-route/08-CONTEXT.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `.planning/config.json`, `.planning/phases/07-test-hardening-and-release-prep/07-CONTEXT.md`
+- `<home>/repos/bbj-agent-plugins/.planning/phases/08-codex-plugin-route/08-CONTEXT.md`, `.planning/REQUIREMENTS.md`, `.planning/STATE.md`, `.planning/config.json`, `.planning/phases/07-test-hardening-and-release-prep/07-CONTEXT.md`
 - `.planning/spikes/` README files of 001, 002, 003, 005, `run.sh`/`fake_responses.py`/`tools.sh`, `CONVENTIONS.md`, `MANIFEST.md`
 - `plugins/bbj/.claude-plugin/plugin.json`, `plugins/bbj/.mcp.json`, `plugins/bbj/hooks/hooks.json`, `plugins/bbj-local/.claude-plugin/plugin.json`, `plugins/bbj-local/.mcp.json`, `.claude-plugin/marketplace.json`
 - `plugins/bbj/scripts/bbj-check.sh` (header, `notice()`, `main`), `codex/install-codex.sh` (whole file), `codex/AGENTS-snippet.md`, `docs/install-codex.md`, `README.md`, `CHANGELOG.md` (head)
@@ -625,7 +625,7 @@ Baseline in this session: `python3 -I tests/test_layout.py` and `python3 -I test
 - Search results on `codex plugin marketplace add owner/repo`: https://developers.openai.com/codex/plugins/build.md and third-party guides (codex.danielvaughan.com)
 
 ### Tertiary (LOW confidence, marked for validation)
-- `strings`/`grep` over the installed Codex 0.162.1 binary (`/home/coder/.npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex`): keys `callbackUrl`, `callbackPort`, `clientSecret` in `codex-mcp/src/plugin_config.rs`, `AgentPluginMcpServer::StreamableHttp`, "ignoring invalid plugin MCP server", discovery order of `.codex-plugin`/`.claude-plugin`/`.cursor-plugin` manifests, `plugin remove sample@debug`, `marketplace upgrade`, `app-server generate-json-schema`, `hooks/list`, `trusted_hash`, `--dangerously-bypass-hook-trust`. The binary was not executed.
+- `strings`/`grep` over the installed Codex 0.162.1 binary (`<home>/.npm-global/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex`): keys `callbackUrl`, `callbackPort`, `clientSecret` in `codex-mcp/src/plugin_config.rs`, `AgentPluginMcpServer::StreamableHttp`, "ignoring invalid plugin MCP server", discovery order of `.codex-plugin`/`.claude-plugin`/`.cursor-plugin` manifests, `plugin remove sample@debug`, `marketplace upgrade`, `app-server generate-json-schema`, `hooks/list`, `trusted_hash`, `--dangerously-bypass-hook-trust`. The binary was not executed.
 
 ## Metadata
 

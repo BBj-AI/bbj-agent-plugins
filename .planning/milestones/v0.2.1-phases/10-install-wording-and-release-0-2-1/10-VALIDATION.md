@@ -22,7 +22,7 @@ created: "2026-10-14"
 | **Framework** | Repository harness: POSIX `sh` tests sourcing `tests/lib.sh` plus Python 3 stdlib tests run as `python3 -I`; lines `gate NAME ok\|FAIL\|skip DETAIL`, summary `SUMMARY: ok=N fail=N skip=N` |
 | **Config file** | `tests/run.sh` (discovers `tests/test_*.sh`, `tests/test_*.py`), `tests/ci.sh`, `.shellcheckrc` |
 | **Quick run command** | `python3 -I tests/test_release_text.py && sh tests/test_release_text_mutation.sh && sh tests/test_install_pages.sh && sh tests/test_install_codex.sh && python3 -I tests/test_layout.py` |
-| **Full suite command** | `sh tests/run.sh` (baseline ok=921 fail=0 skip=0); release run: `CI=true BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1 BBJ_TEST_CODEX=/home/coder/.npm-global/bin/codex sh tests/ci.sh` with no Codex daemon running |
+| **Full suite command** | `sh tests/run.sh` (baseline ok=921 fail=0 skip=0); release run: `CI=true BBJ_LS_LIVE=1 BBJ_SKILLS_LIVE=1 BBJ_TEST_CODEX=<home>/.npm-global/bin/codex sh tests/ci.sh` with no Codex daemon running |
 | **Estimated runtime** | ~60 seconds quick; several minutes full |
 
 ---

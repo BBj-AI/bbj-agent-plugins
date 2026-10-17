@@ -114,7 +114,7 @@ None. The discussion stayed within the phase scope.
 
 ## Project Constraints (from CLAUDE.md)
 
-Source: `/home/coder/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) [VERIFIED: read this session]. Directives the plans must satisfy:
+Source: `<home>/repos/bbj-agent-plugins/.claude/CLAUDE.md` (project) [VERIFIED: read this session]. Directives the plans must satisfy:
 
 - **Tech stack:** POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime deps.
 - **Never execute BBj:** tests use fakes only; the hook is always called with `-N`; `tests/test_never_execute.sh` enforces it.
@@ -675,8 +675,8 @@ done
 | `shellcheck` | `tests/ci.sh` lint of new `tests/*.sh` | yes | 0.11.0 | skip outside CI, FAIL in CI |
 | `find`, `cksum`, `sort`, `cmp`, `diff`, `ln`, `mktemp` | snapshot, farm, mutation | yes | bfs 4.1.1 / uutils cksum 0.8.0 | none needed |
 | `git` | REL-05 verification | yes | 2.55.0 | — |
-| `claude` CLI | `tests/ci.sh` strict validation | yes (`/home/coder/.local/bin/claude`) | 2.1.296 | skip outside CI |
-| `codex` | optional `real_codex_*` gates in `test_install_codex.sh` | yes (`/home/coder/.npm-global/bin/codex`) | codex-cli 0.162.1 | gate skip |
+| `claude` CLI | `tests/ci.sh` strict validation | yes (`<home>/.local/bin/claude`) | 2.1.296 | skip outside CI |
+| `codex` | optional `real_codex_*` gates in `test_install_codex.sh` | yes (`<home>/.npm-global/bin/codex`) | codex-cli 0.162.1 | gate skip |
 | `bbjcpl` / `bbjcplw` on PATH | none (tests use fakes) | no | — | fake in a scratch dir |
 
 **Missing dependencies with no fallback:** none.

@@ -1,7 +1,7 @@
 ---
 phase: 08-codex-plugin-route
 fixed_at: 2026-10-13T17:20:00Z
-review_path: /home/coder/repos/bbj-agent-plugins/.planning/phases/08-codex-plugin-route/08-REVIEW.md
+review_path: <home>/repos/bbj-agent-plugins/.planning/phases/08-codex-plugin-route/08-REVIEW.md
 iteration: 1
 findings_in_scope: 11
 fixed: 11
@@ -12,7 +12,7 @@ status: all_fixed
 # Phase 8: Code Review Fix Report
 
 **Fixed at:** 2026-10-13T17:20:00Z
-**Source review:** /home/coder/repos/bbj-agent-plugins/.planning/phases/08-codex-plugin-route/08-REVIEW.md
+**Source review:** <home>/repos/bbj-agent-plugins/.planning/phases/08-codex-plugin-route/08-REVIEW.md
 **Iteration:** 1
 
 **Summary:**

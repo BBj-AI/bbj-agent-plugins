@@ -168,7 +168,7 @@ write-out, name the new state `noconn`, and ship `tests/test_hook_mutation.sh` w
 
 ## Project Constraints (from CLAUDE.md)
 
-Source: `/home/coder/repos/bbj-agent-plugins/.claude/CLAUDE.md` (read this session). Treat as locked.
+Source: `<home>/repos/bbj-agent-plugins/.claude/CLAUDE.md` (read this session). Treat as locked.
 
 - POSIX `sh` + Python 3 stdlib only for scripts and tests; no new runtime dependencies.
 - BBj is never executed; every compiler call carries `-N`; the hook never calls the hosted check; enforced by `tests/test_never_execute.sh` and `tests/test_static_guards.sh`.

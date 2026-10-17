@@ -157,7 +157,7 @@ and the todos. Phase 9 does NOT edit README, `docs/install-*.md`, CHANGELOG or t
 
 ## Project Constraints (from CLAUDE.md)
 
-Source: `/home/coder/repos/bbj-agent-plugins/.claude/CLAUDE.md` (read this session). Treated as locked.
+Source: `<home>/repos/bbj-agent-plugins/.claude/CLAUDE.md` (read this session). Treated as locked.
 
 - Stack: POSIX `sh` plus Python 3 stdlib only for scripts and tests; no new runtime dependencies. Python tests run as `python3 -I`.
 - BBj code is never executed. The hook never calls the hosted check. Enforced by `tests/test_never_execute.sh` and `tests/test_static_guards.sh`.
