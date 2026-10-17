@@ -41,7 +41,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 ### Release
 
 - [x] **REL-09**: Five versions at 0.2.2; CHANGELOG `## 0.2.2` with Upgrading and Tested against sections; release-text gates re-pinned to 0.2.2
-- [ ] **REL-10**: Full suite with live gates passes `fail=0 skip=0`; PR merged; annotated tag `0.2.2` on the merge commit; GitHub Release published
+- [x] **REL-10**: Full suite with live gates passes `fail=0 skip=0`; PR merged; annotated tag `0.2.2` on the merge commit; GitHub Release published
 
 ## Future Requirements
 
@@ -79,7 +79,7 @@ Milestone v0.2.2 Plugin-only cleanup. Each maps to one roadmap phase.
 | MAINT-10 | Phase 14 | Complete |
 | MAINT-11 | Phase 14 | Complete |
 | REL-09 | Phase 15 | Complete |
-| REL-10 | Phase 15 | Pending |
+| REL-10 | Phase 15 | Complete |
 
 **Coverage:**
 - v0.2.2 requirements: 18 total
