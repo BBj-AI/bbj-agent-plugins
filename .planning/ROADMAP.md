@@ -88,7 +88,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 12: Docs server renamed to bbj** - `bbj-docs` becomes `bbj` in both MCP configs, the skills, the hook notice, the docs and the tests; sign-in commands read on real clients; a gate keeps the old name out (completed 2026-10-15)
 - [x] **Phase 13: Windows hook fixes** - Phase 9 review WR-01..WR-03 closed: no silent no-op for a non-default Git location, one tier-2 connect timeout per hook run, a backslash gate that catches a regression (completed 2026-10-16)
 - [x] **Phase 14: One install page and one term list** - One plugin-only install page for both clients, one written term list with a gate, the gate-prefix block checked against the suite, dead code swept, codebase map refreshed (completed 2026-10-16)
-- [ ] **Phase 15: Release 0.2.2** - `## 0.2.2` entry with the sign-in under `bbj`, five versions bumped, full suite with live gates, merged, tagged `0.2.2`, published
+- [x] **Phase 15: Release 0.2.2** - `## 0.2.2` entry with the sign-in under `bbj`, five versions bumped, full suite with live gates, merged, tagged `0.2.2`, published (completed 2026-10-17)
 
 ## Phase Details
 
@@ -252,7 +252,7 @@ Plans:
   3. Owner-run: the full suite with live gates (`BBJ_LS_LIVE=1`, `BBJ_SKILLS_LIVE=1`) passes `fail=0 skip=0` on the release tree, and the suite line is recorded (REL-10)
   4. With the owner's confirmation before each push, merge, tag push and Release: the PR is merged, the annotated tag `0.2.2` (no `v`) is on the merge commit, and the GitHub Release is published (REL-10)
 
-**Plans**: 9/9 plans executed
+**Plans**: 9/9 plans complete
 
 Plans:
 **Wave 1**
@@ -297,4 +297,4 @@ Phases execute in numeric order: 11 → 12 → 13 → 14 → 15 (Phase 13 may ru
 | 12. Docs server renamed to bbj | v0.2.2 | 5/5 | Complete    | 2026-10-15 |
 | 13. Windows hook fixes | v0.2.2 | 6/6 | Complete    | 2026-10-16 |
 | 14. One install page and one term list | v0.2.2 | 9/9 | Complete    | 2026-10-16 |
-| 15. Release 0.2.2 | v0.2.2 | 9/9 | In Progress | - |
+| 15. Release 0.2.2 | v0.2.2 | 9/9 | Complete    | 2026-10-17 |
