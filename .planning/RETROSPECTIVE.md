@@ -90,6 +90,48 @@
 
 ---
 
+## Milestone: v0.2.2 — Plugin-only cleanup
+
+**Shipped:** 2026-10-17
+**Phases:** 5 | **Plans:** 34 | **Sessions:** not recorded
+
+### What Was Built
+- The Codex installer route removed with all its tests, gates and fakes; `layout_no_retired_route` keeps it out, so the plugin is the only route for both clients
+- The docs server renamed `bbj-docs` → `bbj`, with sign-in labels copied from a real Linux run (`12-LINUX-RUN.md`) and `layout_no_old_server_name` keeping the old name out
+- The Phase 9 Windows leftovers fixed: `commandWindows` Git lookup with a loud not-found branch, one tier-2 connect timeout per run, a backslash gate that catches a regression; confirmed on Windows 10
+- One install page `docs/install.md`, one term list enforced by `layout_no_retired_terms`, and a gate-prefix block checked against the suite by `run_prefix_block`
+- Release 0.2.2 on a pinned CI CLI (2.1.301), release suite `ok=864 fail=0 skip=0` with live gates, tag `0.2.2` on 0e9b3c0
+
+### What Worked
+- Retiring a route together with a gate that fails the moment it returns, proven by mutation cases on a copy: removal and rename stayed done across later phases
+- Copying user-facing labels only from a recorded real-client run, not from expectation (`plugin:bbj:bbj`, `codex mcp login bbj`)
+- Ending the gate-prefix drift seen in v0.2.0 and v0.2.1 by making `tests/run.sh` check the hand-kept block against every gate it prints
+- All real-client release readings (both clients, sign-in, hook) taken on the release candidate before the merge, so the tag went on the first merge commit
+
+### What Was Inefficient
+- The Phase 15 review found WR-01 (a second Linux Claude Code version in `docs/install.md`) in release text after the tag; it is deferred to the next release
+- The Windows harness for Phase 13 needed four fixes (H1-H4) during the owner run itself
+- The dev home path reached pushed planning records again and needed a scrub commit (D-18), as in v0.2.1
+- Local `main` was never fast-forwarded after the 0.2.1 and 0.2.2 merges and still sits at 0.2.0
+
+### Patterns Established
+- Retirement gates: one gate per removed name or route, scanning tracked files outside `.planning/` with released CHANGELOG entries exempt by version heading
+- A hand-kept source block outside the GSD-generated regions of `.claude/CLAUDE.md`, read by the suite and copied to `CONVENTIONS.md` under an identity check
+- CI CLI pin bumped only after an owner check on npmjs.com, with `npm audit signatures` in a scratch install
+
+### Key Lessons
+1. A rename or removal is done only when a gate fails on its return; text cleanups without a gate came back in earlier milestones
+2. Run the code review before the release candidate is frozen, not after the tag, or its text findings wait a full release
+3. Dry-run an owner harness on the target OS (or a faithful fake) before the owner session
+4. Check for the dev home path before every push of the planning branch, not after
+
+### Cost Observations
+- Model mix: not recorded
+- Sessions: not recorded
+- Notable: the milestone took three days; owner-paced Windows and release runs again set the pace
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -98,6 +140,7 @@
 |-----------|----------|--------|------------|
 | v0.2.0 | — | 6 | Claim ledgers plus a compile gate as the definition of done for skill content |
 | v0.2.1 | — | 4 | Owner-run platform records with verdict rules as the only source for install wording |
+| v0.2.2 | — | 5 | Retirement gates that fail when a removed route, name or term returns |
 
 ### Cumulative Quality
 
@@ -105,8 +148,10 @@
 |-----------|-------|----------|-------------------|
 | v0.2.0 | 738 gates | — | 0 (stdlib and POSIX sh only) |
 | v0.2.1 | 979 gates | — | 0 (stdlib and POSIX sh only) |
+| v0.2.2 | 864 gates (installer tests removed) | — | 0 (stdlib and POSIX sh only) |
 
 ### Top Lessons (Verified Across Milestones)
 
-1. Real-client runs establish facts that docs alone do not (v0.2.0: Codex `apply_patch` delivery; v0.2.1: PowerShell hook launch, plugin upgrade trust); plan them early and in throwaway homes
-2. Work that lands after a merge or tag point misses that point (v0.2.0: review fixes after the tag; v0.2.1: the D-22 reading after M1); put all release-text inputs before the first merge
+1. Real-client runs establish facts that docs alone do not (v0.2.0: Codex `apply_patch` delivery; v0.2.1: PowerShell hook launch, plugin upgrade trust; v0.2.2: the sign-in labels under `bbj`); plan them early and in throwaway homes
+2. Work that lands after a merge or tag point misses that point (v0.2.0: review fixes after the tag; v0.2.1: the D-22 reading after M1; v0.2.2: review WR-01 after the tag); put all release-text inputs, the code review included, before the first merge
+3. Hand-kept lists drift unless the suite checks them (gate-prefix block drifted in v0.2.0 and v0.2.1; checked by `run_prefix_block` since v0.2.2)
