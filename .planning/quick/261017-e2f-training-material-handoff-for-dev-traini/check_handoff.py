@@ -186,6 +186,31 @@ def gate_paths(text, course):
     gate("paths", not bad and count > 0, "%d path tokens, missing: %s" % (count, "; ".join(bad) or "none"))
 
 
+def slug(title):
+    """GitHub anchor of a heading: lower case, backticks and punctuation dropped, spaces to hyphens."""
+    title = title.replace("`", "").lower()
+    title = re.sub(r"[^a-z0-9 _-]", "", title)
+    return title.replace(" ", "-")
+
+
+def gate_anchors(text):
+    """Every `bbj-agent-plugins/<file>.md#anchor` names a heading of that file."""
+    bad = []
+    count = 0
+    for token in sorted(set(TICK_RE.findall(text))):
+        if not token.startswith(REPO_PREFIX) or "#" not in token or "<" in token:
+            continue
+        path, anchor = token[len(REPO_PREFIX):].split("#", 1)
+        full = os.path.join(ROOT, path)
+        if not path.endswith(".md") or not os.path.isfile(full):
+            continue
+        count += 1
+        slugs = set(slug(title) for _lvl, title, _i in headings(read(full)))
+        if anchor not in slugs:
+            bad.append(token)
+    gate("anchors", not bad and count > 0, "%d anchors, unknown: %s" % (count, "; ".join(bad) or "none"))
+
+
 def gate_sections(text, course):
     bad = []
     count = 0
@@ -350,6 +375,7 @@ def main():
     gate_headings(heads)
     gate_paths(text, course)
     gate_sections(text, course)
+    gate_anchors(text)
     gate_urls(text, course)
     gate_hygiene(text)
     gate_terms(lines, heads)
