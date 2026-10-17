@@ -5,8 +5,9 @@ The `basis-bbj` marketplace for Claude Code and Codex, version 0.2.2, with two p
 - The plugin `bbj`: the docs server `bbj` (the hosted BBj docs server), the two BBj skills
   (`bbj-programming`, `bbj-web-programming`) and a check hook that compiles every BBj file the
   agent writes.
-- The plugin `bbj-local`: registers the `bbj-ls` MCP server of a running BBjServices on
-  `127.0.0.1:5009` (`bbj_check_syntax`, `bbj_denum`, `bbj_format`; BBj 26.03 or later).
+- The plugin `bbj-local`: registers the `bbj-ls` MCP server of a running BBjServices at its MCP
+  endpoint `127.0.0.1:5009`, not its RPC port 5008 (`bbj_check_syntax`, `bbj_denum`,
+  `bbj_format`; BBj 26.03 or later).
   It is a separate plugin and installs disabled, and it is recommended where BBjServices 26.03+
   runs. It is preferred over the hosted check, for two reasons: your code stays on your machine,
   and it is checked against your installation's own PREFIX, classpath and config. The hook still

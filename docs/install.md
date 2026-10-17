@@ -181,7 +181,8 @@ and keep Codex's prompt.
 
 ## 4. Enable the plugin `bbj-local`
 
-`bbj-ls`, the BBj language server in BBjServices, answers on `127.0.0.1:5009` (BBj 26.03 or later).
+`bbj-ls`, the BBj language server in BBjServices, serves its MCP endpoint on `127.0.0.1:5009` (BBj 26.03
+or later). Its RPC port, 5008, is a different port; the plugin and the hook use only the MCP endpoint.
 The optional plugin `bbj-local` registers it, so the client has a check it can call itself
 (`bbj_check_syntax`, `bbj_format`, `bbj_denum`). It is recommended where BBjServices 26.03 or later
 runs. Enable it on a machine where BBjServices runs.
@@ -264,8 +265,8 @@ never sends code off your machine and does not use the hosted check.
    `use ::helper.bbj::Helper` that sits next to the file or in the project resolves. This check
    covers syntax and types. A failing file returns a message starting
    `bbjcpl reported N error(s) in <file>:` followed by the compiler's own lines (at most 40).
-2. **`bbj-ls`.** With no usable compiler, the hook asks `bbj-ls` of a running BBjServices on
-   `127.0.0.1:5009` (the address can be changed with the environment variable
+2. **`bbj-ls`.** With no usable compiler, the hook asks `bbj-ls` of a running BBjServices at its
+   MCP endpoint `127.0.0.1:5009` (the address can be changed with the environment variable
    `BBJ_LOCAL_MCP_URL`; only a loopback address is ever contacted). This check is syntax only: it
    does not type-check, so it does not see a method that does not exist or a `use` target that does
    not resolve. Its message starts `bbj-local reported N error(s) in <file>:`, with the name of the
