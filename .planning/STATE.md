@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v0.2.2
 status: Awaiting next milestone
 stopped_at: Phase 15 complete — all phases complete
-last_updated: "2026-10-17T10:28:53.765Z"
+last_updated: "2026-10-17T10:33:56.969Z"
 last_activity: 2026-10-17
 last_activity_desc: Milestone v0.2.2 completed and archived
-state_head: a387222f4ad905a43373b5cf942f20ec02ea35b8
+state_head: cbc58787fcc8b9e51c75f5b1734c94d2d8386237
 progress:
   total_phases: 5
   completed_phases: 5
@@ -237,3 +237,4 @@ Resume file: None
 | 261013-cpn | Point bbj-docs at mcp.bbj-ai.com with OAuth client settings in Claude Code and Codex | 2026-10-13 | 4409b7e | [261013-cpn-point-bbj-docs-at-mcp-bbj-ai-com-with-oa](./quick/261013-cpn-point-bbj-docs-at-mcp-bbj-ai-com-with-oa/) |
 | 261017-a1r | Record Phase 15 review dispositions | 2026-10-17 | e7f31b0 | [261017-a1r-record-phase-15-review-dispositions](./quick/261017-a1r-record-phase-15-review-dispositions/) |
 | 261017-e2f | Training-material handoff for dev-training: what attendees need to know about bbj-agent-plugins | 2026-10-17 | a387222 | [261017-e2f-training-material-handoff-for-dev-traini](./quick/261017-e2f-training-material-handoff-for-dev-traini/) |
+| 4 | Name 127.0.0.1:5009 as the MCP endpoint of bbj-ls (RPC is 5008) in README.md and docs/install.md | 2026-10-17 | cbc5878 | — |
