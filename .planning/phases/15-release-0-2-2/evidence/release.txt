@@ -1,0 +1,6 @@
+tag_object: 979e457db54aa3f606ec8495586ecc4a1feb60bf
+tag_peeled: 0e9b3c0d368573047c71e8530ac0b19f89343a3c
+release_url: https://github.com/BBj-AI/bbj-agent-plugins/releases/tag/0.2.2
+draft: false
+prerelease: false
+body_equal: yes
